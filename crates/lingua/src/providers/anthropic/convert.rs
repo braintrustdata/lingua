@@ -81,6 +81,19 @@ fn validate_anthropic_input_message(
     };
 
     for block in blocks {
+        if matches!(
+            &block.content,
+            Some(generated::InputContentBlockContent::BlockArray(nested_blocks))
+                if nested_blocks
+                    .iter()
+                    .any(|nested| matches!(nested, generated::Block::BrowserState(_)))
+        ) {
+            return Err(ConvertError::UnsupportedMapping {
+                from: "Anthropic browser_state tool result".to_string(),
+                to: "universal tool content",
+            });
+        }
+
         if let Some(toolset_name) = &block.toolset_name {
             return Err(ConvertError::UnsupportedMapping {
                 from: format!(
@@ -1385,33 +1398,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 serde_json::Value::String(s) => {
                                     Some(generated::InputContentBlockContent::PurpleString(s.clone()))
                                 }
-                                other => {
-                                    match serde_json::from_value::<Vec<generated::Block>>(
-                                        other.clone(),
-                                    ) {
-                                        Ok(blocks)
-                                            if blocks.iter().any(|block| {
-                                                matches!(block, generated::Block::BrowserState(_))
-                                            }) =>
-                                        {
-                                            Some(
-                                                generated::InputContentBlockContent::BlockArray(
-                                                    blocks,
-                                                ),
-                                            )
-                                        }
-                                        Ok(_) | Err(_) => Some(
-                                            generated::InputContentBlockContent::PurpleString(
-                                                serde_json::to_string(other).map_err(|e| {
-                                                    ConvertError::JsonSerializationFailed {
-                                                        field: "tool_result_output".to_string(),
-                                                        error: e.to_string(),
-                                                    }
-                                                })?,
-                                            ),
-                                        ),
-                                    }
-                                }
+                                other => Some(generated::InputContentBlockContent::PurpleString(
+                                    serde_json::to_string(other)
+                                        .map_err(|e| ConvertError::JsonSerializationFailed {
+                                            field: "tool_result_output".to_string(),
+                                            error: e.to_string(),
+                                        })?,
+                                )),
                             };
 
                             blocks.push(generated::InputContentBlock {
@@ -2887,7 +2880,7 @@ mod tests {
     }
 
     #[test]
-    fn anthropic_browser_state_tool_result_round_trips_as_structured_content() {
+    fn anthropic_browser_state_tool_result_is_rejected_explicitly() {
         let input = input_message(json!({
             "role": "user",
             "content": [{
@@ -2909,27 +2902,15 @@ mod tests {
             }]
         }));
 
-        let universal = <Message as TryFromLLM<generated::InputMessage>>::try_from(input)
-            .expect("browser state tool result should import");
-        let replayed = <generated::InputMessage as TryFromLLM<Message>>::try_from(universal)
-            .expect("browser state tool result should replay");
-
-        let generated::MessageContent::InputContentBlockArray(blocks) = replayed.content else {
-            panic!("expected Anthropic content block array");
-        };
-        let Some(generated::InputContentBlockContent::BlockArray(content)) = &blocks[0].content
-        else {
-            panic!(
-                "expected structured tool-result content, got {:?}",
-                blocks[0].content
-            );
-        };
-        let generated::Block::BrowserState(browser_state) = &content[0] else {
-            panic!("expected browser_state block, got {:?}", content[0]);
-        };
-        assert_eq!(browser_state.tabs[0].tab_id, "tab_1");
-        assert_eq!(browser_state.tabs[0].url, "https://example.com");
-        assert_eq!(browser_state.state_changes.as_ref().map(Vec::len), Some(1));
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input)
+            .expect_err("browser state has no universal representation");
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedMapping {
+                ref from,
+                to: "universal tool content"
+            } if from == "Anthropic browser_state tool result"
+        ));
     }
 
     #[test]

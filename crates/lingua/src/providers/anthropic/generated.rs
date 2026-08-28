@@ -597,9 +597,11 @@ pub enum Block {
 pub struct RequestBrowserStateBlock {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub cache_control: Option<CacheControlEphemeral>,
     /// Tabs opened and download state changes during this call. "Nothing to report" is expressed by omitting the field, never by an empty list.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub state_changes: Option<Vec<BrowserStateChange>>,
     /// All tabs open in the browser after this call — the full inventory, not a delta. May be empty. Whenever non-empty, exactly one entry carries `active: true`.
     pub tabs: Vec<BrowserStateTabEntry>,
@@ -657,9 +659,11 @@ pub struct BrowserStateChangeDownloadCompleted {
     pub download_id: String,
     /// Where the executor saved the file, on the executor's filesystem. Only included when another tool in the same environment can read the file at that path.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub path: Option<String>,
     /// The completed download's size.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub size_bytes: Option<i64>,
     /// The final post-redirect URL the download was served from.
     pub url: String,
@@ -674,6 +678,7 @@ pub struct BrowserStateChangeDownloadFailed {
     pub download_id: String,
     /// The failure or cancellation detail, when known.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub error: Option<String>,
     /// The final post-redirect URL the download was served from.
     pub url: String,
@@ -919,7 +924,9 @@ pub enum Base64ImageSourceMediaType {
 pub struct BrowserStateTabEntry {
     /// Whether this tab is the active tab after this call. Whenever `tabs` is non-empty, exactly
     /// one entry is marked `active: true`.
+    #[serde(default, deserialize_with = "super::deserialize_optional_non_null")]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub active: Option<bool>,
     /// The caller-assigned identifier for this tab, unique within the inventory.
     pub tab_id: String,

@@ -11,7 +11,7 @@ download_id: string,
 /**
  * The failure or cancellation detail, when known.
  */
-error: string | null, 
+error?: string | null, 
 /**
  * The final post-redirect URL the download was served from.
  */

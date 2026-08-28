@@ -16,11 +16,11 @@ export type RequestBrowserStateBlock = {
 /**
  * Create a cache control breakpoint at this content block.
  */
-cache_control: CacheControlEphemeral | null, 
+cache_control?: CacheControlEphemeral | null, 
 /**
  * Tabs opened and download state changes during this call. "Nothing to report" is expressed by omitting the field, never by an empty list.
  */
-state_changes: Array<BrowserStateChange> | null, 
+state_changes?: Array<BrowserStateChange> | null, 
 /**
  * All tabs open in the browser after this call — the full inventory, not a delta. May be empty. Whenever non-empty, exactly one entry carries `active: true`.
  */

@@ -50,7 +50,19 @@ pub fn validate_anthropic_request(json: &str) -> Result<CreateMessageParams, Val
             {
                 for nested in nested_blocks {
                     let (nested, allows_transformations) = match nested {
-                        generated::Block::BrowserState(_) => continue,
+                        generated::Block::BrowserState(browser_state) => {
+                            if browser_state
+                                .state_changes
+                                .as_ref()
+                                .is_some_and(Vec::is_empty)
+                            {
+                                return Err(ValidationError::DeserializationFailed(
+                                    "Anthropic browser_state.state_changes must not be empty"
+                                        .to_string(),
+                                ));
+                            }
+                            continue;
+                        }
                         generated::Block::Image(block) => (block, true),
                         generated::Block::Document(block)
                         | generated::Block::SearchResult(block)
@@ -770,6 +782,18 @@ mod tests {
         assert!(validate_anthropic_request(json).is_ok());
         let invalid = json.replace("\"active\": true", "\"active\": true, \"bogus\": true");
         assert!(validate_anthropic_request(&invalid).is_err());
+
+        let null_active = json.replace("\"active\": true", "\"active\": null");
+        assert!(validate_anthropic_request(&null_active).is_err());
+
+        let empty_state_changes = json.replace(
+            r#""state_changes": [{
+                            "type": "tab_opened",
+                            "tab_id": "tab_123"
+                        }]"#,
+            r#""state_changes": []"#,
+        );
+        assert!(validate_anthropic_request(&empty_state_changes).is_err());
     }
 
     #[test]

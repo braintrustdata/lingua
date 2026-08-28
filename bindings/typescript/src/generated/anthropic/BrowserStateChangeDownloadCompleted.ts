@@ -14,11 +14,11 @@ download_id: string,
 /**
  * Where the executor saved the file, on the executor's filesystem. Only included when another tool in the same environment can read the file at that path.
  */
-path: string | null, 
+path?: string | null, 
 /**
  * The completed download's size.
  */
-size_bytes: bigint | null, 
+size_bytes?: bigint | null, 
 /**
  * The final post-redirect URL the download was served from.
  */

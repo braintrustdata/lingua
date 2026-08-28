@@ -15,7 +15,7 @@ export type BrowserStateTabEntry = {
  * Whether this tab is the active tab after this call. Whenever `tabs` is non-empty, exactly
  * one entry is marked `active: true`.
  */
-active: boolean | null, 
+active?: boolean, 
 /**
  * The caller-assigned identifier for this tab, unique within the inventory.
  */

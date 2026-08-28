@@ -498,6 +498,13 @@ fn generate_tool_struct_direct(
         schema_name,
         "BrowserToolset_20260801" | "ComputerToolset_20260801"
     );
+    let preserves_browser_state_optionality = provider == "anthropic"
+        && matches!(
+            schema_name,
+            "RequestBrowserStateBlock"
+                | "BrowserStateChangeDownloadCompleted"
+                | "BrowserStateChangeDownloadFailed"
+        );
     if (typed_references || strict_toolset)
         && schema
             .get("additionalProperties")
@@ -559,6 +566,13 @@ fn generate_tool_struct_direct(
 
             if !is_required {
                 output.push_str("    #[serde(skip_serializing_if = \"Option::is_none\")]\n");
+                if preserves_browser_state_optionality {
+                    if schema_allows_null(prop_schema) {
+                        output.push_str("    #[ts(optional = nullable)]\n");
+                    } else {
+                        output.push_str("    #[ts(optional)]\n");
+                    }
+                }
             }
 
             if needs_rename {
@@ -580,6 +594,16 @@ fn generate_tool_struct_direct(
 
     output.push_str("}\n");
     output
+}
+
+fn schema_allows_null(schema: &serde_json::Value) -> bool {
+    schema.get("type").and_then(|value| value.as_str()) == Some("null")
+        || ["anyOf", "oneOf"].into_iter().any(|union| {
+            schema
+                .get(union)
+                .and_then(|variants| variants.as_array())
+                .is_some_and(|variants| variants.iter().any(schema_allows_null))
+        })
 }
 
 fn generate_referenced_schema_structs(
@@ -756,7 +780,39 @@ pub fn preserve_anthropic_browser_state_types(
     ] {
         processed = processed.replacen(obsolete, "", 1);
     }
-    Ok(processed)
+    preserve_anthropic_browser_tab_active(&processed, spec)
+}
+
+fn preserve_anthropic_browser_tab_active(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schema = get_schemas(spec)
+        .and_then(|schemas| schemas.get("BrowserStateTabEntry"))
+        .ok_or("BrowserStateTabEntry schema not found")?;
+    let active = schema
+        .get("properties")
+        .and_then(|properties| properties.get("active"))
+        .ok_or("BrowserStateTabEntry.active schema not found")?;
+    let active_is_required = schema
+        .get("required")
+        .and_then(|required| required.as_array())
+        .is_some_and(|required| {
+            required
+                .iter()
+                .any(|field| field.as_str() == Some("active"))
+        });
+    if active_is_required || schema_allows_null(active) {
+        return Err("BrowserStateTabEntry.active is no longer optional and non-null".into());
+    }
+
+    let old =
+        "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub active: Option<bool>,";
+    if !existing.contains(old) {
+        return Err("Missing generated optional BrowserStateTabEntry.active field".into());
+    }
+    let new = "    #[serde(default, deserialize_with = \"super::deserialize_optional_non_null\")]\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    #[ts(optional)]\n    pub active: Option<bool>,";
+    Ok(existing.replacen(old, new, 1))
 }
 
 /// Replace quicktype's flattened image/document source struct with a tagged enum.
@@ -1219,7 +1275,8 @@ fn split_type_definitions(content: &str) -> Vec<(String, String)> {
 mod tests {
     use super::{
         enforce_anthropic_closed_request_types, generate_all_tool_code,
-        generate_anthropic_browser_state_types, preserve_anthropic_optional_transformation_fields,
+        generate_anthropic_browser_state_types, preserve_anthropic_browser_tab_active,
+        preserve_anthropic_optional_transformation_fields,
         preserve_anthropic_required_nullable_fields, preserve_anthropic_source_types,
     };
     use big_serde_json as serde_json;
@@ -1424,11 +1481,38 @@ mod tests {
         assert!(generated.contains("BrowserState(RequestBrowserStateBlock)"));
         assert!(generated.contains("WebSearchResult(NonBrowserBlock)"));
         assert!(generated.contains("pub tabs: Vec<BrowserStateTabEntry>,"));
-        assert!(generated.contains("pub state_changes: Option<Vec<BrowserStateChange>>,"));
+        assert!(generated.contains(
+            "#[ts(optional = nullable)]\n    pub state_changes: Option<Vec<BrowserStateChange>>"
+        ));
+        assert!(generated.contains(
+            "#[ts(optional = nullable)]\n    pub cache_control: Option<CacheControlEphemeral>"
+        ));
+        assert!(generated.contains("#[ts(optional = nullable)]\n    pub path: Option<String>"));
+        assert!(generated.contains("#[ts(optional = nullable)]\n    pub size_bytes: Option<i64>"));
+        assert!(generated.contains("#[ts(optional = nullable)]\n    pub error: Option<String>"));
         assert!(generated.contains("pub enum BrowserStateChange"));
         assert!(generated.contains("DownloadStarted(BrowserStateChangeDownloadStarted)"));
         assert!(generated.contains("pub download_id: String,"));
         assert!(generated.contains("pub url: String,"));
+    }
+
+    #[test]
+    fn anthropic_browser_tab_active_remains_optional_and_non_null() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"pub struct BrowserStateTabEntry {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active: Option<bool>,
+}"#;
+
+        let generated = preserve_anthropic_browser_tab_active(quicktype, &spec)
+            .expect("active should remain optional and non-null");
+
+        assert!(generated.contains(
+            "#[serde(default, deserialize_with = \"super::deserialize_optional_non_null\")]"
+        ));
+        assert!(generated.contains("#[ts(optional)]\n    pub active: Option<bool>"));
     }
 
     #[test]

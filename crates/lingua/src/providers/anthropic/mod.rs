@@ -23,6 +23,16 @@ where
     <Option<T> as serde::Deserialize>::deserialize(deserializer)
 }
 
+pub(crate) fn deserialize_optional_non_null<'de, D, T>(
+    deserializer: D,
+) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::Deserialize<'de>,
+{
+    T::deserialize(deserializer).map(Some)
+}
+
 #[cfg(test)]
 pub mod test_anthropic;
 
