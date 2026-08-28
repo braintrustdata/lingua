@@ -117,7 +117,7 @@ Some transformations are impossible. They should fail explicitly and be document
 }
 ```
 
-The recorded error should describe the unsupported semantic boundary. Do not use expected errors or snapshot updates to conceal accidental field loss.
+The manifest is bookkeeping for known harness failures; it does not assert the thrown error's identity. For an unsupported mapping, add a focused converter test that checks a stable error variant or category and the relevant semantic context without coupling the test to exact prose. Do not use the manifest or snapshot updates as a substitute for that test or to conceal accidental field loss.
 
 ## Workflow
 
