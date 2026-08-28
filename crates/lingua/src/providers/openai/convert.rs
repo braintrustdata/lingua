@@ -9,10 +9,10 @@ use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
 use crate::universal::{
-    AssistantContent, AssistantContentPart, CacheControl, Message, ProviderOptions,
-    TextContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
-    ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
-    UserContentPart,
+    AssistantContent, AssistantContentPart, CacheControl, ImageTransformations, Message,
+    OversizedImagePolicy, ProviderOptions, TextContentPart, ToolCallArguments, ToolCaller,
+    ToolCallerType, ToolContentPart, ToolDiscoveryResultContentPart, ToolDiscoveryResultItem,
+    ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::{
     infer_mime_type_from_reference, is_remote_media_uri, parse_base64_data_url,
@@ -20,6 +20,25 @@ use crate::util::media::{
 use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
+
+fn reject_unsupported_image_error_policy(
+    transformations: &Option<ImageTransformations>,
+    target: &'static str,
+) -> Result<(), ConvertError> {
+    if transformations.as_ref().is_some_and(|transformations| {
+        matches!(
+            transformations.oversized_image,
+            Some(OversizedImagePolicy::Error)
+        )
+    }) {
+        return Err(ConvertError::UnsupportedMapping {
+            from: "Lingua image transformations.oversized_image `error`".to_string(),
+            to: target,
+        });
+    }
+
+    Ok(())
+}
 
 fn tool_caller_from_provider<T>(caller: Option<T>) -> Result<Option<ToolCaller>, ConvertError>
 where
@@ -1801,6 +1820,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 UserContentPart::Image {
                     image: serde_json::Value::String(image_data),
                     media_type,
+                    transformations: None,
                     provider_options,
                 }
             }
@@ -1906,8 +1926,13 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
             UserContentPart::Image {
                 image,
                 media_type,
+                transformations,
                 provider_options,
             } => {
+                reject_unsupported_image_error_policy(
+                    &transformations,
+                    "OpenAI Responses image input",
+                )?;
                 let image_str = match image {
                     serde_json::Value::String(url) => url,
                     _ => {
@@ -4793,6 +4818,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     Ok(UserContentPart::Image {
                         image: serde_json::Value::String(image_data),
                         media_type,
+                        transformations: None,
                         provider_options: None,
                     })
                 } else {
@@ -4880,6 +4906,7 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                     Ok(UserContentPart::Image {
                         image: serde_json::Value::String(image_data),
                         media_type,
+                        transformations: None,
                         provider_options: None,
                     })
                 } else {
@@ -5177,8 +5204,13 @@ fn convert_user_content_part_to_chat_completion_part(
         UserContentPart::Image {
             image,
             media_type,
+            transformations,
             provider_options: _,
         } => {
+            reject_unsupported_image_error_policy(
+                &transformations,
+                "OpenAI Chat Completions image input",
+            )?;
             // Convert image to ImageUrl format
             let image_str = match image {
                 serde_json::Value::String(url) => url,
@@ -5613,6 +5645,54 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
 mod tests {
     use super::*;
     use crate::serde_json::json;
+
+    fn image_with_policy(policy: OversizedImagePolicy) -> UserContentPart {
+        UserContentPart::Image {
+            image: serde_json::Value::String("https://example.com/image.jpg".to_string()),
+            media_type: Some("image/jpeg".to_string()),
+            transformations: Some(ImageTransformations {
+                oversized_image: Some(policy),
+            }),
+            provider_options: None,
+        }
+    }
+
+    #[test]
+    fn image_error_policy_is_rejected_by_openai_exports() {
+        let responses_error = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(
+            image_with_policy(OversizedImagePolicy::Error),
+        )
+        .expect_err("Responses must not silently weaken the image error policy");
+        assert!(matches!(
+            responses_error,
+            ConvertError::UnsupportedMapping { .. }
+        ));
+
+        let chat_error = convert_user_content_part_to_chat_completion_part(image_with_policy(
+            OversizedImagePolicy::Error,
+        ))
+        .expect_err("Chat Completions must not silently weaken the image error policy");
+        assert!(matches!(
+            chat_error,
+            ConvertError::UnsupportedMapping { .. }
+        ));
+    }
+
+    #[test]
+    fn image_downsize_policy_is_allowed_by_openai_exports() {
+        assert!(
+            <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(image_with_policy(
+                OversizedImagePolicy::Downsize
+            ))
+            .is_ok()
+        );
+        assert!(
+            convert_user_content_part_to_chat_completion_part(image_with_policy(
+                OversizedImagePolicy::Downsize
+            ))
+            .is_ok()
+        );
+    }
 
     #[test]
     fn tool_caller_from_provider_rejects_program_without_caller_id() {

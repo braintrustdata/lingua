@@ -23,8 +23,9 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::DEFAULT_MIME_TYPE;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, ProviderOptions, TextContentPart,
-    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, ImageTransformations, Message, OversizedImagePolicy,
+    ProviderOptions, TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart,
+    UserContent, UserContentPart,
 };
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
@@ -40,6 +41,24 @@ use crate::util::media::{
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
+
+fn reject_unsupported_image_error_policy(
+    transformations: &Option<ImageTransformations>,
+) -> Result<(), ConvertError> {
+    if transformations.as_ref().is_some_and(|transformations| {
+        matches!(
+            transformations.oversized_image,
+            Some(OversizedImagePolicy::Error)
+        )
+    }) {
+        return Err(ConvertError::UnsupportedMapping {
+            from: "Lingua image transformations.oversized_image `error`".to_string(),
+            to: "Google image input",
+        });
+    }
+
+    Ok(())
+}
 
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
@@ -307,6 +326,7 @@ impl TryFromLLM<GoogleContent> for Message {
                                 user_parts.push(UserContentPart::Image {
                                     image: Value::String(data.clone()),
                                     media_type: Some(mime_type),
+                                    transformations: None,
                                     provider_options: None,
                                 });
                             } else {
@@ -328,6 +348,7 @@ impl TryFromLLM<GoogleContent> for Message {
                                 user_parts.push(UserContentPart::Image {
                                     image: Value::String(uri.clone()),
                                     media_type: Some(mime_type),
+                                    transformations: None,
                                     provider_options: None,
                                 });
                             } else {
@@ -424,8 +445,10 @@ impl TryFromLLM<Message> for GoogleContent {
                                 UserContentPart::Image {
                                     image: Value::String(data),
                                     media_type,
+                                    transformations,
                                     ..
                                 } => {
+                                    reject_unsupported_image_error_policy(&transformations)?;
                                     if let Some(block) = parse_base64_data_url(&data) {
                                         converted.push(GooglePart {
                                             inline_data: Some(GoogleBlob {
@@ -1404,6 +1427,36 @@ mod tests {
     use crate::serde_json::json;
     use serde::Deserialize;
 
+    fn google_image_message_with_policy(policy: OversizedImagePolicy) -> Message {
+        Message::User {
+            content: UserContent::Array(vec![UserContentPart::Image {
+                image: Value::String("https://example.com/image.jpg".to_string()),
+                media_type: Some("image/jpeg".to_string()),
+                transformations: Some(ImageTransformations {
+                    oversized_image: Some(policy),
+                }),
+                provider_options: None,
+            }]),
+        }
+    }
+
+    #[test]
+    fn test_google_image_error_policy_is_rejected() {
+        let error = <GoogleContent as TryFromLLM<Message>>::try_from(
+            google_image_message_with_policy(OversizedImagePolicy::Error),
+        )
+        .expect_err("Google must not silently weaken the image error policy");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+    }
+
+    #[test]
+    fn test_google_image_downsize_policy_is_allowed() {
+        assert!(<GoogleContent as TryFromLLM<Message>>::try_from(
+            google_image_message_with_policy(OversizedImagePolicy::Downsize),
+        )
+        .is_ok());
+    }
+
     #[derive(Debug, Deserialize)]
     struct JsonSchemaMetadataView {
         #[serde(default)]
@@ -1827,6 +1880,7 @@ mod tests {
             content: UserContent::Array(vec![UserContentPart::Image {
                 image: Value::String("https://example.com/image.jpg".to_string()),
                 media_type: None,
+                transformations: None,
                 provider_options: None,
             }]),
         };
@@ -1850,6 +1904,7 @@ mod tests {
             content: UserContent::Array(vec![UserContentPart::Image {
                 image: Value::String("https://example.com/image".to_string()),
                 media_type: None,
+                transformations: None,
                 provider_options: None,
             }]),
         };

@@ -10,6 +10,8 @@ export type { CacheControl } from "./generated/CacheControl";
 export type { CacheControlTtl } from "./generated/CacheControlTtl";
 export type { CacheControlType } from "./generated/CacheControlType";
 export type { TextContentPart } from "./generated/TextContentPart";
+export type { ImageTransformations } from "./generated/ImageTransformations";
+export type { OversizedImagePolicy } from "./generated/OversizedImagePolicy";
 export type { ToolCallArguments } from "./generated/ToolCallArguments";
 export type { ToolCallContentPart } from "./generated/ToolCallContentPart";
 export type { ToolContentPart } from "./generated/ToolContentPart";

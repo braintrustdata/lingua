@@ -97,6 +97,198 @@ pub fn replace_tool_struct_with_enum(existing: &str, tool_code: &str) -> String 
     out
 }
 
+pub fn enforce_anthropic_closed_request_types(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    let mut strict_config_types = HashSet::new();
+
+    for toolset_configs in ["BrowserToolsetConfigs", "ComputerToolsetConfigs"] {
+        let properties = schemas
+            .get(toolset_configs)
+            .and_then(|schema| schema.get("properties"))
+            .and_then(|properties| properties.as_object())
+            .ok_or_else(|| format!("Missing {toolset_configs} properties"))?;
+
+        for property in properties.values() {
+            let Some(schema_name) = nullable_referenced_schema_name(property) else {
+                continue;
+            };
+            if schemas
+                .get(schema_name)
+                .and_then(|schema| schema.get("additionalProperties"))
+                .and_then(|value| value.as_bool())
+                == Some(false)
+            {
+                strict_config_types.insert(schema_name_to_rust_type(schema_name));
+            }
+        }
+    }
+    for schema_name in [
+        "RequestImageTransformations",
+        "ContainerParams",
+        "SkillParams",
+        "BrowserStateTabEntry",
+    ] {
+        if schemas
+            .get(schema_name)
+            .and_then(|schema| schema.get("additionalProperties"))
+            .and_then(|value| value.as_bool())
+            != Some(false)
+        {
+            return Err(format!("{schema_name} is no longer a closed object").into());
+        }
+        strict_config_types.insert(schema_name_to_rust_type(schema_name));
+    }
+
+    let mut output = existing.to_string();
+    for (name, block) in split_type_definitions(existing) {
+        if !strict_config_types.contains(&name) || block.contains("#[serde(deny_unknown_fields)]") {
+            continue;
+        }
+        let derive_end = block
+            .find("#[derive(")
+            .and_then(|start| block[start..].find('\n').map(|end| start + end + 1))
+            .ok_or_else(|| format!("Missing derive attribute for {name}"))?;
+        let mut replacement = block.clone();
+        replacement.insert_str(derive_end, "#[serde(deny_unknown_fields)]\n");
+        output = output.replacen(&block, &replacement, 1);
+    }
+
+    Ok(output)
+}
+
+pub fn preserve_anthropic_optional_transformation_fields(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    for (schema_name, field_name) in [
+        ("RequestImageBlock", "transformations"),
+        ("RequestImageTransformations", "oversized_image"),
+    ] {
+        let required = schemas
+            .get(schema_name)
+            .and_then(|schema| schema.get("required"))
+            .and_then(|required| required.as_array());
+        if required.is_some_and(|required| {
+            required
+                .iter()
+                .any(|field| field.as_str() == Some(field_name))
+        }) {
+            return Err(format!("{schema_name}.{field_name} is no longer optional").into());
+        }
+    }
+
+    let mut output = existing.to_string();
+    for (field_name, field_type) in [
+        ("transformations", "RequestImageTransformations"),
+        ("oversized_image", "OversizedImage"),
+    ] {
+        let old = format!(
+            "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub {field_name}: Option<{field_type}>,"
+        );
+        if !output.contains(&old) {
+            return Err(format!("Missing generated optional {field_name} field").into());
+        }
+        let new = format!(
+            "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    #[ts(optional = nullable)]\n    pub {field_name}: Option<{field_type}>,"
+        );
+        output = output.replace(&old, &new);
+    }
+    Ok(output)
+}
+
+pub fn preserve_anthropic_optional_toolset_name(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    for schema_name in ["RequestToolUseBlock", "RequestToolResultBlock"] {
+        let schema = schemas
+            .get(schema_name)
+            .ok_or_else(|| format!("Missing {schema_name} schema"))?;
+        let is_required = schema
+            .get("required")
+            .and_then(|required| required.as_array())
+            .is_some_and(|required| {
+                required
+                    .iter()
+                    .any(|field| field.as_str() == Some("toolset_name"))
+            });
+        let is_nullable = schema
+            .get("properties")
+            .and_then(|properties| properties.get("toolset_name"))
+            .and_then(|field| field.get("anyOf"))
+            .and_then(|variants| variants.as_array())
+            .is_some_and(|variants| {
+                variants.iter().any(|variant| {
+                    variant.get("type").and_then(|kind| kind.as_str()) == Some("null")
+                })
+            });
+        if is_required || !is_nullable {
+            return Err(
+                format!("{schema_name}.toolset_name is no longer optional and nullable").into(),
+            );
+        }
+    }
+
+    let input_block = split_type_definitions(existing)
+        .into_iter()
+        .find_map(|(name, block)| (name == "InputContentBlock").then_some(block))
+        .ok_or("Missing generated InputContentBlock")?;
+    let old = "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub toolset_name: Option<String>,";
+    if !input_block.contains(old) {
+        return Err("Missing generated optional InputContentBlock.toolset_name field".into());
+    }
+    let new = "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    #[ts(optional = nullable)]\n    pub toolset_name: Option<String>,";
+    let replacement = input_block.replacen(old, new, 1);
+
+    Ok(existing.replacen(&input_block, &replacement, 1))
+}
+
+pub fn preserve_anthropic_required_nullable_fields(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    let container = schemas.get("Container").ok_or("Missing Container schema")?;
+    let skills_is_required = container
+        .get("required")
+        .and_then(|required| required.as_array())
+        .is_some_and(|required| {
+            required
+                .iter()
+                .any(|field| field.as_str() == Some("skills"))
+        });
+    let skills_is_nullable = container
+        .get("properties")
+        .and_then(|properties| properties.get("skills"))
+        .and_then(|skills| skills.get("anyOf"))
+        .and_then(|variants| variants.as_array())
+        .is_some_and(|variants| {
+            variants
+                .iter()
+                .any(|variant| variant.get("type").and_then(|value| value.as_str()) == Some("null"))
+        });
+    if !skills_is_required || !skills_is_nullable {
+        return Err("Container.skills is no longer required and nullable".into());
+    }
+
+    let (_, block) = split_type_definitions(existing)
+        .into_iter()
+        .find(|(name, _)| name == "Container")
+        .ok_or("Missing generated Container type")?;
+    let old = "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub skills: Option<Vec<ContainerSkill>>,";
+    let new = "    #[serde(deserialize_with = \"super::deserialize_required_nullable\")]\n    pub skills: Option<Vec<ContainerSkill>>,";
+    if !block.contains(old) {
+        return Err("Missing generated optional Container.skills field".into());
+    }
+    let replacement = block.replacen(old, new, 1);
+    Ok(existing.replacen(&block, &replacement, 1))
+}
+
 // -------------------------------------------------------------------------
 // Extraction functions
 // -------------------------------------------------------------------------
@@ -233,8 +425,13 @@ fn generate_tool_structs(
         if let Some(schema) = all_schemas.get(client_schema) {
             if seen.insert(gen_name.to_string()) {
                 // Generate the struct with potentially renamed name
-                let mut code =
-                    generate_tool_struct_direct(client_schema, schema, all_schemas, provider);
+                let mut code = generate_tool_struct_direct(
+                    client_schema,
+                    schema,
+                    all_schemas,
+                    provider,
+                    false,
+                );
 
                 // Rename Tool -> CustomTool if needed
                 if client_schema == "Tool" {
@@ -251,10 +448,27 @@ fn generate_tool_structs(
         let schema_name = &provider_tool.schema_name;
 
         if let Some(schema) = all_schemas.get(schema_name) {
+            if provider == "anthropic" {
+                if let Some(config_schema_name) = schema
+                    .get("properties")
+                    .and_then(|properties| properties.get("configs"))
+                    .and_then(nullable_referenced_schema_name)
+                {
+                    generate_referenced_schema_structs(
+                        config_schema_name,
+                        all_schemas,
+                        provider,
+                        &mut seen,
+                        &mut generated_structs,
+                    );
+                }
+            }
+
             let rust_name = schema_name_to_rust_type(schema_name);
 
             if seen.insert(rust_name.clone()) {
-                let code = generate_tool_struct_direct(schema_name, schema, all_schemas, provider);
+                let code =
+                    generate_tool_struct_direct(schema_name, schema, all_schemas, provider, false);
                 generated_structs.push(code);
             }
         }
@@ -313,6 +527,7 @@ fn generate_tool_struct_direct(
     schema: &serde_json::Value,
     all_schemas: &serde_json::Map<String, serde_json::Value>,
     provider: &str,
+    typed_references: bool,
 ) -> String {
     let rust_name = schema_name_to_rust_type(schema_name);
 
@@ -327,6 +542,25 @@ fn generate_tool_struct_direct(
 
     // Add derives
     output.push_str("#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n");
+    let strict_toolset = matches!(
+        schema_name,
+        "BrowserToolset_20260801" | "ComputerToolset_20260801"
+    );
+    let preserves_browser_state_optionality = provider == "anthropic"
+        && matches!(
+            schema_name,
+            "RequestBrowserStateBlock"
+                | "BrowserStateChangeDownloadCompleted"
+                | "BrowserStateChangeDownloadFailed"
+        );
+    if (typed_references || strict_toolset)
+        && schema
+            .get("additionalProperties")
+            .and_then(|value| value.as_bool())
+            == Some(false)
+    {
+        output.push_str("#[serde(deny_unknown_fields)]\n");
+    }
     output.push_str(&format!("#[ts(export_to = \"{}/\")]\n", provider));
     output.push_str(&format!("pub struct {} {{\n", rust_name));
 
@@ -346,8 +580,13 @@ fn generate_tool_struct_direct(
 
     if let Some(properties) = props {
         for (prop_name, prop_schema) in properties {
-            // Skip the "type" field - it's handled by serde tag on the enum
-            if prop_name == "type" {
+            // Skip discriminators. The two toolset config maps are the exception: `type` is the
+            // name of a configurable member tool there, not this object's discriminator.
+            let preserves_type_member = matches!(
+                schema_name,
+                "BrowserToolsetConfigs" | "ComputerToolsetConfigs"
+            );
+            if prop_name == "type" && !preserves_type_member {
                 continue;
             }
 
@@ -355,6 +594,10 @@ fn generate_tool_struct_direct(
             let rust_type = match (provider, prop_name.as_str()) {
                 ("anthropic", "allowed_callers") => "Vec<AllowedCaller>".to_string(),
                 ("anthropic", "response_inclusion") => "ResponseInclusion".to_string(),
+                ("anthropic", "configs") => typed_referenced_schema_type(prop_schema)
+                    .unwrap_or_else(|| schema_type_to_rust(prop_schema, all_schemas)),
+                _ if typed_references => typed_referenced_schema_type(prop_schema)
+                    .unwrap_or_else(|| schema_type_to_rust(prop_schema, all_schemas)),
                 _ => schema_type_to_rust(prop_schema, all_schemas),
             };
             let is_required = required.contains(prop_name);
@@ -371,6 +614,13 @@ fn generate_tool_struct_direct(
 
             if !is_required {
                 output.push_str("    #[serde(skip_serializing_if = \"Option::is_none\")]\n");
+                if preserves_browser_state_optionality {
+                    if schema_allows_null(prop_schema) {
+                        output.push_str("    #[ts(optional = nullable)]\n");
+                    } else {
+                        output.push_str("    #[ts(optional)]\n");
+                    }
+                }
             }
 
             if needs_rename {
@@ -392,6 +642,551 @@ fn generate_tool_struct_direct(
 
     output.push_str("}\n");
     output
+}
+
+fn schema_allows_null(schema: &serde_json::Value) -> bool {
+    schema.get("type").and_then(|value| value.as_str()) == Some("null")
+        || ["anyOf", "oneOf"].into_iter().any(|union| {
+            schema
+                .get(union)
+                .and_then(|variants| variants.as_array())
+                .is_some_and(|variants| variants.iter().any(schema_allows_null))
+        })
+}
+
+fn generate_referenced_schema_structs(
+    schema_name: &str,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    provider: &str,
+    seen: &mut HashSet<String>,
+    generated_structs: &mut Vec<String>,
+) {
+    let rust_name = schema_name_to_rust_type(schema_name);
+    if !seen.insert(rust_name) {
+        return;
+    }
+
+    let Some(schema) = all_schemas.get(schema_name) else {
+        return;
+    };
+
+    let mut dependencies = Vec::new();
+    collect_referenced_schema_names(schema, &mut dependencies);
+    for dependency in dependencies {
+        generate_referenced_schema_structs(
+            &dependency,
+            all_schemas,
+            provider,
+            seen,
+            generated_structs,
+        );
+    }
+
+    generated_structs.push(generate_tool_struct_direct(
+        schema_name,
+        schema,
+        all_schemas,
+        provider,
+        true,
+    ));
+}
+
+fn collect_referenced_schema_names(schema: &serde_json::Value, names: &mut Vec<String>) {
+    match schema {
+        serde_json::Value::Object(object) => {
+            if let Some(name) = object
+                .get("$ref")
+                .and_then(|reference| reference.as_str())
+                .and_then(|reference| reference.split('/').next_back())
+            {
+                if !names.iter().any(|existing| existing == name) {
+                    names.push(name.to_string());
+                }
+            }
+            for value in object.values() {
+                collect_referenced_schema_names(value, names);
+            }
+        }
+        serde_json::Value::Array(array) => {
+            for value in array {
+                collect_referenced_schema_names(value, names);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn nullable_referenced_schema_name(schema: &serde_json::Value) -> Option<&str> {
+    schema
+        .get("$ref")
+        .and_then(|reference| reference.as_str())
+        .or_else(|| {
+            schema
+                .get("anyOf")
+                .or_else(|| schema.get("oneOf"))
+                .and_then(|variants| variants.as_array())
+                .and_then(|variants| {
+                    let mut references = variants.iter().filter_map(|variant| {
+                        variant.get("$ref").and_then(|reference| reference.as_str())
+                    });
+                    let reference = references.next()?;
+                    references.next().is_none().then_some(reference)
+                })
+        })?
+        .split('/')
+        .next_back()
+}
+
+fn typed_referenced_schema_type(schema: &serde_json::Value) -> Option<String> {
+    if let Some(schema_name) = schema
+        .get("$ref")
+        .and_then(|reference| reference.as_str())
+        .and_then(|reference| reference.split('/').next_back())
+    {
+        return Some(schema_name_to_rust_type(schema_name));
+    }
+
+    if let Some(variants) = schema
+        .get("anyOf")
+        .or_else(|| schema.get("oneOf"))
+        .and_then(|variants| variants.as_array())
+    {
+        let non_null = variants
+            .iter()
+            .filter(|variant| variant.get("type").and_then(|value| value.as_str()) != Some("null"))
+            .collect::<Vec<_>>();
+        if non_null.len() == 1 {
+            return typed_referenced_schema_type(non_null[0]);
+        }
+
+        let referenced_names = non_null
+            .iter()
+            .filter_map(|variant| {
+                variant
+                    .get("$ref")
+                    .and_then(|reference| reference.as_str())
+                    .and_then(|reference| reference.split('/').next_back())
+            })
+            .collect::<Vec<_>>();
+        if schema.get("discriminator").is_some() && referenced_names.len() == non_null.len() {
+            return common_schema_name_prefix(&referenced_names).map(schema_name_to_rust_type);
+        }
+    }
+
+    if schema.get("type").and_then(|value| value.as_str()) == Some("array") {
+        return schema
+            .get("items")
+            .and_then(typed_referenced_schema_type)
+            .map(|item_type| format!("Vec<{item_type}>"));
+    }
+
+    None
+}
+
+fn common_schema_name_prefix<'a>(names: &[&'a str]) -> Option<&'a str> {
+    let first = *names.first()?;
+    let mut end = first.len();
+    for name in &names[1..] {
+        end = first
+            .char_indices()
+            .take_while(|(index, character)| {
+                *index < end && *index < name.len() && name[*index..].starts_with(*character)
+            })
+            .map(|(index, character)| index + character.len_utf8())
+            .last()
+            .unwrap_or(0);
+    }
+    let prefix = first[..end].trim_end_matches('_');
+    (!prefix.is_empty()).then_some(prefix)
+}
+
+/// Replace quicktype's flattened request tool-result browser state shapes with the
+/// discriminated types from the Anthropic schema. Non-browser tool-result blocks retain
+/// quicktype's existing flattened representation to keep this correction narrowly scoped.
+pub fn preserve_anthropic_browser_state_types(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let definitions = split_type_definitions(existing);
+    let block = definition_named(&definitions, "Block")?;
+    let block_type = definition_named(&definitions, "WebSearchToolResultBlockItemType")?;
+    let flattened_state_change = definition_named(&definitions, "BrowserStateChange")?;
+    let flattened_state_change_type = definition_named(&definitions, "StateChangeType")?;
+
+    let non_browser_block = remove_struct_fields(
+        &block.replace("pub struct Block {", "pub struct NonBrowserBlock {"),
+        &["block_type", "state_changes", "tabs"],
+    );
+    let precise_types = generate_anthropic_browser_state_types(spec)?;
+    let replacement = format!("\n{precise_types}\n\n{non_browser_block}");
+
+    let mut processed = existing.replacen(block, &replacement, 1);
+    for obsolete in [
+        block_type,
+        flattened_state_change,
+        flattened_state_change_type,
+    ] {
+        processed = processed.replacen(obsolete, "", 1);
+    }
+    preserve_anthropic_browser_tab_active(&processed, spec)
+}
+
+fn preserve_anthropic_browser_tab_active(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schema = get_schemas(spec)
+        .and_then(|schemas| schemas.get("BrowserStateTabEntry"))
+        .ok_or("BrowserStateTabEntry schema not found")?;
+    let active = schema
+        .get("properties")
+        .and_then(|properties| properties.get("active"))
+        .ok_or("BrowserStateTabEntry.active schema not found")?;
+    let active_is_required = schema
+        .get("required")
+        .and_then(|required| required.as_array())
+        .is_some_and(|required| {
+            required
+                .iter()
+                .any(|field| field.as_str() == Some("active"))
+        });
+    if active_is_required || schema_allows_null(active) {
+        return Err("BrowserStateTabEntry.active is no longer optional and non-null".into());
+    }
+
+    let old =
+        "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub active: Option<bool>,";
+    if !existing.contains(old) {
+        return Err("Missing generated optional BrowserStateTabEntry.active field".into());
+    }
+    let new = "    #[serde(default, deserialize_with = \"super::deserialize_optional_non_null\")]\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    #[ts(optional)]\n    pub active: Option<bool>,";
+    Ok(existing.replacen(old, new, 1))
+}
+
+/// Replace quicktype's flattened image/document source struct with a tagged enum.
+/// Anthropic requires variant-specific fields (notably `file_id` for `type: "file"`),
+/// which a single struct with optional fields cannot express at either the Rust or
+/// TypeScript boundary.
+pub fn preserve_anthropic_source_types(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    for schema_name in ["FileImageSource", "FileDocumentSource"] {
+        let required = schemas
+            .get(schema_name)
+            .and_then(|schema| schema.get("required"))
+            .and_then(|required| required.as_array())
+            .ok_or_else(|| format!("{schema_name}.required not found"))?;
+        if !required
+            .iter()
+            .any(|field| field.as_str() == Some("file_id"))
+        {
+            return Err(format!("{schema_name}.file_id is not required").into());
+        }
+    }
+
+    let definitions = split_type_definitions(existing);
+    let source = definition_named(&definitions, "Source")?;
+    let document_source = definition_named(&definitions, "RequestDocumentBlockSource")?;
+    let nested_image_source = definition_named(&definitions, "SourceSource")?;
+    let nested_image_source_type = definition_named(&definitions, "PurpleType")?;
+    let precise_source = r##"
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub enum Source {
+    Base64 {
+        data: String,
+        media_type: Base64ImageSourceMediaType,
+    },
+    Content {
+        content: Base64ImageSourceContent,
+    },
+    File {
+        file_id: String,
+    },
+    Text {
+        data: String,
+        media_type: Base64ImageSourceMediaType,
+    },
+    Url {
+        url: String,
+    },
+}"##;
+    let precise_document_source = r##"
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub enum RequestDocumentBlockSource {
+    Base64 {
+        data: String,
+        media_type: FluffyMediaType,
+    },
+    Content {
+        content: Base64ImageSourceContent,
+    },
+    File {
+        file_id: String,
+    },
+    Text {
+        data: String,
+        media_type: FluffyMediaType,
+    },
+    Url {
+        url: String,
+    },
+}"##;
+    let precise_nested_image_source = r##"
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub enum SourceSource {
+    Base64 {
+        data: String,
+        media_type: PurpleMediaType,
+    },
+    File {
+        file_id: String,
+    },
+    Url {
+        url: String,
+    },
+}"##;
+
+    Ok(existing
+        .replacen(source, precise_source, 1)
+        .replacen(document_source, precise_document_source, 1)
+        .replacen(nested_image_source, precise_nested_image_source, 1)
+        .replacen(nested_image_source_type, "", 1))
+}
+
+fn definition_named<'a>(
+    definitions: &'a [(String, String)],
+    name: &str,
+) -> Result<&'a str, Box<dyn std::error::Error>> {
+    definitions
+        .iter()
+        .find_map(|(definition_name, block)| (definition_name == name).then_some(block.as_str()))
+        .ok_or_else(|| format!("generated Anthropic type `{name}` was not found").into())
+}
+
+fn remove_struct_fields(block: &str, removed_fields: &[&str]) -> String {
+    let mut output = Vec::new();
+    let mut pending = Vec::new();
+    let mut inside_struct = false;
+
+    for line in block.lines() {
+        if !inside_struct {
+            output.push(line);
+            inside_struct = line.trim_start().starts_with("pub struct ");
+            continue;
+        }
+
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("///") || trimmed.starts_with("#[") || trimmed.is_empty() {
+            pending.push(line);
+            continue;
+        }
+
+        if let Some(field_name) = trimmed
+            .strip_prefix("pub ")
+            .and_then(|field| field.split(':').next())
+        {
+            if !removed_fields.contains(&field_name) {
+                output.append(&mut pending);
+                output.push(line);
+            } else {
+                pending.clear();
+            }
+            continue;
+        }
+
+        output.append(&mut pending);
+        output.push(line);
+    }
+
+    output.join("\n")
+}
+
+fn generate_anthropic_browser_state_types(
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    let browser_state_schema = schemas
+        .get("RequestBrowserStateBlock")
+        .ok_or("RequestBrowserStateBlock schema not found")?;
+    let state_change_union = browser_state_schema
+        .get("properties")
+        .and_then(|properties| properties.get("state_changes"))
+        .and_then(non_null_schema)
+        .and_then(|array| array.get("items"))
+        .ok_or("RequestBrowserStateBlock.state_changes union not found")?;
+
+    let mut segments = vec![generate_request_tool_result_block_enum(schemas)?];
+    segments.push(generate_tool_struct_direct(
+        "RequestBrowserStateBlock",
+        browser_state_schema,
+        schemas,
+        "anthropic",
+        true,
+    ));
+    segments.push(generate_tagged_reference_enum(
+        "BrowserStateChange",
+        state_change_union,
+        schemas,
+        "anthropic",
+    )?);
+
+    for schema_name in referenced_variant_names(state_change_union)? {
+        let schema = schemas
+            .get(schema_name)
+            .ok_or_else(|| format!("referenced Anthropic schema `{schema_name}` not found"))?;
+        segments.push(generate_tool_struct_direct(
+            schema_name,
+            schema,
+            schemas,
+            "anthropic",
+            true,
+        ));
+    }
+
+    Ok(segments.join("\n\n"))
+}
+
+fn generate_request_tool_result_block_enum(
+    schemas: &serde_json::Map<String, serde_json::Value>,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let item_union = schemas
+        .get("RequestToolResultBlock")
+        .and_then(|schema| schema.get("properties"))
+        .and_then(|properties| properties.get("content"))
+        .and_then(|content| content.get("anyOf"))
+        .and_then(|variants| variants.as_array())
+        .and_then(|variants| {
+            variants.iter().find_map(|variant| {
+                (variant.get("type").and_then(|value| value.as_str()) == Some("array"))
+                    .then(|| variant.get("items"))
+                    .flatten()
+            })
+        })
+        .ok_or("RequestToolResultBlock content item union not found")?;
+    let mapping = item_union
+        .get("discriminator")
+        .and_then(|discriminator| discriminator.get("mapping"))
+        .and_then(|mapping| mapping.as_object())
+        .ok_or("RequestToolResultBlock content discriminator mapping not found")?;
+
+    let mut output = String::from(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n\
+#[serde(tag = \"type\")]\n\
+#[ts(export_to = \"anthropic/\")]\n\
+pub enum Block {\n",
+    );
+    for (tag, reference) in mapping {
+        let schema_name = reference
+            .as_str()
+            .and_then(|reference| reference.split('/').next_back())
+            .ok_or("invalid request tool-result content schema reference")?;
+        let rust_name = schema_name_to_rust_type(schema_name);
+        let variant = rust_name
+            .strip_prefix("Request")
+            .and_then(|name| name.strip_suffix("Block"))
+            .unwrap_or(&rust_name);
+        let payload = if schema_name == "RequestBrowserStateBlock" {
+            "RequestBrowserStateBlock"
+        } else {
+            "NonBrowserBlock"
+        };
+        output.push_str(&format!(
+            "    #[serde(rename = \"{tag}\")]\n    {variant}({payload}),\n"
+        ));
+    }
+    // Quicktype shares this `Block` type with RequestWebSearchToolResultBlock.content.
+    // Preserve that schema arm while tightening only the browser-state variant.
+    if let Some(web_search_result) = schemas.get("RequestWebSearchResultBlock") {
+        let tag = web_search_result
+            .get("properties")
+            .and_then(|properties| properties.get("type"))
+            .and_then(|schema_type| schema_type.get("const"))
+            .and_then(|value| value.as_str())
+            .ok_or("RequestWebSearchResultBlock has no constant type discriminator")?;
+        output.push_str(&format!(
+            "    #[serde(rename = \"{tag}\")]\n    WebSearchResult(NonBrowserBlock),\n"
+        ));
+    }
+    output.push_str("}\n");
+    Ok(output)
+}
+
+fn generate_tagged_reference_enum(
+    enum_name: &str,
+    union_schema: &serde_json::Value,
+    schemas: &serde_json::Map<String, serde_json::Value>,
+    provider: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let mut output = format!(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n\
+#[serde(tag = \"type\")]\n\
+#[ts(export_to = \"{provider}/\")]\n\
+pub enum {enum_name} {{\n"
+    );
+    for schema_name in referenced_variant_names(union_schema)? {
+        let schema = schemas
+            .get(schema_name)
+            .ok_or_else(|| format!("referenced Anthropic schema `{schema_name}` not found"))?;
+        let tag = schema
+            .get("properties")
+            .and_then(|properties| properties.get("type"))
+            .and_then(|schema_type| schema_type.get("const"))
+            .and_then(|value| value.as_str())
+            .ok_or_else(|| format!("schema `{schema_name}` has no constant type discriminator"))?;
+        let rust_name = schema_name_to_rust_type(schema_name);
+        let variant = rust_name.strip_prefix(enum_name).unwrap_or(&rust_name);
+        output.push_str(&format!(
+            "    #[serde(rename = \"{tag}\")]\n    {variant}({rust_name}),\n"
+        ));
+    }
+    output.push_str("}\n");
+    Ok(output)
+}
+
+fn referenced_variant_names(
+    union_schema: &serde_json::Value,
+) -> Result<Vec<&str>, Box<dyn std::error::Error>> {
+    let variants = union_schema
+        .get("oneOf")
+        .or_else(|| union_schema.get("anyOf"))
+        .and_then(|variants| variants.as_array())
+        .ok_or("discriminated union variants not found")?;
+    variants
+        .iter()
+        .map(|variant| {
+            variant
+                .get("$ref")
+                .and_then(|reference| reference.as_str())
+                .and_then(|reference| reference.split('/').next_back())
+                .ok_or("discriminated union variant is not a schema reference")
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(Into::into)
+}
+
+fn non_null_schema(schema: &serde_json::Value) -> Option<&serde_json::Value> {
+    schema
+        .get("anyOf")
+        .or_else(|| schema.get("oneOf"))
+        .and_then(|variants| variants.as_array())
+        .and_then(|variants| {
+            let mut non_null = variants.iter().filter(|variant| {
+                variant.get("type").and_then(|value| value.as_str()) != Some("null")
+            });
+            let schema = non_null.next()?;
+            non_null.next().is_none().then_some(schema)
+        })
 }
 
 // -------------------------------------------------------------------------
@@ -444,11 +1239,20 @@ fn schema_name_to_variant(schema_name: &str) -> String {
 
     if let Some(idx) = schema_name.rfind('_') {
         let version = &schema_name[idx + 1..];
-        let name_part = schema_name[..idx].replace("Tool", "");
+        let name_part = strip_tool_suffix(&schema_name[..idx]);
         return format!("{}{}", name_part, version);
     }
 
-    schema_name.replace("Tool", "")
+    strip_tool_suffix(schema_name).to_string()
+}
+
+/// Drop the trailing `Tool` from a schema name so `WebSearchTool` becomes `WebSearch`.
+///
+/// Only the suffix is removed: names such as `BrowserToolset` describe a toolset family
+/// rather than a single tool, and stripping every `Tool` occurrence would mangle them into
+/// `Browserset`.
+fn strip_tool_suffix(schema_name: &str) -> &str {
+    schema_name.strip_suffix("Tool").unwrap_or(schema_name)
 }
 
 fn split_type_definitions(content: &str) -> Vec<(String, String)> {
@@ -517,7 +1321,13 @@ fn split_type_definitions(content: &str) -> Vec<(String, String)> {
 
 #[cfg(test)]
 mod tests {
-    use super::generate_all_tool_code;
+    use super::{
+        enforce_anthropic_closed_request_types, generate_all_tool_code,
+        generate_anthropic_browser_state_types, preserve_anthropic_browser_tab_active,
+        preserve_anthropic_optional_toolset_name,
+        preserve_anthropic_optional_transformation_fields,
+        preserve_anthropic_required_nullable_fields, preserve_anthropic_source_types,
+    };
     use big_serde_json as serde_json;
 
     #[test]
@@ -568,5 +1378,379 @@ mod tests {
             2
         );
         assert!(!generated.contains("pub response_inclusion: Option<String>,"));
+    }
+
+    #[test]
+    fn anthropic_toolset_tool_variants_keep_their_schema_derived_names() {
+        let spec: serde_json::Value = serde_json::from_str(
+            r#"{
+                "components": {
+                    "schemas": {
+                        "BrowserToolset_20260801": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "type": { "const": "browser_toolset_20260801", "type": "string" }
+                            },
+                            "required": ["type"]
+                        },
+                        "ComputerToolset_20260801": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "type": { "const": "computer_toolset_20260801", "type": "string" }
+                            },
+                            "required": ["type"]
+                        },
+                        "WebSearchTool_20250305": {
+                            "type": "object",
+                            "properties": {
+                                "name": { "const": "web_search", "type": "string" },
+                                "type": { "const": "web_search_20250305", "type": "string" }
+                            },
+                            "required": ["name", "type"]
+                        }
+                    }
+                }
+            }"#,
+        )
+        .expect("test spec should be valid JSON");
+
+        let generated = generate_all_tool_code("anthropic", &spec)
+            .expect("Anthropic tool generation should succeed");
+
+        assert!(generated.contains("    BrowserToolset20260801(BrowserToolset20260801),"));
+        assert!(generated.contains("    ComputerToolset20260801(ComputerToolset20260801),"));
+        assert!(generated.contains(
+            "#[serde(deny_unknown_fields)]\n#[ts(export_to = \"anthropic/\")]\npub struct BrowserToolset20260801"
+        ));
+        assert!(generated.contains(
+            "#[serde(deny_unknown_fields)]\n#[ts(export_to = \"anthropic/\")]\npub struct ComputerToolset20260801"
+        ));
+        assert!(!generated.contains("Browserset20260801"));
+        assert!(!generated.contains("Computerset20260801"));
+        // Single tools keep the established variant names that drop the `Tool` suffix.
+        assert!(generated.contains("    WebSearch20250305(WebSearchTool20250305),"));
+    }
+
+    #[test]
+    fn anthropic_toolset_configs_use_referenced_schema_types() {
+        let spec: serde_json::Value = serde_json::from_str(
+            r##"{
+                "components": {
+                    "schemas": {
+                        "BrowserToolsetConfigs": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "navigate": {
+                                    "anyOf": [
+                                        { "$ref": "#/components/schemas/BrowserNavigateConfig" },
+                                        { "type": "null" }
+                                    ]
+                                },
+                                "type": {
+                                    "anyOf": [
+                                        { "$ref": "#/components/schemas/BrowserTypeConfig" },
+                                        { "type": "null" }
+                                    ]
+                                }
+                            }
+                        },
+                        "BrowserNavigateConfig": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "enabled": {
+                                    "anyOf": [
+                                        { "type": "boolean" },
+                                        { "type": "null" }
+                                    ]
+                                }
+                            }
+                        },
+                        "BrowserTypeConfig": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "enabled": {
+                                    "anyOf": [
+                                        { "type": "boolean" },
+                                        { "type": "null" }
+                                    ]
+                                }
+                            }
+                        },
+                        "BrowserToolset_20260801": {
+                            "type": "object",
+                            "properties": {
+                                "configs": {
+                                    "anyOf": [
+                                        { "$ref": "#/components/schemas/BrowserToolsetConfigs" },
+                                        { "type": "null" }
+                                    ]
+                                },
+                                "type": { "const": "browser_toolset_20260801", "type": "string" }
+                            },
+                            "required": ["type"]
+                        }
+                    }
+                }
+            }"##,
+        )
+        .expect("test spec should be valid JSON");
+
+        let generated = generate_all_tool_code("anthropic", &spec)
+            .expect("Anthropic tool generation should succeed");
+
+        assert!(generated.contains("pub configs: Option<BrowserToolsetConfigs>,"));
+        assert!(generated.contains("pub navigate: Option<BrowserNavigateConfig>,"));
+        assert!(generated.contains("pub r#type: Option<BrowserTypeConfig>,"));
+        assert!(generated.contains("pub struct BrowserNavigateConfig"));
+        assert!(generated.contains("pub struct BrowserTypeConfig"));
+        assert_eq!(
+            generated.matches("#[serde(deny_unknown_fields)]").count(),
+            3
+        );
+        assert!(!generated.contains("pub r#type: String,"));
+        assert!(!generated.contains("pub configs: Option<serde_json::Value>,"));
+    }
+
+    #[test]
+    fn anthropic_browser_state_types_preserve_discriminated_requirements() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+
+        let generated = generate_anthropic_browser_state_types(&spec)
+            .expect("browser state types should be generated from the Anthropic schema");
+
+        assert!(generated.contains("#[serde(tag = \"type\")]"));
+        assert!(generated.contains("pub enum Block"));
+        assert!(generated.contains("BrowserState(RequestBrowserStateBlock)"));
+        assert!(generated.contains("WebSearchResult(NonBrowserBlock)"));
+        assert!(generated.contains("pub tabs: Vec<BrowserStateTabEntry>,"));
+        assert!(generated.contains(
+            "#[ts(optional = nullable)]\n    pub state_changes: Option<Vec<BrowserStateChange>>"
+        ));
+        assert!(generated.contains(
+            "#[ts(optional = nullable)]\n    pub cache_control: Option<CacheControlEphemeral>"
+        ));
+        assert!(generated.contains("#[ts(optional = nullable)]\n    pub path: Option<String>"));
+        assert!(generated.contains("#[ts(optional = nullable)]\n    pub size_bytes: Option<i64>"));
+        assert!(generated.contains("#[ts(optional = nullable)]\n    pub error: Option<String>"));
+        assert!(generated.contains("pub enum BrowserStateChange"));
+        assert!(generated.contains("DownloadStarted(BrowserStateChangeDownloadStarted)"));
+        assert!(generated.contains("pub download_id: String,"));
+        assert!(generated.contains("pub url: String,"));
+    }
+
+    #[test]
+    fn anthropic_browser_tab_active_remains_optional_and_non_null() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"pub struct BrowserStateTabEntry {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active: Option<bool>,
+}"#;
+
+        let generated = preserve_anthropic_browser_tab_active(quicktype, &spec)
+            .expect("active should remain optional and non-null");
+
+        assert!(generated.contains(
+            "#[serde(default, deserialize_with = \"super::deserialize_optional_non_null\")]"
+        ));
+        assert!(generated.contains("#[ts(optional)]\n    pub active: Option<bool>"));
+    }
+
+    #[test]
+    fn anthropic_source_types_preserve_variant_requirements() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug)]
+pub struct Source {
+    pub data: Option<String>,
+    pub file_id: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct RequestDocumentBlockSource {
+    pub data: Option<String>,
+    pub file_id: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct SourceSource {
+    pub data: Option<String>,
+    pub file_id: Option<String>,
+}
+
+#[derive(Debug)]
+pub enum PurpleType {
+    Base64,
+    File,
+    Url,
+}"#;
+
+        let generated = preserve_anthropic_source_types(quicktype, &spec)
+            .expect("source types should be generated from the Anthropic schema");
+
+        assert!(generated.contains("#[serde(tag = \"type\", rename_all = \"snake_case\")]"));
+        assert!(generated.contains("File {\n        file_id: String,"));
+        assert!(generated.contains("Url {\n        url: String,"));
+        assert!(!generated.contains("file_id: Option<String>"));
+        assert!(generated.contains("pub enum RequestDocumentBlockSource"));
+        assert!(generated.contains("pub enum SourceSource"));
+        assert!(!generated.contains("pub enum PurpleType"));
+        assert_eq!(
+            generated.matches("#[serde(deny_unknown_fields)]").count(),
+            3
+        );
+    }
+
+    #[test]
+    fn anthropic_toolset_member_configs_reject_unknown_fields() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug, Clone)]
+pub struct BrowserCloseTabConfig {
+    pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ComputerCursorPositionConfig {
+    pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RequestImageTransformations {
+    pub oversized_image: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ContainerParams {
+    pub id: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SkillParams {
+    pub skill_id: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct BrowserStateTabEntry {
+    pub tab_id: String,
+}"#;
+
+        let generated = enforce_anthropic_closed_request_types(quicktype, &spec)
+            .expect("closed request types should be made strict");
+
+        assert_eq!(
+            generated.matches("#[serde(deny_unknown_fields)]").count(),
+            6
+        );
+        assert!(
+            generated.contains("#[serde(deny_unknown_fields)]\npub struct BrowserCloseTabConfig")
+        );
+        assert!(generated
+            .contains("#[serde(deny_unknown_fields)]\npub struct ComputerCursorPositionConfig"));
+        for type_name in [
+            "RequestImageTransformations",
+            "ContainerParams",
+            "SkillParams",
+            "BrowserStateTabEntry",
+        ] {
+            assert!(generated.contains(&format!(
+                "#[serde(deny_unknown_fields)]\npub struct {type_name}"
+            )));
+        }
+    }
+
+    #[test]
+    fn anthropic_container_skills_remains_required_and_nullable() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug, Clone)]
+pub struct Container {
+    pub expires_at: String,
+    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skills: Option<Vec<ContainerSkill>>,
+}"#;
+
+        let generated = preserve_anthropic_required_nullable_fields(quicktype, &spec)
+            .expect("Container.skills should preserve required-nullable semantics");
+
+        assert!(generated.contains(
+            "#[serde(deserialize_with = \"super::deserialize_required_nullable\")]\n    pub skills: Option<Vec<ContainerSkill>>"
+        ));
+        assert!(!generated.contains("skip_serializing_if = \"Option::is_none\""));
+    }
+
+    #[test]
+    fn anthropic_transformation_fields_remain_optional_in_typescript() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug, Clone)]
+pub struct InputContentBlock {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transformations: Option<RequestImageTransformations>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RequestImageTransformations {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub oversized_image: Option<OversizedImage>,
+}"#;
+
+        let generated = preserve_anthropic_optional_transformation_fields(quicktype, &spec)
+            .expect("transformation fields should remain optional");
+
+        assert_eq!(generated.matches("#[ts(optional = nullable)]").count(), 2);
+        assert!(generated.contains(
+            "#[ts(optional = nullable)]\n    pub transformations: Option<RequestImageTransformations>"
+        ));
+        assert!(generated.contains(
+            "#[ts(optional = nullable)]\n    pub oversized_image: Option<OversizedImage>"
+        ));
+    }
+
+    #[test]
+    fn anthropic_toolset_name_remains_optional_in_typescript() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug, Clone)]
+pub struct InputContentBlock {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub toolset_name: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ContentBlock {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub toolset_name: Option<String>,
+}"#;
+
+        let generated = preserve_anthropic_optional_toolset_name(quicktype, &spec)
+            .expect("request toolset_name should remain optional");
+
+        assert_eq!(generated.matches("#[ts(optional = nullable)]").count(), 1);
+        let input_block = generated
+            .split("pub struct ContentBlock")
+            .next()
+            .expect("InputContentBlock should be present");
+        assert!(input_block
+            .contains("#[ts(optional = nullable)]\n    pub toolset_name: Option<String>"));
+        let response_block = generated
+            .split("pub struct ContentBlock")
+            .nth(1)
+            .expect("ContentBlock should be present");
+        assert!(!response_block.contains("#[ts(optional = nullable)]"));
     }
 }
