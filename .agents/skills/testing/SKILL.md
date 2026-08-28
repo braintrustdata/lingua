@@ -1,11 +1,20 @@
 ---
 name: testing
-description: Lingua's testing tools for transformation coverage and end-to-end SDK validation.
+description: Validate Lingua transformations, including explicit unsupported mappings, with coverage and end-to-end SDK tests.
 ---
 
 # Lingua Testing
 
 Two complementary testing approaches for validating cross-provider transformations.
+
+## Classify before fixing
+
+Transformation tests expose both converter bugs and legitimate format boundaries. Before adding adapter logic or changing snapshots:
+
+- Verify that the source feature has a stable provider-neutral meaning and that the target representation is semantically equivalent.
+- Treat provider-managed execution, opaque state or handles, replay/continuation data, and lifecycle-coupled events as native-only unless an existing lossless contract says otherwise.
+- Test unsupported cross-provider cases for a clear error. Do not silently drop them, stringify them, flatten them into text, simulate them, or convert only the convenient parts.
+- Preserve valid provider-specific data in native types and same-format passthrough even when cross-provider conversion rejects it.
 
 ## Overview
 
@@ -98,7 +107,7 @@ pnpm test:transforms:watch       # Watch mode
 
 ### Known Incompatibilities
 
-Some transformations are impossible. Document in `transform_errors.json`:
+Some transformations are impossible. They should fail explicitly and be documented in `transform_errors.json` when the harness expects a known error:
 
 ```json
 {
@@ -108,7 +117,7 @@ Some transformations are impossible. Document in `transform_errors.json`:
 }
 ```
 
-These tests pass silently.
+The recorded error should describe the unsupported semantic boundary. Do not use expected errors or snapshot updates to conceal accidental field loss.
 
 ## Workflow
 
@@ -144,17 +153,19 @@ These tests pass silently.
    cargo run --bin coverage-report -- -p anthropic,responses > .Codex/fix_bugs.md
    ```
 
-2. Iterate with compact mode:
+2. Classify the failure as transformable, native-only, or ambiguous. Stop before implementation if no lossless provider-neutral mapping is established.
+
+3. Iterate with compact mode:
    ```bash
    cargo run --bin coverage-report -- -f compact -p anthropic,responses
    ```
 
-3. Verify SDK compatibility:
+4. Verify SDK compatibility:
    ```bash
    cd payloads && pnpm test:transforms
    ```
 
-4. If snapshots changed intentionally:
+5. If snapshots changed intentionally:
    ```bash
    pnpm test:transforms:update
    ```
