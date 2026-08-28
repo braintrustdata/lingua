@@ -1385,13 +1385,33 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 serde_json::Value::String(s) => {
                                     Some(generated::InputContentBlockContent::PurpleString(s.clone()))
                                 }
-                                other => Some(generated::InputContentBlockContent::PurpleString(
-                                    serde_json::to_string(other)
-                                        .map_err(|e| ConvertError::JsonSerializationFailed {
-                                            field: "tool_result_output".to_string(),
-                                            error: e.to_string(),
-                                        })?,
-                                )),
+                                other => {
+                                    match serde_json::from_value::<Vec<generated::Block>>(
+                                        other.clone(),
+                                    ) {
+                                        Ok(blocks)
+                                            if blocks.iter().any(|block| {
+                                                matches!(block, generated::Block::BrowserState(_))
+                                            }) =>
+                                        {
+                                            Some(
+                                                generated::InputContentBlockContent::BlockArray(
+                                                    blocks,
+                                                ),
+                                            )
+                                        }
+                                        Ok(_) | Err(_) => Some(
+                                            generated::InputContentBlockContent::PurpleString(
+                                                serde_json::to_string(other).map_err(|e| {
+                                                    ConvertError::JsonSerializationFailed {
+                                                        field: "tool_result_output".to_string(),
+                                                        error: e.to_string(),
+                                                    }
+                                                })?,
+                                            ),
+                                        ),
+                                    }
+                                }
                             };
 
                             blocks.push(generated::InputContentBlock {
@@ -2864,6 +2884,52 @@ mod tests {
             }
             other => panic!("expected tool message, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn anthropic_browser_state_tool_result_round_trips_as_structured_content() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "tool_result",
+                "tool_use_id": "toolu_browser_123",
+                "content": [{
+                    "type": "browser_state",
+                    "tabs": [{
+                        "tab_id": "tab_1",
+                        "title": "Example",
+                        "url": "https://example.com",
+                        "active": true
+                    }],
+                    "state_changes": [{
+                        "type": "tab_opened",
+                        "tab_id": "tab_1"
+                    }]
+                }]
+            }]
+        }));
+
+        let universal = <Message as TryFromLLM<generated::InputMessage>>::try_from(input)
+            .expect("browser state tool result should import");
+        let replayed = <generated::InputMessage as TryFromLLM<Message>>::try_from(universal)
+            .expect("browser state tool result should replay");
+
+        let generated::MessageContent::InputContentBlockArray(blocks) = replayed.content else {
+            panic!("expected Anthropic content block array");
+        };
+        let Some(generated::InputContentBlockContent::BlockArray(content)) = &blocks[0].content
+        else {
+            panic!(
+                "expected structured tool-result content, got {:?}",
+                blocks[0].content
+            );
+        };
+        let generated::Block::BrowserState(browser_state) = &content[0] else {
+            panic!("expected browser_state block, got {:?}", content[0]);
+        };
+        assert_eq!(browser_state.tabs[0].tab_id, "tab_1");
+        assert_eq!(browser_state.tabs[0].url, "https://example.com");
+        assert_eq!(browser_state.state_changes.as_ref().map(Vec::len), Some(1));
     }
 
     #[test]
