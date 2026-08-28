@@ -129,7 +129,8 @@ When fixing provider transform behavior, follow this order. Do not skip steps.
    - Use a case name that maps directly to the behavior being fixed.
 2. **Capture and triage failures.**
    - Run `make capture FILTER=<case_name>`.
-   - If capture emits failed requests/transforms, treat this as unresolved logic in adapter/converter code.
+   - Treat unexpected request/transform failures as unresolved adapter/converter logic.
+   - If capture returns an explicit unsupported-mapping error, verify that it identifies the provider-specific semantic boundary, then classify it in the next step instead of assuming converter logic is missing.
    - Use transform path names to triage ownership:
      - `payloads/transforms/chat-completions_to_anthropic/<case>.json` → Anthropic adapter path
      - `payloads/transforms/chat-completions_to_google/<case>.json` → Google adapter path
