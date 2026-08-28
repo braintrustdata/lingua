@@ -200,6 +200,54 @@ pub fn preserve_anthropic_optional_transformation_fields(
     Ok(output)
 }
 
+pub fn preserve_anthropic_optional_toolset_name(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    for schema_name in ["RequestToolUseBlock", "RequestToolResultBlock"] {
+        let schema = schemas
+            .get(schema_name)
+            .ok_or_else(|| format!("Missing {schema_name} schema"))?;
+        let is_required = schema
+            .get("required")
+            .and_then(|required| required.as_array())
+            .is_some_and(|required| {
+                required
+                    .iter()
+                    .any(|field| field.as_str() == Some("toolset_name"))
+            });
+        let is_nullable = schema
+            .get("properties")
+            .and_then(|properties| properties.get("toolset_name"))
+            .and_then(|field| field.get("anyOf"))
+            .and_then(|variants| variants.as_array())
+            .is_some_and(|variants| {
+                variants.iter().any(|variant| {
+                    variant.get("type").and_then(|kind| kind.as_str()) == Some("null")
+                })
+            });
+        if is_required || !is_nullable {
+            return Err(
+                format!("{schema_name}.toolset_name is no longer optional and nullable").into(),
+            );
+        }
+    }
+
+    let input_block = split_type_definitions(existing)
+        .into_iter()
+        .find_map(|(name, block)| (name == "InputContentBlock").then_some(block))
+        .ok_or("Missing generated InputContentBlock")?;
+    let old = "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub toolset_name: Option<String>,";
+    if !input_block.contains(old) {
+        return Err("Missing generated optional InputContentBlock.toolset_name field".into());
+    }
+    let new = "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    #[ts(optional = nullable)]\n    pub toolset_name: Option<String>,";
+    let replacement = input_block.replacen(old, new, 1);
+
+    Ok(existing.replacen(&input_block, &replacement, 1))
+}
+
 pub fn preserve_anthropic_required_nullable_fields(
     existing: &str,
     spec: &serde_json::Value,
@@ -1276,6 +1324,7 @@ mod tests {
     use super::{
         enforce_anthropic_closed_request_types, generate_all_tool_code,
         generate_anthropic_browser_state_types, preserve_anthropic_browser_tab_active,
+        preserve_anthropic_optional_toolset_name,
         preserve_anthropic_optional_transformation_fields,
         preserve_anthropic_required_nullable_fields, preserve_anthropic_source_types,
     };
@@ -1669,5 +1718,39 @@ pub struct RequestImageTransformations {
         assert!(generated.contains(
             "#[ts(optional = nullable)]\n    pub oversized_image: Option<OversizedImage>"
         ));
+    }
+
+    #[test]
+    fn anthropic_toolset_name_remains_optional_in_typescript() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug, Clone)]
+pub struct InputContentBlock {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub toolset_name: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ContentBlock {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub toolset_name: Option<String>,
+}"#;
+
+        let generated = preserve_anthropic_optional_toolset_name(quicktype, &spec)
+            .expect("request toolset_name should remain optional");
+
+        assert_eq!(generated.matches("#[ts(optional = nullable)]").count(), 1);
+        let input_block = generated
+            .split("pub struct ContentBlock")
+            .next()
+            .expect("InputContentBlock should be present");
+        assert!(input_block
+            .contains("#[ts(optional = nullable)]\n    pub toolset_name: Option<String>"));
+        let response_block = generated
+            .split("pub struct ContentBlock")
+            .nth(1)
+            .expect("ContentBlock should be present");
+        assert!(!response_block.contains("#[ts(optional = nullable)]"));
     }
 }

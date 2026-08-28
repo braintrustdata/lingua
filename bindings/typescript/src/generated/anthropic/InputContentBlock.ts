@@ -62,4 +62,4 @@ data: string | null, caller: Caller | null, id: string | null, input: unknown, n
  *
  * For a toolset member tool_result, the toolset family of the paired tool_use.
  */
-toolset_name: string | null, is_error: boolean | null, tool_use_id: string | null, file_id: string | null, };
+toolset_name?: string | null, is_error: boolean | null, tool_use_id: string | null, file_id: string | null, };

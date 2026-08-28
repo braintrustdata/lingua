@@ -442,6 +442,7 @@ pub struct InputContentBlock {
     ///
     /// For a toolset member tool_result, the toolset family of the paired tool_use.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub toolset_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_error: Option<bool>,
