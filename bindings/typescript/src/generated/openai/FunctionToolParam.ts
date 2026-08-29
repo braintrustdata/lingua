@@ -9,7 +9,11 @@ import type { ToolFormat } from "./ToolFormat";
  * A custom tool that processes input using a specified format. Learn more about   [custom
  * tools](/docs/guides/function-calling#custom-tools)
  */
-export type FunctionToolParam = { allowed_callers: Array<CallableToolAllowedCaller> | null, 
+export type FunctionToolParam = { 
+/**
+ * The tool invocation context(s).
+ */
+allowed_callers: Array<CallableToolAllowedCaller> | null, 
 /**
  * Whether this function should be deferred and discovered via tool search.
  *
@@ -23,7 +27,18 @@ description: string | null,
 /**
  * The name of the custom tool, used to identify it in tool calls.
  */
-name: string, output_schema: unknown, parameters: unknown, strict: boolean | null, 
+name: string, 
+/**
+ * A JSON Schema describing the JSON value encoded in string outputs for this function tool.
+ * This does not describe content-array outputs.
+ */
+output_schema: unknown, parameters: unknown, 
+/**
+ * Whether to enforce strict parameter validation. If omitted, Responses attempts to use
+ * strict validation when the schema is compatible, and falls back to non-strict validation
+ * otherwise.
+ */
+strict: boolean | null, 
 /**
  * The type of the custom tool. Always `custom`.
  */

@@ -38,4 +38,11 @@ value: ComparisonFilterValue | null,
 /**
  * Array of filters to combine. Items can be `ComparisonFilter` or `CompoundFilter`.
  */
-filters: unknown, allowed_domains: Array<string> | null, };
+filters: unknown, 
+/**
+ * Allowed domains for the search. If not provided, all domains are allowed.
+ * Subdomains of the provided domains are allowed as well.
+ *
+ * Example: `["pubmed.ncbi.nlm.nih.gov"]`
+ */
+allowed_domains: Array<string> | null, };

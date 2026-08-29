@@ -64,7 +64,11 @@ import type { ToolType } from "./ToolType";
  *
  * A tool available on an MCP server.
  */
-export type InputItemTool = { allowed_callers: Array<CallableToolAllowedCaller> | null, 
+export type InputItemTool = { 
+/**
+ * The tool invocation context(s).
+ */
+allowed_callers: Array<CallableToolAllowedCaller> | null, 
 /**
  * Whether this function is deferred and loaded via tool search.
  *
@@ -75,9 +79,16 @@ export type InputItemTool = { allowed_callers: Array<CallableToolAllowedCaller> 
  */
 defer_loading: boolean | null, 
 /**
+ * A description of the function. Used by the model to determine whether or not to call the
+ * function.
+ *
  * Optional description of the custom tool, used to provide more context.
  *
  * A description of the namespace shown to the model.
+ *
+ * Description shown to the model for a client-executed tool search tool.
+ *
+ * The description of the tool.
  */
 description: string | null, 
 /**
@@ -89,7 +100,22 @@ description: string | null,
  *
  * The name of the tool.
  */
-name: string | null, output_schema: unknown, parameters: unknown, strict: boolean | null, 
+name: string | null, 
+/**
+ * A JSON schema object describing the JSON value encoded in string outputs for this
+ * function.
+ */
+output_schema: unknown, 
+/**
+ * A JSON schema object describing the parameters of the function.
+ *
+ * Parameter schema for a client-executed tool search tool.
+ */
+parameters: unknown, 
+/**
+ * Whether strict parameter validation is enforced for this function tool.
+ */
+strict: boolean | null, 
 /**
  * The type of the function tool. Always `function`.
  *
@@ -126,7 +152,13 @@ name: string | null, output_schema: unknown, parameters: unknown, strict: boolea
  *
  * The type of the tool. Always `apply_patch`.
  */
-type: ToolType | null, filters: CompFilter | null, 
+type: ToolType | null, 
+/**
+ * A filter to apply.
+ *
+ * Filters for the search.
+ */
+filters: CompFilter | null, 
 /**
  * The maximum number of results to return. This number should be between 1 and 50 inclusive.
  */
@@ -155,7 +187,15 @@ environment: Environment | null,
  * High level guidance for the amount of context window space to use for the search. One of
  * `low`, `medium`, or `high`. `medium` is the default.
  */
-search_context_size: SearchContextSize | null, user_location: ApproximateLocation | null, allowed_tools: AllowedToolsUnion | null, 
+search_context_size: SearchContextSize | null, 
+/**
+ * The user's location.
+ */
+user_location: ApproximateLocation | null, 
+/**
+ * List of allowed tool names or a filter object.
+ */
+allowed_tools: AllowedToolsUnion | null, 
 /**
  * An OAuth access token that can be used with a remote MCP server, either
  * with a custom MCP server URL or a service connector. Your application
@@ -178,7 +218,16 @@ authorization: string | null,
  * - Outlook Email: `connector_outlookemail`
  * - SharePoint: `connector_sharepoint`
  */
-connector_id: ConnectorId | null, headers: { [key in string]?: string } | null, require_approval: RequireApproval | null, 
+connector_id: ConnectorId | null, 
+/**
+ * Optional HTTP headers to send to the MCP server. Use for authentication
+ * or other purposes.
+ */
+headers: { [key in string]?: string } | null, 
+/**
+ * Specify which of the MCP server's tools require approval.
+ */
+require_approval: RequireApproval | null, 
 /**
  * Optional description of the MCP server, used to provide more context.
  */
@@ -216,7 +265,11 @@ background: Background | null, input_fidelity: InputFidelity | null,
  * Optional mask for inpainting. Contains `image_url`
  * (string, optional) and `file_id` (string, optional).
  */
-input_image_mask: InputImageMask | null, model: string | null, 
+input_image_mask: InputImageMask | null, 
+/**
+ * The image generation model to use. Default: `gpt-image-1`.
+ */
+model: string | null, 
 /**
  * Moderation level for the generated image. Default: `auto`.
  */
@@ -262,7 +315,11 @@ tools: Array<FunctionToolParam> | null,
 /**
  * Whether tool search is executed by the server or by the client.
  */
-execution: ToolSearchExecutionType | null, search_content_types: Array<TType> | null, annotations: unknown, 
+execution: ToolSearchExecutionType | null, search_content_types: Array<TType> | null, 
+/**
+ * Additional annotations about the tool.
+ */
+annotations: unknown, 
 /**
  * The JSON schema describing the tool's input.
  */

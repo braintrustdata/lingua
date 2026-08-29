@@ -5,8 +5,16 @@
  *
  * The safety checks reported by the API that have been acknowledged by the developer.
  */
-export type ComputerCallSafetyCheckParam = { code: string | null, 
+export type ComputerCallSafetyCheckParam = { 
+/**
+ * The type of the pending safety check.
+ */
+code: string | null, 
 /**
  * The ID of the pending safety check.
  */
-id: string, message: string | null, };
+id: string, 
+/**
+ * Details about the pending safety check.
+ */
+message: string | null, };

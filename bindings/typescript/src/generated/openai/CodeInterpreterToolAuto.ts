@@ -11,7 +11,11 @@ export type CodeInterpreterToolAuto = {
 /**
  * An optional list of uploaded files to make available to your code.
  */
-file_ids: Array<string> | null, memory_limit: ContainerMemoryLimit | null, 
+file_ids: Array<string> | null, 
+/**
+ * The memory limit for the code interpreter container.
+ */
+memory_limit: ContainerMemoryLimit | null, 
 /**
  * Network access policy for the container.
  */

@@ -33,8 +33,18 @@ export type ComputerAction = {
  */
 button: ClickButtonType | null, 
 /**
+ * The keys being held while clicking.
+ *
+ * The keys being held while double-clicking.
+ *
+ * The keys being held while dragging the mouse.
+ *
  * The combination of keys the model is requesting to be pressed. This is an array of
  * strings, each representing a key.
+ *
+ * The keys being held while moving the mouse.
+ *
+ * The keys being held while scrolling.
  */
 keys: Array<string> | null, 
 /**
