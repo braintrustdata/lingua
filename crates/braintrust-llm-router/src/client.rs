@@ -341,6 +341,8 @@ mod tests {
         Mock, MockServer, ResponseTemplate,
     };
 
+    // Fixed localhost-only TLS material for these tests. The private key does not authenticate to
+    // any external service and has no value outside the synthetic test certificate chain.
     const TEST_CA_CERT: &str = include_str!("../testdata/custom-ca/ca-cert.pem");
     const UNRELATED_CA_CERT: &str = include_str!("../testdata/custom-ca/unrelated-ca-cert.pem");
     const TEST_SERVER_CERT: &str = include_str!("../testdata/custom-ca/server-cert.pem");
