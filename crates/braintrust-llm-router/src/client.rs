@@ -7,7 +7,7 @@ use dashmap::DashMap;
 use http::Extensions;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use reqwest::{redirect::Policy, Client, ClientBuilder, Request, Response};
+use reqwest::{redirect::Policy, Certificate, Client, ClientBuilder, Request, Response};
 use reqwest_middleware::{ClientWithMiddleware, Middleware, Next};
 use reqwest_retry::{
     default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
@@ -39,6 +39,7 @@ pub struct ClientSettings {
     pub user_agent: String,
     pub dns_overrides: Vec<DnsOverride>,
     pub follow_redirects: bool,
+    pub additional_ca_bundle: Option<String>,
 }
 
 impl Default for ClientSettings {
@@ -52,6 +53,7 @@ impl Default for ClientSettings {
             user_agent: format!("braintrust-llm-router/{}", env!("CARGO_PKG_VERSION")),
             dns_overrides: Vec::new(),
             follow_redirects: true,
+            additional_ca_bundle: None,
         }
     }
 }
@@ -82,7 +84,30 @@ pub fn build_client(settings: &ClientSettings) -> Result<Client> {
         builder = builder.resolve_to_addrs(&override_entry.domain, &override_entry.addrs);
     }
 
+    builder = add_additional_ca_bundle(builder, settings.additional_ca_bundle.as_deref())?;
+
     builder.build().map_err(Error::from)
+}
+
+pub fn add_additional_ca_bundle(
+    mut builder: ClientBuilder,
+    additional_ca_bundle: Option<&str>,
+) -> Result<ClientBuilder> {
+    let Some(additional_ca_bundle) = additional_ca_bundle else {
+        return Ok(builder);
+    };
+
+    let certificates = Certificate::from_pem_bundle(additional_ca_bundle.as_bytes())?;
+    if certificates.is_empty() {
+        return Err(Error::InvalidRequest(
+            "additional CA bundle contains no certificates".to_string(),
+        ));
+    }
+
+    for certificate in certificates {
+        builder = builder.add_root_certificate(certificate);
+    }
+    Ok(builder)
 }
 
 pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMiddleware> {
@@ -301,12 +326,57 @@ fn has_cached_client(settings: &ClientSettings) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::sync::Arc;
+    use std::thread;
+
+    use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
+    use rustls::{ServerConfig, ServerConnection, StreamOwned};
+
     use super::*;
     use serial_test::serial;
     use wiremock::{
         matchers::{method, path},
         Mock, MockServer, ResponseTemplate,
     };
+
+    const TEST_CA_CERT: &str = include_str!("../testdata/custom-ca/ca-cert.pem");
+    const UNRELATED_CA_CERT: &str = include_str!("../testdata/custom-ca/unrelated-ca-cert.pem");
+    const TEST_SERVER_CERT: &str = include_str!("../testdata/custom-ca/server-cert.pem");
+    const TEST_SERVER_KEY: &str = include_str!("../testdata/custom-ca/server-key.pem");
+
+    fn spawn_https_server() -> (String, thread::JoinHandle<std::io::Result<()>>) {
+        let certificates = CertificateDer::pem_slice_iter(TEST_SERVER_CERT.as_bytes())
+            .collect::<std::result::Result<Vec<_>, _>>()
+            .expect("server certificate");
+        let private_key =
+            PrivateKeyDer::from_pem_slice(TEST_SERVER_KEY.as_bytes()).expect("server private key");
+        let config = ServerConfig::builder()
+            .with_no_client_auth()
+            .with_single_cert(certificates, private_key)
+            .expect("TLS server config");
+        let listener = TcpListener::bind(("127.0.0.1", 0)).expect("bind TLS server");
+        let address = listener.local_addr().expect("TLS server address");
+
+        let handle = thread::spawn(move || {
+            let (stream, _) = listener.accept()?;
+            let connection =
+                ServerConnection::new(Arc::new(config)).map_err(std::io::Error::other)?;
+            let mut stream = StreamOwned::new(connection, stream);
+            let mut request = [0; 1024];
+            let bytes_read = stream.read(&mut request)?;
+            if bytes_read == 0 {
+                return Err(std::io::Error::from(std::io::ErrorKind::UnexpectedEof));
+            }
+            stream.write_all(
+                b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok",
+            )?;
+            stream.flush()
+        });
+
+        (format!("https://localhost:{}/", address.port()), handle)
+    }
 
     #[test]
     #[serial]
@@ -377,6 +447,70 @@ mod tests {
             ClientSettings::default().request_timeout,
             Duration::from_secs(600)
         );
+    }
+
+    #[test]
+    fn build_client_rejects_a_bundle_without_certificates() {
+        let settings = ClientSettings {
+            additional_ca_bundle: Some("not a certificate".to_string()),
+            ..ClientSettings::default()
+        };
+
+        let error = build_client(&settings).expect_err("certificate-free bundle should fail");
+        assert_eq!(
+            error.to_string(),
+            "invalid request: additional CA bundle contains no certificates"
+        );
+    }
+
+    #[test]
+    fn build_client_rejects_malformed_certificate_pem() {
+        let settings = ClientSettings {
+            additional_ca_bundle: Some(
+                "-----BEGIN CERTIFICATE-----\nnot-base64\n-----END CERTIFICATE-----".to_string(),
+            ),
+            ..ClientSettings::default()
+        };
+
+        let error = build_client(&settings).expect_err("malformed certificate should fail");
+        assert!(matches!(error, Error::Http(_)));
+    }
+
+    #[test]
+    fn build_client_accepts_a_multi_certificate_bundle() {
+        let settings = ClientSettings {
+            additional_ca_bundle: Some(format!("{UNRELATED_CA_CERT}\n{TEST_CA_CERT}")),
+            ..ClientSettings::default()
+        };
+
+        build_client(&settings).expect("multi-certificate CA bundle");
+    }
+
+    #[tokio::test]
+    async fn additional_ca_bundle_enables_a_private_tls_connection() {
+        let (url, server) = spawn_https_server();
+        let default_client = build_client(&ClientSettings::default()).expect("default client");
+
+        default_client
+            .get(&url)
+            .send()
+            .await
+            .expect_err("private CA should not be trusted by default");
+        let _ = server.join();
+
+        let (url, server) = spawn_https_server();
+        let settings = ClientSettings {
+            additional_ca_bundle: Some(format!("{UNRELATED_CA_CERT}\n{TEST_CA_CERT}")),
+            ..ClientSettings::default()
+        };
+        let client = build_client(&settings).expect("client with additional CA");
+        let response = client.get(url).send().await.expect("private TLS request");
+
+        assert_eq!(response.text().await.expect("response body"), "ok");
+        server
+            .join()
+            .expect("TLS server thread")
+            .expect("TLS server request");
     }
 
     #[tokio::test]
