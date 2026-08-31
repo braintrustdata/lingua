@@ -595,7 +595,7 @@ impl ProviderAdapter for BedrockAdapter {
                                         }]
                                     })
                                     .unwrap_or_default(),
-                                reasoning_signature: reasoning_content.signature,
+                                reasoning_signature: reasoning_content.signature.map(Into::into),
                                 ..Default::default()
                             })),
                             finish_reason: None,
@@ -772,6 +772,7 @@ impl ProviderAdapter for BedrockAdapter {
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use crate::universal::UniversalReasoningSignature;
 
     #[test]
     fn test_bedrock_detect_request() {
@@ -1219,7 +1220,10 @@ mod tests {
         let delta = choice.delta_view().unwrap();
 
         assert_eq!(choice.index, 0);
-        assert_eq!(delta.reasoning_signature.as_deref(), Some("sig_123"));
+        assert_eq!(
+            delta.reasoning_signature,
+            Some(UniversalReasoningSignature::Single("sig_123".to_string()))
+        );
     }
 
     #[test]

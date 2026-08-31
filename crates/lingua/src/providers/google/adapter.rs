@@ -12,7 +12,8 @@ use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::google::capabilities::{
-    effort_to_thinking_level, thinking_level_to_effort, GoogleCapabilities, GoogleThinkingStyle,
+    effort_to_thinking_level, supports_disabling_thinking, thinking_level_to_effort,
+    GoogleCapabilities, GoogleThinkingStyle,
 };
 use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
 use crate::providers::google::detect::try_parse_google;
@@ -31,9 +32,9 @@ use crate::universal::ToolContentPart;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
     ReasoningConfig, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
-    UserContent,
+    UniversalReasoningSignature, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UniversalUsage, UserContent,
 };
 use serde::{Deserialize, Serialize};
 
@@ -361,12 +362,8 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Build generationConfig if any params are set
-        let has_reasoning = req
-            .params
-            .reasoning
-            .as_ref()
-            .map(|r| !r.is_effectively_disabled())
-            .unwrap_or(false);
+        // Present even when disabled so an opt-out still builds generationConfig.
+        let has_reasoning = req.params.reasoning.is_some();
         let has_response_format = req
             .params
             .response_format
@@ -385,11 +382,23 @@ impl ProviderAdapter for GoogleAdapter {
             // Convert ReasoningConfig to Google's thinkingConfig
             // Use capabilities to determine whether to use thinkingLevel (Gemini 3) or thinkingBudget (Gemini 2.5)
             let thinking_config = req.params.reasoning.as_ref().and_then(|r| {
+                let caps = GoogleCapabilities::detect(req.model.as_deref());
+
                 if r.is_effectively_disabled() {
+                    // An explicit opt-out must send thinkingBudget: 0, otherwise
+                    // Google defaults thinking on. Gated to models that accept 0.
+                    if r.enabled == Some(false)
+                        && caps.thinking_style == GoogleThinkingStyle::ThinkingBudget
+                        && supports_disabling_thinking(req.model.as_deref())
+                    {
+                        return Some(ThinkingConfig {
+                            include_thoughts: Some(false),
+                            thinking_budget: Some(0),
+                            thinking_level: None,
+                        });
+                    }
                     return None;
                 }
-
-                let caps = GoogleCapabilities::detect(req.model.as_deref());
 
                 match caps.thinking_style {
                     GoogleThinkingStyle::ThinkingLevelBased => {
@@ -722,7 +731,10 @@ impl ProviderAdapter for GoogleAdapter {
                 }
             }
             let text = text_segments.join("");
-            let reasoning_signature = parts.iter().find_map(|part| part.thought_signature.clone());
+            let reasoning_signatures = parts
+                .iter()
+                .filter_map(|part| part.thought_signature.clone())
+                .collect::<Vec<_>>();
 
             let response_id = typed_payload.response_id.as_deref();
             let mut tool_call_index = 0_u32;
@@ -777,7 +789,7 @@ impl ProviderAdapter for GoogleAdapter {
                 content: Some(text),
                 tool_calls,
                 reasoning,
-                reasoning_signature,
+                reasoning_signature: UniversalReasoningSignature::from_values(reasoning_signatures),
             };
 
             choices.push(UniversalStreamChoice {
@@ -812,6 +824,19 @@ impl ProviderAdapter for GoogleAdapter {
             .map(|c| {
                 let delta = c.delta_view();
 
+                if delta.as_ref().is_some_and(|d| {
+                    !d.reasoning.is_empty()
+                        && matches!(
+                            d.reasoning_signature,
+                            Some(UniversalReasoningSignature::Multiple(_))
+                        )
+                }) {
+                    return Err(TransformError::FromUniversalFailed(
+                        "multiple reasoning signatures cannot be represented with one Google thought stream delta"
+                            .to_string(),
+                    ));
+                }
+
                 // Build parts array from text and tool_calls
                 let mut parts: Vec<GoogleStreamPart> = Vec::new();
 
@@ -824,14 +849,53 @@ impl ProviderAdapter for GoogleAdapter {
                         .iter()
                         .any(|tool_call| tool_call.function.is_some())
                 });
-                let text_reasoning_signature = delta
+                let tool_call_signatures = if has_function_call_part {
+                    let tool_call_count = delta
+                        .as_ref()
+                        .map(|d| {
+                            d.tool_calls
+                                .iter()
+                                .filter(|tool_call| tool_call.function.is_some())
+                                .count()
+                        })
+                        .unwrap_or_default();
+                    match delta
+                        .as_ref()
+                        .and_then(|d| d.reasoning_signature.as_ref())
+                    {
+                        Some(UniversalReasoningSignature::Single(signature)) => {
+                            Some(vec![signature.clone(); tool_call_count])
+                        }
+                        Some(UniversalReasoningSignature::Multiple(signatures)) => {
+                            if signatures.len() != tool_call_count {
+                                return Err(TransformError::FromUniversalFailed(format!(
+                                    "reasoning_signature contains {} entries for {} function tool calls",
+                                    signatures.len(),
+                                    tool_call_count
+                                )));
+                            }
+                            Some(signatures.clone())
+                        }
+                        None => None,
+                    }
+                } else {
+                    None
+                };
+                let text_reasoning_signatures = delta
                     .as_ref()
-                    .and_then(|d| d.reasoning_signature.as_deref())
+                    .and_then(|d| d.reasoning_signature.as_ref())
+                    .map(|signature| match signature {
+                        UniversalReasoningSignature::Single(signature) => vec![signature.clone()],
+                        UniversalReasoningSignature::Multiple(signatures) => signatures.clone(),
+                    })
+                    .unwrap_or_default()
+                    .into_iter()
                     .filter(|_| {
                         delta.as_ref().is_none_or(|d| {
                             !has_function_call_part && (!text.is_empty() || d.reasoning.is_empty())
                         })
-                    });
+                    })
+                    .collect::<Vec<_>>();
 
                 if let Some(ref d) = delta {
                     let reasoning_texts: Vec<&str> = d
@@ -841,8 +905,11 @@ impl ProviderAdapter for GoogleAdapter {
                             reasoning.content.as_deref().filter(|s| !s.is_empty())
                         })
                         .collect();
-                    let thought_reasoning_signature =
-                        d.reasoning_signature.as_deref().filter(|_| {
+                    let thought_reasoning_signature = d
+                        .reasoning_signature
+                        .as_ref()
+                        .and_then(UniversalReasoningSignature::first)
+                        .filter(|_| {
                             !reasoning_texts.is_empty()
                                 && text.is_empty()
                                 && !has_function_call_part
@@ -864,19 +931,34 @@ impl ProviderAdapter for GoogleAdapter {
                 }
 
                 // Add text part if present, carrying thoughtSignature when there are no tool calls
-                if !text.is_empty() || text_reasoning_signature.is_some() {
+                if text_reasoning_signatures.len() > 1 {
+                    for signature in &text_reasoning_signatures {
+                        parts.push(GoogleStreamPart {
+                            text: Some(String::new()),
+                            thought: Some(true),
+                            thought_signature: Some(signature.clone()),
+                            ..Default::default()
+                        });
+                    }
+                }
+
+                if !text.is_empty() || text_reasoning_signatures.len() == 1 {
                     let mut text_part = GoogleStreamPart {
                         text: Some(text.to_string()),
                         ..Default::default()
                     };
-                    if let Some(signature) = text_reasoning_signature {
+                    if text_reasoning_signatures.len() == 1 {
+                        let signature = text_reasoning_signatures.first();
+                        if let Some(signature) = signature {
                         text_part.thought_signature = Some(signature.to_string());
+                        }
                     }
                     parts.push(text_part);
                 }
 
                 // Add functionCall parts from tool_calls
                 if let Some(ref d) = delta {
+                    let mut tool_call_index = 0;
                     for tc in &d.tool_calls {
                         if let Some(ref func) = tc.function {
                             let mut function_call = Map::new();
@@ -897,10 +979,14 @@ impl ProviderAdapter for GoogleAdapter {
                                 function_call: Some(function_call),
                                 ..Default::default()
                             };
-                            if let Some(ref signature) = d.reasoning_signature {
-                                part.thought_signature = Some(signature.clone());
+                            if let Some(signature) = tool_call_signatures
+                                .as_ref()
+                                .and_then(|signatures| signatures.get(tool_call_index))
+                            {
+                                part.thought_signature = Some(signature.to_string());
                             }
                             parts.push(part);
+                            tool_call_index += 1;
                         }
                     }
                 }
@@ -1215,6 +1301,55 @@ mod tests {
         assert_eq!(thinking_config.include_thoughts, Some(true));
         assert_eq!(thinking_config.thinking_budget, None);
         assert_eq!(thinking_config.thinking_level, None);
+    }
+
+    // A universal request with reasoning explicitly off (enabled: false), as the
+    // prompt UI opt-out and the reasoning_budget: 0 workaround both produce.
+    fn gemini_reasoning_off(model: &str) -> UniversalRequest {
+        let mut universal = GoogleAdapter
+            .request_to_universal(json!({
+                "model": model,
+                "contents": [{"role": "user", "parts": [{"text": "hi"}]}]
+            }))
+            .unwrap();
+        universal.params.reasoning = Some(ReasoningConfig {
+            enabled: Some(false),
+            ..Default::default()
+        });
+        universal
+    }
+
+    // BT-4707: explicit reasoning opt-out on 2.5 Flash must send thinkingBudget: 0.
+    #[test]
+    fn test_google_flash_reasoning_off_emits_thinking_budget_zero() {
+        let universal = gemini_reasoning_off("gemini-2.5-flash");
+        let reconstructed = GoogleAdapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        let thinking_config = reconstructed
+            .generation_config
+            .and_then(|config| config.thinking_config)
+            .expect("thinkingConfig should be present for an explicit opt-out on Flash");
+
+        assert_eq!(thinking_config.thinking_budget, Some(0));
+        assert_eq!(thinking_config.include_thoughts, Some(false));
+    }
+
+    // 2.5 Pro can't disable thinking (rejects 0), so no thinkingConfig is emitted.
+    #[test]
+    fn test_google_pro_reasoning_off_does_not_emit_budget_zero() {
+        let universal = gemini_reasoning_off("gemini-2.5-pro");
+        let reconstructed = GoogleAdapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+
+        assert!(
+            reconstructed
+                .generation_config
+                .and_then(|config| config.thinking_config)
+                .is_none(),
+            "Pro must not receive a thinkingBudget: 0"
+        );
     }
 
     #[test]
@@ -1623,8 +1758,10 @@ mod tests {
 
         assert_eq!(choice.finish_reason.as_deref(), Some("tool_calls"));
         assert_eq!(
-            delta.reasoning_signature.as_deref(),
-            Some("thought_signature_123")
+            delta.reasoning_signature,
+            Some(UniversalReasoningSignature::Single(
+                "thought_signature_123".to_string()
+            ))
         );
         assert_eq!(tool_call.index, Some(0));
         assert_eq!(tool_call.id.as_deref(), Some("call_response_123_0"));
@@ -1724,8 +1861,10 @@ mod tests {
             Some("**Analyzing caption**\nI should summarize the microphone comparison.")
         );
         assert_eq!(
-            delta.reasoning_signature.as_deref(),
-            Some("thought_signature_123")
+            delta.reasoning_signature,
+            Some(UniversalReasoningSignature::Single(
+                "thought_signature_123".to_string()
+            ))
         );
     }
 
@@ -1802,7 +1941,7 @@ mod tests {
                     reasoning: vec![UniversalReasoningDelta {
                         content: Some("signed thinking without visible text".to_string()),
                     }],
-                    reasoning_signature: Some("thought_signature_456".to_string()),
+                    reasoning_signature: Some("thought_signature_456".to_string().into()),
                 })),
                 finish_reason: None,
             }],
@@ -1847,9 +1986,144 @@ mod tests {
             Some("signed thinking without visible text")
         );
         assert_eq!(
-            delta.reasoning_signature.as_deref(),
-            Some("thought_signature_456")
+            delta.reasoning_signature,
+            Some(UniversalReasoningSignature::Single(
+                "thought_signature_456".to_string()
+            ))
         );
+    }
+
+    #[test]
+    fn test_google_stream_from_universal_maps_tool_call_signatures_positionally() {
+        let adapter = GoogleAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    reasoning_signature: Some(UniversalReasoningSignature::Multiple(vec![
+                        "signature_one".to_string(),
+                        "signature_two".to_string(),
+                    ])),
+                    tool_calls: vec![
+                        UniversalToolCallDelta {
+                            function: Some(UniversalToolFunctionDelta {
+                                name: Some("first".to_string()),
+                                arguments: Some("{}".to_string()),
+                            }),
+                            ..Default::default()
+                        },
+                        UniversalToolCallDelta {
+                            function: Some(UniversalToolFunctionDelta {
+                                name: Some("second".to_string()),
+                                arguments: Some("{}".to_string()),
+                            }),
+                            ..Default::default()
+                        },
+                    ],
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let output = adapter.stream_from_universal(&chunk).unwrap();
+        let typed: GenerateContentResponse = serde_json::from_value(output).unwrap();
+        let candidates = typed.candidates.unwrap();
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .unwrap();
+
+        assert_eq!(parts.len(), 2);
+        assert_eq!(parts[0].thought_signature.as_deref(), Some("signature_one"));
+        assert_eq!(parts[1].thought_signature.as_deref(), Some("signature_two"));
+    }
+
+    #[test]
+    fn test_google_stream_from_universal_preserves_multiple_visible_text_signatures() {
+        let adapter = GoogleAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    content: Some("visible text".to_string()),
+                    reasoning_signature: Some(UniversalReasoningSignature::Multiple(vec![
+                        "signature_one".to_string(),
+                        "signature_two".to_string(),
+                    ])),
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let output = adapter.stream_from_universal(&chunk).unwrap();
+        let typed: GenerateContentResponse = serde_json::from_value(output).unwrap();
+        let candidates = typed.candidates.as_ref().unwrap();
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .unwrap();
+
+        assert_eq!(parts.len(), 3);
+        assert_eq!(parts[0].thought_signature.as_deref(), Some("signature_one"));
+        assert_eq!(parts[1].thought_signature.as_deref(), Some("signature_two"));
+        assert_eq!(parts[2].text.as_deref(), Some("visible text"));
+
+        let roundtripped = adapter
+            .stream_to_universal(serde_json::to_value(typed).unwrap())
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            roundtripped.choices[0]
+                .delta_view()
+                .unwrap()
+                .reasoning_signature,
+            Some(UniversalReasoningSignature::Multiple(vec![
+                "signature_one".to_string(),
+                "signature_two".to_string(),
+            ]))
+        );
+    }
+
+    #[test]
+    fn test_google_stream_from_universal_rejects_multiple_reasoning_signatures() {
+        let adapter = GoogleAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    reasoning: vec![UniversalReasoningDelta {
+                        content: Some("thinking".to_string()),
+                    }],
+                    reasoning_signature: Some(UniversalReasoningSignature::Multiple(vec![
+                        "signature_one".to_string(),
+                        "signature_two".to_string(),
+                    ])),
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let error = adapter.stream_from_universal(&chunk).unwrap_err();
+        assert!(error
+            .to_string()
+            .contains("multiple reasoning signatures cannot be represented"));
     }
 
     #[test]

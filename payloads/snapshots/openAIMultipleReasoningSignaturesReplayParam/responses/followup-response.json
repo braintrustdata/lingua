@@ -1,0 +1,102 @@
+{
+  "id": "resp_08728d6ef76ad15a006a7cdbab40ec81a285fb567830b78323",
+  "object": "response",
+  "created_at": 1786567595,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1786567596,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-luna",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_08728d6ef76ad15a006a7cdbabc95881a2af8eeaa912725920",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqfNusgh2oUuBhkn1AgkBUoC1rJvpmGmbGWHggHe_Kz_wMmmYwp17hLcD8KGrQQ6KUobCM9xpziA_6wCJsemuvK9Gr-ZkqDwKfADqlIXz_1AZJ6FbODJd-Ourfkyc0K0bVtVH-fgmvpyZJuQNMbueLIA1lAVEBQ7XBgaosaIELnRL_q_5ikVNXG1rcmfspYkjp9KgZJEyRtfmzGSc_vACCnTjPugGiCMF6bZm1ctpsRSVvx28mQgu805I5LU7iF6asAE8b8CWHhcXJWhZBhoZn_1Zz_Ov8WxSdcB1zH791O1sDoq5pDYz29MJpfkA9M7FdWBo3oz3Q_zXkxc5z4ZcB26q3ZSaDhlr31iEpicL2A8PfZv2RQarFAe4g3NO5EuG14vhTWwVbBwozNFsz-XcKUS_I_MkCqSFHpVXjZsw6Umm5q1bi9K7r642tGE-3QKbeWUmDQAdl-uJJbACTKRFqUn-rpMZTa9WwU-up_B1j951lszysyZZ2cmzZCinbeNMqEJkjumNWXl5xayzua-gP5GWo49Y2G7IyxJ0R9gEtg-5_MSnH4vJ-N0-f12cAZw5Rq7LLJkDYSwlu_2IOiST-587uiSfOIRRXuIKdtsisEr5iWfytRPiugUZdN6vBpjGRyleztjdMtCf-Rok5ezrfXHek8fSVsAonYIZXP01p4hxq7HR5Y1_vQ90oGalcsN1ujPbcu-upeEMEE_5tHZpjP3sEWJcfJaSV3dccwo4_rg8z0Kr3cM8coDEWjNmtMHzqgZA3bVCNLQHVBgbY_af_ktzlWUFztmM0fOAYQsP6nxh22O6R0KGbTccR5r3HlpFZ7cs9eIK4idvBX5ToCw2QD8vreHQbsiyP9gRZSkcN7C5XqK2RGan9ybvmHS0rgfvaxlFYk-v0fuTPHoRYE9KOElpTZFGcTxuncofc6j4jkxr8koeaFkOr0JsC4R-X4heQDy1HkxmchATjsHHlQvJ3g4wZZ5CH_jS-okIUI5BplJ7EGp7SPDUjz8A-1oPyxBySu0fIKgPkE-mLawtBXLol-mZggnI41YAaUgb1Cvs_dHoAzUn_q-gpOkz0vA5CELd4YlvMHC9GVdFT1sBfFyM6qbVtN1bT-cmUufHRQbYP9-57vsij8pwJWV1fWQuI-pYofhYErEWPzQS3B0z9hohnQUd_yOJ_G1HTriBf1Hsl63s7QVVqeTZe6UW9ys4ItrgSwfub",
+      "summary": []
+    },
+    {
+      "id": "msg_08728d6ef76ad15a006a7cdbac552c81a2afb73ee332600fd4",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "You can now use the recorded information—Kazakhstan’s capital is **Astana**, and its population is approximately **21.1 million**. For formal use, verify the population’s source and date."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "xhigh",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 926,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 93,
+    "output_tokens_details": {
+      "reasoning_tokens": 46
+    },
+    "total_tokens": 1019
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "You can now use the recorded information—Kazakhstan’s capital is **Astana**, and its population is approximately **21.1 million**. For formal use, verify the population’s source and date."
+}

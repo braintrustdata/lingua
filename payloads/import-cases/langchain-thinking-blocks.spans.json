@@ -1,0 +1,59 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "Explain the result.",
+          "type": "human"
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "content": [
+                {
+                  "thinking": "First internal reasoning.",
+                  "signature": "top-level-signature",
+                  "type": "thinking"
+                },
+                {
+                  "text": "First visible answer.",
+                  "type": "text"
+                },
+                {
+                  "thinking": "Second internal reasoning.",
+                  "type": "thinking"
+                },
+                {
+                  "extras": {
+                    "signature": "text-fallback-signature"
+                  },
+                  "text": "Second visible answer.",
+                  "type": "text"
+                },
+                {
+                  "extras": {
+                    "signature": "thinking-extras-signature"
+                  },
+                  "thinking": "Third internal reasoning.",
+                  "type": "thinking"
+                },
+                {
+                  "text": "Third visible answer.",
+                  "type": "text"
+                }
+              ],
+              "type": "ai"
+            },
+            "generation_info": {
+              "finish_reason": "stop"
+            }
+          }
+        ]
+      ]
+    }
+  }
+]

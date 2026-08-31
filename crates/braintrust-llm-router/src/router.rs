@@ -753,15 +753,14 @@ impl Router {
         }
 
         for fallback_alias in fallback_aliases {
-            if seen.contains(fallback_alias) {
-                continue;
-            }
-
             for (spec, catalog_format, aliases) in &resolved_models {
-                if !aliases
+                let Some(provider_alias) = aliases
                     .iter()
-                    .any(|alias| self.alias_matches_provider(alias, fallback_alias))
-                {
+                    .find_map(|alias| self.matching_provider_alias(alias, fallback_alias))
+                else {
+                    continue;
+                };
+                if seen.contains(&provider_alias) {
                     continue;
                 }
 
@@ -769,7 +768,7 @@ impl Router {
                     output_format,
                     spec.clone(),
                     *catalog_format,
-                    fallback_alias.clone(),
+                    provider_alias,
                 ) {
                     Ok(route) => {
                         seen.insert(route.provider_alias.clone());
@@ -790,6 +789,26 @@ impl Router {
         }
 
         Ok(routes)
+    }
+
+    fn matching_provider_alias(
+        &self,
+        resolver_alias: &str,
+        requested_alias: &str,
+    ) -> Option<String> {
+        if self.providers.contains_key(requested_alias)
+            && self.alias_matches_provider(resolver_alias, requested_alias)
+        {
+            return Some(requested_alias.to_string());
+        }
+
+        let mut matching_aliases = self.providers.keys().filter(|registered_alias| {
+            self.alias_matches_provider(resolver_alias, registered_alias)
+                && self.alias_matches_provider(requested_alias, registered_alias)
+        });
+        let provider_alias = matching_aliases.next()?.clone();
+
+        matching_aliases.next().is_none().then_some(provider_alias)
     }
 
     fn alias_matches_provider(&self, resolver_alias: &str, provider_alias: &str) -> bool {
@@ -3692,6 +3711,94 @@ mod tests {
             resolved_aliases(&router, model, ProviderFormat::ChatCompletions).unwrap(),
             vec!["other_gpt".to_string()],
             "resolving providers returns only registered aliases from available_providers"
+        );
+    }
+
+    #[test]
+    fn fallback_alias_resolves_custom_named_openai_provider() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            openai_spec_with_available_providers(model, ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "OpenAI",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+
+        let aliases = explicit_route_aliases(
+            &router,
+            model,
+            ProviderFormat::ChatCompletions,
+            &["OPENAI_API_KEY"],
+        )
+        .expect("fallback alias resolves");
+
+        assert_eq!(aliases, vec!["OpenAI".to_string()]);
+    }
+
+    #[test]
+    fn fallback_alias_rejects_ambiguous_custom_named_openai_providers() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            openai_spec_with_available_providers(model, ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai-us",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "openai-eu",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let err = explicit_route_aliases(
+            &router,
+            model,
+            ProviderFormat::ChatCompletions,
+            &["OPENAI_API_KEY"],
+        )
+        .expect_err("ambiguous fallback alias is rejected");
+
+        assert!(matches!(
+            err,
+            Error::NoProvider(ProviderFormat::ChatCompletions)
+        ));
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["openai-us"],
+            )
+            .expect("explicit fallback alias resolves"),
+            vec!["openai-us".to_string()]
         );
     }
 
