@@ -97,7 +97,8 @@ aws-smithy-eventstream = { version = "0.60.20" }
 aws-smithy-types = { version = "1.4.7" }
 
 # Auth
-jsonwebtoken = { version = "10.3", features = ["rust_crypto"] }
+aws-lc-rs = "=1.15.0"
+jsonwebtoken = { version = "10.3", default-features = false, features = ["aws_lc_rs", "use_pem"] }
 
 # Tracing (optional)
 tracing = { version = "0.1" }
