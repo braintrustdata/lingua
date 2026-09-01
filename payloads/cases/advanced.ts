@@ -38,8 +38,44 @@ const anthropicMidConversationSystemRequest = {
   ],
 } as unknown as AnthropicMessageCreateParams;
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- The installed Anthropic SDK predates image transformation request types.
+const anthropicImageOversizedTransformationRequest = {
+  model: ANTHROPIC_MODEL,
+  max_tokens: 16,
+  messages: [
+    {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: "image/jpeg",
+            data: IMAGE_BASE64,
+          },
+          transformations: {
+            oversized_image: "error",
+          },
+        },
+        {
+          type: "text",
+          text: "Describe the image in one word.",
+        },
+      ],
+    },
+  ],
+} as unknown as AnthropicMessageCreateParams;
+
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
+  anthropicImageOversizedTransformation: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: anthropicImageOversizedTransformationRequest,
+    google: null,
+    bedrock: null,
+  },
+
   anthropicMidConversationSystemMessage: {
     "chat-completions": null,
     responses: null,

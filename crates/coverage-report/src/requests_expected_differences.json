@@ -197,6 +197,38 @@
   ],
   "perTestCase": [
     {
+      "testCase": "anthropicImageOversizedTransformation",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "Lingua image transformations.oversized_image `error`", "reason": "Chat Completions cannot preserve Anthropic's contract to reject oversized images instead of downsizing them." }
+      ]
+    },
+    {
+      "testCase": "anthropicImageOversizedTransformation",
+      "source": "Anthropic",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "Lingua image transformations.oversized_image `error`", "reason": "OpenAI Responses cannot preserve Anthropic's contract to reject oversized images instead of downsizing them." }
+      ]
+    },
+    {
+      "testCase": "anthropicImageOversizedTransformation",
+      "source": "Anthropic",
+      "target": "Google",
+      "errors": [
+        { "pattern": "Lingua image transformations.oversized_image `error`", "reason": "Google cannot preserve Anthropic's contract to reject oversized images instead of downsizing them." }
+      ]
+    },
+    {
+      "testCase": "anthropicImageOversizedTransformation",
+      "source": "Anthropic",
+      "target": "Bedrock",
+      "errors": [
+        { "pattern": "Lingua image transformations.oversized_image `error`", "reason": "Bedrock Converse cannot preserve Anthropic's contract to reject oversized images instead of downsizing them." }
+      ]
+    },
+    {
       "testCase": "googleToolCallThoughtSignatureReplayParam",
       "source": "Google",
       "target": "Responses",

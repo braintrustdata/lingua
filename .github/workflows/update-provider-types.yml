@@ -164,9 +164,32 @@ jobs:
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
           exit "$generate_status"
 
+      - name: Retry provider update after partial generation
+        id: retry
+        if: steps.generate.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          log_path="$RUNNER_TEMP/provider-type-generation.retry.log"
+          : > "$log_path"
+
+          set +e
+          {
+            echo
+            echo "## Retrying ${{ matrix.provider }} after the initial generator pass"
+            ./pipelines/generate-provider-types.sh "${{ matrix.provider }}"
+          } 2>&1 | tee -a "$log_path"
+          retry_status="${PIPESTATUS[0]}"
+          set -e
+
+          echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
+          exit "$retry_status"
+
       - name: Snapshot Braintrust trace for repair
         id: repair_task_trace
-        if: steps.generate.outcome == 'failure'
+        if: >-
+          steps.generate.outcome == 'failure' &&
+          steps.retry.outcome == 'failure'
         continue-on-error: true
         env:
           BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -181,29 +204,34 @@ jobs:
 
       - name: Load repair messages from Braintrust
         id: repair_messages
-        if: steps.generate.outcome == 'failure'
+        if: >-
+          steps.generate.outcome == 'failure' &&
+          steps.retry.outcome == 'failure'
         env:
           BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
           BRAINTRUST_PROJECT: lingua-provider-type-updates
           PROMPT_PHASE: repair
           PROVIDER: ${{ matrix.provider }}
-          GENERATION_LOG_PATH: ${{ steps.generate.outputs.log_path }}
+          GENERATION_LOG_PATH: ${{ steps.retry.outputs.log_path }}
         run: |
           set -euo pipefail
           NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs load-action-messages
 
       - name: Repair failed generation
         id: repair
-        if: steps.generate.outcome == 'failure'
+        if: >-
+          steps.generate.outcome == 'failure' &&
+          steps.retry.outcome == 'failure'
         continue-on-error: true
-        timeout-minutes: 20
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        timeout-minutes: 30
+        uses: ./.github/actions/claude-code-with-retry
         env:
           APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
+          retry_on_failure: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -224,18 +252,18 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 80
+            --max-turns 60
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: ${{ steps.repair_messages.outputs.user_message }}
 
       - name: Re-run provider update after repair
-        id: retry
-        if: steps.generate.outcome == 'failure'
+        id: repair_retry
+        if: steps.repair.outcome != 'skipped'
         continue-on-error: true
         run: |
           set -o pipefail
-          log_path="$RUNNER_TEMP/provider-type-generation.retry.log"
+          log_path="$RUNNER_TEMP/provider-type-generation.repair.log"
           : > "$log_path"
 
           {
@@ -291,12 +319,13 @@ jobs:
         id: integration_plan
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
-        timeout-minutes: 45
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        timeout-minutes: 30
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
+          retry_on_failure: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -319,47 +348,86 @@ jobs:
           claude_args: |
             --model claude-opus-5
             --effort medium
-            --max-turns 120
+            --max-turns 50
             --add-dir "${{ runner.temp }}"
             --tools "Agent,Skill,Read,Glob,Grep,LS,Bash,Write"
-            --allowedTools "Agent(provider-spec-auditor),Agent(provider-capability-auditor),Agent(provider-semantic-auditor),Agent(provider-coverage-auditor),Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*)"
+            --allowedTools "Agent,Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*)"
             --disallowedTools "Edit,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is the planning-only phase for provider `${{ matrix.provider }}`.
             Invoke the `provider-type-update` skill and follow its planning phase.
 
-            Before inspecting the provider diff yourself, invoke these four named
-            subagents in parallel:
-            - `@provider-spec-auditor`
-            - `@provider-capability-auditor`
-            - `@provider-semantic-auditor`
-            - `@provider-coverage-auditor`
+            First invoke only `@provider-spec-auditor`. Have it reduce the raw
+            specification and generated-code diff into a compact inventory of
+            wire-shape and public-type semantic changes. It must group repeated
+            schema churn and separate documentation, ordering, example, and
+            formatting-only changes from behavior changes.
 
-            Wait for all four reports, then reconcile their evidence yourself.
-            Do not substitute your own audit for any missing subagent report.
+            If that inventory contains semantic changes, invoke
+            `@provider-capability-auditor`, `@provider-semantic-auditor`, and
+            `@provider-coverage-auditor` in parallel with only the relevant
+            semantic groups. They must not independently re-audit the complete
+            raw specification diff. If the inventory contains no semantic
+            changes, skip those three auditors.
 
             Do not modify any tracked file. Read
             `.github/scripts/provider-type-update-plan.mjs` and its tests for the
             exact schema. Write only the final JSON plan to
-            `$PROVIDER_UPDATE_PLAN_PATH`. The plan must inventory the complete
-            specification diff, not only compilation failures or generated Rust.
+            `$PROVIDER_UPDATE_PLAN_PATH`. Use one plan item per semantic change
+            group rather than one item per repeated schema occurrence. Exclude
+            documentation-only and mechanically equivalent changes from the
+            plan, but record the evidence used to classify them.
+            When there are no semantic changes, use an empty `changes` array,
+            put the grouped evidence in `non_semantic_changes`, and summarize
+            why the other three audits were skipped in their `audit_reports`
+            entries.
             Shared automation infrastructure is outside the scope of an automated
             provider update. Do not include `.github/**`, `pipelines/**`,
             `scripts/**`, `Makefile`, or `AGENTS.md` in implementation targets.
             Provider type generation fixes belong in `crates/generate-types`.
 
-            Treat any provider semantic without a non-lossy universal
-            representation as blocked and ask for a canonical representation
-            decision. Never plan a `provider_options` marker or other opaque
-            round-trip-only field. Audit generated public type names for upstream
+            Classify provider-hosted execution and provider-defined harness protocols
+            as `provider_only`. This includes hosted code execution, browser or
+            computer control, provider-defined toolsets and result blocks, hosted
+            search or retrieval, containers and skills, MCP or connector state,
+            provider-scoped file handles, and encrypted continuation state.
+            Generic caller-defined function tools remain candidates for portable mapping;
+            provider-specific `tool_use` wire syntax alone does not make them
+            provider-only.
+
+            A `provider_only` item is unblocked. Plan generated/native wire
+            acceptance, format detection, byte-preserving same-format passthrough,
+            and an explicit unsupported error for cross-provider transformation.
+            Set `universal_semantics` to `not_applicable` and `cross_provider` to
+            `affected`. Use focused offline unit tests and leave payload cases and
+            live capture cases empty. Do not target universal types or
+            expected-difference files.
+
+            Treat a semantic as blocked only when portable mapping is intended but
+            its non-lossy universal representation is unclear. Never plan a
+            `provider_options` marker or other opaque round-trip-only field. Audit
+            generated public type names for upstream
             naming collisions and internal prefixes; do not accept a prefixed
             fallback such as `V1Main...` as a compatibility solution.
+            Separate deterministic generator and public-name compatibility work
+            from provider-semantic decisions. A generated-name normalization or
+            collision repair must be its own unblocked change id even when the
+            provider field using that type needs a human canonical-representation
+            decision. Do not place both concerns under one blocker.
 
             For every blocked change, fill the complete blocker schema with the
             decision question, concrete evidence, a recommended option,
             alternatives and their tradeoffs, likely affected files, and exact
             validation commands. The workflow renders this information directly
             into a draft PR for the human who finishes the update.
+            Every payload case declared by an unblocked change is automatically
+            live-captured and transform-captured to keep fixtures synchronized,
+            even when additional live evidence is not semantically required.
+            Use `live_capture.cases` only for additional capture-only evidence.
+
+            Write the JSON file before responding. Your final response must be
+            exactly `Wrote provider update plan.` Do not print the plan, auditor
+            reports, diffs, or any other analysis in the final response.
 
       - name: Validate integration plan
         id: plan_validation
@@ -403,12 +471,13 @@ jobs:
         id: integration_implementation
         if: steps.stage_plan.outcome == 'success'
         continue-on-error: true
-        timeout-minutes: 60
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        timeout-minutes: 40
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
+          retry_on_failure: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -429,7 +498,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 160
+            --max-turns 100
             --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
             --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*)"
             --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
@@ -438,8 +507,9 @@ jobs:
             Invoke the `provider-type-update` skill and follow its implementation
             phase. Read and implement the validated plan in `plan.md`.
 
-            Implement every unblocked plan item, including focused tests and
-            payload cases. Treat every change id listed in `plan.md`'s
+            Implement every unblocked plan item, including focused tests and any
+            payload cases required by the plan. Provider-only items use focused
+            unit tests and have no payload cases. Treat every change id listed in `plan.md`'s
             `blockers` array as out of scope: do not implement it, add a fixture
             for it, or invent a workaround. Do not edit `plan.md`, `AGENTS.md`, or any
             `generated.rs` file directly,
@@ -450,6 +520,16 @@ jobs:
             implementing that plan item. Resolve generated public-name collisions
             in `crates/generate-types`; do not accept internal prefixes such as
             `V1Main...` in exported Rust or TypeScript names.
+            Public-name normalization and collision repairs are deterministic
+            generator work and must be completed through their separate unblocked
+            plan items without implementing any blocked semantic mapping.
+
+            For every `provider_only` item:
+            - preserve complete native wire acceptance in generated types and validation;
+            - add focused tests for byte-preserving same-format passthrough;
+            - reject cross-provider transformation with an explicit unsupported error.
+            Do not add universal fields, cross-provider mappings, expected-difference entries,
+            payload cases, or live captures for `provider_only` items.
 
             If you change `crates/generate-types`, run
             `make generate-provider-types PROVIDER=${{ matrix.provider }}` so the
@@ -457,7 +537,9 @@ jobs:
             are allowed only when produced by that command. Before finishing, run
             focused provider and generator tests plus clippy for every crate you
             changed. Do not report completion while a permitted deterministic
-            validation is failing. Leave the completed changes uncommitted.
+            validation is failing. Leave the completed changes uncommitted. Keep
+            the final response to one sentence and do not include diffs, logs, or
+            test output.
 
       - name: Remove staged implementation plan
         if: always() && steps.stage_plan.outcome == 'success'
@@ -609,12 +691,13 @@ jobs:
         id: mechanical_repair
         if: steps.mechanical_repair_task_trace.outcome != 'skipped'
         continue-on-error: true
-        timeout-minutes: 35
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        timeout-minutes: 30
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
+          retry_on_failure: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -636,7 +719,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 100
+            --max-turns 60
             --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
             --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo build:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(git diff:*),Bash(git status:*)"
@@ -648,6 +731,12 @@ jobs:
             unblocked implementation work. Every change id in the plan's
             `blockers` array remains out of scope; do not implement it or invent
             a workaround.
+
+            Preserve the plan's provider-only boundary during repair. A
+            `provider_only` item may change generated/native provider code and
+            focused unit tests only; do not repair it by adding universal fields,
+            cross-provider mappings, expected differences, payload cases, or live
+            captures.
 
             Initial validation outcomes:
             - Rust provider regeneration: `${{ steps.post_implementation_provider_types.outcome }}`
@@ -667,7 +756,8 @@ jobs:
             Do not modify `plan.md`, `.github/**`, `pipelines/**`, `scripts/**`,
             `Makefile`, or `AGENTS.md`. Do not call live provider APIs. Finish by
             rerunning the focused commands you repaired. Leave changes
-            uncommitted.
+            uncommitted. Keep the final response to one sentence and do not
+            include diffs, logs, or test output.
 
       - name: Regenerate Rust provider types after mechanical repair
         id: post_repair_provider_types
@@ -825,7 +915,7 @@ jobs:
         continue-on-error: true
         run: make lingua-wasm
 
-      - name: Extract planned live capture cases
+      - name: Extract unblocked payload capture cases
         id: capture_cases
         if: steps.post_implementation_plan.outcome == 'success'
         continue-on-error: true
@@ -955,7 +1045,8 @@ jobs:
       - name: Snapshot Braintrust trace for verification
         id: integration_verification_task_trace
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         env:
@@ -972,15 +1063,17 @@ jobs:
       - name: Verify generated provider integration
         id: integration_verification
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
-        timeout-minutes: 45
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        timeout-minutes: 20
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
+          retry_on_failure: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -1003,7 +1096,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 120
+            --max-turns 40
             --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Bash,Write"
             --allowedTools "Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(git ls-files:*),Bash(ls:*),Bash(head:*),Bash(cat:*),Bash(grep:*)"
@@ -1016,13 +1109,13 @@ jobs:
 
             Validation outcomes:
             - plan has human blockers: `${{ steps.plan_validation.outputs.has_blockers }}`
-            - planned live capture cases: `${{ steps.capture_cases.outputs.cases }}`
+            - unblocked payload capture cases: `${{ steps.capture_cases.outputs.cases }}`
             - bounded mechanical repair: `${{ steps.mechanical_repair.outcome }}`
             - mechanical validation source: `${{ steps.mechanical_validation.outputs.source }}`
             - effective Rust generation, path and semantic policies, TypeScript generation, formatting, focused provider tests, generator tests, build, and clippy: `${{ steps.mechanical_validation.outcome }}`
             - Lingua WASM build: `${{ steps.lingua_wasm.outcome }}`
             - live capture: openai `${{ steps.live_capture_openai.outcome }}`, anthropic `${{ steps.live_capture_anthropic.outcome }}`, google `${{ steps.live_capture_google.outcome }}`
-            - planned transform capture: `${{ steps.transform_capture.outcome }}`
+            - payload transform capture: `${{ steps.transform_capture.outcome }}`
             - payload fixture sync: `${{ steps.payload_sync.outcome }}`
             - payload tests: `${{ steps.payload_tests.outcome }}`
             - typed boundary: `${{ steps.typed_boundary.outcome }}`
@@ -1032,10 +1125,15 @@ jobs:
             verification schema. Write only the JSON report to
             `$PROVIDER_UPDATE_VERIFICATION_PATH`. A failed or skipped required
             validation is a blocking finding. Live and transform capture are
-            required only when the planned live capture case list is non-empty.
+            required only when the unblocked payload capture case list is non-empty.
             Treat any new `provider_options` round-trip marker, opaque replay-only
             field, generated public-name collision, or leaked internal prefix such
             as `V1Main...` as blocking even if compilation succeeds.
+            For every `provider_only` plan item, verify native wire acceptance,
+            byte-preserving same-format passthrough, and explicit cross-provider rejection.
+            Treat any universal-model expansion or expected-difference entry for a
+            `provider_only` item as blocking. Also fail verification if such an
+            item added a payload case, transform snapshot, or live capture.
             If the validated plan has human blockers, verify that every blocked
             change was left untouched and include those unresolved decisions as
             blocking findings with a `fail` verdict. That is the expected report
@@ -1048,10 +1146,15 @@ jobs:
             budget on optional exploration. Write the report as soon as every
             required schema field has sufficient evidence.
 
+            Write the JSON file before responding. Your final response must be
+            exactly `Wrote provider update verification.` Do not print the
+            report, plan, diffs, or any other analysis in the final response.
+
       - name: Validate integration verification report
         id: verification_report
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: |
@@ -1080,7 +1183,9 @@ jobs:
           git diff --cached --stat
 
       - name: Upload integration plan and verification
+        id: update_artifact
         if: always() && steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: provider-type-integration-${{ matrix.provider }}-${{ github.run_id }}
@@ -1091,8 +1196,99 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Assess publication safety and mode
+        id: publication_readiness
+        if: always() && steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          hard_failures=()
+          review_reasons=()
+
+          require_safe() {
+            if [ "$2" != "success" ]; then
+              hard_failures+=("$1: $2")
+            fi
+          }
+
+          require_ready() {
+            if [ "$2" != "success" ]; then
+              review_reasons+=("$1: $2")
+            fi
+          }
+
+          if [ "${{ steps.mechanical_repair.outcome }}" = "skipped" ]; then
+            require_safe "provider update path policy" "${{ steps.path_policy.outcome }}"
+            require_ready "provider semantic policy" "${{ steps.semantic_policy.outcome }}"
+          else
+            require_safe "provider update path policy" "${{ steps.post_repair_path_policy.outcome }}"
+            require_ready "provider semantic policy" "${{ steps.post_repair_semantic_policy.outcome }}"
+          fi
+          require_safe "recoverable patch" "${{ steps.update_patch.outcome }}"
+
+          if [ "${{ steps.generate.outcome }}" != "success" ] &&
+            [ "${{ steps.retry.outcome }}" != "success" ]; then
+            require_ready "provider generation after repair" "${{ steps.repair_retry.outcome }}"
+          fi
+          require_ready "mechanical validation" "${{ steps.mechanical_validation.outcome }}"
+          require_ready "Lingua WASM build" "${{ steps.lingua_wasm.outcome }}"
+          require_ready "payload fixture sync" "${{ steps.payload_sync.outcome }}"
+          require_ready "payload tests" "${{ steps.payload_tests.outcome }}"
+          require_ready "typed boundary check" "${{ steps.typed_boundary.outcome }}"
+          require_ready "cross-provider guard" "${{ steps.cross_provider.outcome }}"
+          require_ready "patch artifact upload" "${{ steps.update_artifact.outcome }}"
+
+          if [ -n "${{ steps.capture_cases.outputs.cases }}" ]; then
+            require_ready "payload transform capture" "${{ steps.transform_capture.outcome }}"
+            case "${{ matrix.provider }}" in
+              openai)
+                require_ready "OpenAI live capture" "${{ steps.live_capture_openai.outcome }}"
+                ;;
+              anthropic)
+                require_ready "Anthropic live capture" "${{ steps.live_capture_anthropic.outcome }}"
+                ;;
+              google)
+                require_ready "Google live capture" "${{ steps.live_capture_google.outcome }}"
+                ;;
+            esac
+          fi
+
+          for advisory in \
+            "integration plan:${{ steps.plan_validation.outcome }}" \
+            "plan staging:${{ steps.stage_plan.outcome }}" \
+            "immutable plan:${{ steps.post_implementation_plan.outcome }}" \
+            "verification report:${{ steps.verification_report.outcome }}"; do
+            name="${advisory%%:*}"
+            outcome="${advisory#*:}"
+            require_ready "$name" "$outcome"
+          done
+          if [ "${{ steps.verification_report.outputs.verdict }}" != "pass" ]; then
+            review_reasons+=("verification verdict: ${{ steps.verification_report.outputs.verdict || 'unavailable' }}")
+          fi
+          if [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
+            review_reasons+=("human design blockers remain")
+          fi
+
+          if [ "${#hard_failures[@]}" -ne 0 ]; then
+            echo "::error::Provider update patch is not safe to publish"
+            printf '  - %s\n' "${hard_failures[@]}"
+            exit 1
+          fi
+
+          mode="ready"
+          if [ "${#review_reasons[@]}" -ne 0 ]; then
+            mode="draft"
+            echo "Provider update will be published as a continuation draft:"
+            printf '  - %s\n' "${review_reasons[@]}"
+          fi
+
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Provider update is safe to publish as mode: $mode."
+
       - name: Build PR body
-        if: steps.changes.outputs.has_changes == 'true'
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.publication_readiness.outcome == 'success'
         env:
           BRAINTRUST_PROJECT: lingua-provider-type-updates
           BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
@@ -1102,30 +1298,49 @@ jobs:
           set -euo pipefail
           {
             if [ -n "$BRAINTRUST_ROOT_SPAN_ID" ] && [ -n "$BRAINTRUST_SPAN_ID" ]; then
-              NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs emit-pr-metadata
+              NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs emit-pr-metadata ||
+                echo "<!-- Braintrust metadata unavailable -->"
               echo
             fi
             echo "Automated update of Lingua provider types."
             echo
             echo "Provider: \`${{ matrix.provider }}\`"
             echo
-            echo "Publication mode: \`${{ steps.plan_validation.outputs.has_blockers == 'true' && 'needs-design draft' || 'ready' }}\`"
+            echo "Publication mode: \`${{ steps.publication_readiness.outputs.mode == 'draft' && 'needs-review draft' || 'ready' }}\`"
             echo
+            if [ "${{ steps.publication_readiness.outputs.mode }}" = "draft" ]; then
+              echo "## Continuation required"
+              echo
+              echo "This draft preserves the automation's partial work. One or more validation or advisory checks did not complete successfully; continue from this branch instead of restarting the provider update."
+              echo
+            fi
             echo "Feedback: comment \`/bt good\` or \`/bt bad\` to log review feedback to the Braintrust trace."
             echo
-            if [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
+            if [ "${{ steps.plan_validation.outcome }}" = "success" ] && [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
               node .github/scripts/provider-type-update-plan.mjs render-blockers \
                 "$RUNNER_TEMP/provider-type-update-plan.json" \
-                "${{ matrix.provider }}"
+                "${{ matrix.provider }}" ||
+                echo "Human blocker details are available in the archived plan artifact."
               echo
               echo
+            fi
+            if [ "${{ steps.plan_validation.outcome }}" = "success" ]; then
+              provider_only_markdown=$(node .github/scripts/provider-type-update-plan.mjs render-provider-only \
+                "$RUNNER_TEMP/provider-type-update-plan.json" \
+                "${{ matrix.provider }}")
+              if [ -n "$provider_only_markdown" ]; then
+                printf '%s\n\n' "$provider_only_markdown"
+              fi
             fi
             echo "**Validation**"
             echo
             echo "- \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.generate.outcome }}"
             if [ "${{ steps.generate.outcome }}" = "failure" ]; then
+              echo "- Deterministic generator retry: ${{ steps.retry.outcome }}"
+            fi
+            if [ "${{ steps.retry.outcome }}" = "failure" ]; then
               echo "- Claude repair pass: ${{ steps.repair.outcome }}"
-              echo "- Retry \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.retry.outcome }}"
+              echo "- Generator after Claude repair: ${{ steps.repair_retry.outcome }}"
             fi
             echo "- \`make generate-types PROVIDER=${{ matrix.provider }}\`: ${{ steps.ts_types.outcome }}"
             echo "- Braintrust workflow trace: ${{ steps.braintrust_trace.outcome }}"
@@ -1147,11 +1362,11 @@ jobs:
             echo "- Effective mechanical validation source: ${{ steps.mechanical_validation.outputs.source }}"
             echo "- Effective mechanical validation: ${{ steps.mechanical_validation.outcome }}"
             echo "- \`make lingua-wasm\`: ${{ steps.lingua_wasm.outcome }}"
-            echo "- Planned live capture cases: \`${{ steps.capture_cases.outputs.cases }}\`"
+            echo "- Unblocked payload capture cases: \`${{ steps.capture_cases.outputs.cases }}\`"
             echo "- Live capture (OpenAI): ${{ steps.live_capture_openai.outcome }}"
             echo "- Live capture (Anthropic): ${{ steps.live_capture_anthropic.outcome }}"
             echo "- Live capture (Google): ${{ steps.live_capture_google.outcome }}"
-            echo "- Planned cross-provider transform capture: ${{ steps.transform_capture.outcome }}"
+            echo "- Payload cross-provider transform capture: ${{ steps.transform_capture.outcome }}"
             echo "- Payload fixture sync: ${{ steps.payload_sync.outcome }}"
             echo "- \`make test-payloads\`: ${{ steps.payload_tests.outcome }}"
             echo "- \`make typed-boundary-check\`: ${{ steps.typed_boundary.outcome }}"
@@ -1160,92 +1375,41 @@ jobs:
             echo "- Verification report validation: ${{ steps.verification_report.outcome }}"
             echo "- Verification verdict: ${{ steps.verification_report.outputs.verdict }}"
             echo "- Recoverable binary patch archive: ${{ steps.update_patch.outcome }}"
+            echo "- Patch artifact upload: ${{ steps.update_artifact.outcome }}"
             echo
-            echo "Ready PRs have no blockers and a passing verification verdict. Draft PRs may contain explicit human design blockers, but every automated safety and deterministic validation still passed. Failed runs retain the exact binary patch in the workflow artifact for manual recovery."
+            echo "Only safely scoped patches with a locally archived binary diff are published. Any incomplete AI phase or failed deterministic check produces a needs-review draft so work can continue from the PR branch."
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
 
-      - name: Check publication readiness
-        id: publication_readiness
-        if: always() && steps.changes.outputs.has_changes == 'true'
-        continue-on-error: true
-        run: |
-          set -euo pipefail
-          failures=()
-
-          require_success() {
-            if [ "$2" != "success" ]; then
-              failures+=("$1: $2")
-            fi
-          }
-
-          if [ "${{ steps.generate.outcome }}" != "success" ]; then
-            require_success "provider generation retry" "${{ steps.retry.outcome }}"
-          fi
-          require_success "integration plan" "${{ steps.integration_plan.outcome }}"
-          require_success "plan validation" "${{ steps.plan_validation.outcome }}"
-          require_success "plan staging" "${{ steps.stage_plan.outcome }}"
-          require_success "implementation" "${{ steps.integration_implementation.outcome }}"
-          require_success "immutable plan revalidation" "${{ steps.post_implementation_plan.outcome }}"
-          require_success "mechanical validation" "${{ steps.mechanical_validation.outcome }}"
-          require_success "Lingua WASM build" "${{ steps.lingua_wasm.outcome }}"
-          require_success "capture case extraction" "${{ steps.capture_cases.outcome }}"
-          require_success "payload fixture sync" "${{ steps.payload_sync.outcome }}"
-          require_success "payload tests" "${{ steps.payload_tests.outcome }}"
-          require_success "typed boundary check" "${{ steps.typed_boundary.outcome }}"
-          require_success "cross-provider guard" "${{ steps.cross_provider.outcome }}"
-          require_success "read-only verification" "${{ steps.integration_verification.outcome }}"
-          require_success "verification report" "${{ steps.verification_report.outcome }}"
-          require_success "recoverable patch" "${{ steps.update_patch.outcome }}"
-
-          if [ -n "${{ steps.capture_cases.outputs.cases }}" ]; then
-            require_success "planned transform capture" "${{ steps.transform_capture.outcome }}"
-            case "${{ matrix.provider }}" in
-              openai)
-                require_success "OpenAI live capture" "${{ steps.live_capture_openai.outcome }}"
-                ;;
-              anthropic)
-                require_success "Anthropic live capture" "${{ steps.live_capture_anthropic.outcome }}"
-                ;;
-              google)
-                require_success "Google live capture" "${{ steps.live_capture_google.outcome }}"
-                ;;
-            esac
-          fi
-
-          mode="ready"
-          if [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
-            mode="draft"
-            if [ "${{ steps.verification_report.outputs.verdict }}" != "fail" ]; then
-              failures+=(
-                "needs-design verification verdict: ${{ steps.verification_report.outputs.verdict }}"
-              )
-            fi
-          elif [ "${{ steps.verification_report.outputs.verdict }}" != "pass" ]; then
-            failures+=(
-              "ready verification verdict: ${{ steps.verification_report.outputs.verdict }}"
-            )
-          fi
-
-          if [ "${#failures[@]}" -ne 0 ]; then
-            echo "::error::Provider update is not ready to publish"
-            printf '  - %s\n' "${failures[@]}"
-            exit 1
-          fi
-
-          echo "mode=$mode" >> "$GITHUB_OUTPUT"
-          echo "Provider update is ready to publish as mode: $mode."
-
-      - name: Create PR
+      - name: Create or update continuation PR
+        id: create_pr
         if: >-
           steps.changes.outputs.has_changes == 'true' &&
           steps.publication_readiness.outcome == 'success'
+        continue-on-error: true
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
           token: ${{ github.token }}
           base: ${{ github.ref_name }}
           branch: ${{ steps.branch.outputs.name }}
           commit-message: "Update ${{ matrix.provider }} provider types"
-          title: "${{ steps.publication_readiness.outputs.mode == 'draft' && '[Needs design] ' || '' }}Update ${{ matrix.provider }} provider types"
+          title: "${{ steps.publication_readiness.outputs.mode == 'draft' && '[Needs review] ' || '' }}Update ${{ matrix.provider }} provider types"
+          body-path: ${{ runner.temp }}/update-provider-types-pr-body.md
+          labels: ${{ steps.publication_readiness.outputs.mode == 'ready' && 'auto-sync' || '' }}
+          draft: ${{ steps.publication_readiness.outputs.mode == 'draft' }}
+          delete-branch: true
+          signoff: false
+
+      - name: Retry continuation PR publication
+        id: create_pr_retry
+        if: steps.create_pr.outcome == 'failure'
+        continue-on-error: true
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
+        with:
+          token: ${{ github.token }}
+          base: ${{ github.ref_name }}
+          branch: ${{ steps.branch.outputs.name }}
+          commit-message: "Update ${{ matrix.provider }} provider types"
+          title: "${{ steps.publication_readiness.outputs.mode == 'draft' && '[Needs review] ' || '' }}Update ${{ matrix.provider }} provider types"
           body-path: ${{ runner.temp }}/update-provider-types-pr-body.md
           labels: ${{ steps.publication_readiness.outputs.mode == 'ready' && 'auto-sync' || '' }}
           draft: ${{ steps.publication_readiness.outputs.mode == 'draft' }}
@@ -1255,46 +1419,38 @@ jobs:
       - name: Fail workflow if validation failed
         if: >-
           (
-            (steps.generate.outcome == 'failure' && steps.retry.outcome != 'success') ||
-            steps.retry.outcome == 'failure' ||
-            (steps.ts_types.outcome == 'failure' && steps.mechanical_validation.outcome != 'success') ||
+            (
+              steps.changes.outputs.has_changes != 'true' &&
+              steps.generate.outcome == 'failure' &&
+              steps.retry.outcome != 'success' &&
+              steps.repair_retry.outcome != 'success'
+            ) ||
             (
               steps.changes.outputs.has_changes == 'true' &&
               (
-                steps.integration_plan.outcome != 'success' ||
-                steps.plan_validation.outcome != 'success' ||
-                steps.stage_plan.outcome != 'success' ||
-                steps.integration_implementation.outcome != 'success' ||
-                steps.post_implementation_plan.outcome != 'success' ||
-                steps.mechanical_validation.outcome != 'success' ||
-                steps.lingua_wasm.outcome == 'failure' ||
-                steps.capture_cases.outcome == 'failure' ||
-                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'openai' && steps.live_capture_openai.outcome != 'success') ||
-                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'anthropic' && steps.live_capture_anthropic.outcome != 'success') ||
-                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'google' && steps.live_capture_google.outcome != 'success') ||
-                (steps.capture_cases.outputs.cases != '' && steps.transform_capture.outcome != 'success') ||
-                steps.payload_sync.outcome != 'success' ||
-                steps.payload_tests.outcome == 'failure' ||
-                steps.typed_boundary.outcome == 'failure' ||
-                steps.cross_provider.outcome == 'failure' ||
-                steps.integration_verification.outcome != 'success' ||
-                steps.verification_report.outcome != 'success' ||
-                steps.update_patch.outcome != 'success' ||
-                steps.publication_readiness.outcome != 'success'
+                steps.publication_readiness.outcome != 'success' ||
+                (
+                  steps.create_pr.outcome != 'success' &&
+                  steps.create_pr_retry.outcome != 'success'
+                )
               )
             )
           )
         run: |
-          echo "Provider type update failed publication safety checks. No PR was created; use the archived patch for manual recovery." >&2
+          echo "Provider type update could not publish a safely scoped recovery PR." >&2
           exit 1
 
       - name: Summary
+        if: always()
         run: |
           set -euo pipefail
-          if [ "${{ steps.publication_readiness.outcome }}" = "success" ]; then
+          if [ "${{ steps.create_pr.outcome }}" = "success" ] ||
+            [ "${{ steps.create_pr_retry.outcome }}" = "success" ]; then
             echo "Provider types changed and were published in ${{ steps.publication_readiness.outputs.mode }} mode."
+          elif [ "${{ steps.publication_readiness.outcome }}" = "success" ]; then
+            echo "Provider patch was safe to publish, but both PR publication attempts failed. Use the archived patch to recover the work."
           elif [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
-            echo "Provider types changed but were not published. Download the archived patch for manual recovery."
+            echo "Provider types changed but failed the hard publication safety checks. Download the archived patch if it was created."
           elif [ "${{ steps.generate.outcome }}" = "failure" ]; then
             echo "Provider types are unchanged after a recovered generation failure."
           else

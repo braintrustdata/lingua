@@ -1,0 +1,129 @@
+name: Claude Code with optional bounded retry
+description: Run Claude Code and optionally retry the complete phase once after an action failure.
+
+inputs:
+  anthropic_api_key:
+    description: Anthropic API key forwarded to Claude Code.
+    required: true
+  github_token:
+    description: GitHub token forwarded to Claude Code.
+    required: true
+  allowed_bots:
+    description: Bots allowed to trigger Claude Code.
+    required: false
+    default: ""
+  display_report:
+    description: Whether Claude Code should display its report.
+    required: false
+    default: "false"
+  plugin_marketplaces:
+    description: Plugin marketplaces forwarded to Claude Code.
+    required: false
+    default: ""
+  plugins:
+    description: Plugins forwarded to Claude Code.
+    required: false
+    default: ""
+  settings:
+    description: Claude Code settings JSON.
+    required: false
+    default: "{}"
+  claude_args:
+    description: Command-line arguments forwarded to Claude Code.
+    required: false
+    default: ""
+  prompt:
+    description: Prompt forwarded to Claude Code.
+    required: true
+  retry_delay_seconds:
+    description: Delay before the single retry attempt.
+    required: false
+    default: "20"
+  retry_on_failure:
+    description: Whether to retry the complete phase after the first action failure.
+    required: false
+    default: "true"
+
+outputs:
+  successful_attempt:
+    description: The attempt that completed successfully.
+    value: ${{ steps.outcome.outputs.successful_attempt }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run Claude Code
+      id: primary
+      continue-on-error: true
+      uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        github_token: ${{ inputs.github_token }}
+        allowed_bots: ${{ inputs.allowed_bots }}
+        display_report: ${{ inputs.display_report }}
+        plugin_marketplaces: ${{ inputs.plugin_marketplaces }}
+        plugins: ${{ inputs.plugins }}
+        settings: ${{ inputs.settings }}
+        claude_args: ${{ inputs.claude_args }}
+        prompt: ${{ inputs.prompt }}
+
+    - name: Wait before retrying Claude Code
+      if: >-
+        steps.primary.outcome == 'failure' &&
+        inputs.retry_on_failure == 'true'
+      shell: bash
+      env:
+        RETRY_DELAY_SECONDS: ${{ inputs.retry_delay_seconds }}
+      run: |
+        set -euo pipefail
+        case "$RETRY_DELAY_SECONDS" in
+          ''|*[!0-9]*)
+            echo "::error::retry_delay_seconds must be a non-negative integer"
+            exit 1
+            ;;
+        esac
+        echo "Claude Code failed; retrying once in ${RETRY_DELAY_SECONDS}s."
+        sleep "$RETRY_DELAY_SECONDS"
+
+    - name: Retry Claude Code
+      id: retry
+      if: >-
+        steps.primary.outcome == 'failure' &&
+        inputs.retry_on_failure == 'true'
+      continue-on-error: true
+      uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        github_token: ${{ inputs.github_token }}
+        allowed_bots: ${{ inputs.allowed_bots }}
+        display_report: ${{ inputs.display_report }}
+        plugin_marketplaces: ${{ inputs.plugin_marketplaces }}
+        plugins: ${{ inputs.plugins }}
+        settings: ${{ inputs.settings }}
+        claude_args: ${{ inputs.claude_args }}
+        prompt: ${{ inputs.prompt }}
+
+    - name: Check Claude Code outcome
+      id: outcome
+      if: always()
+      shell: bash
+      env:
+        PRIMARY_OUTCOME: ${{ steps.primary.outcome }}
+        RETRY_ENABLED: ${{ inputs.retry_on_failure }}
+        RETRY_OUTCOME: ${{ steps.retry.outcome }}
+      run: |
+        set -euo pipefail
+        if [ "$PRIMARY_OUTCOME" = "success" ]; then
+          echo "successful_attempt=primary" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if [ "$RETRY_ENABLED" != "true" ]; then
+          echo "::error::Claude Code failed and retry is disabled for this phase"
+          exit 1
+        fi
+        if [ "$RETRY_OUTCOME" = "success" ]; then
+          echo "successful_attempt=retry" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        echo "::error::Claude Code failed on both bounded attempts"
+        exit 1

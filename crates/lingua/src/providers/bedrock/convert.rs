@@ -21,8 +21,9 @@ use crate::providers::bedrock::response::{
 use crate::serde_json::{self, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
-    ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, ImageTransformations, Message, OversizedImagePolicy,
+    TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
+    UserContentPart,
 };
 
 // ============================================================================
@@ -181,6 +182,24 @@ impl TryFromLLM<Message> for BedrockMessage {
                 let blocks = match content {
                     UserContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
                     UserContent::Array(parts) => {
+                        if parts.iter().any(|part| {
+                            matches!(
+                                part,
+                                UserContentPart::Image {
+                                    transformations: Some(ImageTransformations {
+                                        oversized_image: Some(OversizedImagePolicy::Error),
+                                    }),
+                                    ..
+                                }
+                            )
+                        }) {
+                            return Err(ConvertError::UnsupportedMapping {
+                                from: "Lingua image transformations.oversized_image `error`"
+                                    .to_string(),
+                                to: "Bedrock Converse image input",
+                            });
+                        }
+
                         if parts
                             .iter()
                             .any(|part| matches!(part, UserContentPart::File { .. }))
@@ -651,6 +670,36 @@ mod tests {
     use super::*;
     use crate::serde_json::json;
     use crate::universal::message::{ToolDiscoveryResultContentPart, ToolDiscoveryResultItem};
+
+    fn bedrock_image_message_with_policy(policy: OversizedImagePolicy) -> Message {
+        Message::User {
+            content: UserContent::Array(vec![UserContentPart::Image {
+                image: Value::String("aW1hZ2U=".to_string()),
+                media_type: Some("image/jpeg".to_string()),
+                transformations: Some(ImageTransformations {
+                    oversized_image: Some(policy),
+                }),
+                provider_options: None,
+            }]),
+        }
+    }
+
+    #[test]
+    fn test_bedrock_image_error_policy_is_rejected() {
+        let error = <BedrockMessage as TryFromLLM<Message>>::try_from(
+            bedrock_image_message_with_policy(OversizedImagePolicy::Error),
+        )
+        .expect_err("Bedrock must not silently weaken the image error policy");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+    }
+
+    #[test]
+    fn test_bedrock_image_downsize_policy_is_allowed() {
+        assert!(<BedrockMessage as TryFromLLM<Message>>::try_from(
+            bedrock_image_message_with_policy(OversizedImagePolicy::Downsize),
+        )
+        .is_ok());
+    }
 
     #[test]
     fn test_bedrock_message_to_universal_user() {

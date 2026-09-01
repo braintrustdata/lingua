@@ -23,8 +23,8 @@ use crate::universal::tools::{
 };
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart,
-    CacheControl, Message, TextContentPart, ToolCallArguments, ToolContentPart,
-    ToolResultContentPart, UserContent, UserContentPart,
+    CacheControl, ImageTransformations, Message, OversizedImagePolicy, TextContentPart,
+    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 
@@ -45,6 +45,102 @@ fn anthropic_file_provider_options_view(
         ))
         .ok()
     })
+}
+
+fn universal_image_transformations_from_anthropic(
+    transformations: Option<generated::RequestImageTransformations>,
+) -> Option<ImageTransformations> {
+    let oversized_image = transformations?.oversized_image.map(|policy| match policy {
+        generated::OversizedImage::Downsize => OversizedImagePolicy::Downsize,
+        generated::OversizedImage::Error => OversizedImagePolicy::Error,
+    });
+
+    oversized_image.map(|oversized_image| ImageTransformations {
+        oversized_image: Some(oversized_image),
+    })
+}
+
+fn anthropic_image_transformations_from_universal(
+    transformations: Option<ImageTransformations>,
+) -> Option<generated::RequestImageTransformations> {
+    let oversized_image = transformations?.oversized_image.map(|policy| match policy {
+        OversizedImagePolicy::Downsize => generated::OversizedImage::Downsize,
+        OversizedImagePolicy::Error => generated::OversizedImage::Error,
+    });
+
+    oversized_image.map(|oversized_image| generated::RequestImageTransformations {
+        oversized_image: Some(oversized_image),
+    })
+}
+
+fn validate_anthropic_input_message(
+    input_msg: &generated::InputMessage,
+) -> Result<(), ConvertError> {
+    let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content else {
+        return Ok(());
+    };
+
+    for block in blocks {
+        if let Some(generated::InputContentBlockContent::BlockArray(nested_blocks)) = &block.content
+        {
+            if nested_blocks
+                .iter()
+                .any(|nested| matches!(nested, generated::Block::BrowserState(_)))
+            {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Anthropic browser_state tool result".to_string(),
+                    to: "universal tool content",
+                });
+            }
+            if nested_blocks.iter().any(|nested| {
+                matches!(
+                    nested,
+                    generated::Block::Image(image) if image.transformations.is_some()
+                )
+            }) {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Anthropic nested image transformations".to_string(),
+                    to: "universal tool content",
+                });
+            }
+        }
+
+        if let Some(toolset_name) = &block.toolset_name {
+            return Err(ConvertError::UnsupportedMapping {
+                from: format!(
+                    "Anthropic toolset member content with toolset_name '{toolset_name}'"
+                ),
+                to: "universal tool content",
+            });
+        }
+
+        if matches!(
+            block.input_content_block_type,
+            generated::InputContentBlockType::Image | generated::InputContentBlockType::Document
+        ) {
+            if let Some(generated::SourceUnion::Source(source)) = &block.source {
+                if matches!(source, generated::Source::File { .. }) {
+                    let (from, to) = match block.input_content_block_type {
+                        generated::InputContentBlockType::Image => (
+                            "Anthropic file-backed image source",
+                            "universal image content",
+                        ),
+                        generated::InputContentBlockType::Document => (
+                            "Anthropic file-backed document source",
+                            "universal file content",
+                        ),
+                        _ => unreachable!("guarded to image and document blocks"),
+                    };
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: from.to_string(),
+                        to,
+                    });
+                }
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[derive(Debug, Clone, Default, serde::Deserialize)]
@@ -223,90 +319,6 @@ where
     }))
 }
 
-fn combine_anthropic_text_provider_options(
-    inherited: Option<ProviderOptions>,
-    own: Option<ProviderOptions>,
-) -> Option<ProviderOptions> {
-    match (inherited, own) {
-        (None, None) => None,
-        (Some(options), None) | (None, Some(options)) => Some(options),
-        (Some(inherited), Some(own)) => {
-            let mut options = inherited.options;
-            options.extend(own.options);
-            Some(ProviderOptions { options })
-        }
-    }
-}
-
-fn anthropic_mid_conv_system_parts(
-    content: generated::InputContentBlockContent,
-    parent_cache_control: Option<CacheControl>,
-    parent_provider_options: Option<ProviderOptions>,
-) -> Result<Vec<UserContentPart>, ConvertError> {
-    match content {
-        generated::InputContentBlockContent::PurpleString(text) => {
-            Ok(vec![UserContentPart::Text(TextContentPart {
-                text,
-                encrypted_content: None,
-                cache_control: parent_cache_control,
-                provider_options: parent_provider_options,
-            })])
-        }
-        generated::InputContentBlockContent::BlockArray(blocks) => {
-            let mut parts = Vec::new();
-            let mut inherited_parent_cache_control = parent_cache_control;
-            let mut inherited_parent_options = parent_provider_options;
-            for block in blocks {
-                if let Some(text) = block.text {
-                    let cache_control =
-                        universal_cache_control_from_serde(block.cache_control.clone())
-                            .or_else(|| inherited_parent_cache_control.take());
-                    let provider_options = combine_anthropic_text_provider_options(
-                        inherited_parent_options.take(),
-                        anthropic_text_provider_options(
-                            None::<generated::CacheControlEphemeral>,
-                            block.citations,
-                        )?,
-                    );
-                    parts.push(UserContentPart::Text(TextContentPart {
-                        text,
-                        encrypted_content: None,
-                        cache_control,
-                        provider_options,
-                    }));
-                }
-                if let Some(content) = block.content {
-                    for text_block in content {
-                        let cache_control =
-                            universal_cache_control_from_serde(text_block.cache_control.clone())
-                                .or_else(|| inherited_parent_cache_control.take());
-                        let provider_options = combine_anthropic_text_provider_options(
-                            inherited_parent_options.take(),
-                            anthropic_text_provider_options(
-                                None::<generated::CacheControlEphemeral>,
-                                text_block.citations,
-                            )?,
-                        );
-                        parts.push(UserContentPart::Text(TextContentPart {
-                            text: text_block.text,
-                            encrypted_content: None,
-                            cache_control,
-                            provider_options,
-                        }));
-                    }
-                }
-            }
-            Ok(parts)
-        }
-        generated::InputContentBlockContent::Request(_) => {
-            Err(ConvertError::ContentConversionFailed {
-                reason: "web search tool result errors cannot be used as Anthropic system content"
-                    .to_string(),
-            })
-        }
-    }
-}
-
 fn anthropic_system_message_content(
     content: generated::MessageContent,
 ) -> Result<UserContent, ConvertError> {
@@ -322,21 +334,6 @@ fn anthropic_system_message_content(
                                 text,
                                 block.cache_control,
                                 block.citations,
-                            )?);
-                        }
-                    }
-                    generated::InputContentBlockType::MidConvSystem => {
-                        let parent_cache_control =
-                            universal_cache_control_from_anthropic(block.cache_control);
-                        let parent_provider_options = anthropic_text_provider_options(
-                            None::<generated::CacheControlEphemeral>,
-                            block.citations,
-                        )?;
-                        if let Some(content) = block.content {
-                            parts.extend(anthropic_mid_conv_system_parts(
-                                content,
-                                parent_cache_control,
-                                parent_provider_options,
                             )?);
                         }
                     }
@@ -460,6 +457,8 @@ impl TryFromLLM<generated::InputMessage> for Message {
     type Error = ConvertError;
 
     fn try_from(input_msg: generated::InputMessage) -> Result<Self, Self::Error> {
+        validate_anthropic_input_message(&input_msg)?;
+
         // Check if this is a user message that contains only tool results
         // If so, convert it to a Tool message instead
         if let generated::MessageRole::User = input_msg.role {
@@ -576,12 +575,24 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     }
                                 }
                                 generated::InputContentBlockType::Image => {
+                                    let transformations =
+                                        universal_image_transformations_from_anthropic(
+                                            block.transformations,
+                                        );
                                     if let Some(source) = block.source {
                                         // Convert Anthropic image source to universal format
                                         match source {
                                             generated::SourceUnion::Source(purple_source) => {
-                                                if let Some(data) = purple_source.data {
-                                                    let media_type = purple_source.media_type.map(|mt| match mt {
+                                                if let generated::Source::Base64 {
+                                                    data,
+                                                    media_type,
+                                                }
+                                                | generated::Source::Text {
+                                                    data,
+                                                    media_type,
+                                                } = purple_source
+                                                {
+                                                    let media_type = Some(match media_type {
                                                         generated::Base64ImageSourceMediaType::ImageJpeg => "image/jpeg".to_string(),
                                                         generated::Base64ImageSourceMediaType::ImagePng => "image/png".to_string(),
                                                         generated::Base64ImageSourceMediaType::ImageGif => "image/gif".to_string(),
@@ -592,6 +603,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                     content_parts.push(UserContentPart::Image {
                                                         image: serde_json::Value::String(data),
                                                         media_type,
+                                                        transformations,
                                                         provider_options: None,
                                                     });
                                                 }
@@ -632,11 +644,24 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         // Extract data and media_type from source
                                         match source {
                                             generated::SourceUnion::Source(s) => {
-                                                let data = s.data.clone().or_else(|| s.url.clone());
-                                                let media_type = s
-                                                    .media_type
-                                                    .as_ref()
-                                                    .map(|mt| match mt {
+                                                let (data, source_media_type) = match s {
+                                                    generated::Source::Base64 {
+                                                        data,
+                                                        media_type,
+                                                    }
+                                                    | generated::Source::Text {
+                                                        data,
+                                                        media_type,
+                                                    } => (Some(data.clone()), Some(media_type)),
+                                                    generated::Source::Url { url } => {
+                                                        (Some(url.clone()), None)
+                                                    }
+                                                    generated::Source::Content { .. } => {
+                                                        (None, None)
+                                                    }
+                                                    generated::Source::File { .. } => continue,
+                                                };
+                                                let media_type = source_media_type.map(|mt| match mt {
                                                         generated::Base64ImageSourceMediaType::ImageJpeg => {
                                                             "image/jpeg".to_string()
                                                         }
@@ -874,6 +899,24 @@ impl TryFromLLM<Message> for generated::InputMessage {
                     UserContent::String(text) => generated::MessageContent::PurpleString(text),
                     UserContent::Array(parts) => {
                         for part in &parts {
+                            if let UserContentPart::Image {
+                                image: Value::String(data),
+                                media_type: Some(media_type),
+                                transformations: Some(_),
+                                ..
+                            } = part
+                            {
+                                let is_url =
+                                    data.starts_with("http://") || data.starts_with("https://");
+                                if !is_url && media_type == "application/pdf" {
+                                    return Err(ConvertError::UnsupportedMapping {
+                                        from: "Lingua image transformations on PDF content"
+                                            .to_string(),
+                                        to: "Anthropic document input",
+                                    });
+                                }
+                            }
+
                             let UserContentPart::File {
                                 data: Value::String(data),
                                 media_type,
@@ -919,6 +962,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         input_content_block_type:
                                             generated::InputContentBlockType::Text,
                                         source: None,
+                                        transformations: None,
                                         context: None,
                                         title: None,
                                         content: None,
@@ -929,13 +973,17 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
                                     })
                                 },
                                 UserContentPart::Image {
-                                    image, media_type, ..
+                                    image,
+                                    media_type,
+                                    transformations,
+                                    ..
                                 } => {
                                     // Convert universal image back to Anthropic format
                                     let data = match image {
@@ -964,6 +1012,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                                     text: Some(text),
                                                                     input_content_block_type: generated::InputContentBlockType::Text,
                                                                     source: None,
+                                                                    transformations: None,
                                                                     context: None,
                                                                     title: None,
                                                                     content: None,
@@ -974,6 +1023,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                                     id: None,
                                                                     input: None,
                                                                     name: None,
+                                                                    toolset_name: None,
                                                                     is_error: None,
                                                                     tool_use_id: None,
                                                                     file_id: None,
@@ -987,13 +1037,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             }
                                         }
 
-                                        let (source_type, source_url, source_data, anthropic_media_type) = if is_url {
-                                            (
-                                                generated::Base64ImageSourceType::Url,
-                                                Some(image_data),
-                                                None,
-                                                None,
-                                            )
+                                        let anthropic_media_type = if is_url {
+                                            None
                                         } else {
                                             // Base64 data - parse media_type (images and PDFs only)
                                             let anthropic_media_type =
@@ -1016,12 +1061,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                     // Text types are handled above, shouldn't reach here
                                                     _ => None,
                                                 });
-                                            (
-                                                generated::Base64ImageSourceType::Base64,
-                                                None,
-                                                Some(image_data),
-                                                anthropic_media_type,
-                                            )
+                                            anthropic_media_type
                                         };
 
                                         // Block type: only PDF uses Document, everything else is Image
@@ -1037,15 +1077,18 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             citations: None,
                                             text: None,
                                             input_content_block_type: block_type,
-                                            source: Some(generated::SourceUnion::Source(
-                                                generated::Source {
-                                                    data: source_data,
-                                                    media_type: anthropic_media_type,
-                                                    source_type,
-                                                    url: source_url,
-                                                    content: None,
-                                                },
-                                            )),
+                                            source: Some(generated::SourceUnion::Source(if is_url {
+                                                generated::Source::Url { url: image_data }
+                                            } else {
+                                                generated::Source::Base64 {
+                                                    data: image_data,
+                                                    media_type: anthropic_media_type?,
+                                                }
+                                            })),
+                                            transformations:
+                                                anthropic_image_transformations_from_universal(
+                                                    transformations,
+                                                ),
                                             context: None,
                                             title: None,
                                             content: None,
@@ -1056,6 +1099,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             id: None,
                                             input: None,
                                             name: None,
+                                            toolset_name: None,
                                             is_error: None,
                                             tool_use_id: None,
                                             file_id: None,
@@ -1111,26 +1155,16 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         input_content_block_type:
                                             generated::InputContentBlockType::Document,
                                         source: Some(generated::SourceUnion::Source(
-                                            generated::Source {
-                                                data: if is_url {
-                                                    None
-                                                } else {
-                                                    Some(data_str.clone())
-                                                },
-                                                media_type: if is_url {
-                                                    None
-                                                } else {
-                                                    anthropic_media_type
-                                                },
-                                                source_type: if is_url {
-                                                    generated::Base64ImageSourceType::Url
-                                                } else {
-                                                    generated::Base64ImageSourceType::Text
-                                                },
-                                                url: if is_url { Some(data_str) } else { None },
-                                                content: None,
+                                            if is_url {
+                                                generated::Source::Url { url: data_str }
+                                            } else {
+                                                generated::Source::Text {
+                                                    data: data_str,
+                                                    media_type: anthropic_media_type?,
+                                                }
                                             },
                                         )),
+                                        transformations: None,
                                         context,
                                         title,
                                         content: None,
@@ -1141,6 +1175,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -1179,6 +1214,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         input_content_block_type:
                                             generated::InputContentBlockType::Text,
                                         source: None,
+                                        transformations: None,
                                         context: None,
                                         title: None,
                                         content: None,
@@ -1189,6 +1225,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -1204,6 +1241,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     input_content_block_type:
                                         generated::InputContentBlockType::Thinking,
                                     source: None,
+                                    transformations: None,
                                     context: None,
                                     title: None,
                                     content: None,
@@ -1215,6 +1253,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     id: None,
                                     input: None,
                                     name: None,
+                                    toolset_name: None,
                                     is_error: None,
                                     tool_use_id: None,
                                     file_id: None,
@@ -1250,6 +1289,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     text: None,
                                     input_content_block_type: block_type,
                                     source: None,
+                                    transformations: None,
                                     context: None,
                                     title: None,
                                     content: None,
@@ -1260,6 +1300,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     id: Some(tool_call_id.clone()),
                                     input: input_map,
                                     name: Some(tool_name.clone()),
+                                    toolset_name: None,
                                     is_error: None,
                                     tool_use_id: None,
                                     file_id: None,
@@ -1278,6 +1319,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 input_content_block_type:
                                     generated::InputContentBlockType::ServerToolUse,
                                 source: None,
+                                transformations: None,
                                 context: None,
                                 title: None,
                                 content: None,
@@ -1293,6 +1335,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 name: Some(tool_discovery::tool_search_name(
                                     &discovery_tool_name,
                                 )),
+                                toolset_name: None,
                                 is_error: None,
                                 tool_use_id: None,
                                 file_id: None,
@@ -1321,6 +1364,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         input_content_block_type:
                                             generated::InputContentBlockType::WebSearchToolResult,
                                         source: None,
+                                        transformations: None,
                                         context: None,
                                         title: None,
                                         content,
@@ -1331,6 +1375,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         is_error: None,
                                         tool_use_id: Some(tool_call_id.clone()),
                                         file_id: None,
@@ -1380,6 +1425,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 input_content_block_type:
                                     generated::InputContentBlockType::ToolResult,
                                 source: None,
+                                transformations: None,
                                 context: None,
                                 title: None,
                                 content,
@@ -1390,6 +1436,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 id: None,
                                 input: None,
                                 name: None,
+                                toolset_name: None,
                                 is_error: None,
                                 tool_use_id: Some(tool_result.tool_call_id),
                                 file_id: None,
@@ -1403,6 +1450,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 input_content_block_type:
                                     generated::InputContentBlockType::ToolSearchToolResult,
                                 source: None,
+                                transformations: None,
                                 context: None,
                                 title: None,
                                 content: Some(tool_discovery::input_result_content(
@@ -1415,6 +1463,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 id: None,
                                 input: None,
                                 name: None,
+                                toolset_name: None,
                                 is_error: None,
                                 tool_use_id: Some(tool_discovery::tool_search_call_id(
                                     &discovery_result.tool_call_id,
@@ -1502,6 +1551,7 @@ fn text_input_content_block(text: String) -> generated::InputContentBlock {
         text: Some(text),
         input_content_block_type: generated::InputContentBlockType::Text,
         source: None,
+        transformations: None,
         context: None,
         title: None,
         content: None,
@@ -1512,6 +1562,7 @@ fn text_input_content_block(text: String) -> generated::InputContentBlock {
         id: None,
         input: None,
         name: None,
+        toolset_name: None,
         is_error: None,
         tool_use_id: None,
         file_id: None,
@@ -1901,6 +1952,15 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
         let mut content_parts = Vec::new();
 
         for block in content_blocks {
+            if let Some(toolset_name) = &block.toolset_name {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: format!(
+                        "Anthropic toolset member content with toolset_name '{toolset_name}'"
+                    ),
+                    to: "universal tool content",
+                });
+            }
+
             match block.content_block_type {
                 generated::ContentBlockType::Text => {
                     if let Some(text) = block.text {
@@ -2093,6 +2153,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                             id: None,
                             input: None,
                             name: None,
+                            toolset_name: None,
                             content: None,
                             tool_use_id: None,
                             file_id: None,
@@ -2116,6 +2177,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -2137,6 +2199,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -2179,6 +2242,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         id: Some(tool_call_id.clone()),
                                         input: input_map,
                                         name: Some(tool_name.clone()),
+                                        toolset_name: None,
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -2210,6 +2274,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         name: Some(tool_discovery::tool_search_name(
                                             &discovery_tool_name,
                                         )),
+                                        toolset_name: None,
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -2249,6 +2314,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                             input: None,
                                             name: None,
                                             content,
+                                            toolset_name: None,
                                             tool_use_id: Some(tool_call_id.clone()),
                                             file_id: None,
                                         });
@@ -2278,6 +2344,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                 id: None,
                                 input: None,
                                 name: None,
+                                toolset_name: None,
                                 content: Some(tool_discovery::response_result_content(
                                     discovery_result.tools,
                                 )?),
@@ -2670,6 +2737,122 @@ mod tests {
     }
 
     #[test]
+    fn anthropic_file_backed_image_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "image",
+                "source": {
+                    "type": "file",
+                    "file_id": "file_123"
+                }
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Anthropic file-backed image source");
+                assert_eq!(to, "universal image content");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_file_backed_document_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "document",
+                "source": {
+                    "type": "file",
+                    "file_id": "file_123"
+                }
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Anthropic file-backed document source");
+                assert_eq!(to, "universal file content");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_input_tool_use_with_toolset_name_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "assistant",
+            "content": [{
+                "type": "tool_use",
+                "id": "toolu_123",
+                "name": "navigate",
+                "toolset_name": "browser",
+                "input": {"url": "https://example.com"}
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(
+                    from,
+                    "Anthropic toolset member content with toolset_name 'browser'"
+                );
+                assert_eq!(to, "universal tool content");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_input_tool_result_with_toolset_name_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "tool_result",
+                "tool_use_id": "toolu_123",
+                "toolset_name": "browser",
+                "content": "done"
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedMapping {
+                ref from,
+                to: "universal tool content"
+            } if from == "Anthropic toolset member content with toolset_name 'browser'"
+        ));
+    }
+
+    #[test]
+    fn anthropic_response_tool_use_with_toolset_name_is_rejected_explicitly() {
+        let blocks: Vec<generated::ContentBlock> = serde_json::from_value(json!([{
+            "type": "tool_use",
+            "id": "toolu_123",
+            "name": "navigate",
+            "toolset_name": "browser",
+            "input": {"url": "https://example.com"}
+        }]))
+        .unwrap();
+
+        let err = <Vec<Message> as TryFromLLM<Vec<generated::ContentBlock>>>::try_from(blocks)
+            .unwrap_err();
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedMapping {
+                ref from,
+                to: "universal tool content"
+            } if from == "Anthropic toolset member content with toolset_name 'browser'"
+        ));
+    }
+
+    #[test]
     fn anthropic_input_messages_to_universal_messages_preserves_pure_tool_results() {
         let input = input_message(json!({
             "role": "user",
@@ -2705,6 +2888,70 @@ mod tests {
             }
             other => panic!("expected tool message, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn anthropic_browser_state_tool_result_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "tool_result",
+                "tool_use_id": "toolu_browser_123",
+                "content": [{
+                    "type": "browser_state",
+                    "tabs": [{
+                        "tab_id": "tab_1",
+                        "title": "Example",
+                        "url": "https://example.com",
+                        "active": true
+                    }],
+                    "state_changes": [{
+                        "type": "tab_opened",
+                        "tab_id": "tab_1"
+                    }]
+                }]
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input)
+            .expect_err("browser state has no universal representation");
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedMapping {
+                ref from,
+                to: "universal tool content"
+            } if from == "Anthropic browser_state tool result"
+        ));
+    }
+
+    #[test]
+    fn anthropic_nested_image_transformations_are_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "tool_result",
+                "tool_use_id": "toolu_image_123",
+                "content": [{
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": "aW1hZ2U="
+                    },
+                    "transformations": {"oversized_image": "error"}
+                }]
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input)
+            .expect_err("nested image transformations have no universal representation");
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedMapping {
+                ref from,
+                to: "universal tool content"
+            } if from == "Anthropic nested image transformations"
+        ));
     }
 
     #[test]
@@ -3191,94 +3438,6 @@ mod tests {
     }
 
     #[test]
-    fn test_anthropic_mid_conv_system_imports_to_system_message() {
-        let input: generated::InputMessage = serde_json::from_value(json!({
-            "role": "system",
-            "content": [
-                {
-                    "type": "mid_conv_system",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Use the updated policy.",
-                            "cache_control": { "type": "ephemeral" }
-                        }
-                    ]
-                }
-            ]
-        }))
-        .unwrap();
-
-        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
-
-        match message {
-            Message::System {
-                content: UserContent::Array(parts),
-            } => {
-                assert_eq!(parts.len(), 1);
-                match &parts[0] {
-                    UserContentPart::Text(text) => {
-                        assert_eq!(text.text, "Use the updated policy.");
-                        assert_eq!(
-                            text.cache_control
-                                .as_ref()
-                                .expect("cache_control should be preserved")
-                                .cache_control_type,
-                            crate::universal::CacheControlType::Ephemeral
-                        );
-                    }
-                    other => panic!("expected text part, got {other:?}"),
-                }
-            }
-            other => panic!("expected system message with array content, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn test_anthropic_mid_conv_system_import_preserves_parent_cache_control() {
-        let input: generated::InputMessage = serde_json::from_value(json!({
-            "role": "system",
-            "content": [
-                {
-                    "type": "mid_conv_system",
-                    "cache_control": { "type": "ephemeral" },
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Use the updated policy."
-                        }
-                    ]
-                }
-            ]
-        }))
-        .unwrap();
-
-        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
-
-        match message {
-            Message::System {
-                content: UserContent::Array(parts),
-            } => {
-                assert_eq!(parts.len(), 1);
-                match &parts[0] {
-                    UserContentPart::Text(text) => {
-                        assert_eq!(text.text, "Use the updated policy.");
-                        assert_eq!(
-                            text.cache_control
-                                .as_ref()
-                                .expect("parent cache_control should be preserved")
-                                .cache_control_type,
-                            crate::universal::CacheControlType::Ephemeral
-                        );
-                    }
-                    other => panic!("expected text part, got {other:?}"),
-                }
-            }
-            other => panic!("expected system message with array content, got {other:?}"),
-        }
-    }
-
-    #[test]
     fn test_json_schema_response_format_to_anthropic_is_lossy_for_unsupported_keywords() {
         let config = ResponseFormatConfig {
             format_type: Some(ResponseFormatType::JsonSchema),
@@ -3511,11 +3670,9 @@ mod tests {
             ));
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
                 assert!(matches!(
-                    source.source_type,
-                    generated::Base64ImageSourceType::Text
+                    source,
+                    generated::Source::Text { data, .. } if data == "base64encodeddata"
                 ));
-                assert_eq!(source.data.as_deref(), Some("base64encodeddata"));
-                assert!(source.url.is_none());
             } else {
                 panic!("Expected SourceSource");
             }
@@ -3550,14 +3707,10 @@ mod tests {
             ));
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
                 assert!(matches!(
-                    source.source_type,
-                    generated::Base64ImageSourceType::Url
+                    source,
+                    generated::Source::Url { url }
+                        if url == "https://example.com/report.pdf"
                 ));
-                assert_eq!(
-                    source.url.as_deref(),
-                    Some("https://example.com/report.pdf")
-                );
-                assert!(source.data.is_none());
             } else {
                 panic!("Expected SourceSource");
             }
@@ -3574,13 +3727,10 @@ mod tests {
                     citations: None,
                     text: None,
                     input_content_block_type: generated::InputContentBlockType::Document,
-                    source: Some(generated::SourceUnion::Source(generated::Source {
-                        data: None,
-                        media_type: None,
-                        source_type: generated::Base64ImageSourceType::Url,
-                        url: Some("https://example.com/report.pdf".to_string()),
-                        content: None,
+                    source: Some(generated::SourceUnion::Source(generated::Source::Url {
+                        url: "https://example.com/report.pdf".to_string(),
                     })),
+                    transformations: None,
                     context: None,
                     title: Some("Doc".to_string()),
                     content: None,
@@ -3591,6 +3741,7 @@ mod tests {
                     id: None,
                     input: None,
                     name: None,
+                    toolset_name: None,
                     is_error: None,
                     tool_use_id: None,
                     file_id: None,
@@ -3630,6 +3781,7 @@ mod tests {
         let image_part = UserContentPart::Image {
             image: serde_json::Value::String("https://example.com/image.jpg".to_string()),
             media_type: Some("image/jpeg".to_string()),
+            transformations: None,
             provider_options: None,
         };
 
@@ -3653,18 +3805,93 @@ mod tests {
             // Verify URL source type is used
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
                 assert!(matches!(
-                    source.source_type,
-                    generated::Base64ImageSourceType::Url
+                    source,
+                    generated::Source::Url { url }
+                        if url == "https://example.com/image.jpg"
                 ));
-                assert_eq!(
-                    source.url,
-                    Some("https://example.com/image.jpg".to_string())
-                );
             } else {
                 panic!("Expected SourceSource");
             }
         } else {
             panic!("Expected InputContentBlockArray");
+        }
+    }
+
+    #[test]
+    fn test_anthropic_image_transformations_round_trip() {
+        for (wire_value, expected_policy) in [
+            ("downsize", OversizedImagePolicy::Downsize),
+            ("error", OversizedImagePolicy::Error),
+        ] {
+            let input: generated::InputMessage = serde_json::from_value(json!({
+                "role": "user",
+                "content": [{
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": "aW1hZ2U="
+                    },
+                    "transformations": { "oversized_image": wire_value }
+                }]
+            }))
+            .expect("Anthropic image request should deserialize");
+
+            let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input)
+                .expect("Anthropic image request should import");
+            let Message::User {
+                content: UserContent::Array(parts),
+            } = &message
+            else {
+                panic!("expected universal user image message");
+            };
+            let UserContentPart::Image {
+                transformations: Some(transformations),
+                ..
+            } = &parts[0]
+            else {
+                panic!("expected universal image transformations");
+            };
+            assert_eq!(transformations.oversized_image, Some(expected_policy));
+
+            let output = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)
+                .expect("universal image request should export to Anthropic");
+            let generated::MessageContent::InputContentBlockArray(blocks) = output.content else {
+                panic!("expected Anthropic content block array");
+            };
+            let transformations = blocks[0]
+                .transformations
+                .as_ref()
+                .expect("Anthropic transformations should be preserved");
+            let expected = match expected_policy {
+                OversizedImagePolicy::Downsize => generated::OversizedImage::Downsize,
+                OversizedImagePolicy::Error => generated::OversizedImage::Error,
+            };
+            assert_eq!(transformations.oversized_image, Some(expected));
+        }
+    }
+
+    #[test]
+    fn test_anthropic_pdf_image_transformations_are_rejected() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::Image {
+                image: serde_json::Value::String("cGRm".to_string()),
+                media_type: Some("application/pdf".to_string()),
+                transformations: Some(ImageTransformations {
+                    oversized_image: Some(OversizedImagePolicy::Downsize),
+                }),
+                provider_options: None,
+            }]),
+        };
+
+        let error = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Anthropic document blocks do not accept image transformations");
+        match error {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Lingua image transformations on PDF content");
+                assert_eq!(to, "Anthropic document input");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
         }
     }
 

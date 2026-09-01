@@ -283,6 +283,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                                 "image_url": { "url": image_url.url }
                             }),
                             media_type: None,
+                            transformations: None,
                             provider_options: None,
                         })
                     }
@@ -293,6 +294,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                                 "image_url": { "url": source }
                             }),
                             media_type: None,
+                            transformations: None,
                             provider_options: None,
                         })
                     }

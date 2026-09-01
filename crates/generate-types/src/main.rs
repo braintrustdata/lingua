@@ -4,7 +4,12 @@
 
 use big_serde_json as serde_json;
 use std::path::PathBuf;
-use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
+use tool_generator::{
+    enforce_anthropic_closed_request_types, generate_all_tool_code,
+    preserve_anthropic_browser_state_types, preserve_anthropic_optional_toolset_name,
+    preserve_anthropic_optional_transformation_fields, preserve_anthropic_required_nullable_fields,
+    preserve_anthropic_source_types, replace_tool_struct_with_enum,
+};
 
 mod schema_converter;
 mod tool_generator;
@@ -441,7 +446,7 @@ fn generate_anthropic_types_with_quicktype(
     let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
 
     // Extract essential Anthropic schemas for messages API
-    let essential_schemas = create_essential_anthropic_schemas(&spec);
+    let essential_schemas = create_essential_anthropic_schemas(&spec)?;
 
     println!("🏗️  Generating Anthropic types with quicktype...");
 
@@ -496,7 +501,15 @@ fn generate_anthropic_types_with_quicktype(
     if let Ok(tool_code) = generate_all_tool_code("anthropic", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
+    processed_output = enforce_anthropic_closed_request_types(&processed_output, &spec)?;
+    processed_output = preserve_anthropic_browser_state_types(&processed_output, &spec)?;
+    processed_output = preserve_anthropic_source_types(&processed_output, &spec)?;
     processed_output = add_anthropic_tool_search_tool_variants(&processed_output);
+    processed_output = normalize_anthropic_public_names(&processed_output)?;
+    processed_output = preserve_anthropic_required_nullable_fields(&processed_output, &spec)?;
+    processed_output = preserve_anthropic_optional_transformation_fields(&processed_output, &spec)?;
+    processed_output = preserve_anthropic_optional_toolset_name(&processed_output, &spec)?;
+    processed_output = remove_unreferenced_anthropic_types(&processed_output);
 
     let dest_path = "crates/lingua/src/providers/anthropic/generated.rs";
 
@@ -518,12 +531,16 @@ fn generate_anthropic_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_anthropic_schemas(spec: &serde_json::Value) -> serde_json::Value {
+fn create_essential_anthropic_schemas(
+    spec: &serde_json::Value,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     // Automated approach: Preprocess schema to separate request/response types
     preprocess_anthropic_schema_for_separation(spec)
 }
 
-fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde_json::Value {
+fn preprocess_anthropic_schema_for_separation(
+    spec: &serde_json::Value,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     println!("🔧 Preprocessing Anthropic schema for request/response separation...");
 
     let default_map = serde_json::Map::new();
@@ -592,7 +609,7 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         "definitions": separated_schemas
     });
 
-    root_schema
+    Ok(root_schema)
 }
 
 fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
@@ -910,9 +927,15 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     processed = add_export_path_to_all_ts_types(&processed, "anthropic/");
 
     // Only export entry point types that are actually used in our public API
-    // ts-rs will automatically export their transitive dependencies to the same directory
+    // ts-rs will automatically export their transitive dependencies to the same directory.
+    // Types that are still referenced from Rust but no longer sit on a transitive path from
+    // an entry point are pinned here as well: without them a published binding silently
+    // disappears whenever an unrelated schema change reroutes a reference.
     let entry_points = vec![
         "InputMessage", // Used by linguaToAnthropicMessages
+        "AllowedCaller",
+        "TentacledType",
+        "StickyType",
     ];
     processed = add_ts_export_to_types(&processed, &entry_points, "anthropic/");
 
@@ -1000,6 +1023,208 @@ pub struct ToolSearchTool {
         "    #[serde(untagged)]\n    Custom(CustomTool),",
         "    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]\n    Custom(CustomTool),",
     )
+}
+
+/// Anthropic public type and variant names quicktype disambiguates behind placeholder
+/// identifiers, restored to the names the schema itself implies.
+///
+/// Quicktype appends `Class` to an object type whose preferred name a sibling union already
+/// claimed, and names an anonymous union member after its position (`Purple`, `Fluffy`, …)
+/// rather than its role. Both are pure identifier choices: every affected type keeps its
+/// serde attributes, so the emitted JSON is unchanged.
+const ANTHROPIC_PUBLIC_TYPE_NAMES: &[(&str, &str)] = &[("ContainerClass", "Container")];
+const ANTHROPIC_PUBLIC_VARIANT_NAMES: &[(&str, &str, &str)] =
+    &[("ContainerUnion", "PurpleString", "ContainerId")];
+
+fn normalize_anthropic_public_names(processed: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut normalized = processed.to_string();
+
+    for (generated_name, public_name) in ANTHROPIC_PUBLIC_TYPE_NAMES {
+        if !contains_rust_type_definition(&normalized, generated_name) {
+            continue;
+        }
+        if contains_rust_type_definition(&normalized, public_name) {
+            return Err(format!(
+                "Anthropic public name collision: '{generated_name}' cannot be restored to \
+                 '{public_name}' because '{public_name}' is already defined"
+            )
+            .into());
+        }
+        normalized = rename_rust_identifier(&normalized, generated_name, public_name);
+        println!("🔤 Restored generated type name {generated_name} to {public_name}");
+    }
+
+    for (enum_name, generated_variant, public_variant) in ANTHROPIC_PUBLIC_VARIANT_NAMES {
+        normalized = rename_enum_variant(&normalized, enum_name, generated_variant, public_variant);
+    }
+
+    Ok(normalized)
+}
+
+/// Replace every whole-word occurrence of a Rust identifier.
+fn rename_rust_identifier(source: &str, from: &str, to: &str) -> String {
+    let mut renamed = String::with_capacity(source.len());
+    let mut rest = source;
+
+    while let Some(offset) = rest.find(from) {
+        let before = rest[..offset].chars().next_back();
+        let after = rest[offset + from.len()..].chars().next();
+        let is_whole_word = !before.is_some_and(is_rust_identifier_char)
+            && !after.is_some_and(is_rust_identifier_char);
+
+        renamed.push_str(&rest[..offset]);
+        renamed.push_str(if is_whole_word { to } else { from });
+        rest = &rest[offset + from.len()..];
+    }
+
+    renamed.push_str(rest);
+    renamed
+}
+
+fn is_rust_identifier_char(character: char) -> bool {
+    character.is_alphanumeric() || character == '_'
+}
+
+/// Roots of the generated Anthropic public API: quicktype's request/response wrapper, plus
+/// types Lingua's hand-written adapters deserialize directly.
+const ANTHROPIC_GENERATED_ROOT_TYPES: &[&str] = &["AnthropicSchemas", "UserLocation"];
+
+/// Drop generated types that nothing reachable from the Anthropic roots references.
+///
+/// Quicktype walks the whole specification and emits standalone types for schemas that the
+/// generated public boundary does not reference. Deleting those types keeps the public API to
+/// the request/response graph, including references restored by the typed tool generator.
+fn remove_unreferenced_anthropic_types(processed: &str) -> String {
+    let lines: Vec<&str> = processed.lines().collect();
+    let blocks = generated_type_blocks(&lines);
+
+    let mut reachable = std::collections::HashSet::new();
+    let mut pending: Vec<String> = ANTHROPIC_GENERATED_ROOT_TYPES
+        .iter()
+        .map(|root| (*root).to_string())
+        .collect();
+    while let Some(name) = pending.pop() {
+        if !reachable.insert(name.clone()) {
+            continue;
+        }
+        let Some(block) = blocks.iter().find(|block| block.name == name) else {
+            continue;
+        };
+        for candidate in &blocks {
+            if candidate.name != name
+                && !reachable.contains(&candidate.name)
+                && block_references_type(&lines, block, &candidate.name)
+            {
+                pending.push(candidate.name.clone());
+            }
+        }
+    }
+
+    let unreferenced: Vec<&GeneratedTypeBlock> = blocks
+        .iter()
+        .filter(|block| !reachable.contains(&block.name))
+        .collect();
+    if unreferenced.is_empty() {
+        return processed.to_string();
+    }
+
+    println!(
+        "🧹 Dropping {} unreferenced Anthropic types: {}",
+        unreferenced.len(),
+        unreferenced
+            .iter()
+            .map(|block| block.name.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
+
+    let dropped: std::collections::HashSet<usize> = unreferenced
+        .iter()
+        .flat_map(|block| block.start..=block.end)
+        .collect();
+
+    lines
+        .iter()
+        .enumerate()
+        .filter(|(index, _)| !dropped.contains(index))
+        .map(|(_, line)| *line)
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+struct GeneratedTypeBlock {
+    name: String,
+    /// First line of the type's leading doc comments and attributes.
+    start: usize,
+    /// Line holding the type's closing brace.
+    end: usize,
+}
+
+/// Split a generated provider file into its top-level type definitions.
+///
+/// Generated provider files contain nothing but type definitions formatted by `cargo fmt`,
+/// so a definition runs from its leading attributes to the next line that is a bare closing
+/// brace at column zero.
+fn generated_type_blocks(lines: &[&str]) -> Vec<GeneratedTypeBlock> {
+    let mut blocks = Vec::new();
+
+    for (index, line) in lines.iter().enumerate() {
+        let Some(name) = line
+            .strip_prefix("pub struct ")
+            .or_else(|| line.strip_prefix("pub enum "))
+            .map(|rest| rest.trim_end_matches(" {").trim().to_string())
+        else {
+            continue;
+        };
+
+        let mut start = index;
+        while start > 0 {
+            let previous = lines[start - 1];
+            if previous.starts_with("#[") || previous.starts_with("//") {
+                start -= 1;
+            } else {
+                break;
+            }
+        }
+
+        let Some(end) = lines
+            .iter()
+            .enumerate()
+            .skip(index)
+            .find(|(_, line)| **line == "}")
+            .map(|(end, _)| end)
+        else {
+            continue;
+        };
+
+        blocks.push(GeneratedTypeBlock { name, start, end });
+    }
+
+    blocks
+}
+
+/// Whether a type definition mentions `type_name` outside its own declaration and docs.
+fn block_references_type(lines: &[&str], block: &GeneratedTypeBlock, type_name: &str) -> bool {
+    lines[block.start..=block.end]
+        .iter()
+        .filter(|line| !line.trim_start().starts_with("//") && !line.starts_with("pub "))
+        .any(|line| contains_rust_identifier(line, type_name))
+}
+
+/// Whether `identifier` occurs in `line` on its own rather than inside a longer identifier.
+fn contains_rust_identifier(line: &str, identifier: &str) -> bool {
+    let mut rest = line;
+    while let Some(offset) = rest.find(identifier) {
+        let before = rest[..offset].chars().next_back();
+        let after = rest[offset + identifier.len()..].chars().next();
+        if !before.is_some_and(is_rust_identifier_char)
+            && !after.is_some_and(is_rust_identifier_char)
+        {
+            return true;
+        }
+        rest = &rest[offset + identifier.len()..];
+    }
+    false
 }
 
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
@@ -1627,7 +1852,7 @@ fn generate_google_types_with_quicktype(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Generating Google types with quicktype...");
 
-    let essential_schemas = create_essential_google_schemas(spec);
+    let essential_schemas = create_essential_google_schemas(spec)?;
 
     let temp_schema_path = std::env::temp_dir().join("google_schemas.json");
     let schema_json =
@@ -1688,7 +1913,7 @@ fn generate_google_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Value {
+fn create_essential_google_schemas(spec: &serde_json::Value) -> Result<serde_json::Value, String> {
     let default_map = serde_json::Map::new();
     let all_schemas = spec
         .get("schemas")
@@ -1710,10 +1935,35 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
         );
     }
 
-    // Convert all Discovery-format schemas to JSON Schema format
+    // Discovery schema ids can include internal protobuf package prefixes. Keep those
+    // prefixes out of Lingua's public Rust and TypeScript APIs while preserving references.
+    let mut public_names = std::collections::HashMap::new();
+    let mut source_names_by_public_name = std::collections::HashMap::new();
+    for source_name in essential_schemas.keys() {
+        let public_name = google_public_schema_name(source_name)?;
+        if let Some(existing_source_name) =
+            source_names_by_public_name.insert(public_name.clone(), source_name.clone())
+        {
+            return Err(format!(
+                "Google schema name normalization collision: '{existing_source_name}' and \
+                 '{source_name}' both map to public name '{public_name}'"
+            ));
+        }
+        public_names.insert(source_name.clone(), public_name);
+    }
+
+    // Convert all Discovery-format schemas to JSON Schema format.
     let mut fixed_schemas = serde_json::Map::new();
-    for (name, schema) in essential_schemas {
-        fixed_schemas.insert(name, convert_discovery_schema_to_json_schema(&schema));
+    for (source_name, mut schema) in essential_schemas {
+        rewrite_google_schema_refs(&mut schema, &public_names);
+        let public_name = public_names
+            .get(&source_name)
+            .expect("all essential Google schemas should have a public name")
+            .clone();
+        fixed_schemas.insert(
+            public_name,
+            convert_discovery_schema_to_json_schema(&schema),
+        );
     }
 
     let root_schema = serde_json::json!({
@@ -1732,7 +1982,55 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
         "definitions": fixed_schemas
     });
 
-    root_schema
+    Ok(root_schema)
+}
+
+fn google_public_schema_name(source_name: &str) -> Result<String, String> {
+    let public_name = match source_name.strip_prefix("V1main") {
+        Some(name) => name,
+        None => source_name,
+    };
+    if public_name.is_empty() {
+        return Err(format!(
+            "Google schema id '{source_name}' has no public name after removing its V1main prefix"
+        ));
+    }
+    Ok(public_name.to_string())
+}
+
+fn rewrite_google_schema_refs(
+    value: &mut serde_json::Value,
+    public_names: &std::collections::HashMap<String, String>,
+) {
+    match value {
+        serde_json::Value::Object(object) => {
+            if let Some(reference) = object.get_mut("$ref") {
+                if let Some(reference_value) = reference.as_str() {
+                    let rewritten_reference = if reference_value.starts_with('#') {
+                        extract_type_name_from_ref(reference_value).and_then(|source_name| {
+                            public_names
+                                .get(&source_name)
+                                .map(|public_name| format!("#/definitions/{public_name}"))
+                        })
+                    } else {
+                        public_names.get(reference_value).cloned()
+                    };
+                    if let Some(rewritten_reference) = rewritten_reference {
+                        *reference = serde_json::Value::String(rewritten_reference);
+                    }
+                }
+            }
+            for child in object.values_mut() {
+                rewrite_google_schema_refs(child, public_names);
+            }
+        }
+        serde_json::Value::Array(array) => {
+            for child in array {
+                rewrite_google_schema_refs(child, public_names);
+            }
+        }
+        _ => {}
+    }
 }
 
 fn add_google_schema_with_dependencies(
@@ -2306,7 +2604,93 @@ pub struct Status {}
 
 #[cfg(test)]
 mod google_post_process_tests {
-    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+    use super::{
+        add_type_enum_lowercase_aliases, create_essential_google_schemas,
+        extract_type_name_from_ref, preserve_google_public_enum_variant_names, serde_json,
+    };
+
+    fn discovery_spec_with_media_resolution_refs(refs: &[&str]) -> serde_json::Value {
+        let properties = refs
+            .iter()
+            .enumerate()
+            .map(|(index, reference)| {
+                (
+                    format!("mediaResolution{index}"),
+                    serde_json::json!({ "$ref": reference }),
+                )
+            })
+            .collect::<serde_json::Map<_, _>>();
+        let mut schemas = serde_json::Map::from_iter([
+            (
+                "GenerateContentRequest".to_string(),
+                serde_json::json!({ "type": "object", "properties": properties }),
+            ),
+            (
+                "GenerateContentResponse".to_string(),
+                serde_json::json!({ "type": "object" }),
+            ),
+        ]);
+        for reference in refs {
+            let schema_name = if reference.starts_with('#') {
+                extract_type_name_from_ref(reference).unwrap()
+            } else {
+                (*reference).to_string()
+            };
+            schemas.insert(
+                schema_name,
+                serde_json::json!({
+                    "type": "object",
+                    "properties": { "level": { "type": "string" } }
+                }),
+            );
+        }
+        serde_json::json!({ "schemas": schemas })
+    }
+
+    #[test]
+    fn strips_google_v1main_schema_prefix_from_public_definitions_and_refs() {
+        let spec = discovery_spec_with_media_resolution_refs(&["V1mainMediaResolution"]);
+
+        let generated = create_essential_google_schemas(&spec).unwrap();
+        let definitions = generated["definitions"].as_object().unwrap();
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert!(!definitions.contains_key("V1mainMediaResolution"));
+        assert_eq!(
+            definitions["GenerateContentRequest"]["properties"]["mediaResolution0"]["$ref"],
+            "#/definitions/MediaResolution"
+        );
+    }
+
+    #[test]
+    fn strips_google_v1main_schema_prefix_from_fragment_refs() {
+        let spec =
+            discovery_spec_with_media_resolution_refs(&["#/definitions/V1mainMediaResolution"]);
+
+        let generated = create_essential_google_schemas(&spec).unwrap();
+        let definitions = generated["definitions"].as_object().unwrap();
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert!(!definitions.contains_key("V1mainMediaResolution"));
+        assert_eq!(
+            definitions["GenerateContentRequest"]["properties"]["mediaResolution0"]["$ref"],
+            "#/definitions/MediaResolution"
+        );
+    }
+
+    #[test]
+    fn rejects_google_public_schema_name_collisions() {
+        let spec = discovery_spec_with_media_resolution_refs(&[
+            "MediaResolution",
+            "V1mainMediaResolution",
+        ]);
+
+        let error = create_essential_google_schemas(&spec).unwrap_err();
+
+        assert!(error.contains("Google schema name normalization collision"));
+        assert!(error.contains("MediaResolution"));
+        assert!(error.contains("V1mainMediaResolution"));
+    }
 
     #[test]
     fn preserves_string_variant_when_quicktype_renames_it() {
