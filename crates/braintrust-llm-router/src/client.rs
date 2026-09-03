@@ -493,12 +493,31 @@ mod tests {
         let (url, server) = spawn_https_server();
         let default_client = build_client(&ClientSettings::default()).expect("default client");
 
-        default_client
+        let client_error = default_client
             .get(&url)
             .send()
             .await
             .expect_err("private CA should not be trusted by default");
-        let _ = server.join();
+        assert!(
+            client_error.is_connect(),
+            "expected TLS connection failure, got: {client_error:?}"
+        );
+
+        let server_error = server
+            .join()
+            .expect("TLS server thread")
+            .expect_err("TLS handshake should fail");
+        assert!(
+            matches!(
+                server_error
+                    .get_ref()
+                    .and_then(|error| error.downcast_ref::<rustls::Error>()),
+                Some(rustls::Error::AlertReceived(
+                    rustls::AlertDescription::UnknownCA
+                ))
+            ),
+            "expected UnknownCA TLS alert, got: {server_error:?}"
+        );
 
         let (url, server) = spawn_https_server();
         let settings = ClientSettings {
