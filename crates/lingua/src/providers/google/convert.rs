@@ -23,7 +23,7 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::DEFAULT_MIME_TYPE;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, ProviderOptions, TextContentPart,
+    AssistantContent, AssistantContentPart, AudioFormat, Message, ProviderOptions, TextContentPart,
     ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::universal::request::{
@@ -455,6 +455,19 @@ impl TryFromLLM<Message> for GoogleContent {
                                             ..Default::default()
                                         });
                                     }
+                                }
+                                UserContentPart::Audio { data, format } => {
+                                    let mime_type = match format {
+                                        AudioFormat::Mp3 => "audio/mpeg",
+                                        AudioFormat::Wav => "audio/wav",
+                                    };
+                                    converted.push(GooglePart {
+                                        inline_data: Some(GoogleBlob {
+                                            mime_type: Some(mime_type.to_string()),
+                                            data: Some(data),
+                                        }),
+                                        ..Default::default()
+                                    });
                                 }
                                 UserContentPart::File {
                                     data: Value::String(data),
@@ -1686,6 +1699,29 @@ mod tests {
         let parts = content.parts.unwrap();
         assert_eq!(parts.len(), 1);
         assert_eq!(parts[0].text.as_deref(), Some("Hello"));
+    }
+
+    #[test]
+    fn test_message_to_google_content_audio() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::Audio {
+                data: "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=".to_string(),
+                format: AudioFormat::Wav,
+            }]),
+        };
+
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let parts = content.parts.unwrap();
+        let inline_data = parts[0]
+            .inline_data
+            .as_ref()
+            .expect("audio should become inlineData");
+
+        assert_eq!(inline_data.mime_type.as_deref(), Some("audio/wav"));
+        assert_eq!(
+            inline_data.data.as_deref(),
+            Some("UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=")
+        );
     }
 
     #[test]

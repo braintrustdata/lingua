@@ -44,7 +44,7 @@ pub enum UserContent {
     Array(Vec<UserContentPart>),
 }
 
-/// User content parts - text, image, and file parts allowed
+/// User content parts - text, image, audio, and file parts allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -59,6 +59,10 @@ pub enum UserContentPart {
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+    Audio {
+        data: String,
+        format: AudioFormat,
+    },
     File {
         #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
         data: serde_json::Value,
@@ -68,6 +72,14 @@ pub enum UserContentPart {
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+}
+
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum AudioFormat {
+    Mp3,
+    Wav,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
