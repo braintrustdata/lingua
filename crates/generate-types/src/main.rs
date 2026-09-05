@@ -1143,6 +1143,10 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "InputImage,\n    #[serde(rename = \"input_text\")]",
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
     );
+    processed = processed.replace(
+        "    pub refusal: Option<String>,\n}\n\n/// An annotation that applies to a span of output text.",
+        "    pub refusal: Option<String>,\n    /// The audio input to the model.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub input_audio: Option<InputAudio>,\n}\n\n/// An annotation that applies to a span of output text.",
+    );
 
     processed = rename_enum_variant(&processed, "Arguments", "PurpleString", "String");
     processed = rename_enum_variant(&processed, "InputParam", "PurpleString", "String");
