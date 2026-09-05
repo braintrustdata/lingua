@@ -5698,7 +5698,7 @@ mod tests {
 
     fn wav_base64() -> String {
         base64::engine::general_purpose::STANDARD.encode(include_bytes!(
-            "../../../../../../tests/bt_services/expect_test_datafiles/strawberry.wav"
+            "../../../../../payloads/fixtures/audio/strawberry.wav"
         ))
     }
 
