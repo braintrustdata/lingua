@@ -197,6 +197,14 @@
   ],
   "perTestCase": [
     {
+      "testCase": "openaiAgentMessageParam",
+      "source": "Responses",
+      "target": "*",
+      "errors": [
+        { "pattern": "cannot convert OpenAI Responses agent_message to Lingua messages", "reason": "Agent routing and encrypted agent replay content are OpenAI-specific and have no lossless universal representation." }
+      ]
+    },
+    {
       "testCase": "googleToolCallThoughtSignatureReplayParam",
       "source": "Google",
       "target": "Responses",

@@ -87,7 +87,8 @@ type OpenAIResponseInputItem =
       OpenAI.Responses.ResponseInputItem,
       OpenAI.Responses.ResponseReasoningItem
     >
-  | OpenAIResponseReasoningReplayItem;
+  | OpenAIResponseReasoningReplayItem
+  | OpenAI.Beta.Responses.BetaResponseInputItem.AgentMessage;
 
 type OpenAIResponseCreateParamsWithExtendedServiceTier<T> = T extends unknown
   ? Omit<T, "input" | "service_tier"> & {

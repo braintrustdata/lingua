@@ -2126,6 +2126,8 @@ pub enum InputParam {
 /// Compacts the current context. Must be the final input item.
 ///
 /// An internal identifier for an item to reference.
+///
+/// A message routed between agents.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "openai/")]
 pub struct InputItem {
@@ -2137,6 +2139,9 @@ pub struct InputItem {
     ///
     ///
     /// Reasoning text content.
+    ///
+    ///
+    /// Plaintext, image, or encrypted content sent between agents.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<InputItemContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2232,6 +2237,8 @@ pub struct InputItem {
     /// The item type. Always `program`.
     ///
     /// The item type. Always `program_output`.
+    ///
+    /// The item type. Always `agent_message`.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_item_type: Option<InputItemType>,
@@ -2478,6 +2485,14 @@ pub struct InputItem {
     /// Opaque program replay fingerprint that must be round-tripped.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fingerprint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent: Option<BetaAgentTagParam>,
+    /// The sending agent identity.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub author: Option<String>,
+    /// The destination agent identity.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recipient: Option<String>,
 }
 
 /// A pending safety check for the computer call.
@@ -2865,6 +2880,14 @@ pub enum ComputerActionType {
     Wait,
 }
 
+/// The agent that produced this item.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct BetaAgentTagParam {
+    /// The canonical name of the agent that produced this item.
+    pub agent_name: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
@@ -2927,6 +2950,12 @@ pub enum InputItemContent {
 /// A refusal from the model.
 ///
 /// Reasoning text from the model.
+///
+/// A plaintext, image, or encrypted agent message content part.
+///
+/// An image input to the model. Learn about [image inputs](/docs/guides/vision)
+///
+/// Opaque encrypted content that Responses API decrypts inside trusted model execution.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct ContentInputItemContentList {
@@ -2950,6 +2979,8 @@ pub struct ContentInputItemContentList {
     /// The type of the refusal. Always `refusal`.
     ///
     /// The type of the reasoning text. Always `reasoning_text`.
+    ///
+    /// The type of the input item. Always `encrypted_content`.
     #[serde(rename = "type")]
     pub input_content_type: HilariousType,
     /// The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or
@@ -2982,6 +3013,9 @@ pub struct ContentInputItemContentList {
     /// The refusal explanation from the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub refusal: Option<String>,
+    /// Opaque encrypted content.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encrypted_content: Option<String>,
 }
 
 /// An annotation that applies to a span of output text.
@@ -3090,10 +3124,14 @@ pub enum DetailEnum {
 /// The type of the refusal. Always `refusal`.
 ///
 /// The type of the reasoning text. Always `reasoning_text`.
+///
+/// The type of the input item. Always `encrypted_content`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum HilariousType {
+    #[serde(rename = "encrypted_content")]
+    EncryptedContent,
     #[serde(rename = "input_file")]
     InputFile,
     #[serde(rename = "input_image")]
@@ -3271,12 +3309,16 @@ pub enum ToolSearchExecutionType {
 /// The item type. Always `program`.
 ///
 /// The item type. Always `program_output`.
+///
+/// The item type. Always `agent_message`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum InputItemType {
     #[serde(rename = "additional_tools")]
     AdditionalTools,
+    #[serde(rename = "agent_message")]
+    AgentMessage,
     #[serde(rename = "apply_patch_call")]
     ApplyPatchCall,
     #[serde(rename = "apply_patch_call_output")]
@@ -4693,7 +4735,7 @@ pub enum PromptVariable {
 #[ts(export_to = "openai/")]
 pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub prompt_cache_breakpoint: Option<InputItemContentListPromptCacheBreakpoint>,
+    pub prompt_cache_breakpoint: Option<InputTextPromptCacheBreakpoint>,
     /// The text input to the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -4726,6 +4768,15 @@ pub struct Input {
     /// The name of the file to be sent to the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<String>,
+}
+
+/// Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the
+/// request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct InputTextPromptCacheBreakpoint {
+    /// The breakpoint mode. Always `explicit`.
+    pub mode: PromptCacheBreakpointMode,
 }
 
 /// **gpt-5 and o-series models only**
@@ -6419,7 +6470,7 @@ pub enum OutputUnion {
 #[ts(export_to = "openai/")]
 pub struct OutputInputItemContentList {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub prompt_cache_breakpoint: Option<InputItemContentListPromptCacheBreakpoint>,
+    pub prompt_cache_breakpoint: Option<InputTextPromptCacheBreakpoint>,
     /// The text input to the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
