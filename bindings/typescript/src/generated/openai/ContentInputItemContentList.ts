@@ -27,6 +27,12 @@ import type { LogProbability } from "./LogProbability";
  * A refusal from the model.
  *
  * Reasoning text from the model.
+ *
+ * A plaintext, image, or encrypted agent message content part.
+ *
+ * An image input to the model. Learn about [image inputs](/docs/guides/vision)
+ *
+ * Opaque encrypted content that Responses API decrypts inside trusted model execution.
  */
 export type ContentInputItemContentList = { prompt_cache_breakpoint: InputItemContentListPromptCacheBreakpoint | null, 
 /**
@@ -49,6 +55,8 @@ text: string | null,
  * The type of the refusal. Always `refusal`.
  *
  * The type of the reasoning text. Always `reasoning_text`.
+ *
+ * The type of the input item. Always `encrypted_content`.
  */
 type: HilariousType, 
 /**
@@ -80,4 +88,8 @@ annotations: Array<Annotation> | null, logprobs: Array<LogProbability> | null,
 /**
  * The refusal explanation from the model.
  */
-refusal: string | null, };
+refusal: string | null, 
+/**
+ * Opaque encrypted content.
+ */
+encrypted_content: string | null, };

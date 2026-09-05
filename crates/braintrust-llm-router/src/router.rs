@@ -232,6 +232,28 @@ impl Default for RequestPreparationOptions {
     }
 }
 
+fn native_responses_requires_json_response(body: &[u8]) -> bool {
+    use lingua::providers::openai::generated::{ResponseFormatType, ResponseTextParam};
+
+    #[derive(Deserialize)]
+    struct ResponseFormatMetadata {
+        text: Option<ResponseTextParam>,
+    }
+
+    match lingua::serde_json::from_slice::<ResponseFormatMetadata>(body) {
+        Ok(metadata) => metadata
+            .text
+            .and_then(|text| text.format)
+            .is_some_and(|format| {
+                matches!(
+                    format.text_response_format_configuration_type,
+                    ResponseFormatType::JsonObject | ResponseFormatType::JsonSchema
+                )
+            }),
+        Err(_) => true,
+    }
+}
+
 async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
@@ -338,8 +360,17 @@ impl Router {
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
         let (payload, detected_format, actual_format, requires_json_response, lingua_passthrough) =
-            prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
-                .await?;
+            if output_format == ProviderFormat::Responses
+                && route.format == ProviderFormat::Responses
+                && route.provider.id() == "openai"
+                && route.provider.matches_provider_alias("openai")
+            {
+                let requires_json_response = native_responses_requires_json_response(&body);
+                (body, None, route.format, requires_json_response, true)
+            } else {
+                prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
+                    .await?
+            };
         Ok((
             PreparedRequestInner {
                 provider: route.provider.clone(),
@@ -1569,6 +1600,88 @@ mod tests {
         router
             .create_stream_request(body, output_format, route, false)
             .await
+    }
+
+    #[tokio::test]
+    async fn native_responses_preserves_body_without_schema_detection() {
+        let router = Router::builder()
+            .with_catalog(Arc::new(ModelCatalog::empty()))
+            .build()
+            .expect("router builds");
+        let route = ProviderRoute {
+            provider_alias: "OPENAI_API_KEY".to_string(),
+            provider: Arc::new(FakeProvider {
+                name: "openai",
+                formats: vec![ProviderFormat::Responses],
+            }),
+            auth: dummy_auth(),
+            spec: Arc::new(openai_spec("gpt-5.6-sol", ModelFlavor::Chat)),
+            format: ProviderFormat::Responses,
+        };
+        let body = Bytes::from_static(
+            br#"{ "model": "gpt-5.6-luna", "input": [{"type":"future_input_item","opaque":9007199254740993}], "stream": true }"#,
+        );
+
+        for stream in [false, true] {
+            let (prepared, metadata) = router
+                .create_prepared_request_internal(
+                    body.clone(),
+                    ProviderFormat::Responses,
+                    &route,
+                    stream,
+                    RequestPreparationOptions::default(),
+                )
+                .await
+                .expect("native request prepares without detecting its schema");
+            assert_eq!(prepared.payload, body);
+            assert_eq!(prepared.payload.as_ptr(), body.as_ptr());
+            assert_eq!(metadata.detected_input_format, ProviderFormat::Responses);
+            assert_eq!(metadata.provider_format, ProviderFormat::Responses);
+            assert!(metadata.lingua_passthrough);
+            assert!(!prepared.requires_json_response);
+        }
+
+        let non_openai_route = ProviderRoute {
+            provider: Arc::new(FakeProvider {
+                name: "azure",
+                formats: vec![ProviderFormat::Responses],
+            }),
+            ..route.clone()
+        };
+        for (format, route) in [
+            (ProviderFormat::ChatCompletions, &route),
+            (ProviderFormat::Responses, &non_openai_route),
+        ] {
+            assert!(router
+                .create_prepared_request_internal(
+                    body.clone(),
+                    format,
+                    route,
+                    false,
+                    RequestPreparationOptions::default(),
+                )
+                .await
+                .is_err());
+        }
+    }
+
+    #[test]
+    fn native_responses_retains_json_response_requirements() {
+        for (body, expected) in [
+            (r#"{"input":[{"type":"agent_message"}]}"#, false),
+            (r#"{"text":{"format":{"type":"text"}}}"#, false),
+            (r#"{"text":{"format":{"type":"json_object"}}}"#, true),
+            (
+                r#"{"text":{"format":{"type":"json_schema","name":"result","schema":{"type":"object"}}}}"#,
+                true,
+            ),
+            (r#"{"text":{"format":{"type":"future_format"}}}"#, true),
+        ] {
+            assert_eq!(
+                native_responses_requires_json_response(body.as_bytes()),
+                expected
+            );
+        }
     }
 
     #[tokio::test]

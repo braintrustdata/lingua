@@ -100,6 +100,24 @@ const openAIMultipleReasoningSignaturesReplayAssistantMessage: ChatCompletionAss
 // Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
+  openaiAgentMessageParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_SOL_MODEL,
+      input: [
+        {
+          type: "agent_message",
+          author: "/root/research",
+          recipient: "/root",
+          content: [{ type: "input_text", text: "The requested check passed." }],
+        },
+        { role: "user", content: "Acknowledge the agent's report in one sentence." },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
   openAIMultipleReasoningSignaturesReplayParam: {
     "chat-completions": {
       model: "gpt-5.6-luna",
