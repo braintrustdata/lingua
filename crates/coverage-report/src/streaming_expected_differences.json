@@ -361,8 +361,9 @@
       "testCase": "googleInlineAudioParam",
       "source": "Google",
       "target": "Anthropic",
-      "skip": true,
-      "reason": "Google inline-audio stream events have no Anthropic-compatible output representation"
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }
+      ]
     }
   ]
 }
