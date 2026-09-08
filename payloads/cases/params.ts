@@ -149,6 +149,29 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  openaiAgentMessageParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_SOL_MODEL,
+      input: [
+        {
+          type: "agent_message",
+          author: "/root/research",
+          recipient: "/root",
+          content: [
+            { type: "input_text", text: "The requested check passed." },
+          ],
+        },
+        {
+          role: "user",
+          content: "Acknowledge the agent's report in one sentence.",
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
   openAIMultipleReasoningSignaturesReplayParam: {
     "chat-completions": {
       model: "gpt-5.6-luna",

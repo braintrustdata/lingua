@@ -1,0 +1,25 @@
+{
+  "model": "gpt-5.6-luna",
+  "input": [
+    {
+      "type": "agent_message",
+      "id": "amsg_01a0724f-72ea-7652-baa0-dd08377ebb21",
+      "author": "/root",
+      "recipient": "/root/trace_summaries",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "anon_1"
+        },
+        {
+          "type": "encrypted_content",
+          "encrypted_content": "anon_2"
+        }
+      ],
+      "internal_chat_message_metadata_passthrough": {
+        "turn_id": "01a0724f-72b5-7ac2-a40a-4cc830146c1e",
+        "create_time": 1788624204.522393
+      }
+    }
+  ]
+}

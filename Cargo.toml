@@ -59,6 +59,7 @@ pyo3 = { version = "0.24.1", features = ["extension-module"] }
 
 # Dev
 tokio-test = "0.4"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 paste = "1.0"
 log = "0.4"
 env_logger = "0.11"

@@ -244,11 +244,21 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     let responses_response_type = "Response";
 
     let default_map = serde_json::Map::new();
-    let all_schemas = spec
+    let mut all_schemas = spec
         .get("components")
         .and_then(|c| c.get("schemas"))
         .and_then(|s| s.as_object())
-        .unwrap_or(&default_map);
+        .unwrap_or(&default_map)
+        .clone();
+
+    all_schemas
+        .get_mut("InputItem")
+        .and_then(|schema| schema.get_mut("oneOf"))
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("OpenAI input item schema must be a union")
+        .push(serde_json::json!({
+            "$ref": "#/components/schemas/BetaAgentMessageItemParam"
+        }));
 
     let mut essential_schemas = serde_json::Map::new();
     let mut processed = std::collections::HashSet::new();
@@ -256,19 +266,19 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     // Add chat completion types with their dependencies
     add_openai_schema_with_dependencies(
         chat_request_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
     add_openai_schema_with_dependencies(
         chat_response_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
     add_openai_schema_with_dependencies(
         chat_stream_response_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
@@ -276,13 +286,13 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     // Add responses API types with their dependencies
     add_openai_schema_with_dependencies(
         responses_request_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
     add_openai_schema_with_dependencies(
         responses_response_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
@@ -1147,6 +1157,10 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "    pub refusal: Option<String>,\n}\n\n/// An annotation that applies to a span of output text.",
         "    pub refusal: Option<String>,\n    /// The audio input to the model.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub input_audio: Option<InputAudio>,\n}\n\n/// An annotation that applies to a span of output text.",
     );
+    processed = processed.replace(
+        "    pub refusal: Option<String>,\n    /// Opaque encrypted content.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub encrypted_content: Option<String>,\n}\n\n/// An annotation that applies to a span of output text.",
+        "    pub refusal: Option<String>,\n    /// The audio input to the model.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub input_audio: Option<InputAudio>,\n    /// Opaque encrypted content.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub encrypted_content: Option<String>,\n}\n\n/// An annotation that applies to a span of output text.",
+    );
 
     processed = rename_enum_variant(&processed, "Arguments", "PurpleString", "String");
     processed = rename_enum_variant(&processed, "InputParam", "PurpleString", "String");
@@ -1203,6 +1217,10 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     );
 
     processed = add_openai_compatibility_aliases(&processed);
+
+    processed = processed
+        .replace("BetaDetailEnum", "DetailEnum")
+        .replace("PurplePromptCacheBreakpoint", "PromptCacheBreakpoint");
 
     processed
 }
