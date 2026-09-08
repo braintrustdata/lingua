@@ -1085,7 +1085,7 @@ mod tests {
         assert!(error.to_string().contains("Lingua audio content"));
 
         let supported = UniversalRequest {
-            model: Some("gpt-4o-audio-preview".to_string()),
+            model: Some("gpt-audio".to_string()),
             messages,
             params: UniversalParams::default(),
         };

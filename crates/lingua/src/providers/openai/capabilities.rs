@@ -104,6 +104,8 @@ pub fn supports_chat_input_audio(model: &str) -> bool {
         || model.starts_with("gpt-4o-audio-preview-")
         || model == "gpt-4o-mini-audio-preview"
         || model.starts_with("gpt-4o-mini-audio-preview-")
+        || model == "gpt-audio"
+        || model.starts_with("gpt-audio-")
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -362,6 +364,8 @@ mod tests {
         for model in [
             "gpt-4o-audio-preview",
             "gpt-4o-mini-audio-preview-2024-12-17",
+            "gpt-audio",
+            "gpt-audio-mini",
         ] {
             assert!(supports_chat_input_audio(model), "model: {model}");
         }

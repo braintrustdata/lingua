@@ -311,7 +311,7 @@ impl TryFromLLM<GoogleContent> for Message {
                                 });
                             } else if let Some(format) = match &*mime_type {
                                 "audio/mpeg" | "audio/mp3" => Some(AudioFormat::Mp3),
-                                "audio/wav" => Some(AudioFormat::Wav),
+                                "audio/wav" | "video/audio/wav" => Some(AudioFormat::Wav),
                                 _ => None,
                             } {
                                 user_parts.push(UserContentPart::Audio {
@@ -1742,7 +1742,7 @@ mod tests {
 
     #[test]
     fn test_google_inline_audio_imports_as_universal_audio() {
-        for mime_type in ["audio/wav", "audio/mpeg", "audio/mp3"] {
+        for mime_type in ["audio/wav", "video/audio/wav", "audio/mpeg", "audio/mp3"] {
             let content = GoogleContent {
                 role: Some("user".to_string()),
                 parts: Some(vec![GooglePart {
@@ -1764,6 +1764,7 @@ mod tests {
                         assert!(matches!(
                             (mime_type, format),
                             ("audio/wav", AudioFormat::Wav)
+                                | ("video/audio/wav", AudioFormat::Wav)
                                 | ("audio/mpeg", AudioFormat::Mp3)
                                 | ("audio/mp3", AudioFormat::Mp3)
                         ));
