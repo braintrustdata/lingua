@@ -1321,6 +1321,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
         for mut input in inputs {
             let pending_tool_search_call_id = last_tool_search_call_id.take();
             match input.input_item_type {
+                Some(openai::InputItemType::AgentMessage) => {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses agent_message".to_string(),
+                        to: "Lingua messages (agent routing and encrypted content are provider-specific)",
+                    });
+                }
                 // Built-in tool calls - convert to ToolCall with provider_executed: true
                 Some(openai::InputItemType::WebSearchCall) => {
                     let tool_call = AssistantContentPart::ToolCall {
@@ -1738,6 +1744,12 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
 
     fn try_from(value: openai::InputContent) -> Result<Self, Self::Error> {
         Ok(match value.input_content_type {
+            openai::InputItemContentListType::EncryptedContent => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "OpenAI Responses encrypted_content".to_string(),
+                    to: "Lingua user content (opaque agent replay state is provider-specific)",
+                });
+            }
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
                 let cache_control = cache_control_from_responses_prompt_cache_breakpoint(
@@ -1981,6 +1993,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
 impl Default for openai::InputContent {
     fn default() -> Self {
         Self {
+            encrypted_content: None,
             text: None,
             input_content_type: openai::InputItemContentListType::InputText,
             detail: None,
@@ -2199,6 +2212,9 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
 impl Default for openai::InputItem {
     fn default() -> Self {
         Self {
+            agent: None,
+            author: None,
+            recipient: None,
             role: None,
             content: None,
             phase: None,
@@ -3337,6 +3353,12 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
     fn try_from(input_item: openai::InputItem) -> Result<Self, Self::Error> {
         // Convert InputItem to OutputItem by mapping the fields
         let output_item_type = match input_item.input_item_type {
+            Some(openai::InputItemType::AgentMessage) => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "OpenAI Responses agent_message".to_string(),
+                    to: "OpenAI Responses output items (agent routing is unsupported)",
+                });
+            }
             Some(openai::InputItemType::Message) => Some(openai::OutputItemType::Message),
             Some(openai::InputItemType::Reasoning) => Some(openai::OutputItemType::Reasoning),
             Some(openai::InputItemType::FunctionCall) => Some(openai::OutputItemType::FunctionCall),
@@ -4432,6 +4454,12 @@ fn convert_input_content_to_output_message_content(
     input_content: openai::InputContent,
 ) -> Result<openai::OutputMessageContent, ConvertError> {
     match input_content.input_content_type {
+        openai::InputItemContentListType::EncryptedContent => {
+            Err(ConvertError::UnsupportedMapping {
+                from: "OpenAI Responses encrypted_content".to_string(),
+                to: "OpenAI Responses output message content (opaque agent replay state is unsupported)",
+            })
+        }
         openai::InputItemContentListType::OutputText
         | openai::InputItemContentListType::InputText => Ok(openai::OutputMessageContent {
             output_message_content_type: openai::ContentType::OutputText,
