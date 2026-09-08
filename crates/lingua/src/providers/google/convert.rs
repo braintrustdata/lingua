@@ -309,6 +309,15 @@ impl TryFromLLM<GoogleContent> for Message {
                                     media_type: Some(mime_type),
                                     provider_options: None,
                                 });
+                            } else if let Some(format) = match &*mime_type {
+                                "audio/mpeg" => Some(AudioFormat::Mp3),
+                                "audio/wav" => Some(AudioFormat::Wav),
+                                _ => None,
+                            } {
+                                user_parts.push(UserContentPart::Audio {
+                                    data: data.clone(),
+                                    format,
+                                });
                             } else {
                                 user_parts.push(UserContentPart::File {
                                     data: Value::String(data.clone()),
@@ -1722,6 +1731,39 @@ mod tests {
             inline_data.data.as_deref(),
             Some("UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=")
         );
+    }
+
+    #[test]
+    fn test_google_inline_audio_imports_as_universal_audio() {
+        for mime_type in ["audio/wav", "audio/mpeg"] {
+            let content = GoogleContent {
+                role: Some("user".to_string()),
+                parts: Some(vec![GooglePart {
+                    inline_data: Some(GoogleBlob {
+                        mime_type: Some(mime_type.to_string()),
+                        data: Some("UklGRg==".to_string()),
+                    }),
+                    ..Default::default()
+                }]),
+            };
+
+            let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
+            match message {
+                Message::User {
+                    content: UserContent::Array(parts),
+                } => match &parts[0] {
+                    UserContentPart::Audio { data, format } => {
+                        assert_eq!(data, "UklGRg==");
+                        assert!(matches!(
+                            (mime_type, format),
+                            ("audio/wav", AudioFormat::Wav) | ("audio/mpeg", AudioFormat::Mp3)
+                        ));
+                    }
+                    other => panic!("expected audio content, got {other:?}"),
+                },
+                other => panic!("expected user message, got {other:?}"),
+            }
+        }
     }
 
     #[test]

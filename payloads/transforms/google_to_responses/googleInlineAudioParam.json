@@ -1,0 +1,26 @@
+{
+  "request": {
+    "input": [
+      {
+        "content": [
+          {
+            "text": "Transcribe this audio clip.",
+            "type": "input_text"
+          },
+          {
+            "input_audio": {
+              "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+              "format": "wav"
+            },
+            "type": "input_audio"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      }
+    ],
+    "model": "gpt-5.6-terra"
+  },
+  "error": "400 Audio input is not available.",
+  "name": "Error"
+}

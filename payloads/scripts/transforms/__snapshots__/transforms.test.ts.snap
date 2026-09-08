@@ -15039,6 +15039,56 @@ exports[`chat-completions → google > chatCompletionsGcsBackedVideoFileParam > 
 }
 `;
 
+exports[`chat-completions → google > chatCompletionsInputAudioParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Transcribe this audio clip.",
+        },
+        {
+          "inlineData": {
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+            "mimeType": "audio/wav",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsInputAudioParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "And, finally, you need to find the derivative of the inverse sine function.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 293,
+    "completion_tokens_details": {
+      "reasoning_tokens": 277,
+    },
+    "prompt_tokens": 7,
+    "total_tokens": 300,
+  },
+}
+`;
+
 exports[`chat-completions → google > chatCompletionsSystemCacheControlParam > request 1`] = `
 {
   "contents": [
@@ -18626,6 +18676,31 @@ Once you provide the text, I’ll generate the summary in your chosen format and
     },
     "total_tokens": 1360,
   },
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsInputAudioParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Transcribe this audio clip.",
+          "type": "input_text",
+        },
+        {
+          "input_audio": {
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+            "format": "wav",
+          },
+          "type": "input_audio",
+        },
+      ],
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -24594,6 +24669,30 @@ Would you like me to set max_tokens to 1024 now, or provide a different value? I
 }
 `;
 
+exports[`google → chat-completions > googleInlineAudioParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Transcribe this audio clip.",
+          "type": "text",
+        },
+        {
+          "input_audio": {
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+            "format": "wav",
+          },
+          "type": "input_audio",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
 exports[`google → chat-completions > googleOpenAIModelTopKParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -27086,6 +27185,31 @@ exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
     "thoughtsTokenCount": 512,
     "totalTokenCount": 644,
   },
+}
+`;
+
+exports[`google → responses > googleInlineAudioParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Transcribe this audio clip.",
+          "type": "input_text",
+        },
+        {
+          "input_audio": {
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+            "format": "wav",
+          },
+          "type": "input_audio",
+        },
+      ],
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
 }
 `;
 

@@ -100,6 +100,55 @@ const openAIMultipleReasoningSignaturesReplayAssistantMessage: ChatCompletionAss
 // Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
+  googleInlineAudioParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Transcribe this audio clip." },
+            {
+              inlineData: {
+                mimeType: "audio/wav",
+                data: "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    bedrock: null,
+  },
+
+  chatCompletionsInputAudioParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Transcribe this audio clip." },
+            {
+              type: "input_audio",
+              input_audio: {
+                data: "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+                format: "wav",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   openAIMultipleReasoningSignaturesReplayParam: {
     "chat-completions": {
       model: "gpt-5.6-luna",
