@@ -24669,30 +24669,6 @@ Would you like me to set max_tokens to 1024 now, or provide a different value? I
 }
 `;
 
-exports[`google → chat-completions > googleInlineAudioParam > request 1`] = `
-{
-  "messages": [
-    {
-      "content": [
-        {
-          "text": "Transcribe this audio clip.",
-          "type": "text",
-        },
-        {
-          "input_audio": {
-            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
-            "format": "wav",
-          },
-          "type": "input_audio",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
 exports[`google → chat-completions > googleOpenAIModelTopKParam > request 1`] = `
 {
   "max_completion_tokens": 1024,

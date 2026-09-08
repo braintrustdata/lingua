@@ -1603,6 +1603,38 @@
       "fields": [
         { "pattern": "messages.length", "reason": "Responses replays each encrypted reasoning signature as a separate reasoning input item" }
       ]
+    },
+    {
+      "testCase": "googleInlineAudioParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "Lingua audio content to OpenAI Chat Completions input_audio for the selected model", "reason": "The configured Chat Completions model has no verified input_audio support" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsInputAudioParam",
+      "source": "ChatCompletions",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "Lingua audio content to OpenAI Chat Completions input_audio for the selected model", "reason": "The configured Chat Completions model has no verified input_audio support" }
+      ]
+    },
+    {
+      "testCase": "googleInlineAudioParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Lingua audio content to Anthropic document input", "reason": "Anthropic-compatible targets cannot represent audio input" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsInputAudioParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Lingua audio content to Anthropic document input", "reason": "Anthropic-compatible targets cannot represent audio input" }
+      ]
     }
   ]
 }

@@ -15,7 +15,8 @@ use crate::processing::adapters::{
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::{
     apply_model_transforms, clamp_reasoning_effort_for_model,
-    strip_unsupported_chat_prompt_cache_breakpoints, supports_prompt_cache_breakpoint,
+    strip_unsupported_chat_prompt_cache_breakpoints, supports_chat_input_audio,
+    supports_prompt_cache_breakpoint,
 };
 use crate::providers::openai::convert::{
     messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
@@ -105,6 +106,16 @@ pub(crate) fn served_service_tier_from_openai(service_tier: ServiceTier) -> Serv
 
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
+
+fn request_has_audio(messages: &[Message]) -> bool {
+    messages.iter().any(|message| {
+        matches!(
+            message,
+            Message::System { content } | Message::Developer { content } | Message::User { content }
+                if content.has_audio()
+        )
+    })
+}
 
 pub(crate) fn parse_openai_chat_extras(
     extras: Option<&Map<String, Value>>,
@@ -429,6 +440,16 @@ impl ProviderAdapter for OpenAIAdapter {
             target: ProviderFormat::ChatCompletions,
             reason: "missing model".to_string(),
         })?;
+
+        if request_has_audio(&req.messages) && !supports_chat_input_audio(model) {
+            return Err(TransformError::FromUniversalFailed(
+                ConvertError::UnsupportedMapping {
+                    from: "Lingua audio content".to_string(),
+                    to: "OpenAI Chat Completions input_audio for the selected model",
+                }
+                .to_string(),
+            ));
+        }
 
         let openai_extras = req.params.extras.get(&ProviderFormat::ChatCompletions);
         let openai_extras_view = parse_openai_chat_extras(openai_extras)?;
@@ -1043,6 +1064,33 @@ mod tests {
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_openai_chat_audio_requires_an_audio_capable_model() {
+        let adapter = OpenAIAdapter;
+        let messages = vec![Message::User {
+            content: UserContent::Array(vec![crate::universal::UserContentPart::Audio {
+                data: "UklGRg==".to_string(),
+                format: crate::universal::AudioFormat::Wav,
+            }]),
+        }];
+
+        let unsupported = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: messages.clone(),
+            params: UniversalParams::default(),
+        };
+        let error = adapter.request_from_universal(&unsupported).unwrap_err();
+        assert!(error.to_string().contains("Lingua audio content"));
+
+        let supported = UniversalRequest {
+            model: Some("gpt-4o-audio-preview".to_string()),
+            messages,
+            params: UniversalParams::default(),
+        };
+        let request = adapter.request_from_universal(&supported).unwrap();
+        assert_eq!(request["messages"][0]["content"][0]["type"], "input_audio");
     }
 
     #[test]

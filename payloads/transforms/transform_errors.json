@@ -91,7 +91,7 @@
     "reasoningEffortLowParam": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)"
   },
   "google_to_chat-completions": {
-    "googleInlineAudioParam": "The captured OpenAI Chat Completions target model rejects input_audio",
+    "googleInlineAudioParam": "The target OpenAI Chat Completions model does not support input_audio",
     "codeInterpreterToolParam": "Expected: Google code_execution is provider-specific and is not supported by OpenAI Chat Completions",
     "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by openai"
   },

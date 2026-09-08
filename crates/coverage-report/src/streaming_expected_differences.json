@@ -356,6 +356,13 @@
       "fields": [
         { "pattern": "choices[*].delta.tool_calls[*].custom_tool_call", "reason": "Chat Completions streaming does not expose the OpenAI Responses custom-tool marker" }
       ]
+    },
+    {
+      "testCase": "googleInlineAudioParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Google inline-audio stream events have no Anthropic-compatible output representation"
     }
   ]
 }

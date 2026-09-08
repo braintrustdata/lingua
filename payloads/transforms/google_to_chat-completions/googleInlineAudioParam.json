@@ -1,25 +1,3 @@
 {
-  "request": {
-    "messages": [
-      {
-        "content": [
-          {
-            "text": "Transcribe this audio clip.",
-            "type": "text"
-          },
-          {
-            "input_audio": {
-              "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
-              "format": "wav"
-            },
-            "type": "input_audio"
-          }
-        ],
-        "role": "user"
-      }
-    ],
-    "model": "gpt-5-nano"
-  },
-  "error": "400 Invalid 'messages[0]'. Content blocks are expected to be either text or image_url type.",
-  "name": "Error"
+  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert Lingua audio content to OpenAI Chat Completions input_audio for the selected model"
 }

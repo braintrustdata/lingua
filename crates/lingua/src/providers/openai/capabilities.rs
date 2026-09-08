@@ -94,6 +94,18 @@ pub fn supports_prompt_cache_breakpoint(model: &str) -> bool {
     )
 }
 
+/// Whether a Chat Completions model is explicitly known to accept `input_audio` content.
+///
+/// Keep this allowlist narrow: model schemas accept the content shape broadly, but most Chat
+/// Completions models reject audio input at request validation time.
+pub fn supports_chat_input_audio(model: &str) -> bool {
+    let model = normalize_openai_model_name(model);
+    model == "gpt-4o-audio-preview"
+        || model.starts_with("gpt-4o-audio-preview-")
+        || model == "gpt-4o-mini-audio-preview"
+        || model.starts_with("gpt-4o-mini-audio-preview-")
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EffortFamily {
     NoneLowMediumHighXhigh,
@@ -344,6 +356,20 @@ pub fn strip_unsupported_responses_prompt_variable_cache_breakpoints(
 mod tests {
     use super::*;
     use crate::serde_json::{self, json};
+
+    #[test]
+    fn test_chat_input_audio_capability() {
+        for model in [
+            "gpt-4o-audio-preview",
+            "gpt-4o-mini-audio-preview-2024-12-17",
+        ] {
+            assert!(supports_chat_input_audio(model), "model: {model}");
+        }
+
+        for model in ["gpt-5-nano", "gpt-4o", "gpt-4.1"] {
+            assert!(!supports_chat_input_audio(model), "model: {model}");
+        }
+    }
 
     #[test]
     fn test_get_model_transforms() {
