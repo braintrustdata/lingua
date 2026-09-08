@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "And, finally, you need to find the derivative of the inverse sine function.",
+            "thoughtSignature": "EvkICvYIARFNMg+xzrK/NsoC7CnlgGfX2gyeVAwi3AA9hT26LTJALY+Jtbbv72xzK+btQiM8sfE38M9KsIRvO/gFQLXFtn7YWJrBCCQkW72RrHDdfSOeULLzuMioR82xkMS/jf/tcOkfXUuKfgPvfClUmUdiqDgR7Ol2bd9C+bhqT+QvJDYOv+d5fNBkEDvlx0aJ1JkolxxpkqQqeUoHYVyoflh+18v7L6r23ZGRgt69OTWcjO1o+W1k7yXslr3QDdI3oJ1tgyIaYU4Jb1B3QNqIePhQsoS7GQxP4oewZD9ZveqIPl7EO7lFpCAH2Owu5BYXQjYal0oBhyCMwJJmqCWxqxld360fpkQ2zrvg4eYEF+DZxe6zvL0ocQy5c/+QuXhh8YEs7HeR++TxpsNnCYCIH/h6qxRxXlKEw/xE2FZ7G/UHvu6kvscdT/bhieLx4beDfcfSxWzAK2cmic3CfUHT4K24cAxpCnSPrPeXmbqInyRH9xcx9QFlZezr7S7Hao6vs8YKnX0+JjZl7+IPRkGv/yj9+dsxEFeZmFN1TBlzlWESW3Oa0Gb/NJ0fMeJeMeHfxDuKbahNeT8CS+ARwCcZKxHuKJsQNCHWOCYmyHpBBTezTAD8UTEQd6Yi7vQw2sAny2aWSA/C9PKyd+gcD0reCs+Qg50Arb2JcJrAUVMl5IOxMYX31eYa/3+dUuHF0IpnlhObhNRGitJA4Npkk44h5djNyeKiErRrHUDPNv4iPcOmzD3nmLExJU5TleSJY7HqADcUXQz8zXQfKj0Q95UWCaNhihS79B+pUKwMzP5+HUHZC3jPQ/YF24UmSV2A1RL+6VxChxPRkWpFQUiHYjPfjeXO3+lox1bSVcAGTvJVks+olfbvD5flK7bdX4zXuXdnmdUBpdB7UolDs0SBMu4f/JkGF5/sfy5K7l+/dBzscLhhsLBZ8ykkxvN//OdhdpkiVkhq6Li1IW6PMU8/jRL1ZNlbat/CDHy1hl/9Y4polIxCwKpxSvR9Vq2vsvYNUXSA4hpySmtmbE1EICQF+pqUMV+JjP4DF7PedKtLf/6APFNza1vTheKKIg2/9N4+1+kjrf9P+8b85ttxcOZLyZ1E8sFhKQzmxOajHTYKZ8/7DZFmPlHs8iVfge0DXPT1KjqZv2GIluO6YYDPzkP8ybBy6MrkrIQRcU/de8d7xH1a7BYtjAZEYYgM60iFGcyFvwfTdw04m6vBIXiaIJM5jplkFYJj2ADQncSEy3yi14rZkl0S9JrUXtzUSRBikVrWDG4IlYX2vH+DA8Is5Eo8RGyLgcnUv3UEcAD5SeRX88fSv6t9/sryLcrdeIa1UVKj9bIKd/LARiKaB1UDVbZ7Dos2jMeuNUDb42Z85LOewXlpPHA+3VwjXmV+y7JREh4FJXBZM7x19xMXTjwYmzbNQUcT6Z6O3jX5Alj2qQtcMzo3FteHvgoMgFQUsIDdkgSl04gnP0j4Kbdujq5cl4bhAgnpKAuOBr5ZJprcIWAlTWNH4fKe17z7R24W6p4="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 7,
+    "candidatesTokenCount": 16,
+    "totalTokenCount": 300,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "thoughtsTokenCount": 277,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "DMmcas_6GbaW_uMP2r3SuQY"
+}

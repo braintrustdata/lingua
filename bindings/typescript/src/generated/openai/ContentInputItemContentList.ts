@@ -2,6 +2,7 @@
 import type { Annotation } from "./Annotation";
 import type { DetailEnum } from "./DetailEnum";
 import type { HilariousType } from "./HilariousType";
+import type { InputAudio } from "./InputAudio";
 import type { InputItemContentListPromptCacheBreakpoint } from "./InputItemContentListPromptCacheBreakpoint";
 import type { LogProbability } from "./LogProbability";
 
@@ -89,6 +90,10 @@ annotations: Array<Annotation> | null, logprobs: Array<LogProbability> | null,
  * The refusal explanation from the model.
  */
 refusal: string | null, 
+/**
+ * The audio input to the model.
+ */
+input_audio: InputAudio | null, 
 /**
  * Opaque encrypted content.
  */

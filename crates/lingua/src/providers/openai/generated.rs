@@ -3013,6 +3013,9 @@ pub struct ContentInputItemContentList {
     /// The refusal explanation from the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub refusal: Option<String>,
+    /// The audio input to the model.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input_audio: Option<InputAudio>,
     /// Opaque encrypted content.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_content: Option<String>,

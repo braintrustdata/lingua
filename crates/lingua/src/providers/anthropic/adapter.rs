@@ -129,6 +129,25 @@ fn extract_leading_system_messages(messages: &mut Vec<Message>) -> Vec<UserConte
     system_contents
 }
 
+fn validate_system_messages_have_no_audio(messages: &[Message]) -> Result<(), TransformError> {
+    if messages.iter().any(|message| {
+        matches!(
+            message,
+            Message::System { content } | Message::Developer { content } if content.has_audio()
+        )
+    }) {
+        return Err(TransformError::FromUniversalFailed(
+            ConvertError::UnsupportedMapping {
+                from: "Lingua audio content".to_string(),
+                to: "Anthropic system prompt",
+            }
+            .to_string(),
+        ));
+    }
+
+    Ok(())
+}
+
 fn validate_no_non_leading_system_messages(messages: &[Message]) -> Result<(), TransformError> {
     if messages
         .iter()
@@ -400,6 +419,7 @@ impl ProviderAdapter for AnthropicAdapter {
 
         // Clone messages and extract only leading system/developer messages to top-level `system`.
         // Later instructions cannot be moved there without changing their placement.
+        validate_system_messages_have_no_audio(&req.messages)?;
         let mut msgs = req.messages.clone();
         let system_contents = extract_leading_system_messages(&mut msgs);
 
@@ -2011,6 +2031,32 @@ mod tests {
 
         let err = adapter.request_from_universal(&req).unwrap_err();
         assert!(format!("{err}").contains("live Messages API currently rejects"));
+    }
+
+    #[test]
+    fn test_anthropic_rejects_system_audio_before_system_extraction() {
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-3-5-sonnet-20241022".to_string()),
+            messages: vec![
+                Message::System {
+                    content: UserContent::Array(vec![UserContentPart::Audio {
+                        data: "UklGRg==".to_string(),
+                        format: crate::universal::AudioFormat::Wav,
+                    }]),
+                },
+                Message::User {
+                    content: UserContent::String("Hello".to_string()),
+                },
+            ],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                ..Default::default()
+            },
+        };
+
+        let error = adapter.request_from_universal(&req).unwrap_err();
+        assert!(error.to_string().contains("Lingua audio content"));
     }
 
     #[test]

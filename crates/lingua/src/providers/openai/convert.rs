@@ -9,7 +9,7 @@ use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
 use crate::universal::{
-    AssistantContent, AssistantContentPart, CacheControl, Message, ProviderOptions,
+    AssistantContent, AssistantContentPart, AudioFormat, CacheControl, Message, ProviderOptions,
     TextContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
     ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
     UserContentPart,
@@ -20,6 +20,34 @@ use crate::util::media::{
 use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
+
+fn universal_audio_from_openai(audio: openai::InputAudio) -> Result<UserContentPart, ConvertError> {
+    base64::engine::general_purpose::STANDARD
+        .decode(&audio.data)
+        .map_err(|error| ConvertError::ContentConversionFailed {
+            reason: format!("OpenAI input_audio.data must be base64: {error}"),
+        })?;
+
+    let format = match audio.format {
+        openai::InputAudioFormat::Mp3 => AudioFormat::Mp3,
+        openai::InputAudioFormat::Wav => AudioFormat::Wav,
+    };
+
+    Ok(UserContentPart::Audio {
+        data: audio.data,
+        format,
+    })
+}
+
+fn openai_audio_from_universal(data: String, format: AudioFormat) -> openai::InputAudio {
+    openai::InputAudio {
+        data,
+        format: match format {
+            AudioFormat::Mp3 => openai::InputAudioFormat::Mp3,
+            AudioFormat::Wav => openai::InputAudioFormat::Wav,
+        },
+    }
+}
 
 fn tool_caller_from_provider<T>(caller: Option<T>) -> Result<Option<ToolCaller>, ConvertError>
 where
@@ -1817,10 +1845,18 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 }
             }
             openai::InputItemContentListType::InputAudio => {
-                // Handle audio input if needed in the future
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: "InputAudio content type".to_string(),
-                });
+                if value.prompt_cache_breakpoint.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses input_audio prompt_cache_breakpoint".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(value.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)?
             }
             openai::InputItemContentListType::InputFile => {
                 if value.prompt_cache_breakpoint.is_some() {
@@ -1954,6 +1990,11 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
+            UserContentPart::Audio { data, format } => openai::InputContent {
+                input_content_type: openai::InputItemContentListType::InputAudio,
+                input_audio: Some(openai_audio_from_universal(data, format)),
+                ..Default::default()
+            },
             UserContentPart::File {
                 data,
                 filename,
@@ -2002,6 +2043,7 @@ impl Default for openai::InputContent {
             file_data: None,
             file_url: None,
             filename: None,
+            input_audio: None,
             annotations: None,
             logprobs: None,
             refusal: None,
@@ -4856,6 +4898,20 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     provider_options: None,
                 })
             }
+            openai::PurpleType::InputAudio => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions input_audio cache metadata".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(part.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -4944,6 +5000,20 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                     provider_options: None,
                 })
             }
+            openai::PurpleType::InputAudio => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions input_audio cache metadata".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(part.base.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -4960,32 +5030,50 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
 
     fn try_from(msg: Message) -> Result<Self, Self::Error> {
         match msg {
-            Message::System { content } => Ok(ChatCompletionRequestMessageExt {
-                role: openai::ChatCompletionRequestMessageRole::System,
-                content: Some(convert_user_content_to_chat_completion_content(content)?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-                cache_control: None,
-                reasoning: None,
-                reasoning_signature: None,
-            }),
-            Message::Developer { content } => Ok(ChatCompletionRequestMessageExt {
-                role: openai::ChatCompletionRequestMessageRole::Developer,
-                content: Some(convert_user_content_to_chat_completion_content(content)?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-                cache_control: None,
-                reasoning: None,
-                reasoning_signature: None,
-            }),
+            Message::System { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "OpenAI Chat Completions system/developer message",
+                    });
+                }
+
+                Ok(ChatCompletionRequestMessageExt {
+                    role: openai::ChatCompletionRequestMessageRole::System,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    cache_control: None,
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
+            Message::Developer { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "OpenAI Chat Completions system/developer message",
+                    });
+                }
+
+                Ok(ChatCompletionRequestMessageExt {
+                    role: openai::ChatCompletionRequestMessageRole::Developer,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    cache_control: None,
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
             Message::User { content } => Ok(ChatCompletionRequestMessageExt {
                 role: openai::ChatCompletionRequestMessageRole::User,
                 content: Some(convert_user_content_to_chat_completion_content(content)?),
@@ -5255,6 +5343,15 @@ and Anthropic document blocks do not map safely.",
                 ),
             })
         }
+        UserContentPart::Audio { data, format } => Ok(openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::InputAudio,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: Some(openai_audio_from_universal(data, format)),
+            file: None,
+            refusal: None,
+        }),
     }
 }
 
@@ -5640,7 +5737,181 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::capabilities::ProviderFormat;
+    use crate::processing::transform::transform_request;
     use crate::serde_json::json;
+    use bytes::Bytes;
+
+    fn wav_base64() -> String {
+        base64::engine::general_purpose::STANDARD.encode(include_bytes!(
+            "../../../../../payloads/fixtures/audio/strawberry.wav"
+        ))
+    }
+
+    #[test]
+    fn chat_input_audio_converts_to_universal_audio() {
+        let audio = wav_base64();
+        let part = openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::InputAudio,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: Some(openai::InputAudio {
+                data: audio,
+                format: openai::InputAudioFormat::Wav,
+            }),
+            file: None,
+            refusal: None,
+        };
+
+        let actual = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(part)
+        .expect("audio should convert");
+
+        assert!(matches!(
+            actual,
+            UserContentPart::Audio {
+                format: AudioFormat::Wav,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn responses_input_audio_converts_to_universal_audio() {
+        let audio = wav_base64();
+        let part = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputAudio,
+            input_audio: Some(openai::InputAudio {
+                data: audio,
+                format: openai::InputAudioFormat::Wav,
+            }),
+            ..Default::default()
+        };
+
+        let actual = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(part)
+            .expect("audio should convert");
+
+        assert!(matches!(
+            actual,
+            UserContentPart::Audio {
+                format: AudioFormat::Wav,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn chat_system_and_developer_audio_are_rejected() {
+        for message in [
+            Message::System {
+                content: UserContent::Array(vec![UserContentPart::Audio {
+                    data: wav_base64(),
+                    format: AudioFormat::Wav,
+                }]),
+            },
+            Message::Developer {
+                content: UserContent::Array(vec![UserContentPart::Audio {
+                    data: wav_base64(),
+                    format: AudioFormat::Wav,
+                }]),
+            },
+        ] {
+            let error = <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(message)
+                .expect_err("Chat Completions instruction roles must not emit input_audio");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        }
+    }
+
+    #[test]
+    fn chat_input_audio_transforms_to_google_inline_data() {
+        let audio = wav_base64();
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "messages": [{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Score this call."},
+                    {"type": "input_audio", "input_audio": {"data": audio, "format": "wav"}}
+                ]
+            }]
+        });
+
+        let transformed = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect("audio request should transform to Google");
+        let value: serde_json::Value = serde_json::from_slice(transformed.as_bytes()).unwrap();
+
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["mimeType"],
+            "audio/wav"
+        );
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["data"],
+            audio
+        );
+    }
+
+    #[test]
+    fn responses_wav_input_audio_transforms_to_google_inline_data() {
+        let audio = wav_base64();
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "input": [{
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": "Score this call."},
+                    {"type": "input_audio", "input_audio": {"data": audio, "format": "wav"}}
+                ]
+            }]
+        });
+
+        let transformed = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect("audio request should transform to Google");
+        let value: serde_json::Value = serde_json::from_slice(transformed.as_bytes()).unwrap();
+
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["mimeType"],
+            "audio/wav"
+        );
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["data"],
+            audio
+        );
+    }
+
+    #[test]
+    fn invalid_input_audio_base64_is_rejected() {
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "input_audio",
+                    "input_audio": {"data": "not-base64", "format": "wav"}
+                }]
+            }]
+        });
+
+        let error = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect_err("invalid audio should fail conversion");
+
+        assert!(error
+            .to_string()
+            .contains("input_audio.data must be base64"));
+    }
 
     #[test]
     fn tool_caller_from_provider_rejects_program_without_caller_id() {

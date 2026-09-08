@@ -1,6 +1,7 @@
 export type { Message } from "./generated/Message";
 export type { AssistantContent } from "./generated/AssistantContent";
 export type { AssistantContentPart } from "./generated/AssistantContentPart";
+export type { AudioFormat } from "./generated/AudioFormat";
 export type { GeneratedFileContentPart } from "./generated/GeneratedFileContentPart";
 export type { ProviderMetadata } from "./generated/ProviderMetadata";
 export type { ProviderOptions } from "./generated/ProviderOptions";

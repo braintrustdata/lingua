@@ -176,6 +176,7 @@ where
                 }
                 UserContentPart::Image { .. }
                 | UserContentPart::File { .. }
+                | UserContentPart::Audio { .. }
                 | UserContentPart::Text(_) => {}
             }
         }
