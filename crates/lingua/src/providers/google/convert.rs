@@ -310,7 +310,7 @@ impl TryFromLLM<GoogleContent> for Message {
                                     provider_options: None,
                                 });
                             } else if let Some(format) = match &*mime_type {
-                                "audio/mpeg" => Some(AudioFormat::Mp3),
+                                "audio/mpeg" | "audio/mp3" => Some(AudioFormat::Mp3),
                                 "audio/wav" => Some(AudioFormat::Wav),
                                 _ => None,
                             } {
@@ -405,6 +405,13 @@ impl TryFromLLM<Message> for GoogleContent {
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, parts) = match message {
             Message::System { content } | Message::Developer { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "Google system instruction",
+                    });
+                }
+
                 let text = match content {
                     UserContent::String(s) => format!("System: {}", s),
                     UserContent::Array(parts) => {
@@ -1735,7 +1742,7 @@ mod tests {
 
     #[test]
     fn test_google_inline_audio_imports_as_universal_audio() {
-        for mime_type in ["audio/wav", "audio/mpeg"] {
+        for mime_type in ["audio/wav", "audio/mpeg", "audio/mp3"] {
             let content = GoogleContent {
                 role: Some("user".to_string()),
                 parts: Some(vec![GooglePart {
@@ -1756,7 +1763,9 @@ mod tests {
                         assert_eq!(data, "UklGRg==");
                         assert!(matches!(
                             (mime_type, format),
-                            ("audio/wav", AudioFormat::Wav) | ("audio/mpeg", AudioFormat::Mp3)
+                            ("audio/wav", AudioFormat::Wav)
+                                | ("audio/mpeg", AudioFormat::Mp3)
+                                | ("audio/mp3", AudioFormat::Mp3)
                         ));
                     }
                     other => panic!("expected audio content, got {other:?}"),
@@ -1764,6 +1773,20 @@ mod tests {
                 other => panic!("expected user message, got {other:?}"),
             }
         }
+    }
+
+    #[test]
+    fn test_system_audio_is_rejected() {
+        let message = Message::System {
+            content: UserContent::Array(vec![UserContentPart::Audio {
+                data: "UklGRg==".to_string(),
+                format: AudioFormat::Wav,
+            }]),
+        };
+
+        let error = <GoogleContent as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Google must not silently drop system audio");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
     }
 
     #[test]

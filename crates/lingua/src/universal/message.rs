@@ -44,6 +44,15 @@ pub enum UserContent {
     Array(Vec<UserContentPart>),
 }
 
+impl UserContent {
+    pub fn has_audio(&self) -> bool {
+        matches!(
+            self,
+            Self::Array(parts) if parts.iter().any(|part| matches!(part, UserContentPart::Audio { .. }))
+        )
+    }
+}
+
 /// User content parts - text, image, audio, and file parts allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]

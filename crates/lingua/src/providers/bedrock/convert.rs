@@ -159,6 +159,13 @@ impl TryFromLLM<Message> for BedrockMessage {
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, content) = match message {
             Message::System { content } | Message::Developer { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "Bedrock Converse system prompt",
+                    });
+                }
+
                 let text = match content {
                     UserContent::String(s) => format!("System: {}", s),
                     UserContent::Array(parts) => {
@@ -801,6 +808,20 @@ mod tests {
             }
             other => panic!("expected unsupported mapping error, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn test_system_audio_is_rejected() {
+        let message = Message::System {
+            content: UserContent::Array(vec![UserContentPart::Audio {
+                data: "UklGRg==".to_string(),
+                format: AudioFormat::Wav,
+            }]),
+        };
+
+        let error = <BedrockMessage as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Bedrock must not silently drop system audio");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
     }
 
     #[test]
