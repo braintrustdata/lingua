@@ -5002,32 +5002,50 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
 
     fn try_from(msg: Message) -> Result<Self, Self::Error> {
         match msg {
-            Message::System { content } => Ok(ChatCompletionRequestMessageExt {
-                role: openai::ChatCompletionRequestMessageRole::System,
-                content: Some(convert_user_content_to_chat_completion_content(content)?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-                cache_control: None,
-                reasoning: None,
-                reasoning_signature: None,
-            }),
-            Message::Developer { content } => Ok(ChatCompletionRequestMessageExt {
-                role: openai::ChatCompletionRequestMessageRole::Developer,
-                content: Some(convert_user_content_to_chat_completion_content(content)?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-                cache_control: None,
-                reasoning: None,
-                reasoning_signature: None,
-            }),
+            Message::System { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "OpenAI Chat Completions system/developer message",
+                    });
+                }
+
+                Ok(ChatCompletionRequestMessageExt {
+                    role: openai::ChatCompletionRequestMessageRole::System,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    cache_control: None,
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
+            Message::Developer { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "OpenAI Chat Completions system/developer message",
+                    });
+                }
+
+                Ok(ChatCompletionRequestMessageExt {
+                    role: openai::ChatCompletionRequestMessageRole::Developer,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    cache_control: None,
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
             Message::User { content } => Ok(ChatCompletionRequestMessageExt {
                 role: openai::ChatCompletionRequestMessageRole::User,
                 content: Some(convert_user_content_to_chat_completion_content(content)?),
@@ -5754,6 +5772,28 @@ mod tests {
                 ..
             }
         ));
+    }
+
+    #[test]
+    fn chat_system_and_developer_audio_are_rejected() {
+        for message in [
+            Message::System {
+                content: UserContent::Array(vec![UserContentPart::Audio {
+                    data: wav_base64(),
+                    format: AudioFormat::Wav,
+                }]),
+            },
+            Message::Developer {
+                content: UserContent::Array(vec![UserContentPart::Audio {
+                    data: wav_base64(),
+                    format: AudioFormat::Wav,
+                }]),
+            },
+        ] {
+            let error = <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(message)
+                .expect_err("Chat Completions instruction roles must not emit input_audio");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        }
     }
 
     #[test]
