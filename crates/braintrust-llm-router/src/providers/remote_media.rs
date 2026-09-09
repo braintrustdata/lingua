@@ -3,16 +3,23 @@ use std::pin::Pin;
 
 use bytes::Bytes;
 use lingua::processing::{adapter_for_format, adapters, normalize_universal_request_for_target};
-use lingua::providers::openai::generated::{InputAudio, InputAudioFormat};
+use lingua::providers::google::generated::Part;
+use lingua::providers::openai::generated::{
+    ContentInputItemContentList, HilariousType, InputAudio, InputAudioFormat, PurpleContentPart,
+    PurpleType,
+};
 use lingua::universal::message::{AudioFormat, Message, UserContent, UserContentPart};
 use lingua::util::media::MediaBlock;
 use lingua::{ProviderFormat, TransformError};
-use serde::{Deserialize, Serialize};
 
 use crate::catalog::ModelSpec;
 use crate::error::{Error, Result};
 
 use super::body_model::rewrite_body_model_if_required;
+use super::json_selection::{
+    select,
+    Segment::{Each, Key},
+};
 
 const MAX_REMOTE_MEDIA_BYTES: usize = 5 * 1024 * 1024;
 
@@ -58,140 +65,116 @@ impl RemoteMediaPolicy {
 
 type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
 
-#[derive(Deserialize)]
-struct ResponsesAudioView {
-    input: Option<ResponsesAudioInput>,
+// An internal fetch operation, not a provider wire format. Paths are obtained while
+// deserializing generated content parts; only the selected data string is replaced.
+struct RemoteAudio {
+    pointer: String,
+    url: String,
+    mime_type: String,
 }
 
-#[derive(Deserialize)]
-#[serde(untagged)]
-enum ResponsesAudioInput {
-    Text(String),
-    Items(Vec<ChatAudioMessageView>),
-}
-
-pub(crate) fn reject_remote_responses_audio(body: &[u8]) -> Result<()> {
-    let request: ResponsesAudioView = lingua::serde_json::from_slice(body)?;
-    let items = match request.input {
-        Some(ResponsesAudioInput::Items(items)) => items,
-        Some(ResponsesAudioInput::Text(text)) => {
-            drop(text);
-            return Ok(());
+fn openai_audio(pointer: String, audio: InputAudio) -> Option<RemoteAudio> {
+    is_remote_media_url(&audio.data).then(|| RemoteAudio {
+        pointer: format!("{pointer}/input_audio/data"),
+        url: audio.data,
+        mime_type: match audio.format {
+            InputAudioFormat::Mp3 => "audio/mpeg",
+            InputAudioFormat::Wav => "audio/wav",
         }
-        None => return Ok(()),
-    };
-    for item in items {
-        if let Some(Some(ChatAudioContentView::Parts(parts))) = item.content {
-            for part in parts {
-                if part.kind == "input_audio" {
-                    if let Some(Some(audio)) = part.input_audio {
-                        if is_remote_media_url(&audio.audio.data) {
-                            return Err(Error::InvalidRequest(
-                                "Responses input_audio.data requires base64 audio; remote audio URLs are not supported".into(),
-                            ));
-                        }
+        .into(),
+    })
+}
+
+fn remote_audio(body: &[u8], format: ProviderFormat) -> Result<Vec<RemoteAudio>> {
+    let mut audio = Vec::new();
+    match format {
+        ProviderFormat::ChatCompletions => {
+            for (pointer, part) in
+                select::<PurpleContentPart>(body, &[Key("messages"), Each, Key("content"), Each])?
+            {
+                if part.content_part_type == PurpleType::InputAudio {
+                    if let Some(remote) = part
+                        .input_audio
+                        .and_then(|input| openai_audio(pointer, input))
+                    {
+                        audio.push(remote);
                     }
                 }
             }
         }
+        ProviderFormat::Responses => {
+            for (pointer, part) in select::<ContentInputItemContentList>(
+                body,
+                &[Key("input"), Each, Key("content"), Each],
+            )? {
+                if part.input_content_type == HilariousType::InputAudio {
+                    if let Some(remote) = part
+                        .input_audio
+                        .and_then(|input| openai_audio(pointer, input))
+                    {
+                        audio.push(remote);
+                    }
+                }
+            }
+        }
+        ProviderFormat::Google => {
+            for (pointer, part) in
+                select::<Part>(body, &[Key("contents"), Each, Key("parts"), Each])?
+            {
+                if let Some(blob) = part.inline_data {
+                    if let Some(url) = blob.data.filter(|data| is_remote_media_url(data)) {
+                        let mime_type = blob.mime_type.ok_or_else(|| {
+                            Error::InvalidRequest("remote inlineData requires mimeType".into())
+                        })?;
+                        audio.push(RemoteAudio {
+                            pointer: format!("{pointer}/inlineData/data"),
+                            url,
+                            mime_type,
+                        });
+                    }
+                }
+            }
+        }
+        _ => {}
+    }
+    Ok(audio)
+}
+
+pub(crate) fn reject_remote_responses_audio(body: &[u8]) -> Result<()> {
+    if !remote_audio(body, ProviderFormat::Responses)?.is_empty() {
+        return Err(Error::InvalidRequest(
+            "Responses input_audio.data requires base64 audio; remote audio URLs are not supported"
+                .into(),
+        ));
     }
     Ok(())
 }
 
-#[derive(Deserialize, Serialize)]
-struct ChatAudioRequestView {
-    #[serde(flatten)]
-    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
-    #[serde(default)]
-    messages: Vec<ChatAudioMessageView>,
-}
-
-#[derive(Deserialize, Serialize)]
-struct ChatAudioMessageView {
-    #[serde(flatten)]
-    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
-    #[serde(
-        default,
-        deserialize_with = "present_field",
-        skip_serializing_if = "Option::is_none"
-    )]
-    content: Option<Option<ChatAudioContentView>>,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(untagged)]
-enum ChatAudioContentView {
-    Parts(Vec<ChatAudioPartView>),
-    Text(String),
-}
-
-#[derive(Deserialize, Serialize)]
-struct ChatAudioPartView {
-    #[serde(flatten)]
-    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
-    #[serde(rename = "type")]
-    kind: String,
-    #[serde(
-        default,
-        deserialize_with = "present_field",
-        skip_serializing_if = "Option::is_none"
-    )]
-    input_audio: Option<Option<ExtendedInputAudio>>,
-}
-
-// Preserve the distinction between an absent field and an explicit JSON null.
-fn present_field<'de, D, T>(deserializer: D) -> std::result::Result<Option<T>, D::Error>
+async fn inline_native_audio<F>(
+    body: Bytes,
+    audio: Vec<RemoteAudio>,
+    fetch: &mut F,
+) -> Result<Bytes>
 where
-    D: serde::Deserializer<'de>,
-    T: Deserialize<'de>,
+    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
 {
-    T::deserialize(deserializer).map(Some)
-}
-
-#[derive(Deserialize, Serialize)]
-struct ExtendedInputAudio {
-    #[serde(flatten)]
-    audio: InputAudio,
-    #[serde(flatten)]
-    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
-}
-
-#[derive(Deserialize, Serialize)]
-struct GoogleAudioRequestView {
-    #[serde(flatten)]
-    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
-    #[serde(default)]
-    contents: Vec<GoogleAudioContentView>,
-}
-
-#[derive(Deserialize, Serialize)]
-struct GoogleAudioContentView {
-    #[serde(flatten)]
-    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
-    #[serde(default)]
-    parts: Vec<GoogleAudioPartView>,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct GoogleAudioPartView {
-    #[serde(flatten)]
-    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
-    #[serde(
-        default,
-        deserialize_with = "present_field",
-        skip_serializing_if = "Option::is_none"
-    )]
-    inline_data: Option<Option<AudioDataView>>,
-}
-
-#[derive(Deserialize, Serialize)]
-struct AudioDataView {
-    #[serde(flatten)]
-    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
-    data: String,
-    #[serde(rename = "mimeType")]
-    mime_type: String,
+    let mut payload: lingua::serde_json::Value = lingua::serde_json::from_slice(&body)?;
+    for remote in audio {
+        let media = fetch(&remote.url).await?;
+        if normalized_media_type(&remote.mime_type) != normalized_media_type(&media.media_type) {
+            return Err(Error::InvalidRequest(format!(
+                "remote audio MIME type {} does not match declared MIME type {}",
+                media.media_type, remote.mime_type
+            )));
+        }
+        // Mechanical write to a path already validated by a generated type. Never
+        // reserialize that type: it does not retain every provider extension.
+        let data = payload.pointer_mut(&remote.pointer).ok_or_else(|| {
+            Error::InvalidRequest("selected audio data is missing from the original payload".into())
+        })?;
+        *data = lingua::serde_json::Value::String(media.data);
+    }
+    Ok(Bytes::from(lingua::serde_json::to_vec(&payload)?))
 }
 
 #[derive(Debug)]
@@ -265,7 +248,14 @@ where
     let requires_json_response = source_adapter
         .request_requires_json_response(&payload)
         .map_err(Error::from)?;
-    let has_remote_audio = request_has_remote_audio(&body, source_adapter.format())?;
+    let audio = remote_audio(&body, source_adapter.format())?;
+    let has_remote_audio = !audio.is_empty();
+
+    if has_remote_audio && !policy.inline_audio {
+        return Err(Error::InvalidRequest(format!(
+            "remote audio input is unsupported for {format:?}"
+        )));
+    }
 
     if source_adapter.format() == format && !has_remote_audio {
         return Ok(PreparedRemoteMediaRequest {
@@ -280,41 +270,19 @@ where
         });
     }
 
-    if source_adapter.format() == ProviderFormat::Google && format == ProviderFormat::Google {
-        let mut request: GoogleAudioRequestView = lingua::serde_json::from_slice(&body)?;
-        for content in &mut request.contents {
-            for part in &mut content.parts {
-                if let Some(Some(blob)) = &mut part.inline_data {
-                    if is_remote_media_url(&blob.data) {
-                        let media = fetch(&blob.data).await?;
-                        if normalized_media_type(&blob.mime_type)
-                            != normalized_media_type(&media.media_type)
-                        {
-                            return Err(Error::InvalidRequest(format!(
-                                "remote media MIME type {} does not match inlineData.mimeType {}",
-                                media.media_type, blob.mime_type
-                            )));
-                        }
-                        blob.data = media.data;
-                    }
-                }
-            }
-        }
-        return Ok(PreparedRemoteMediaRequest {
-            bytes: Bytes::from(lingua::serde_json::to_vec(&request)?),
-            detected_format: None,
-            requires_json_response,
-            lingua_passthrough: false,
-        });
-    }
-
-    let payload = if source_adapter.format() == ProviderFormat::ChatCompletions && has_remote_audio
-    {
-        let bytes =
-            inline_remote_chat_audio_with_fetch(body, spec, rewrite_body_model, &mut fetch).await?;
-        if format == ProviderFormat::ChatCompletions {
+    let payload = if has_remote_audio
+        && matches!(
+            source_adapter.format(),
+            ProviderFormat::ChatCompletions | ProviderFormat::Google
+        ) {
+        let bytes = inline_native_audio(body, audio, &mut fetch).await?;
+        if source_adapter.format() == format {
             return Ok(PreparedRemoteMediaRequest {
-                bytes,
+                bytes: if rewrite_body_model {
+                    rewrite_body_model_if_required(bytes, format, &spec.model)
+                } else {
+                    bytes
+                },
                 detected_format: None,
                 requires_json_response,
                 lingua_passthrough: false,
@@ -356,87 +324,6 @@ where
     lingua::serde_json::to_vec(&target_adapter.request_from_universal(&request)?)
         .map(Bytes::from)
         .map_err(Error::LinguaJson)
-}
-
-fn request_has_remote_audio(body: &[u8], format: ProviderFormat) -> Result<bool> {
-    match format {
-        ProviderFormat::ChatCompletions => {
-            let request: ChatAudioRequestView = lingua::serde_json::from_slice(body)?;
-            Ok(request
-                .messages
-                .into_iter()
-                .any(|message| match message.content {
-                    Some(Some(ChatAudioContentView::Parts(parts))) => parts
-                        .iter()
-                        .filter(|part| part.kind == "input_audio")
-                        .filter_map(|part| part.input_audio.as_ref().and_then(Option::as_ref))
-                        .any(|audio| is_remote_media_url(&audio.audio.data)),
-                    Some(Some(ChatAudioContentView::Text(_))) | None | Some(None) => false,
-                }))
-        }
-        ProviderFormat::Google => {
-            let request: GoogleAudioRequestView = lingua::serde_json::from_slice(body)?;
-            Ok(request.contents.into_iter().any(|content| {
-                content
-                    .parts
-                    .into_iter()
-                    .filter_map(|part| part.inline_data.flatten())
-                    .any(|audio| is_remote_media_url(&audio.data))
-            }))
-        }
-        ProviderFormat::BedrockAnthropic | ProviderFormat::Converse => Ok(false),
-        _ => Ok(false),
-    }
-}
-
-async fn inline_remote_chat_audio_with_fetch<F>(
-    body: Bytes,
-    spec: &ModelSpec,
-    rewrite_body_model: bool,
-    fetch: &mut F,
-) -> Result<Bytes>
-where
-    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
-{
-    let mut request: ChatAudioRequestView = lingua::serde_json::from_slice(&body)?;
-    for message in &mut request.messages {
-        let Some(Some(ChatAudioContentView::Parts(parts))) = message.content.as_mut() else {
-            continue;
-        };
-        for part in parts {
-            if part.kind != "input_audio" {
-                continue;
-            }
-            let Some(Some(audio)) = part.input_audio.as_mut() else {
-                continue;
-            };
-            let audio = &mut audio.audio;
-            if !is_remote_media_url(&audio.data) {
-                continue;
-            }
-            let media_block = fetch(&audio.data).await?;
-            let format = match audio.format {
-                InputAudioFormat::Mp3 => AudioFormat::Mp3,
-                InputAudioFormat::Wav => AudioFormat::Wav,
-            };
-            if !audio_format_matches_media_type(&format, &media_block.media_type) {
-                return Err(Error::InvalidRequest(format!(
-                    "remote audio MIME type {} does not match input_audio format {format:?}",
-                    media_block.media_type
-                )));
-            }
-            audio.data = media_block.data;
-        }
-    }
-    let bytes = lingua::serde_json::to_vec(&request)
-        .map(Bytes::from)
-        .map_err(Error::LinguaJson)?;
-    let bytes = if rewrite_body_model {
-        rewrite_body_model_if_required(bytes, ProviderFormat::ChatCompletions, &spec.model)
-    } else {
-        bytes
-    };
-    Ok(bytes)
 }
 
 pub(crate) async fn inline_remote_media_with_fetch<F>(
@@ -747,6 +634,26 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn bedrock_remote_audio_is_rejected_without_fetching() {
+        let body = Bytes::from_static(br#"{"model":"gpt-4o","messages":[{"role":"user","content":[{"type":"input_audio","input_audio":{"data":"https://example.com/audio.wav","format":"wav"}}]}]}"#);
+        for format in [ProviderFormat::BedrockAnthropic, ProviderFormat::Converse] {
+            let error = prepare_request_with_remote_media_and_fetch(
+                body.clone(),
+                &spec("test-model", format),
+                format,
+                RemoteMediaPolicy::BEDROCK,
+                |_| panic!("unsupported audio must not trigger a fetch"),
+            )
+            .await
+            .expect_err("Bedrock does not support audio input");
+            assert!(matches!(error, Error::InvalidRequest(_)));
+            assert!(error
+                .to_string()
+                .contains("remote audio input is unsupported"));
+        }
+    }
+
+    #[tokio::test]
     async fn native_google_audio_validates_fetched_mime_type() {
         for (declared, fetched, compatible) in [
             ("audio/wav", "audio/mpeg", false),
@@ -981,9 +888,9 @@ mod tests {
         .await
         .expect_err("mismatched audio content type should fail");
 
-        assert!(error
-            .to_string()
-            .contains("does not match input_audio format"));
+        assert!(matches!(error, Error::InvalidRequest(_)));
+        assert!(error.to_string().contains("audio/mpeg"));
+        assert!(error.to_string().contains("audio/wav"));
     }
 
     #[tokio::test]

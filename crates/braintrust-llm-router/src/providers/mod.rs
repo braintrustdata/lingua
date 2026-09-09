@@ -5,6 +5,7 @@ mod bedrock;
 mod body_model;
 mod databricks;
 mod google;
+mod json_selection;
 mod mistral;
 mod openai;
 mod remote_media;

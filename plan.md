@@ -1,0 +1,5 @@
+# Remote media boundary cleanup
+
+Reject unsupported remote audio before fetching for BedrockAnthropic and Converse. Add a no-fetch regression for both formats and validate with remote-media tests and Clippy. This is router preprocessing only; converter artifacts do not change.
+
+Replace all handwritten wire views with generated content-part types selected through a generic Serde path adapter. The adapter has no provider schema; unrelated fields are skipped, and selected parts use canonical deserialization. Derive audio replacement paths from those typed parts and mechanically patch only the original data strings. This preserves unknown native fields and future Responses items without serializing generated request structs. Share native inlining and MIME validation between Google and Chat Completions. Target remote_media.rs, json_selection.rs and providers/mod.rs. Validate existing whole-request, refusal, future-item, Responses upgrade, MIME and no-fetch tests, plus selector regression tests, full router tests, Clippy and typed-boundary checks. No generated files or converter semantics are changed.
