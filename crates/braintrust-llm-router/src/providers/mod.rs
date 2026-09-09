@@ -5,6 +5,7 @@ mod bedrock;
 mod body_model;
 mod databricks;
 mod google;
+mod json_selection;
 mod mistral;
 mod openai;
 mod remote_media;
@@ -22,7 +23,9 @@ pub use openai::{
     is_openai_compatible, openai_compatible_endpoint, OpenAICompatibleEndpoint, OpenAIConfig,
     OpenAIProvider,
 };
-pub(crate) use remote_media::{prepare_request_with_remote_media, RemoteMediaPolicy};
+pub(crate) use remote_media::{
+    prepare_request_with_remote_media, reject_remote_responses_audio, RemoteMediaPolicy,
+};
 pub use vertex::{VertexConfig, VertexProvider};
 
 use async_trait::async_trait;

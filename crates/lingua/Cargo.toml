@@ -51,6 +51,7 @@ serde-wasm-bindgen.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 aws-sdk-bedrockruntime = { workspace = true, optional = true }
+ipnet.workspace = true
 reqwest.workspace = true
 
 [dev-dependencies]

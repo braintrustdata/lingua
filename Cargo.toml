@@ -38,6 +38,7 @@ aws-sdk-bedrockruntime = { version = "1.130.0", default-features = false }
 url = "2.5"
 urlencoding = "2.1"
 base64 = "0.22"
+ipnet = "2.11"
 
 # Bytes
 bytes = "1"
