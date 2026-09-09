@@ -32,8 +32,10 @@ For a provider-only change, the required contract is:
   field can be dropped or coerced
 - `universal_semantics` is `not_applicable`; do not add a universal field,
   provider-options marker, opaque replay carrier, or cross-provider mapping
-- focused offline unit tests cover both native passthrough and cross-provider
-  rejection
+- a focused unit test covers native passthrough
+- a focused offline end-to-end test invokes the public transform entry point
+  and verifies cross-provider rejection by stable error category and semantic
+  context rather than exact prose
 - no payload case, transform snapshot, expected-difference entry, or live
   capture is added
 
@@ -86,8 +88,8 @@ representation is unclear.
 Read the validated JSON plan before changing files. Implement one plan item at
 a time.
 
-1. Add focused unit tests and any portable-semantics payload cases before
-   changing adapter behavior. Provider-only items use unit tests only.
+1. Add focused unit tests, provider-only offline end-to-end rejection tests,
+   and any portable-semantics payload cases before changing adapter behavior.
 2. Change generation code or typed adapters. Never edit `generated.rs`
    directly.
 3. Preserve typed boundaries and explicit errors.
@@ -102,8 +104,9 @@ Do not add marker fields, silent coercions, raw JSON semantic inspection, broad
 expected-difference exceptions, or fallback behavior.
 
 For `provider_only` items, implement only generated/native wire acceptance,
-same-format passthrough coverage, and explicit cross-provider rejection. Do not
-add payload cases or live captures for provider-only items. Do not expand the
+same-format passthrough coverage, and explicit cross-provider rejection. Test
+the rejection offline through the public transform entry point. Do not add
+payload cases or live captures for provider-only items. Do not expand the
 universal model or teach another provider to emit the feature.
 
 ## Verification phase
@@ -121,5 +124,6 @@ Do not edit tracked files.
    without corresponding implementation and tests.
 
 For every `provider_only` item, verify native wire acceptance, byte-preserving
-same-format passthrough, explicit cross-provider rejection, and the absence of
-universal-model, expected-difference, payload-case, and live-capture changes.
+same-format passthrough, explicit cross-provider rejection through an offline
+public-entry end-to-end test, and the absence of universal-model,
+expected-difference, payload-case, and live-capture changes.

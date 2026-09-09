@@ -399,8 +399,11 @@ jobs:
             acceptance, format detection, byte-preserving same-format passthrough,
             and an explicit unsupported error for cross-provider transformation.
             Set `universal_semantics` to `not_applicable` and `cross_provider` to
-            `affected`. Use focused offline unit tests and leave payload cases and
-            live capture cases empty. Do not target universal types or
+            `affected`. Use a focused unit test for native passthrough. In
+            `tests.offline_end_to_end`, name a separate offline test that invokes
+            the public transform entry point and asserts the stable unsupported
+            error category plus relevant semantic context. Leave payload cases
+            and live capture cases empty. Do not target universal types or
             expected-difference files.
 
             Treat a semantic as blocked only when portable mapping is intended but
@@ -527,7 +530,9 @@ jobs:
             For every `provider_only` item:
             - preserve complete native wire acceptance in generated types and validation;
             - add focused tests for byte-preserving same-format passthrough;
-            - reject cross-provider transformation with an explicit unsupported error.
+            - reject cross-provider transformation with an explicit unsupported error;
+            - add the planned offline end-to-end test through the public transform entry point,
+              asserting a stable error category and semantic context rather than exact error prose.
             Do not add universal fields, cross-provider mappings, expected-difference entries,
             payload cases, or live captures for `provider_only` items.
 
@@ -1131,6 +1136,8 @@ jobs:
             as `V1Main...` as blocking even if compilation succeeds.
             For every `provider_only` plan item, verify native wire acceptance,
             byte-preserving same-format passthrough, and explicit cross-provider rejection.
+            Verify its planned offline end-to-end test invokes the public transform
+            entry point and asserts a stable error category plus semantic context.
             Treat any universal-model expansion or expected-difference entry for a
             `provider_only` item as blocking. Also fail verification if such an
             item added a payload case, transform snapshot, or live capture.
@@ -1232,6 +1239,7 @@ jobs:
           fi
           require_ready "mechanical validation" "${{ steps.mechanical_validation.outcome }}"
           require_ready "Lingua WASM build" "${{ steps.lingua_wasm.outcome }}"
+          require_ready "capture case extraction" "${{ steps.capture_cases.outcome }}"
           require_ready "payload fixture sync" "${{ steps.payload_sync.outcome }}"
           require_ready "payload tests" "${{ steps.payload_tests.outcome }}"
           require_ready "typed boundary check" "${{ steps.typed_boundary.outcome }}"
@@ -1421,9 +1429,14 @@ jobs:
           (
             (
               steps.changes.outputs.has_changes != 'true' &&
-              steps.generate.outcome == 'failure' &&
-              steps.retry.outcome != 'success' &&
-              steps.repair_retry.outcome != 'success'
+              (
+                steps.ts_types.outcome == 'failure' ||
+                (
+                  steps.generate.outcome == 'failure' &&
+                  steps.retry.outcome != 'success' &&
+                  steps.repair_retry.outcome != 'success'
+                )
+              )
             ) ||
             (
               steps.changes.outputs.has_changes == 'true' &&
@@ -1451,6 +1464,8 @@ jobs:
             echo "Provider patch was safe to publish, but both PR publication attempts failed. Use the archived patch to recover the work."
           elif [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
             echo "Provider types changed but failed the hard publication safety checks. Download the archived patch if it was created."
+          elif [ "${{ steps.ts_types.outcome }}" = "failure" ]; then
+            echo "TypeScript generation failed before any provider type changes were detected."
           elif [ "${{ steps.generate.outcome }}" = "failure" ]; then
             echo "Provider types are unchanged after a recovered generation failure."
           else

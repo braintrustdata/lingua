@@ -101,11 +101,15 @@ test("implements provider-only changes as passthrough plus rejection", () => {
   );
   assert.match(
     workflow,
-    /Do not add universal fields, cross-provider mappings, expected-difference entries,[\s\S]*payload cases, or live captures for `provider_only` items/
+    /For every `provider_only` item:[\s\S]*offline end-to-end test[\s\S]*public transform entry point/
   );
   assert.match(
     providerUpdateSkill,
-    /Do not\s+add payload cases or live captures for provider-only items/
+    /offline end-to-end test[\s\S]*public transform entry point/
+  );
+  assert.match(
+    workflow,
+    /Do not add universal fields, cross-provider mappings, expected-difference entries,[\s\S]*payload cases, or live captures for `provider_only` items/
   );
 });
 
@@ -329,6 +333,7 @@ test("turns deterministic validation failures into continuation drafts", () => {
     "payload tests",
     "typed boundary check",
     "cross-provider guard",
+    "capture case extraction",
   ]) {
     assert.match(workflow, new RegExp(`require_ready "${check}"`));
     assert.doesNotMatch(workflow, new RegExp(`require_safe "${check}"`));
@@ -336,6 +341,24 @@ test("turns deterministic validation failures into continuation drafts", () => {
   assert.match(workflow, /review_reasons\+=/);
   assert.match(workflow, /mode="draft"/);
   assert.match(workflow, /This draft preserves the automation's partial work/);
+});
+
+test("fails no-change runs after initial TypeScript generation errors", () => {
+  const failureStart = workflow.indexOf(
+    "- name: Fail workflow if validation failed"
+  );
+  const failureEnd = workflow.indexOf("- name: Summary", failureStart);
+  const failureStep = workflow.slice(failureStart, failureEnd);
+  const summaryStep = workflow.slice(failureEnd);
+
+  assert.match(
+    failureStep,
+    /steps\.changes\.outputs\.has_changes != 'true'[\s\S]*steps\.ts_types\.outcome == 'failure'/
+  );
+  assert.match(
+    summaryStep,
+    /steps\.ts_types\.outcome.*failure[\s\S]*TypeScript generation failed/
+  );
 });
 
 test("publication safety hard-stops only unsafe paths or an unrecoverable local patch", () => {

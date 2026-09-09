@@ -25,9 +25,11 @@ Report:
 - broad exceptions or snapshots that could mask the change
 
 For provider-only groups, propose focused offline tests that prove native
-validation plus byte-preserving same-format passthrough and explicit
-cross-provider rejection. Do not propose payload cases, transform snapshots,
-expected-difference entries, or live captures for provider-only behavior.
+validation plus byte-preserving same-format passthrough. Also propose one
+offline end-to-end test through the public transform entry point that asserts a
+stable unsupported-mapping category and relevant semantic context. Do not
+propose payload cases, transform snapshots, expected-difference entries, or
+live captures for provider-only behavior.
 
 Do not run live captures and do not recommend manually editing generated
 artifacts. Keep the report under 1,500 words.

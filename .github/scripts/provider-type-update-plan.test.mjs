@@ -63,6 +63,7 @@ function validPlan() {
         ],
         tests: {
           unit: ["stop_reason_context_window_is_incomplete"],
+          offline_end_to_end: [],
           payload_cases: ["anthropicContextWindowExceeded"],
           live_capture: {
             required: true,
@@ -114,9 +115,9 @@ function providerOnlyPlan() {
     "crates/lingua/src/providers/anthropic/convert.rs",
   ];
   change.tests = {
-    unit: [
-      "browser_toolset_native_request_is_passthrough",
-      "browser_toolset_cross_provider_transform_is_rejected",
+    unit: ["browser_toolset_native_request_is_passthrough"],
+    offline_end_to_end: [
+      "crates/lingua/tests/anthropic_browser_toolset.rs::browser_toolset_cross_provider_transform_is_rejected",
     ],
     payload_cases: [],
     live_capture: {
@@ -196,13 +197,23 @@ test("provider-only changes require explicit cross-provider rejection", () => {
   );
 });
 
-test("provider-only changes require focused native and rejection tests", () => {
+test("provider-only changes require focused native passthrough tests", () => {
   const plan = providerOnlyPlan();
   plan.changes[0].tests.unit = [];
 
   assert.match(
     validatePlan(plan, "anthropic").join("\n"),
-    /provider_only.*focused unit tests/
+    /provider_only.*native passthrough unit test/
+  );
+});
+
+test("provider-only changes require offline end-to-end rejection coverage", () => {
+  const plan = providerOnlyPlan();
+  plan.changes[0].tests.offline_end_to_end = [];
+
+  assert.match(
+    validatePlan(plan, "anthropic").join("\n"),
+    /provider_only.*offline end-to-end.*public transform entry point/
   );
 });
 

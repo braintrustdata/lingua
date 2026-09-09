@@ -370,6 +370,13 @@ export function validatePlan(plan, expectedProvider) {
         );
         push(
           errors,
+          Array.isArray(change.tests.offline_end_to_end) &&
+            change.tests.offline_end_to_end.every(nonEmptyString),
+          `${path}.tests.offline_end_to_end`,
+          "must be an array of strings"
+        );
+        push(
+          errors,
           Array.isArray(change.tests.payload_cases) &&
             change.tests.payload_cases.every(nonEmptyString),
           `${path}.tests.payload_cases`,
@@ -407,10 +414,15 @@ export function validatePlan(plan, expectedProvider) {
         if (providerOnly) {
           push(
             errors,
-            nonEmptyStringArray(change.tests.unit) &&
-              change.tests.unit.length >= 2,
+            nonEmptyStringArray(change.tests.unit),
             `${path}.tests.unit`,
-            "provider_only changes must include focused unit tests for both native passthrough and cross-provider rejection"
+            "provider_only changes must include a focused native passthrough unit test"
+          );
+          push(
+            errors,
+            nonEmptyStringArray(change.tests.offline_end_to_end),
+            `${path}.tests.offline_end_to_end`,
+            "provider_only changes must include an offline end-to-end rejection test through the public transform entry point"
           );
           push(
             errors,
