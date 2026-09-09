@@ -22,7 +22,9 @@ pub use openai::{
     is_openai_compatible, openai_compatible_endpoint, OpenAICompatibleEndpoint, OpenAIConfig,
     OpenAIProvider,
 };
-pub(crate) use remote_media::{prepare_request_with_remote_media, RemoteMediaPolicy};
+pub(crate) use remote_media::{
+    prepare_request_with_remote_media, request_has_remote_audio_in_payload, RemoteMediaPolicy,
+};
 pub use vertex::{VertexConfig, VertexProvider};
 
 use async_trait::async_trait;

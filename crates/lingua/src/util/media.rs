@@ -407,6 +407,7 @@ mod native_fetch {
     const MAX_REDIRECTS: usize = 3;
     const MEDIA_FETCH_TIMEOUT: Duration = Duration::from_secs(30);
     const ALLOW_CIDRS_ENV: &str = "BRAINTRUST_URL_SECURITY_ALLOW_CIDRS";
+    const AWS_IMDS_IPV6: Ipv6Addr = Ipv6Addr::new(0xfd00, 0x0ec2, 0, 0, 0, 0, 0, 0x0254);
 
     fn ipv4_in_cidr(address: Ipv4Addr, base: Ipv4Addr, prefix_len: u32) -> bool {
         let address = u32::from(address);
@@ -440,7 +441,10 @@ mod native_fetch {
     }
 
     fn is_hard_blocked_ipv6(address: Ipv6Addr) -> bool {
-        address.is_unspecified() || address.is_multicast() || address.is_unicast_link_local()
+        address == AWS_IMDS_IPV6
+            || address.is_unspecified()
+            || address.is_multicast()
+            || address.is_unicast_link_local()
     }
 
     fn is_blocked_ipv6(address: Ipv6Addr) -> bool {
@@ -762,6 +766,17 @@ mod native_fetch {
         fn validate_media_url_rejects_metadata_ip() {
             let url = Url::parse("http://169.254.169.254/latest/meta-data").unwrap();
             let allowed_cidrs = [IpNet::from_str("169.254.0.0/16").unwrap()];
+            assert!(matches!(
+                validate_media_url_with_allowed_cidrs(&url, &allowed_cidrs),
+                Err(MediaError::FetchError(message))
+                    if message.contains("blocked address")
+            ));
+        }
+
+        #[test]
+        fn validate_media_url_rejects_ipv6_metadata_ip_despite_allowed_ula() {
+            let url = Url::parse("http://[fd00:ec2::254]/latest/meta-data").unwrap();
+            let allowed_cidrs = [IpNet::from_str("fd00::/8").unwrap()];
             assert!(matches!(
                 validate_media_url_with_allowed_cidrs(&url, &allowed_cidrs),
                 Err(MediaError::FetchError(message))

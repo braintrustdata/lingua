@@ -15,8 +15,9 @@ use crate::catalog::{
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, prepare_request_with_remote_media, rewrite_body_model_if_required,
-    ClientHeaders, Provider, RemoteMediaPolicy,
+    enable_streaming_payload, prepare_request_with_remote_media,
+    request_has_remote_audio_in_payload, rewrite_body_model_if_required, ClientHeaders, Provider,
+    RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
@@ -270,6 +271,21 @@ async fn prepare_provider_request(
     stream: bool,
     options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
+    let body = match RemoteMediaPolicy::for_format(format) {
+        Some(policy) if request_has_remote_audio_in_payload(&body)? => {
+            prepare_request_with_remote_media(
+                body,
+                spec,
+                format,
+                policy,
+                options.rewrite_body_model,
+            )
+            .await?
+            .bytes
+        }
+        _ => body,
+    };
+
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
     let (
         transformed,
@@ -319,11 +335,7 @@ async fn prepare_provider_request(
                 options.rewrite_body_model,
             )
             .await?;
-            (
-                prepared.bytes,
-                prepared.requires_json_response,
-                lingua_passthrough && prepared.lingua_passthrough,
-            )
+            (prepared.bytes, requires_json_response, lingua_passthrough)
         } else {
             (transformed, requires_json_response, lingua_passthrough)
         };

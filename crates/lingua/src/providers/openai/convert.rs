@@ -22,13 +22,11 @@ use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 
 fn universal_audio_from_openai(audio: openai::InputAudio) -> Result<UserContentPart, ConvertError> {
-    if !(audio.data.starts_with("http://") || audio.data.starts_with("https://")) {
-        base64::engine::general_purpose::STANDARD
-            .decode(&audio.data)
-            .map_err(|error| ConvertError::ContentConversionFailed {
-                reason: format!("OpenAI input_audio.data must be base64: {error}"),
-            })?;
-    }
+    base64::engine::general_purpose::STANDARD
+        .decode(&audio.data)
+        .map_err(|error| ConvertError::ContentConversionFailed {
+            reason: format!("OpenAI input_audio.data must be base64: {error}"),
+        })?;
 
     let format = match audio.format {
         openai::InputAudioFormat::Mp3 => AudioFormat::Mp3,
@@ -5891,14 +5889,14 @@ mod tests {
     }
 
     #[test]
-    fn invalid_input_audio_base64_is_rejected() {
+    fn url_input_audio_is_rejected_outside_router_preprocessing() {
         let request = json!({
             "model": "gemini-2.0-flash",
             "messages": [{
                 "role": "user",
                 "content": [{
                     "type": "input_audio",
-                    "input_audio": {"data": "not-base64", "format": "wav"}
+                    "input_audio": {"data": "https://example.com/audio.wav", "format": "wav"}
                 }]
             }]
         });
@@ -5908,7 +5906,7 @@ mod tests {
             ProviderFormat::Google,
             None,
         )
-        .expect_err("invalid audio should fail conversion");
+        .expect_err("router-only audio URL should fail direct conversion");
 
         assert!(error
             .to_string()
