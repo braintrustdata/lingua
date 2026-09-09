@@ -15,8 +15,8 @@ use crate::catalog::{
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, prepare_request_with_remote_media, rewrite_body_model_if_required,
-    ClientHeaders, Provider, RemoteMediaPolicy,
+    enable_streaming_payload, prepare_request_with_remote_media, reject_remote_responses_audio,
+    rewrite_body_model_if_required, ClientHeaders, Provider, RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
@@ -336,6 +336,10 @@ async fn prepare_provider_request(
     // Target adapters may not represent the source's JSON-output requirement.
     let requires_json_response = source_requires_json_response || requires_json_response;
 
+    if actual_format == ProviderFormat::Responses {
+        reject_remote_responses_audio(&transformed)?;
+    }
+
     let transformed = if options.rewrite_body_model && maybe_rewrite_model {
         rewrite_body_model_if_required(transformed, actual_format, &spec.model)
     } else {
@@ -403,6 +407,7 @@ impl Router {
         };
         let (payload, detected_format, actual_format, requires_json_response, lingua_passthrough) =
             if let Some(metadata) = native_responses {
+                reject_remote_responses_audio(&body)?;
                 let requires_json_response = native_responses_requires_json_response(&body);
                 let body = if options.rewrite_body_model {
                     rewrite_body_model_if_required(body, route.format, &route.spec.model)
@@ -1666,6 +1671,53 @@ mod tests {
             format: ProviderFormat::Responses,
         };
         (router, route)
+    }
+
+    #[tokio::test]
+    async fn native_responses_rejects_remote_audio_but_preserves_base64() {
+        let (router, route) = native_responses_test_route();
+        for stream in [false, true] {
+            for data in ["https://example.com/signed.wav?token=secret", "cmlm"] {
+                let body = Bytes::from(
+                    serde_json::to_vec(&serde_json::json!({
+                        "model": "gpt-5.6-sol", "input": [{"role": "user", "content": [{
+                            "type": "input_audio", "input_audio": {"data": data, "format": "wav"}
+                        }]}]
+                    }))
+                    .unwrap(),
+                );
+                let fast = router
+                    .create_prepared_request_internal(
+                        body.clone(),
+                        ProviderFormat::Responses,
+                        &route,
+                        stream,
+                        RequestPreparationOptions::default(),
+                    )
+                    .await;
+                let normal = prepare_provider_request(
+                    body,
+                    route.spec.as_ref(),
+                    ProviderFormat::Responses,
+                    stream,
+                    RequestPreparationOptions::default(),
+                )
+                .await;
+                if data == "cmlm" {
+                    assert!(fast.is_ok());
+                    assert!(normal.is_ok());
+                } else {
+                    for error in [
+                        fast.err().expect("fast path rejects URL"),
+                        normal.expect_err("normal path rejects URL"),
+                    ] {
+                        assert!(matches!(error, Error::InvalidRequest(_)));
+                        assert!(error.to_string().contains("requires base64 audio"));
+                        assert!(!error.to_string().contains("token=secret"));
+                    }
+                }
+            }
+        }
     }
 
     #[tokio::test]

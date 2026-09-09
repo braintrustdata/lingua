@@ -58,6 +58,46 @@ impl RemoteMediaPolicy {
 
 type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
 
+#[derive(Deserialize)]
+struct ResponsesAudioView {
+    input: Option<ResponsesAudioInput>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum ResponsesAudioInput {
+    Text(String),
+    Items(Vec<ChatAudioMessageView>),
+}
+
+pub(crate) fn reject_remote_responses_audio(body: &[u8]) -> Result<()> {
+    let request: ResponsesAudioView = lingua::serde_json::from_slice(body)?;
+    let items = match request.input {
+        Some(ResponsesAudioInput::Items(items)) => items,
+        Some(ResponsesAudioInput::Text(text)) => {
+            drop(text);
+            return Ok(());
+        }
+        None => return Ok(()),
+    };
+    for item in items {
+        if let Some(Some(ChatAudioContentView::Parts(parts))) = item.content {
+            for part in parts {
+                if part.kind == "input_audio" {
+                    if let Some(Some(audio)) = part.input_audio {
+                        if is_remote_media_url(&audio.audio.data) {
+                            return Err(Error::InvalidRequest(
+                                "Responses input_audio.data requires base64 audio; remote audio URLs are not supported".into(),
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 #[derive(Deserialize, Serialize)]
 struct ChatAudioRequestView {
     #[serde(flatten)]
@@ -116,27 +156,42 @@ struct ExtendedInputAudio {
     extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct GoogleAudioRequestView {
+    #[serde(flatten)]
+    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
     #[serde(default)]
     contents: Vec<GoogleAudioContentView>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct GoogleAudioContentView {
+    #[serde(flatten)]
+    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
     #[serde(default)]
     parts: Vec<GoogleAudioPartView>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct GoogleAudioPartView {
-    inline_data: Option<AudioDataView>,
+    #[serde(flatten)]
+    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
+    #[serde(
+        default,
+        deserialize_with = "present_field",
+        skip_serializing_if = "Option::is_none"
+    )]
+    inline_data: Option<Option<AudioDataView>>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct AudioDataView {
+    #[serde(flatten)]
+    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
     data: String,
+    #[serde(rename = "mimeType")]
+    mime_type: String,
 }
 
 #[derive(Debug)]
@@ -225,6 +280,34 @@ where
         });
     }
 
+    if source_adapter.format() == ProviderFormat::Google && format == ProviderFormat::Google {
+        let mut request: GoogleAudioRequestView = lingua::serde_json::from_slice(&body)?;
+        for content in &mut request.contents {
+            for part in &mut content.parts {
+                if let Some(Some(blob)) = &mut part.inline_data {
+                    if is_remote_media_url(&blob.data) {
+                        let media = fetch(&blob.data).await?;
+                        if normalized_media_type(&blob.mime_type)
+                            != normalized_media_type(&media.media_type)
+                        {
+                            return Err(Error::InvalidRequest(format!(
+                                "remote media MIME type {} does not match inlineData.mimeType {}",
+                                media.media_type, blob.mime_type
+                            )));
+                        }
+                        blob.data = media.data;
+                    }
+                }
+            }
+        }
+        return Ok(PreparedRemoteMediaRequest {
+            bytes: Bytes::from(lingua::serde_json::to_vec(&request)?),
+            detected_format: None,
+            requires_json_response,
+            lingua_passthrough: false,
+        });
+    }
+
     let payload = if source_adapter.format() == ProviderFormat::ChatCompletions && has_remote_audio
     {
         let bytes =
@@ -297,7 +380,7 @@ fn request_has_remote_audio(body: &[u8], format: ProviderFormat) -> Result<bool>
                 content
                     .parts
                     .into_iter()
-                    .filter_map(|part| part.inline_data)
+                    .filter_map(|part| part.inline_data.flatten())
                     .any(|audio| is_remote_media_url(&audio.data))
             }))
         }
@@ -431,15 +514,24 @@ where
 }
 
 fn audio_format_matches_media_type(format: &AudioFormat, media_type: &str) -> bool {
+    let expected = match format {
+        AudioFormat::Mp3 => "audio/mpeg",
+        AudioFormat::Wav => "audio/wav",
+    };
+    normalized_media_type(media_type) == expected
+}
+
+fn normalized_media_type(media_type: &str) -> String {
     let media_type = media_type
         .split(';')
         .next()
         .unwrap_or(media_type)
         .trim()
         .to_ascii_lowercase();
-    match format {
-        AudioFormat::Mp3 => matches!(media_type.as_str(), "audio/mpeg" | "audio/mp3"),
-        AudioFormat::Wav => matches!(media_type.as_str(), "audio/wav" | "audio/x-wav"),
+    match media_type.as_str() {
+        "audio/mp3" => "audio/mpeg".into(),
+        "audio/x-wav" => "audio/wav".into(),
+        _ => media_type,
     }
 }
 
@@ -652,6 +744,89 @@ mod tests {
         );
         assert_eq!(request["messages"][0]["name"], "recording-owner");
         assert_eq!(request["provider"]["order"][0], "anthropic");
+    }
+
+    #[tokio::test]
+    async fn native_google_audio_validates_fetched_mime_type() {
+        for (declared, fetched, compatible) in [
+            ("audio/wav", "audio/mpeg", false),
+            ("audio/mpeg", "audio/wav", false),
+            ("audio/wav", "Audio/X-Wav; charset=binary", true),
+            ("audio/mp3", "audio/mpeg", true),
+            ("audio/flac", "audio/flac", true),
+        ] {
+            let fixture = |data: &str| {
+                json!({
+                    "contents": [{"role": "user", "parts": [{
+                        "inlineData": {"mimeType": declared, "data": data}
+                    }]}]
+                })
+            };
+            let result = prepare_request_with_remote_media_and_fetch(
+                Bytes::from(
+                    lingua::serde_json::to_vec(&fixture("https://example.com/audio?secret=token"))
+                        .unwrap(),
+                ),
+                &google_spec("gemini-3.5-flash"),
+                ProviderFormat::Google,
+                RemoteMediaPolicy::GOOGLE,
+                move |_| {
+                    Box::pin(async move {
+                        Ok(MediaBlock {
+                            media_type: fetched.into(),
+                            data: "cmlm".into(),
+                        })
+                    })
+                },
+            )
+            .await;
+            if compatible {
+                let actual: lingua::serde_json::Value =
+                    lingua::serde_json::from_slice(&result.expect("compatible MIME type").bytes)
+                        .unwrap();
+                assert_eq!(actual, fixture("cmlm"));
+            } else {
+                let error = result.expect_err("incompatible MIME type must fail");
+                assert!(matches!(error, Error::InvalidRequest(_)));
+                let message = error.to_string();
+                assert!(message.contains(declared));
+                assert!(message.contains(fetched));
+                assert!(!message.contains("secret=token"));
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn native_google_audio_inlining_preserves_all_other_fields() {
+        let fixture = |data: &str| {
+            json!({
+                "systemInstruction": {"parts": [{"text": "Keep this instruction"}]},
+                "safetySettings": [{"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_LOW_AND_ABOVE"}],
+                "cachedContent": "cachedContents/example",
+                "custom": {"keep": true},
+                "contents": [{"role": "user", "custom": 42, "parts": [
+                    {"text": "Listen"},
+                    {"text": "Null", "inlineData": null},
+                    {"inlineData": {"mimeType": "audio/wav", "data": data, "custom": true}, "custom": "part"}
+                ]}]
+            })
+        };
+        let prepared = prepare_request_with_remote_media_and_fetch(
+            Bytes::from(
+                lingua::serde_json::to_vec(&fixture("https://example.com/call.wav")).unwrap(),
+            ),
+            &google_spec("gemini-3.5-flash"),
+            ProviderFormat::Google,
+            RemoteMediaPolicy::GOOGLE,
+            wav_fetch("https://example.com/call.wav"),
+        )
+        .await
+        .expect("native Google audio prepares");
+        let actual: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
+        assert_eq!(actual, fixture("cmlm"));
+        assert_eq!(prepared.detected_format, None);
+        assert!(!prepared.lingua_passthrough);
     }
 
     #[tokio::test]
