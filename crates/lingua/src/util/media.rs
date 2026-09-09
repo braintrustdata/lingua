@@ -531,7 +531,7 @@ mod native_fetch {
             .ok_or_else(|| MediaError::FetchError("media URL is missing a host".to_string()))?;
         match host {
             Host::Ipv4(address) => {
-                if !is_allowed_ip(IpAddr::V4(address), &allowed_cidrs) {
+                if !is_allowed_ip(IpAddr::V4(address), allowed_cidrs) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -542,7 +542,7 @@ mod native_fetch {
                 });
             }
             Host::Ipv6(address) => {
-                if !is_allowed_ip(IpAddr::V6(address), &allowed_cidrs) {
+                if !is_allowed_ip(IpAddr::V6(address), allowed_cidrs) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -573,7 +573,7 @@ mod native_fetch {
 
         let mut resolved_addresses = Vec::new();
         for address in addresses {
-            if !is_allowed_ip(address.ip(), &allowed_cidrs) {
+            if !is_allowed_ip(address.ip(), allowed_cidrs) {
                 return Err(MediaError::FetchError(
                     "media URL resolves to a blocked address".to_string(),
                 ));

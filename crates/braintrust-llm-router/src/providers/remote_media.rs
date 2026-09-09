@@ -210,15 +210,13 @@ where
             .map(|adapter| adapter.as_ref())
             .find(|adapter| adapter.detect_request(&payload))
             .ok_or(TransformError::UnableToDetectRequestFormat)?;
-        let mut request = source_adapter.request_to_universal(payload)?;
-        normalize_universal_request_for_target(&mut request, format);
-        inline_remote_media_with_fetch(&mut request, policy, fetch).await?;
-        let target_adapter =
-            adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
-        target_adapter.apply_defaults(&mut request);
-        let bytes = lingua::serde_json::to_vec(&target_adapter.request_from_universal(&request)?)
-            .map(Bytes::from)
-            .map_err(Error::LinguaJson)?;
+        let bytes = prepare_universal_remote_media_request(
+            source_adapter.request_to_universal(payload)?,
+            format,
+            policy,
+            &mut fetch,
+        )
+        .await?;
         return Ok(PreparedRemoteMediaRequest {
             bytes,
             detected_format: Some(source_adapter.format()),
@@ -230,20 +228,10 @@ where
     }
 
     let mut request = source_adapter.request_to_universal(payload)?;
-
     if rewrite_body_model {
         request.model = Some(spec.model.clone());
     }
-    normalize_universal_request_for_target(&mut request, format);
-    inline_remote_media_with_fetch(&mut request, policy, fetch).await?;
-
-    let target_adapter =
-        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
-    target_adapter.apply_defaults(&mut request);
-    let prepared = target_adapter.request_from_universal(&request)?;
-    let bytes = lingua::serde_json::to_vec(&prepared)
-        .map(Bytes::from)
-        .map_err(Error::LinguaJson)?;
+    let bytes = prepare_universal_remote_media_request(request, format, policy, &mut fetch).await?;
 
     Ok(PreparedRemoteMediaRequest {
         bytes,
@@ -253,6 +241,25 @@ where
         #[cfg(test)]
         lingua_passthrough: false,
     })
+}
+
+async fn prepare_universal_remote_media_request<F>(
+    mut request: lingua::UniversalRequest,
+    format: ProviderFormat,
+    policy: RemoteMediaPolicy,
+    fetch: &mut F,
+) -> Result<Bytes>
+where
+    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+{
+    normalize_universal_request_for_target(&mut request, format);
+    inline_remote_media_with_fetch(&mut request, policy, fetch).await?;
+    let target_adapter =
+        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
+    target_adapter.apply_defaults(&mut request);
+    lingua::serde_json::to_vec(&target_adapter.request_from_universal(&request)?)
+        .map(Bytes::from)
+        .map_err(Error::LinguaJson)
 }
 
 pub(crate) fn request_needs_remote_media_preparation(
@@ -487,6 +494,20 @@ mod tests {
         spec(model, ProviderFormat::ChatCompletions)
     }
 
+    fn wav_fetch(
+        expected_url: &'static str,
+    ) -> impl for<'a> FnMut(&'a str) -> FetchMediaFuture<'a> {
+        move |url| {
+            assert_eq!(url, expected_url);
+            Box::pin(async {
+                Ok(MediaBlock {
+                    media_type: "audio/wav".into(),
+                    data: "cmlm".into(),
+                })
+            })
+        }
+    }
+
     #[test]
     fn policies_select_supported_target_formats() {
         assert_eq!(
@@ -590,15 +611,7 @@ mod tests {
             &google_spec("gemini-3.5-flash"),
             ProviderFormat::Google,
             RemoteMediaPolicy::GOOGLE,
-            |url| {
-                assert_eq!(url, "https://example.com/call.wav");
-                Box::pin(async {
-                    Ok(MediaBlock {
-                        media_type: "audio/wav".into(),
-                        data: "cmlm".into(),
-                    })
-                })
-            },
+            wav_fetch("https://example.com/call.wav"),
         )
         .await
         .expect("prepare request");
@@ -638,15 +651,7 @@ mod tests {
             &openai_spec("gpt-audio-1.5"),
             ProviderFormat::ChatCompletions,
             RemoteMediaPolicy::OPENAI,
-            |url| {
-                assert_eq!(url, "https://example.com/call.wav");
-                Box::pin(async {
-                    Ok(MediaBlock {
-                        media_type: "audio/wav".into(),
-                        data: "cmlm".into(),
-                    })
-                })
-            },
+            wav_fetch("https://example.com/call.wav"),
         )
         .await
         .expect("prepare request");
@@ -689,15 +694,7 @@ mod tests {
             &openai_spec("gpt-5.4-mini"),
             ProviderFormat::ChatCompletions,
             RemoteMediaPolicy::OPENAI,
-            |url| {
-                assert_eq!(url, "https://example.com/call.wav");
-                Box::pin(async {
-                    Ok(MediaBlock {
-                        media_type: "audio/wav".into(),
-                        data: "cmlm".into(),
-                    })
-                })
-            },
+            wav_fetch("https://example.com/call.wav"),
         )
         .await
         .expect("audio is inlined before transform");
