@@ -1,0 +1,184 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "You can choose what we do next!"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 8,
+      "totalTokenCount": 298,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 258,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "CMicaqPeNLvh_uMPg9fO6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " Here are a few options:\n\n1. **Provide another audio clip** for me to transcribe.\n2. **Translate the transcription** we"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 37,
+      "totalTokenCount": 327,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 258,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "CMicaqPeNLvh_uMPg9fO6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " just did into another language.\n3. **Explore the topic further**: We can discuss ways people are currently working to keep indigenous"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 63,
+      "totalTokenCount": 353,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 258,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "CMicaqPeNLvh_uMPg9fO6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " languages and cultures alive, or how environmental health is linked to cultural preservation.\n4. **Start a completely new task"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 87,
+      "totalTokenCount": 377,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 258,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "CMicaqPeNLvh_uMPg9fO6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "** (like writing, coding, brainstorming, or answering a question).\n\nWhat would you like to do?"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 109,
+      "totalTokenCount": 399,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 258,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "CMicaqPeNLvh_uMPg9fO6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "Eq8LCqwLARFNMg9OSTZF7CkOoZIycMMNNgkcgGLiXETrFSB7ITc/RuJyyE6lmwymYj+ZjHCRygYpLTzX39e4U4J2Su7UY4Eem8Tk9bafeMTyPSl2hApN+Qf65Eq83fBxSFVbqjjKSIkWZRPhVPHRcHNWFnjhzPRK2C2U6A+gcN698zmhuV3FR+PDREoA66BEhr7qxAqNLWAcyIEAHLyMbZ5XE+8V5mRHGXEn0NwVRv4NDgfstL5wDARdj0ZE7ZJb2s/csZMOzOmy6wwfbcSMwN161HNV0f7l5+mh34XYRH75Ej1i25aLcAzCQ5lL3i53TQeecT7JalQ98h0e0l5F5Xvcq8nSDmp8ix788UgYcwr4/O5QCGWNtdFxMt4bD2kGXtWpZHQXuog96K6n4DAi6+v6lXKrPVh00dSS8I0Lcz+gk8UCEUP6z/9O8ST4AOytH5dTN5L/jg8LZr44SGsVmUCi0NptQjatV8ZafVy3CJTzHIJ7J4YmCgcKf8tz/6klm5qFqoTKYlqs37EKhssDOk1a0oQ7C6jHI8Rn4Z/j6cuD7uZnoXICke3wks5eFKOpwORerjabfWFcmsBFIVGULd2xxTvaFxb7lX9T5Wl1S7TDBk8ixXBxs7HvWr1H1vDmtUTtWf3RT0VrO61rjX8LPzN1z05n/CENpjlYiY+6GCOqe82a10kSaDWuMyB7AV2K979wpBatEchNPmjm8t0dRAx8mJR7hywTtW9rUhfCM0RjlrdgIE360A59QLNhwco3qsVcXCajLgoduknlZwGikezbYEdemP4cxu/wSrmDl6T/MoA0w15dWee5tbxK3zuMLT1blCjrP+SsNvDERcVVT9pXlSGCnG0dL6wDwCYnoTqtW0NOVIeezF+A2uRq17r9ZL07iaUwS0KWJk0LTCkIA1+46QKEfRTES+zKCuIJbBvHRphf42QlHCoJivrKa/AifYkW7Muup7k88QxOIYvfV2WLcX+Z8Cbixb182fbeHpeoqpLsZR3H2ATWKaHYneZO9UMKdv8AbptrQ9t3zfXKcTcI0wbLr3kpeHljZP55kgatNge8l8QHEKvdDNKj47rxUEOgR4BUJnRkUbhQEZSeGVUzyatFv28nIzMlZltd+xi56V5Dywhyi28zzpYzAuOYdA25GcbNPRkAcTajw3gXoCJH2s9zQmMFPZOgrj6xCNI7xI1+vQeqcuPzHNdhjDHdniMd5PR4xJ3lyo4mvJLiHkAiygHHiE2dLBD86qSayuLfli/sWBMBU3pQi7FPTN8JetGUlTZ8d6tVKotgBuCECuHNryolLWzT1YLRzI+/OHRIbJBJvjyi2/JeYXnm233CyXJ/NVIRseouYdtnEC1i83rlzusObOrtCxXQDAApH8Nneq4/tMB1QuZePdnqkTI7bIjuWUtxXw+vJTX37hwd32bFRlQAmLljxStpdtq6bWJxQxHmHSmtSMPwfOo2/ad/iC74FkNaNiA0Qu4iJa6jpEsDTT4x7IXxWQg1du0FtY6tF7Ejqd4tDAlNSej4VF2RJ9UP+KF0L58t68bmH3rAsQdJr+lpyxP+80csaaGmdMaqjxYjSVBELXSZ0mJyvlYlgCpyx4Ds8sXYY3cYw1lAX91zOTQ34HuiWrT420Q/Mi/15oOZs/jmuOT/BGVkevxLZmrQAtp3OXODPs8AECo09txkX55uJsf0cy4+HIMbnUW4jgn+DSzS4whVlbOoYfqLx/bGkjfVZJtflWyG9zus4XToearGoL7A35f+RvzuRUWrOcyTniwCeYaRyvJIgoEvTtlTcor2w2gzrS0EF2M9pOlsNJ8OE22/pkINujavuaywcsLckl6YZsslRv//BG/TWiAudGgs9y+CirbQtEkABX9JtvcQfD+Lrea0Pb0oa28oTtiSQm5lUMZ4BN2WlOQMB5btjK10DjIOoAga1SqS0+aA"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 194,
+      "candidatesTokenCount": 109,
+      "totalTokenCount": 561,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 194
+        }
+      ],
+      "thoughtsTokenCount": 258,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "CMicaqPeNLvh_uMPg9fO6Ac"
+  }
+]

@@ -398,12 +398,16 @@ mod wasm_fetch {
 #[cfg(not(target_arch = "wasm32"))]
 mod native_fetch {
     use super::*;
+    use ipnet::IpNet;
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs};
+    use std::str::FromStr;
     use std::time::Duration;
     use url::{Host, Url};
 
     const MAX_REDIRECTS: usize = 3;
     const MEDIA_FETCH_TIMEOUT: Duration = Duration::from_secs(30);
+    const ALLOW_CIDRS_ENV: &str = "BRAINTRUST_URL_SECURITY_ALLOW_CIDRS";
+    const AWS_IMDS_IPV6: Ipv6Addr = Ipv6Addr::new(0xfd00, 0x0ec2, 0, 0, 0, 0, 0, 0x0254);
 
     fn ipv4_in_cidr(address: Ipv4Addr, base: Ipv4Addr, prefix_len: u32) -> bool {
         let address = u32::from(address);
@@ -417,24 +421,35 @@ mod native_fetch {
         (address & mask) == (base & mask)
     }
 
-    fn is_blocked_ipv4(address: Ipv4Addr) -> bool {
-        address.is_loopback()
-            || address.is_private()
-            || address.is_link_local()
+    fn is_hard_blocked_ipv4(address: Ipv4Addr) -> bool {
+        address.is_link_local()
             || address.is_multicast()
             || address.is_unspecified()
             || ipv4_in_cidr(address, Ipv4Addr::new(0, 0, 0, 0), 8)
-            || ipv4_in_cidr(address, Ipv4Addr::new(100, 64, 0, 0), 10)
-            || ipv4_in_cidr(address, Ipv4Addr::new(192, 0, 0, 0), 24)
-            || ipv4_in_cidr(address, Ipv4Addr::new(198, 18, 0, 0), 15)
             || ipv4_in_cidr(address, Ipv4Addr::new(224, 0, 0, 0), 4)
             || ipv4_in_cidr(address, Ipv4Addr::new(240, 0, 0, 0), 4)
     }
 
-    fn is_blocked_ipv6(address: Ipv6Addr) -> bool {
-        address.is_loopback()
+    fn is_blocked_ipv4(address: Ipv4Addr) -> bool {
+        is_hard_blocked_ipv4(address)
+            || address.is_loopback()
+            || address.is_private()
+            || address.is_link_local()
+            || ipv4_in_cidr(address, Ipv4Addr::new(100, 64, 0, 0), 10)
+            || ipv4_in_cidr(address, Ipv4Addr::new(192, 0, 0, 0), 24)
+            || ipv4_in_cidr(address, Ipv4Addr::new(198, 18, 0, 0), 15)
+    }
+
+    fn is_hard_blocked_ipv6(address: Ipv6Addr) -> bool {
+        address == AWS_IMDS_IPV6
             || address.is_unspecified()
             || address.is_multicast()
+            || address.is_unicast_link_local()
+    }
+
+    fn is_blocked_ipv6(address: Ipv6Addr) -> bool {
+        is_hard_blocked_ipv6(address)
+            || address.is_loopback()
             || address.is_unique_local()
             || address.is_unicast_link_local()
             || address.to_ipv4_mapped().is_some_and(is_blocked_ipv4)
@@ -447,10 +462,48 @@ mod native_fetch {
         }
     }
 
-    fn is_blocked_hostname(hostname: &str) -> bool {
-        hostname.eq_ignore_ascii_case("localhost")
-            || hostname.eq_ignore_ascii_case("metadata.amazonaws.com")
+    fn is_hard_blocked_hostname(hostname: &str) -> bool {
+        let hostname = hostname.trim_end_matches('.');
+        hostname.eq_ignore_ascii_case("metadata.amazonaws.com")
             || hostname.eq_ignore_ascii_case("metadata.google.internal")
+    }
+
+    fn normalize_ip_for_policy(address: IpAddr) -> IpAddr {
+        match address {
+            IpAddr::V6(address) => address
+                .to_ipv4_mapped()
+                .map(IpAddr::V4)
+                .unwrap_or(IpAddr::V6(address)),
+            IpAddr::V4(_) => address,
+        }
+    }
+
+    fn parse_allowed_cidrs() -> Result<Vec<IpNet>, MediaError> {
+        let Ok(raw) = std::env::var(ALLOW_CIDRS_ENV) else {
+            return Ok(Vec::new());
+        };
+        raw.split(',')
+            .map(str::trim)
+            .filter(|cidr| !cidr.is_empty())
+            .map(|cidr| {
+                IpNet::from_str(cidr).map_err(|error| {
+                    MediaError::FetchError(format!("invalid {ALLOW_CIDRS_ENV}: {error}"))
+                })
+            })
+            .collect()
+    }
+
+    fn is_allowed_ip(address: IpAddr, allowed_cidrs: &[IpNet]) -> bool {
+        let address = normalize_ip_for_policy(address);
+        let hard_blocked = match address {
+            IpAddr::V4(address) => is_hard_blocked_ipv4(address),
+            IpAddr::V6(address) => is_hard_blocked_ipv6(address),
+        };
+        if hard_blocked {
+            return false;
+        }
+
+        !is_blocked_ip(address) || allowed_cidrs.iter().any(|cidr| cidr.contains(&address))
     }
 
     struct ValidatedMediaUrl {
@@ -459,6 +512,14 @@ mod native_fetch {
     }
 
     fn validate_media_url(url: &Url) -> Result<ValidatedMediaUrl, MediaError> {
+        let allowed_cidrs = parse_allowed_cidrs()?;
+        validate_media_url_with_allowed_cidrs(url, &allowed_cidrs)
+    }
+
+    fn validate_media_url_with_allowed_cidrs(
+        url: &Url,
+        allowed_cidrs: &[IpNet],
+    ) -> Result<ValidatedMediaUrl, MediaError> {
         if url.scheme() != "http" && url.scheme() != "https" {
             return Err(MediaError::FetchError(
                 "media URL must use http or https".to_string(),
@@ -470,7 +531,7 @@ mod native_fetch {
             .ok_or_else(|| MediaError::FetchError("media URL is missing a host".to_string()))?;
         match host {
             Host::Ipv4(address) => {
-                if is_blocked_ipv4(address) {
+                if !is_allowed_ip(IpAddr::V4(address), allowed_cidrs) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -481,7 +542,7 @@ mod native_fetch {
                 });
             }
             Host::Ipv6(address) => {
-                if is_blocked_ipv6(address) {
+                if !is_allowed_ip(IpAddr::V6(address), allowed_cidrs) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -492,7 +553,7 @@ mod native_fetch {
                 });
             }
             Host::Domain(host) => {
-                if is_blocked_hostname(host) {
+                if is_hard_blocked_hostname(host) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -512,7 +573,7 @@ mod native_fetch {
 
         let mut resolved_addresses = Vec::new();
         for address in addresses {
-            if is_blocked_ip(address.ip()) {
+            if !is_allowed_ip(address.ip(), allowed_cidrs) {
                 return Err(MediaError::FetchError(
                     "media URL resolves to a blocked address".to_string(),
                 ));
@@ -668,7 +729,7 @@ mod native_fetch {
         fn validate_media_url_rejects_non_http_schemes() {
             let url = Url::parse("file:///etc/passwd").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_allowed_cidrs(&url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("http or https")
             ));
@@ -678,17 +739,24 @@ mod native_fetch {
         fn validate_media_url_rejects_localhost() {
             let url = Url::parse("http://localhost/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_allowed_cidrs(&url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
         }
 
         #[test]
+        fn validate_media_url_allows_configured_private_cidr() {
+            let url = Url::parse("http://127.0.0.1/image.png").unwrap();
+            let allowed_cidrs = [IpNet::from_str("127.0.0.0/8").unwrap()];
+            assert!(validate_media_url_with_allowed_cidrs(&url, &allowed_cidrs).is_ok());
+        }
+
+        #[test]
         fn validate_media_url_rejects_dns_resolved_localhost() {
             let url = Url::parse("http://localhost./image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_allowed_cidrs(&url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
@@ -697,8 +765,20 @@ mod native_fetch {
         #[test]
         fn validate_media_url_rejects_metadata_ip() {
             let url = Url::parse("http://169.254.169.254/latest/meta-data").unwrap();
+            let allowed_cidrs = [IpNet::from_str("169.254.0.0/16").unwrap()];
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_allowed_cidrs(&url, &allowed_cidrs),
+                Err(MediaError::FetchError(message))
+                    if message.contains("blocked address")
+            ));
+        }
+
+        #[test]
+        fn validate_media_url_rejects_ipv6_metadata_ip_despite_allowed_ula() {
+            let url = Url::parse("http://[fd00:ec2::254]/latest/meta-data").unwrap();
+            let allowed_cidrs = [IpNet::from_str("fd00::/8").unwrap()];
+            assert!(matches!(
+                validate_media_url_with_allowed_cidrs(&url, &allowed_cidrs),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
@@ -712,7 +792,7 @@ mod native_fetch {
             ] {
                 let url = Url::parse(url).unwrap();
                 assert!(matches!(
-                    validate_media_url(&url),
+                    validate_media_url_with_allowed_cidrs(&url, &[]),
                     Err(MediaError::FetchError(message))
                         if message.contains("blocked address")
                 ));
@@ -730,7 +810,7 @@ mod native_fetch {
                 let redirect_url = current_url.join(location).unwrap();
 
                 assert!(matches!(
-                    validate_media_url(&redirect_url),
+                    validate_media_url_with_allowed_cidrs(&redirect_url, &[]),
                     Err(MediaError::FetchError(message))
                         if message.contains("blocked address")
                 ));
@@ -741,14 +821,14 @@ mod native_fetch {
         fn validate_media_url_rejects_ipv4_mapped_ipv6_localhost() {
             let dotted_url = Url::parse("http://[::ffff:127.0.0.1]/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&dotted_url),
+                validate_media_url_with_allowed_cidrs(&dotted_url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
 
             let hex_url = Url::parse("http://[::ffff:7f00:1]/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&hex_url),
+                validate_media_url_with_allowed_cidrs(&hex_url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));

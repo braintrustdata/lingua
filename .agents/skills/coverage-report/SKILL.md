@@ -1,11 +1,21 @@
 ---
 name: coverage-report
-description: Run transformation coverage tests. Use compact mode when iterating on fixes, full mode when planning or documenting bugs.
+description: Run transformation coverage tests and classify gaps before treating them as converter bugs. Use compact mode for iteration and full mode for investigation.
 ---
 
 # Coverage Report Skill
 
 Run cross-provider transformation coverage tests for Lingua.
+
+## Interpret coverage correctly
+
+Coverage output is diagnostic evidence, not a requirement to make every provider feature cross-provider transformable.
+
+- Investigate whether a failure represents ordinary data with a clear semantic mapping or provider-managed/opaque behavior.
+- Fix converter logic only when the source meaning is provider-neutral and the target representation is genuinely equivalent.
+- Prefer an explicit unsupported-mapping error for hosted execution, hidden state, opaque handles, replay data, lifecycle events, and other black-box behavior.
+- Do not improve coverage by dropping fields, stringifying structured blocks, flattening them into text, simulating provider behavior, or adding universal types solely for provider-specific operational state.
+- Record correctly rejected cases as known limitations where the harness requires it. Do not count them as converter bugs solely because the report shows loss.
 
 ## When to Use Each Mode
 
@@ -104,12 +114,14 @@ req:617/836 res:32/424 str:20/444
    cargo run --bin coverage-report -- -p anthropic,responses > .Codex/ant_rsp_bugs.md
    ```
 
-2. **Implement fix** and iterate (compact mode):
+2. **Classify the failure.** Confirm a lossless semantic mapping exists; otherwise test and document an explicit unsupported mapping.
+
+3. **Implement fix** and iterate (compact mode):
    ```bash
    cargo run --bin coverage-report -- -f compact -p anthropic,responses
    ```
 
-3. **Verify fix** and update documentation (full mode):
+4. **Verify fix** and update documentation (full mode):
    ```bash
    cargo run --bin coverage-report -- -p anthropic,responses
    # Update .Codex/BUGS.md with results

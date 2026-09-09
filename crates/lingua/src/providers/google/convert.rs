@@ -23,7 +23,7 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::DEFAULT_MIME_TYPE;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, ProviderOptions, TextContentPart,
+    AssistantContent, AssistantContentPart, AudioFormat, Message, ProviderOptions, TextContentPart,
     ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::universal::request::{
@@ -309,6 +309,15 @@ impl TryFromLLM<GoogleContent> for Message {
                                     media_type: Some(mime_type),
                                     provider_options: None,
                                 });
+                            } else if let Some(format) = match &*mime_type {
+                                "audio/mpeg" | "audio/mp3" => Some(AudioFormat::Mp3),
+                                "audio/wav" | "video/audio/wav" => Some(AudioFormat::Wav),
+                                _ => None,
+                            } {
+                                user_parts.push(UserContentPart::Audio {
+                                    data: data.clone(),
+                                    format,
+                                });
                             } else {
                                 user_parts.push(UserContentPart::File {
                                     data: Value::String(data.clone()),
@@ -396,6 +405,13 @@ impl TryFromLLM<Message> for GoogleContent {
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, parts) = match message {
             Message::System { content } | Message::Developer { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "Google system instruction",
+                    });
+                }
+
                 let text = match content {
                     UserContent::String(s) => format!("System: {}", s),
                     UserContent::Array(parts) => {
@@ -455,6 +471,19 @@ impl TryFromLLM<Message> for GoogleContent {
                                             ..Default::default()
                                         });
                                     }
+                                }
+                                UserContentPart::Audio { data, format } => {
+                                    let mime_type = match format {
+                                        AudioFormat::Mp3 => "audio/mpeg",
+                                        AudioFormat::Wav => "audio/wav",
+                                    };
+                                    converted.push(GooglePart {
+                                        inline_data: Some(GoogleBlob {
+                                            mime_type: Some(mime_type.to_string()),
+                                            data: Some(data),
+                                        }),
+                                        ..Default::default()
+                                    });
                                 }
                                 UserContentPart::File {
                                     data: Value::String(data),
@@ -1686,6 +1715,79 @@ mod tests {
         let parts = content.parts.unwrap();
         assert_eq!(parts.len(), 1);
         assert_eq!(parts[0].text.as_deref(), Some("Hello"));
+    }
+
+    #[test]
+    fn test_message_to_google_content_audio() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::Audio {
+                data: "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=".to_string(),
+                format: AudioFormat::Wav,
+            }]),
+        };
+
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let parts = content.parts.unwrap();
+        let inline_data = parts[0]
+            .inline_data
+            .as_ref()
+            .expect("audio should become inlineData");
+
+        assert_eq!(inline_data.mime_type.as_deref(), Some("audio/wav"));
+        assert_eq!(
+            inline_data.data.as_deref(),
+            Some("UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=")
+        );
+    }
+
+    #[test]
+    fn test_google_inline_audio_imports_as_universal_audio() {
+        for mime_type in ["audio/wav", "video/audio/wav", "audio/mpeg", "audio/mp3"] {
+            let content = GoogleContent {
+                role: Some("user".to_string()),
+                parts: Some(vec![GooglePart {
+                    inline_data: Some(GoogleBlob {
+                        mime_type: Some(mime_type.to_string()),
+                        data: Some("UklGRg==".to_string()),
+                    }),
+                    ..Default::default()
+                }]),
+            };
+
+            let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
+            match message {
+                Message::User {
+                    content: UserContent::Array(parts),
+                } => match &parts[0] {
+                    UserContentPart::Audio { data, format } => {
+                        assert_eq!(data, "UklGRg==");
+                        assert!(matches!(
+                            (mime_type, format),
+                            ("audio/wav", AudioFormat::Wav)
+                                | ("video/audio/wav", AudioFormat::Wav)
+                                | ("audio/mpeg", AudioFormat::Mp3)
+                                | ("audio/mp3", AudioFormat::Mp3)
+                        ));
+                    }
+                    other => panic!("expected audio content, got {other:?}"),
+                },
+                other => panic!("expected user message, got {other:?}"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_system_audio_is_rejected() {
+        let message = Message::System {
+            content: UserContent::Array(vec![UserContentPart::Audio {
+                data: "UklGRg==".to_string(),
+                format: AudioFormat::Wav,
+            }]),
+        };
+
+        let error = <GoogleContent as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Google must not silently drop system audio");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
     }
 
     #[test]
