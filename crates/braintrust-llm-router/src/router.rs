@@ -15,9 +15,8 @@ use crate::catalog::{
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, prepare_request_with_remote_media,
-    request_needs_remote_media_preparation, rewrite_body_model_if_required, ClientHeaders,
-    Provider, RemoteMediaPolicy,
+    enable_streaming_payload, prepare_request_with_remote_media, rewrite_body_model_if_required,
+    ClientHeaders, Provider, RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
@@ -271,21 +270,30 @@ async fn prepare_provider_request(
     stream: bool,
     options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
-    let (body, preprocessed_detected_format, remote_media_preprocessed) =
-        match RemoteMediaPolicy::for_format(format) {
-            Some(policy) if request_needs_remote_media_preparation(&body, format)? => {
-                let prepared = prepare_request_with_remote_media(
-                    body,
-                    spec,
-                    format,
-                    policy,
-                    options.rewrite_body_model,
-                )
-                .await?;
-                (prepared.bytes, prepared.detected_format, true)
-            }
-            _ => (body, None, false),
-        };
+    let (
+        body,
+        preprocessed_detected_format,
+        remote_media_preprocessed,
+        source_requires_json_response,
+    ) = match RemoteMediaPolicy::for_format(format) {
+        Some(policy) => {
+            let prepared = prepare_request_with_remote_media(
+                body,
+                spec,
+                format,
+                policy,
+                options.rewrite_body_model,
+            )
+            .await?;
+            (
+                prepared.bytes,
+                prepared.detected_format,
+                !prepared.lingua_passthrough,
+                prepared.requires_json_response,
+            )
+        }
+        _ => (body, None, false, false),
+    };
 
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
     let (
@@ -325,26 +333,14 @@ async fn prepare_provider_request(
         Err(err) => return Err(err.into()),
     };
 
+    // Target adapters may not represent the source's JSON-output requirement.
+    let requires_json_response = source_requires_json_response || requires_json_response;
+
     let transformed = if options.rewrite_body_model && maybe_rewrite_model {
         rewrite_body_model_if_required(transformed, actual_format, &spec.model)
     } else {
         transformed
     };
-
-    let (transformed, requires_json_response, lingua_passthrough) =
-        if let Some(policy) = RemoteMediaPolicy::for_format(actual_format) {
-            let prepared = prepare_request_with_remote_media(
-                transformed,
-                spec,
-                actual_format,
-                policy,
-                options.rewrite_body_model,
-            )
-            .await?;
-            (prepared.bytes, requires_json_response, lingua_passthrough)
-        } else {
-            (transformed, requires_json_response, lingua_passthrough)
-        };
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we
@@ -1838,6 +1834,39 @@ mod tests {
                 native_responses_requires_json_response(body.as_bytes()),
                 expected
             );
+        }
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_preserves_json_requirement_for_converse() {
+        for stream in [false, true] {
+            for (response_type, expected) in [("json_object", true), ("text", false)] {
+                let body = Bytes::from(
+                    serde_json::to_vec(&serde_json::json!({
+                        "model": "gpt-4o",
+                        "messages": [{"role": "user", "content": "hello"}],
+                        "response_format": {"type": response_type}
+                    }))
+                    .unwrap(),
+                );
+                let spec = openai_spec("test-model", ModelFlavor::Chat);
+                let (_, detected, actual, requires_json, passthrough) = prepare_provider_request(
+                    body,
+                    &spec,
+                    ProviderFormat::Converse,
+                    stream,
+                    RequestPreparationOptions::default(),
+                )
+                .await
+                .expect("Converse request prepares");
+                assert_eq!(detected, Some(ProviderFormat::ChatCompletions));
+                assert_eq!(actual, ProviderFormat::Converse);
+                assert_eq!(
+                    requires_json, expected,
+                    "response_format={response_type}, stream={stream}"
+                );
+                assert!(!passthrough);
+            }
         }
     }
 

@@ -3,13 +3,11 @@ use std::pin::Pin;
 
 use bytes::Bytes;
 use lingua::processing::{adapter_for_format, adapters, normalize_universal_request_for_target};
-use lingua::providers::openai::generated::{
-    ChatCompletionRequestMessageContent, CreateChatCompletionRequestClass, PurpleType,
-};
+use lingua::providers::openai::generated::{InputAudio, InputAudioFormat};
 use lingua::universal::message::{AudioFormat, Message, UserContent, UserContentPart};
 use lingua::util::media::MediaBlock;
 use lingua::{ProviderFormat, TransformError};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::catalog::ModelSpec;
 use crate::error::{Error, Result};
@@ -60,27 +58,62 @@ impl RemoteMediaPolicy {
 
 type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct ChatAudioRequestView {
+    #[serde(flatten)]
+    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
     #[serde(default)]
     messages: Vec<ChatAudioMessageView>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct ChatAudioMessageView {
-    content: Option<ChatAudioContentView>,
+    #[serde(flatten)]
+    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
+    #[serde(
+        default,
+        deserialize_with = "present_field",
+        skip_serializing_if = "Option::is_none"
+    )]
+    content: Option<Option<ChatAudioContentView>>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(untagged)]
 enum ChatAudioContentView {
     Parts(Vec<ChatAudioPartView>),
     Text(String),
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct ChatAudioPartView {
-    input_audio: Option<AudioDataView>,
+    #[serde(flatten)]
+    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
+    #[serde(rename = "type")]
+    kind: String,
+    #[serde(
+        default,
+        deserialize_with = "present_field",
+        skip_serializing_if = "Option::is_none"
+    )]
+    input_audio: Option<Option<ExtendedInputAudio>>,
+}
+
+// Preserve the distinction between an absent field and an explicit JSON null.
+fn present_field<'de, D, T>(deserializer: D) -> std::result::Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    T::deserialize(deserializer).map(Some)
+}
+
+#[derive(Deserialize, Serialize)]
+struct ExtendedInputAudio {
+    #[serde(flatten)]
+    audio: InputAudio,
+    #[serde(flatten)]
+    extensions: lingua::serde_json::Map<String, lingua::serde_json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -110,9 +143,7 @@ struct AudioDataView {
 pub(crate) struct PreparedRemoteMediaRequest {
     pub(crate) bytes: Bytes,
     pub(crate) detected_format: Option<ProviderFormat>,
-    #[cfg(test)]
     pub(crate) requires_json_response: bool,
-    #[cfg(test)]
     pub(crate) lingua_passthrough: bool,
 }
 
@@ -176,7 +207,6 @@ where
         .map(|adapter| adapter.as_ref())
         .find(|adapter| adapter.detect_request(&payload))
         .ok_or(TransformError::UnableToDetectRequestFormat)?;
-    #[cfg(test)]
     let requires_json_response = source_adapter
         .request_requires_json_response(&payload)
         .map_err(Error::from)?;
@@ -190,42 +220,27 @@ where
                 body
             },
             detected_format: None,
-            #[cfg(test)]
             requires_json_response,
-            #[cfg(test)]
             lingua_passthrough: true,
         });
     }
 
-    if source_adapter.format() == ProviderFormat::ChatCompletions && has_remote_audio {
-        let prepared =
+    let payload = if source_adapter.format() == ProviderFormat::ChatCompletions && has_remote_audio
+    {
+        let bytes =
             inline_remote_chat_audio_with_fetch(body, spec, rewrite_body_model, &mut fetch).await?;
         if format == ProviderFormat::ChatCompletions {
-            return Ok(prepared);
+            return Ok(PreparedRemoteMediaRequest {
+                bytes,
+                detected_format: None,
+                requires_json_response,
+                lingua_passthrough: false,
+            });
         }
-        let parsed = lingua::parse_json_body(prepared.bytes)?;
-        let payload = parsed.value;
-        let source_adapter = adapters()
-            .iter()
-            .map(|adapter| adapter.as_ref())
-            .find(|adapter| adapter.detect_request(&payload))
-            .ok_or(TransformError::UnableToDetectRequestFormat)?;
-        let bytes = prepare_universal_remote_media_request(
-            source_adapter.request_to_universal(payload)?,
-            format,
-            policy,
-            &mut fetch,
-        )
-        .await?;
-        return Ok(PreparedRemoteMediaRequest {
-            bytes,
-            detected_format: Some(source_adapter.format()),
-            #[cfg(test)]
-            requires_json_response,
-            #[cfg(test)]
-            lingua_passthrough: false,
-        });
-    }
+        lingua::parse_json_body(bytes)?.value
+    } else {
+        payload
+    };
 
     let mut request = source_adapter.request_to_universal(payload)?;
     if rewrite_body_model {
@@ -236,9 +251,7 @@ where
     Ok(PreparedRemoteMediaRequest {
         bytes,
         detected_format: Some(source_adapter.format()),
-        #[cfg(test)]
         requires_json_response,
-        #[cfg(test)]
         lingua_passthrough: false,
     })
 }
@@ -262,20 +275,6 @@ where
         .map_err(Error::LinguaJson)
 }
 
-pub(crate) fn request_needs_remote_media_preparation(
-    body: &[u8],
-    target_format: ProviderFormat,
-) -> Result<bool> {
-    let parsed = lingua::parse_json_body(Bytes::copy_from_slice(body))?;
-    let source_adapter = adapters()
-        .iter()
-        .map(|adapter| adapter.as_ref())
-        .find(|adapter| adapter.detect_request(&parsed.value))
-        .ok_or(TransformError::UnableToDetectRequestFormat)?;
-    Ok(source_adapter.format() != target_format
-        || request_has_remote_audio(body, source_adapter.format())?)
-}
-
 fn request_has_remote_audio(body: &[u8], format: ProviderFormat) -> Result<bool> {
     match format {
         ProviderFormat::ChatCompletions => {
@@ -284,15 +283,12 @@ fn request_has_remote_audio(body: &[u8], format: ProviderFormat) -> Result<bool>
                 .messages
                 .into_iter()
                 .any(|message| match message.content {
-                    Some(ChatAudioContentView::Parts(parts)) => parts
+                    Some(Some(ChatAudioContentView::Parts(parts))) => parts
                         .iter()
-                        .filter_map(|part| part.input_audio.as_ref())
-                        .any(|audio| is_remote_media_url(&audio.data)),
-                    Some(ChatAudioContentView::Text(text)) => {
-                        let _ = text;
-                        false
-                    }
-                    None => false,
+                        .filter(|part| part.kind == "input_audio")
+                        .filter_map(|part| part.input_audio.as_ref().and_then(Option::as_ref))
+                        .any(|audio| is_remote_media_url(&audio.audio.data)),
+                    Some(Some(ChatAudioContentView::Text(_))) | None | Some(None) => false,
                 }))
         }
         ProviderFormat::Google => {
@@ -315,34 +311,30 @@ async fn inline_remote_chat_audio_with_fetch<F>(
     spec: &ModelSpec,
     rewrite_body_model: bool,
     fetch: &mut F,
-) -> Result<PreparedRemoteMediaRequest>
+) -> Result<Bytes>
 where
     F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
 {
-    let mut request: CreateChatCompletionRequestClass = lingua::serde_json::from_slice(&body)?;
+    let mut request: ChatAudioRequestView = lingua::serde_json::from_slice(&body)?;
     for message in &mut request.messages {
-        let Some(
-            ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(
-                parts,
-            ),
-        ) = message.content.as_mut()
-        else {
+        let Some(Some(ChatAudioContentView::Parts(parts))) = message.content.as_mut() else {
             continue;
         };
         for part in parts {
-            if part.content_part_type != PurpleType::InputAudio {
+            if part.kind != "input_audio" {
                 continue;
             }
-            let Some(audio) = part.input_audio.as_mut() else {
+            let Some(Some(audio)) = part.input_audio.as_mut() else {
                 continue;
             };
+            let audio = &mut audio.audio;
             if !is_remote_media_url(&audio.data) {
                 continue;
             }
             let media_block = fetch(&audio.data).await?;
             let format = match audio.format {
-                lingua::providers::openai::generated::InputAudioFormat::Mp3 => AudioFormat::Mp3,
-                lingua::providers::openai::generated::InputAudioFormat::Wav => AudioFormat::Wav,
+                InputAudioFormat::Mp3 => AudioFormat::Mp3,
+                InputAudioFormat::Wav => AudioFormat::Wav,
             };
             if !audio_format_matches_media_type(&format, &media_block.media_type) {
                 return Err(Error::InvalidRequest(format!(
@@ -353,20 +345,15 @@ where
             audio.data = media_block.data;
         }
     }
-    if rewrite_body_model {
-        request.model = spec.model.clone();
-    }
     let bytes = lingua::serde_json::to_vec(&request)
         .map(Bytes::from)
         .map_err(Error::LinguaJson)?;
-    Ok(PreparedRemoteMediaRequest {
-        bytes,
-        detected_format: None,
-        #[cfg(test)]
-        requires_json_response: false,
-        #[cfg(test)]
-        lingua_passthrough: false,
-    })
+    let bytes = if rewrite_body_model {
+        rewrite_body_model_if_required(bytes, ProviderFormat::ChatCompletions, &spec.model)
+    } else {
+        bytes
+    };
+    Ok(bytes)
 }
 
 pub(crate) async fn inline_remote_media_with_fetch<F>(
@@ -631,6 +618,7 @@ mod tests {
         let body = Bytes::from(
             lingua::serde_json::to_vec(&json!({
                 "model": "gpt-audio-1.5",
+                "provider": {"order": ["anthropic"]},
                 "messages": [{
                     "role": "user",
                     "name": "recording-owner",
@@ -663,6 +651,46 @@ mod tests {
             "cmlm"
         );
         assert_eq!(request["messages"][0]["name"], "recording-owner");
+        assert_eq!(request["provider"]["order"][0], "anthropic");
+    }
+
+    #[tokio::test]
+    async fn native_audio_inlining_changes_only_audio_data() {
+        let fixture = |data: &str| {
+            json!({
+                "model": "gpt-audio-1.5",
+                "provider": {"order": ["custom"]},
+                "messages": [
+                    {"role": "assistant"},
+                    {"role": "assistant", "content": null},
+                    {"role": "user", "name": "speaker", "custom": true, "content": [
+                        {"type": "text", "text": "Listen"},
+                        {"type": "text", "text": "Null", "input_audio": null},
+                        {"type": "text", "text": "Not audio", "input_audio": {
+                            "data": "https://example.com/do-not-fetch.wav", "format": "wav"
+                        }},
+                        {"type": "input_audio", "custom": 42, "input_audio": {
+                            "data": data, "format": "wav", "custom": {"keep": true}
+                        }}
+                    ]}
+                ]
+            })
+        };
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&fixture("https://example.com/call.wav")).unwrap(),
+        );
+        let prepared = prepare_request_with_remote_media_and_fetch(
+            body,
+            &openai_spec("gpt-audio-1.5"),
+            ProviderFormat::ChatCompletions,
+            RemoteMediaPolicy::OPENAI,
+            wav_fetch("https://example.com/call.wav"),
+        )
+        .await
+        .expect("inline native audio");
+        let actual: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
+        assert_eq!(actual, fixture("cmlm"));
     }
 
     #[tokio::test]
