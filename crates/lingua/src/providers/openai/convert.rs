@@ -22,11 +22,13 @@ use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 
 fn universal_audio_from_openai(audio: openai::InputAudio) -> Result<UserContentPart, ConvertError> {
-    base64::engine::general_purpose::STANDARD
-        .decode(&audio.data)
-        .map_err(|error| ConvertError::ContentConversionFailed {
-            reason: format!("OpenAI input_audio.data must be base64: {error}"),
-        })?;
+    if !(audio.data.starts_with("http://") || audio.data.starts_with("https://")) {
+        base64::engine::general_purpose::STANDARD
+            .decode(&audio.data)
+            .map_err(|error| ConvertError::ContentConversionFailed {
+                reason: format!("OpenAI input_audio.data must be base64: {error}"),
+            })?;
+    }
 
     let format = match audio.format {
         openai::InputAudioFormat::Mp3 => AudioFormat::Mp3,

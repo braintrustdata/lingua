@@ -404,6 +404,14 @@ mod native_fetch {
 
     const MAX_REDIRECTS: usize = 3;
     const MEDIA_FETCH_TIMEOUT: Duration = Duration::from_secs(30);
+    const TEST_ONLY_ALLOW_PRIVATE_MEDIA_URLS_ENV: &str = "BT_TEST_ONLY_ALLOW_PRIVATE_MEDIA_URLS";
+
+    fn allow_private_media_urls_for_testing() -> bool {
+        matches!(
+            std::env::var(TEST_ONLY_ALLOW_PRIVATE_MEDIA_URLS_ENV).as_deref(),
+            Ok("1")
+        )
+    }
 
     fn ipv4_in_cidr(address: Ipv4Addr, base: Ipv4Addr, prefix_len: u32) -> bool {
         let address = u32::from(address);
@@ -448,6 +456,7 @@ mod native_fetch {
     }
 
     fn is_blocked_hostname(hostname: &str) -> bool {
+        let hostname = hostname.trim_end_matches('.');
         hostname.eq_ignore_ascii_case("localhost")
             || hostname.eq_ignore_ascii_case("metadata.amazonaws.com")
             || hostname.eq_ignore_ascii_case("metadata.google.internal")
@@ -459,6 +468,13 @@ mod native_fetch {
     }
 
     fn validate_media_url(url: &Url) -> Result<ValidatedMediaUrl, MediaError> {
+        validate_media_url_with_private_media_urls(url, allow_private_media_urls_for_testing())
+    }
+
+    fn validate_media_url_with_private_media_urls(
+        url: &Url,
+        allow_private_media_urls: bool,
+    ) -> Result<ValidatedMediaUrl, MediaError> {
         if url.scheme() != "http" && url.scheme() != "https" {
             return Err(MediaError::FetchError(
                 "media URL must use http or https".to_string(),
@@ -470,7 +486,7 @@ mod native_fetch {
             .ok_or_else(|| MediaError::FetchError("media URL is missing a host".to_string()))?;
         match host {
             Host::Ipv4(address) => {
-                if is_blocked_ipv4(address) {
+                if !allow_private_media_urls && is_blocked_ipv4(address) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -481,7 +497,7 @@ mod native_fetch {
                 });
             }
             Host::Ipv6(address) => {
-                if is_blocked_ipv6(address) {
+                if !allow_private_media_urls && is_blocked_ipv6(address) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -492,7 +508,7 @@ mod native_fetch {
                 });
             }
             Host::Domain(host) => {
-                if is_blocked_hostname(host) {
+                if !allow_private_media_urls && is_blocked_hostname(host) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -512,7 +528,7 @@ mod native_fetch {
 
         let mut resolved_addresses = Vec::new();
         for address in addresses {
-            if is_blocked_ip(address.ip()) {
+            if !allow_private_media_urls && is_blocked_ip(address.ip()) {
                 return Err(MediaError::FetchError(
                     "media URL resolves to a blocked address".to_string(),
                 ));
@@ -668,7 +684,7 @@ mod native_fetch {
         fn validate_media_url_rejects_non_http_schemes() {
             let url = Url::parse("file:///etc/passwd").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_private_media_urls(&url, false),
                 Err(MediaError::FetchError(message))
                     if message.contains("http or https")
             ));
@@ -678,17 +694,23 @@ mod native_fetch {
         fn validate_media_url_rejects_localhost() {
             let url = Url::parse("http://localhost/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_private_media_urls(&url, false),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
         }
 
         #[test]
+        fn validate_media_url_allows_private_addresses_when_explicitly_enabled() {
+            let url = Url::parse("http://127.0.0.1/image.png").unwrap();
+            assert!(validate_media_url_with_private_media_urls(&url, true).is_ok());
+        }
+
+        #[test]
         fn validate_media_url_rejects_dns_resolved_localhost() {
             let url = Url::parse("http://localhost./image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_private_media_urls(&url, false),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
@@ -698,7 +720,7 @@ mod native_fetch {
         fn validate_media_url_rejects_metadata_ip() {
             let url = Url::parse("http://169.254.169.254/latest/meta-data").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_private_media_urls(&url, false),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
@@ -712,7 +734,7 @@ mod native_fetch {
             ] {
                 let url = Url::parse(url).unwrap();
                 assert!(matches!(
-                    validate_media_url(&url),
+                    validate_media_url_with_private_media_urls(&url, false),
                     Err(MediaError::FetchError(message))
                         if message.contains("blocked address")
                 ));
@@ -730,7 +752,7 @@ mod native_fetch {
                 let redirect_url = current_url.join(location).unwrap();
 
                 assert!(matches!(
-                    validate_media_url(&redirect_url),
+                    validate_media_url_with_private_media_urls(&redirect_url, false),
                     Err(MediaError::FetchError(message))
                         if message.contains("blocked address")
                 ));
@@ -741,14 +763,14 @@ mod native_fetch {
         fn validate_media_url_rejects_ipv4_mapped_ipv6_localhost() {
             let dotted_url = Url::parse("http://[::ffff:127.0.0.1]/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&dotted_url),
+                validate_media_url_with_private_media_urls(&dotted_url, false),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
 
             let hex_url = Url::parse("http://[::ffff:7f00:1]/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&hex_url),
+                validate_media_url_with_private_media_urls(&hex_url, false),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
