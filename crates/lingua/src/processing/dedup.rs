@@ -87,15 +87,11 @@ fn hash_user_content(content: &UserContent, hasher: &mut DefaultHasher) {
                         hash_text_content_part(text_part, hasher);
                     }
                     UserContentPart::Image {
-                        image,
-                        media_type,
-                        transformations,
-                        ..
+                        image, media_type, ..
                     } => {
                         "image".hash(hasher);
                         image.hash(hasher);
                         media_type.hash(hasher);
-                        transformations.hash(hasher);
                     }
                     UserContentPart::File {
                         data,
@@ -385,8 +381,8 @@ pub fn deduplicate_messages(messages: Vec<Message>) -> Vec<Message> {
 mod tests {
     use super::*;
     use crate::universal::{
-        AssistantContent, CacheControl, CacheControlTtl, CacheControlType, ImageTransformations,
-        Message, OversizedImagePolicy, TextContentPart, UserContent, UserContentPart,
+        AssistantContent, CacheControl, CacheControlTtl, CacheControlType, Message,
+        TextContentPart, UserContent, UserContentPart,
     };
 
     #[test]
@@ -401,27 +397,6 @@ mod tests {
             Message::User {
                 content: UserContent::String("world".to_string()),
             },
-        ];
-
-        let result = deduplicate_messages(messages);
-        assert_eq!(result.len(), 2);
-    }
-
-    #[test]
-    fn test_dedup_preserves_distinct_image_transformation_policies() {
-        let image_message = |policy| Message::User {
-            content: UserContent::Array(vec![UserContentPart::Image {
-                image: crate::serde_json::Value::String("aW1hZ2U=".to_string()),
-                media_type: Some("image/jpeg".to_string()),
-                transformations: Some(ImageTransformations {
-                    oversized_image: Some(policy),
-                }),
-                provider_options: None,
-            }]),
-        };
-        let messages = vec![
-            image_message(OversizedImagePolicy::Downsize),
-            image_message(OversizedImagePolicy::Error),
         ];
 
         let result = deduplicate_messages(messages);

@@ -170,7 +170,6 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                                             "image_url": { "url": attachment_value }
                                         }),
                                         media_type: None,
-                                        transformations: None,
                                         provider_options: None,
                                     });
                                 } else {

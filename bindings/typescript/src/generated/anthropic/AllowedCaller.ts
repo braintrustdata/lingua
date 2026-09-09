@@ -9,7 +9,5 @@
  * (v1).
  * code_execution_20260120: The tool can be called from the code execution environment (v2
  * with persistence).
- * code_execution_20260521: The tool can be called from the code execution environment (v2
- * with persistence).
  */
-export type AllowedCaller = "code_execution_20250825" | "code_execution_20260120" | "code_execution_20260521" | "direct";
+export type AllowedCaller = "code_execution_20250825" | "code_execution_20260120" | "direct";
