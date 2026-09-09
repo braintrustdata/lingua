@@ -109,7 +109,6 @@ struct AudioDataView {
 #[derive(Debug)]
 pub(crate) struct PreparedRemoteMediaRequest {
     pub(crate) bytes: Bytes,
-    #[cfg(test)]
     pub(crate) detected_format: Option<ProviderFormat>,
     #[cfg(test)]
     pub(crate) requires_json_response: bool,
@@ -190,7 +189,6 @@ where
             } else {
                 body
             },
-            #[cfg(test)]
             detected_format: None,
             #[cfg(test)]
             requires_json_response,
@@ -223,7 +221,6 @@ where
             .map_err(Error::LinguaJson)?;
         return Ok(PreparedRemoteMediaRequest {
             bytes,
-            #[cfg(test)]
             detected_format: Some(source_adapter.format()),
             #[cfg(test)]
             requires_json_response,
@@ -250,7 +247,6 @@ where
 
     Ok(PreparedRemoteMediaRequest {
         bytes,
-        #[cfg(test)]
         detected_format: Some(source_adapter.format()),
         #[cfg(test)]
         requires_json_response,
@@ -259,14 +255,18 @@ where
     })
 }
 
-pub(crate) fn request_has_remote_audio_in_payload(body: &[u8]) -> Result<bool> {
+pub(crate) fn request_needs_remote_media_preparation(
+    body: &[u8],
+    target_format: ProviderFormat,
+) -> Result<bool> {
     let parsed = lingua::parse_json_body(Bytes::copy_from_slice(body))?;
     let source_adapter = adapters()
         .iter()
         .map(|adapter| adapter.as_ref())
         .find(|adapter| adapter.detect_request(&parsed.value))
         .ok_or(TransformError::UnableToDetectRequestFormat)?;
-    request_has_remote_audio(body, source_adapter.format())
+    Ok(source_adapter.format() != target_format
+        || request_has_remote_audio(body, source_adapter.format())?)
 }
 
 fn request_has_remote_audio(body: &[u8], format: ProviderFormat) -> Result<bool> {
@@ -354,7 +354,6 @@ where
         .map_err(Error::LinguaJson)?;
     Ok(PreparedRemoteMediaRequest {
         bytes,
-        #[cfg(test)]
         detected_format: None,
         #[cfg(test)]
         requires_json_response: false,

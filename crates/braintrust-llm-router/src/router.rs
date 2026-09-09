@@ -16,8 +16,8 @@ use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_request_with_remote_media,
-    request_has_remote_audio_in_payload, rewrite_body_model_if_required, ClientHeaders, Provider,
-    RemoteMediaPolicy,
+    request_needs_remote_media_preparation, rewrite_body_model_if_required, ClientHeaders,
+    Provider, RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
@@ -271,20 +271,21 @@ async fn prepare_provider_request(
     stream: bool,
     options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
-    let body = match RemoteMediaPolicy::for_format(format) {
-        Some(policy) if request_has_remote_audio_in_payload(&body)? => {
-            prepare_request_with_remote_media(
-                body,
-                spec,
-                format,
-                policy,
-                options.rewrite_body_model,
-            )
-            .await?
-            .bytes
-        }
-        _ => body,
-    };
+    let (body, preprocessed_detected_format, remote_media_preprocessed) =
+        match RemoteMediaPolicy::for_format(format) {
+            Some(policy) if request_needs_remote_media_preparation(&body, format)? => {
+                let prepared = prepare_request_with_remote_media(
+                    body,
+                    spec,
+                    format,
+                    policy,
+                    options.rewrite_body_model,
+                )
+                .await?;
+                (prepared.bytes, prepared.detected_format, true)
+            }
+            _ => (body, None, false),
+        };
 
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
     let (
@@ -298,16 +299,21 @@ async fn prepare_provider_request(
         Ok(result) => {
             let requires_json_response = result.requires_json_response;
             match result.result {
-                TransformResult::PassThrough(bytes) => {
-                    (bytes, None, format, true, requires_json_response, true)
-                }
+                TransformResult::PassThrough(bytes) => (
+                    bytes,
+                    preprocessed_detected_format,
+                    format,
+                    true,
+                    requires_json_response,
+                    !remote_media_preprocessed,
+                ),
                 TransformResult::Transformed {
                     bytes,
                     source_format,
                     actual_target_format,
                 } => (
                     bytes,
-                    Some(source_format),
+                    preprocessed_detected_format.or(Some(source_format)),
                     actual_target_format,
                     false,
                     requires_json_response,

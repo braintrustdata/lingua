@@ -23,7 +23,7 @@ pub use openai::{
     OpenAIProvider,
 };
 pub(crate) use remote_media::{
-    prepare_request_with_remote_media, request_has_remote_audio_in_payload, RemoteMediaPolicy,
+    prepare_request_with_remote_media, request_needs_remote_media_preparation, RemoteMediaPolicy,
 };
 pub use vertex::{VertexConfig, VertexProvider};
 
