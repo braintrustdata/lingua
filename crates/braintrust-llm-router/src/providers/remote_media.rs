@@ -59,6 +59,7 @@ type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Se
 #[derive(Debug)]
 pub(crate) struct PreparedRemoteMediaRequest {
     pub(crate) bytes: Bytes,
+    #[cfg(test)]
     pub(crate) detected_format: Option<ProviderFormat>,
     pub(crate) requires_json_response: bool,
     pub(crate) lingua_passthrough: bool,
@@ -69,10 +70,16 @@ pub(crate) async fn prepare_request_with_remote_media(
     spec: &ModelSpec,
     format: ProviderFormat,
     policy: RemoteMediaPolicy,
+    rewrite_body_model: bool,
 ) -> Result<PreparedRemoteMediaRequest> {
-    prepare_request_with_remote_media_and_fetch(body, spec, format, policy, |url| {
-        Box::pin(fetch_remote_media_as_base64(url))
-    })
+    prepare_request_with_remote_media_and_fetch_with_model_rewrite(
+        body,
+        spec,
+        format,
+        policy,
+        rewrite_body_model,
+        |url| Box::pin(fetch_remote_media_as_base64(url)),
+    )
     .await
 }
 
@@ -82,11 +89,29 @@ async fn fetch_remote_media_as_base64(url: &str) -> Result<MediaBlock> {
         .map_err(|e| Error::InvalidRequest(format!("failed to fetch media URL {url}: {e}")))
 }
 
+#[cfg(test)]
 pub(crate) async fn prepare_request_with_remote_media_and_fetch<F>(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
     policy: RemoteMediaPolicy,
+    fetch: F,
+) -> Result<PreparedRemoteMediaRequest>
+where
+    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+{
+    prepare_request_with_remote_media_and_fetch_with_model_rewrite(
+        body, spec, format, policy, true, fetch,
+    )
+    .await
+}
+
+async fn prepare_request_with_remote_media_and_fetch_with_model_rewrite<F>(
+    body: Bytes,
+    spec: &ModelSpec,
+    format: ProviderFormat,
+    policy: RemoteMediaPolicy,
+    rewrite_body_model: bool,
     fetch: F,
 ) -> Result<PreparedRemoteMediaRequest>
 where
@@ -109,14 +134,21 @@ where
 
     if source_adapter.format() == format && !has_remote_audio {
         return Ok(PreparedRemoteMediaRequest {
-            bytes: rewrite_body_model_if_required(body, format, &spec.model),
+            bytes: if rewrite_body_model {
+                rewrite_body_model_if_required(body, format, &spec.model)
+            } else {
+                body
+            },
+            #[cfg(test)]
             detected_format: None,
             requires_json_response,
             lingua_passthrough: true,
         });
     }
 
-    request.model = Some(spec.model.clone());
+    if rewrite_body_model {
+        request.model = Some(spec.model.clone());
+    }
     normalize_universal_request_for_target(&mut request, format);
     inline_remote_media_with_fetch(&mut request, policy, fetch).await?;
 
@@ -130,6 +162,7 @@ where
 
     Ok(PreparedRemoteMediaRequest {
         bytes,
+        #[cfg(test)]
         detected_format: Some(source_adapter.format()),
         requires_json_response,
         lingua_passthrough: false,

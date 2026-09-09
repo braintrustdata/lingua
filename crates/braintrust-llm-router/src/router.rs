@@ -270,17 +270,6 @@ async fn prepare_provider_request(
     stream: bool,
     options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
-    if let Some(policy) = RemoteMediaPolicy::for_format(format) {
-        let prepared = prepare_request_with_remote_media(body, spec, format, policy).await?;
-        return Ok((
-            prepared.bytes,
-            prepared.detected_format,
-            format,
-            prepared.requires_json_response,
-            prepared.lingua_passthrough,
-        ));
-    }
-
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
     let (
         transformed,
@@ -319,6 +308,25 @@ async fn prepare_provider_request(
     } else {
         transformed
     };
+
+    let (transformed, requires_json_response, lingua_passthrough) =
+        if let Some(policy) = RemoteMediaPolicy::for_format(actual_format) {
+            let prepared = prepare_request_with_remote_media(
+                transformed,
+                spec,
+                actual_format,
+                policy,
+                options.rewrite_body_model,
+            )
+            .await?;
+            (
+                prepared.bytes,
+                prepared.requires_json_response,
+                lingua_passthrough && prepared.lingua_passthrough,
+            )
+        } else {
+            (transformed, requires_json_response, lingua_passthrough)
+        };
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we

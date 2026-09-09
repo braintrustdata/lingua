@@ -1980,6 +1980,7 @@ dependencies = [
  "bytes",
  "coverage-report",
  "env_logger",
+ "ipnet",
  "js-sys",
  "log",
  "paste",
