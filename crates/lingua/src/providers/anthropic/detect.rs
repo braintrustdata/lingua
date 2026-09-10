@@ -30,6 +30,14 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, Detec
     Ok(request)
 }
 
+/// Returns whether a request contains a field that identifies OpenAI Chat Completions rather
+/// than Anthropic Messages without parsing the full provider request schema.
+pub fn has_openai_only_request_field(payload: &Value) -> Result<bool, DetectionError> {
+    first_openai_only_field(payload)
+        .map(|field| field.is_some())
+        .map_err(DetectionError::DeserializationFailed)
+}
+
 /// Attempt to parse a JSON Value as an Anthropic Messages-shaped source request.
 ///
 /// This is intentionally less strict than `try_parse_anthropic`: it accepts
