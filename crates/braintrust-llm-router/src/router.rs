@@ -241,6 +241,35 @@ struct NativeResponsesMetadata {
     stream: Option<bool>,
 }
 
+fn deserialize_present<'de, D>(deserializer: D) -> std::result::Result<bool, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    serde::de::IgnoredAny::deserialize(deserializer)?;
+    Ok(true)
+}
+
+#[derive(Deserialize)]
+struct NativeAnthropicMetadata {
+    #[serde(rename = "model")]
+    _model: serde::de::IgnoredAny,
+    #[serde(rename = "max_tokens")]
+    _max_tokens: serde::de::IgnoredAny,
+    #[serde(rename = "messages")]
+    _messages: serde::de::IgnoredAny,
+    stream: Option<bool>,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    input: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    contents: bool,
+}
+
+impl NativeAnthropicMetadata {
+    fn has_foreign_format_fields(&self) -> bool {
+        self.input || self.contents
+    }
+}
+
 fn native_responses_requires_json_response(body: &[u8]) -> bool {
     use lingua::providers::openai::generated::{ResponseFormatType, ResponseTextParam};
 
@@ -259,6 +288,29 @@ fn native_responses_requires_json_response(body: &[u8]) -> bool {
                     ResponseFormatType::JsonObject | ResponseFormatType::JsonSchema
                 )
             }),
+        Err(_) => true,
+    }
+}
+
+fn native_anthropic_requires_json_response(body: &[u8]) -> bool {
+    #[derive(Deserialize)]
+    struct OutputConfigMetadata {
+        format: Option<serde::de::IgnoredAny>,
+    }
+
+    #[derive(Deserialize)]
+    struct ResponseFormatMetadata {
+        output_config: Option<OutputConfigMetadata>,
+        output_format: Option<serde::de::IgnoredAny>,
+    }
+
+    match lingua::serde_json::from_slice::<ResponseFormatMetadata>(body) {
+        Ok(metadata) => {
+            metadata.output_format.is_some()
+                || metadata
+                    .output_config
+                    .is_some_and(|output_config| output_config.format.is_some())
+        }
         Err(_) => true,
     }
 }
@@ -405,10 +457,45 @@ impl Router {
         } else {
             None
         };
+        let native_anthropic = if output_format == ProviderFormat::Anthropic
+            && route.format == ProviderFormat::Anthropic
+            && route.provider.id() == "anthropic"
+            && route.provider.matches_provider_alias("anthropic")
+        {
+            lingua::serde_json::from_slice::<NativeAnthropicMetadata>(&body)
+                .ok()
+                .filter(|metadata| !metadata.has_foreign_format_fields())
+                .filter(|_| {
+                    lingua::serde_json::from_slice::<Value>(&body)
+                        .ok()
+                        .and_then(|payload| {
+                            lingua::providers::anthropic::detect::has_openai_only_request_field(
+                                &payload,
+                            )
+                            .ok()
+                        })
+                        == Some(false)
+                })
+        } else {
+            None
+        };
         let (payload, detected_format, actual_format, requires_json_response, lingua_passthrough) =
             if let Some(metadata) = native_responses {
                 reject_remote_responses_audio(&body)?;
                 let requires_json_response = native_responses_requires_json_response(&body);
+                let body = if options.rewrite_body_model {
+                    rewrite_body_model_if_required(body, route.format, &route.spec.model)
+                } else {
+                    body
+                };
+                let body = if stream && metadata.stream != Some(true) {
+                    enable_streaming_payload(body, route.format)
+                } else {
+                    body
+                };
+                (body, None, route.format, requires_json_response, true)
+            } else if let Some(metadata) = native_anthropic {
+                let requires_json_response = native_anthropic_requires_json_response(&body);
                 let body = if options.rewrite_body_model {
                     rewrite_body_model_if_required(body, route.format, &route.spec.model)
                 } else {
@@ -1671,6 +1758,104 @@ mod tests {
             format: ProviderFormat::Responses,
         };
         (router, route)
+    }
+
+    fn native_anthropic_test_route() -> (Router, ProviderRoute) {
+        let router = Router::builder()
+            .with_catalog(Arc::new(ModelCatalog::empty()))
+            .build()
+            .expect("router builds");
+        let mut spec = openai_spec("claude-sonnet-4-5", ModelFlavor::Chat);
+        spec.format = ProviderFormat::Anthropic;
+        let route = ProviderRoute {
+            provider_alias: "anthropic".to_string(),
+            provider: Arc::new(FakeProvider {
+                name: "anthropic",
+                formats: vec![ProviderFormat::Anthropic],
+            }),
+            auth: dummy_auth(),
+            spec: Arc::new(spec),
+            format: ProviderFormat::Anthropic,
+        };
+        (router, route)
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_preserves_body_without_schema_detection() {
+        let (router, route) = native_anthropic_test_route();
+        let body = Bytes::from_static(
+            br#"{ "model": "claude-sonnet-4-5", "max_tokens": 128, "messages": [{"role":"user","content":[{"type":"future_content_block","opaque":9007199254740993}]}], "output_config":{"format":{"type":"future_format"}}, "stream": true }"#,
+        );
+
+        for stream in [false, true] {
+            let (prepared, metadata) = router
+                .create_prepared_request_internal(
+                    body.clone(),
+                    ProviderFormat::Anthropic,
+                    &route,
+                    stream,
+                    RequestPreparationOptions::default(),
+                )
+                .await
+                .expect("native request prepares without detecting its full schema");
+            assert_eq!(prepared.payload, body);
+            assert_eq!(prepared.payload.as_ptr(), body.as_ptr());
+            assert!(prepared.requires_json_response);
+            assert_eq!(metadata.detected_input_format, ProviderFormat::Anthropic);
+            assert_eq!(metadata.provider_format, ProviderFormat::Anthropic);
+            assert!(metadata.lingua_passthrough);
+        }
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_rewrites_model_and_enables_streaming() {
+        let (router, route) = native_anthropic_test_route();
+        let body = Bytes::from_static(
+            br#"{"model":"claude-old","max_tokens":128,"messages":[{"role":"user","content":[{"type":"future_content_block","opaque":true}]}],"stream":false}"#,
+        );
+
+        let (prepared, metadata) = router
+            .create_stream_request(body, ProviderFormat::Anthropic, &route, false)
+            .await
+            .expect("native streaming request prepares");
+        let value: Value = serde_json::from_slice(&prepared.inner.payload).expect("valid JSON");
+        assert_eq!(
+            value.get("model").and_then(Value::as_str),
+            Some(route.model())
+        );
+        assert_eq!(value.get("stream").and_then(Value::as_bool), Some(true));
+        assert_eq!(
+            value
+                .pointer("/messages/0/content/0/type")
+                .and_then(Value::as_str),
+            Some("future_content_block")
+        );
+        assert!(metadata.lingua_passthrough);
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_route_converts_openai_only_inputs() {
+        let (router, route) = native_anthropic_test_route();
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-4o","max_tokens":128,"messages":[{"role":"user","content":"Hello"}],"n":1}"#,
+        );
+
+        let (prepared, metadata) = router
+            .create_request(body, ProviderFormat::Anthropic, &route, false)
+            .await
+            .expect("OpenAI request converts to Anthropic");
+        let value: Value = serde_json::from_slice(&prepared.inner.payload).expect("valid JSON");
+        assert_eq!(
+            metadata.detected_input_format,
+            ProviderFormat::ChatCompletions
+        );
+        assert_eq!(metadata.provider_format, ProviderFormat::Anthropic);
+        assert!(!metadata.lingua_passthrough);
+        assert!(value.get("n").is_none());
+        assert_eq!(
+            value.get("model").and_then(Value::as_str),
+            Some(route.model())
+        );
     }
 
     #[tokio::test]
