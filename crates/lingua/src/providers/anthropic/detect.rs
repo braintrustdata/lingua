@@ -11,7 +11,9 @@ use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::generated::{
     CreateMessageParams, InputContentBlockType, InputMessage, MessageContent, MessageRole,
 };
-use crate::providers::anthropic::params::first_openai_only_field;
+use crate::providers::anthropic::params::{
+    first_openai_only_field, first_openai_only_nested_shape,
+};
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
@@ -30,11 +32,14 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, Detec
     Ok(request)
 }
 
-/// Returns whether a request contains a field that identifies OpenAI Chat Completions rather
-/// than Anthropic Messages without parsing the full provider request schema.
-pub fn has_openai_only_request_field(payload: &Value) -> Result<bool, DetectionError> {
+/// Returns whether a request contains a top-level field or nested shape that identifies OpenAI
+/// Chat Completions rather than Anthropic Messages without parsing the full provider schema.
+pub fn has_openai_only_request_shape(payload: &Value) -> Result<bool, DetectionError> {
     first_openai_only_field(payload)
-        .map(|field| field.is_some())
+        .and_then(|field| match field {
+            Some(_) => Ok(true),
+            None => first_openai_only_nested_shape(payload).map(|field| field.is_some()),
+        })
         .map_err(DetectionError::DeserializationFailed)
 }
 

@@ -469,7 +469,7 @@ impl Router {
                     lingua::serde_json::from_slice::<Value>(&body)
                         .ok()
                         .and_then(|payload| {
-                            lingua::providers::anthropic::detect::has_openai_only_request_field(
+                            lingua::providers::anthropic::detect::has_openai_only_request_shape(
                                 &payload,
                             )
                             .ok()
@@ -1855,6 +1855,66 @@ mod tests {
         assert_eq!(
             value.get("model").and_then(Value::as_str),
             Some(route.model())
+        );
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_route_converts_openai_system_message() {
+        let (router, route) = native_anthropic_test_route();
+        let body = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-5","max_tokens":128,"messages":[{"role":"system","content":"You are helpful."},{"role":"user","content":"Hello"}]}"#,
+        );
+
+        let (prepared, metadata) = router
+            .create_request(body, ProviderFormat::Anthropic, &route, false)
+            .await
+            .expect("OpenAI system message converts to Anthropic");
+        let value: Value = serde_json::from_slice(&prepared.inner.payload).expect("valid JSON");
+        assert_eq!(
+            metadata.detected_input_format,
+            ProviderFormat::ChatCompletions
+        );
+        assert!(!metadata.lingua_passthrough);
+        assert_eq!(
+            value.get("system").and_then(Value::as_str),
+            Some("You are helpful.")
+        );
+        assert_eq!(
+            value
+                .get("messages")
+                .and_then(Value::as_array)
+                .map(Vec::len),
+            Some(1)
+        );
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_route_converts_openai_function_tool() {
+        let (router, route) = native_anthropic_test_route();
+        let body = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-5","max_tokens":128,"messages":[{"role":"user","content":"Check inventory"}],"tools":[{"type":"function","function":{"name":"get_inventory","description":"Look up inventory","parameters":{"type":"object","properties":{},"required":[]}}}]}"#,
+        );
+
+        let (prepared, metadata) = router
+            .create_request(body, ProviderFormat::Anthropic, &route, false)
+            .await
+            .expect("OpenAI function tool converts to Anthropic");
+        let value: Value = serde_json::from_slice(&prepared.inner.payload).expect("valid JSON");
+        assert_eq!(
+            metadata.detected_input_format,
+            ProviderFormat::ChatCompletions
+        );
+        assert!(!metadata.lingua_passthrough);
+        assert_eq!(
+            value.pointer("/tools/0/name").and_then(Value::as_str),
+            Some("get_inventory")
+        );
+        assert!(value.pointer("/tools/0/function").is_none());
+        assert_eq!(
+            value
+                .pointer("/tools/0/input_schema/type")
+                .and_then(Value::as_str),
+            Some("object")
         );
     }
 

@@ -113,3 +113,104 @@ pub(crate) fn first_openai_only_field(payload: &Value) -> Result<Option<&'static
         .map(|view| view.first_present())
         .map_err(|e| e.to_string())
 }
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct OpenAiMessageShapeView {
+    role: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    name: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    tool_calls: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    tool_call_id: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    function_call: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    refusal: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    audio: bool,
+}
+
+impl OpenAiMessageShapeView {
+    fn first_openai_only_field(&self) -> Option<&'static str> {
+        if matches!(
+            self.role.as_deref(),
+            Some("developer" | "tool" | "function")
+        ) {
+            return Some("messages[].role");
+        }
+
+        [
+            ("messages[].name", self.name),
+            ("messages[].tool_calls", self.tool_calls),
+            ("messages[].tool_call_id", self.tool_call_id),
+            ("messages[].function_call", self.function_call),
+            ("messages[].refusal", self.refusal),
+            ("messages[].audio", self.audio),
+        ]
+        .into_iter()
+        .find_map(|(field, present)| present.then_some(field))
+    }
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct OpenAiToolShapeView {
+    #[serde(rename = "type")]
+    tool_type: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    function: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    custom: bool,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct AnthropicOpenAiNestedShapesView {
+    messages: Option<Vec<OpenAiMessageShapeView>>,
+    tools: Option<Vec<OpenAiToolShapeView>>,
+}
+
+impl AnthropicOpenAiNestedShapesView {
+    fn first_openai_only_field(&self) -> Option<&'static str> {
+        if self
+            .messages
+            .as_ref()
+            .and_then(|messages| messages.first())
+            .and_then(|message| message.role.as_deref())
+            == Some("system")
+        {
+            return Some("messages[0].role");
+        }
+
+        if let Some(field) = self
+            .messages
+            .iter()
+            .flatten()
+            .find_map(OpenAiMessageShapeView::first_openai_only_field)
+        {
+            return Some(field);
+        }
+
+        self.tools.iter().flatten().find_map(|tool| {
+            if tool.function {
+                Some("tools[].function")
+            } else if tool.custom
+                || matches!(tool.tool_type.as_deref(), Some("function" | "custom"))
+            {
+                Some("tools[].type")
+            } else {
+                None
+            }
+        })
+    }
+}
+
+pub(crate) fn first_openai_only_nested_shape(
+    payload: &Value,
+) -> Result<Option<&'static str>, String> {
+    serde_json::from_value::<AnthropicOpenAiNestedShapesView>(payload.clone())
+        .map(|view| view.first_openai_only_field())
+        .map_err(|e| e.to_string())
+}
