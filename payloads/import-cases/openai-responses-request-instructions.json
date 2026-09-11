@@ -1,0 +1,33 @@
+[
+  {
+    "input": {
+      "input": [{ "role": "user", "content": "Hello" }],
+      "instructions": "Answer concisely."
+    }
+  },
+  {
+    "input": {
+      "input": "Goodbye",
+      "instructions": "Answer politely."
+    },
+    "metadata": { "instructions": "Answer politely." }
+  },
+  {
+    "input": {
+      "input": [],
+      "instructions": "Preserve instructions for an empty conversation."
+    }
+  },
+  {
+    "input": {
+      "input": [{ "role": "user", "content": "Empty instructions" }],
+      "instructions": ""
+    }
+  },
+  {
+    "input": {
+      "input": [{ "role": "user", "content": "Null instructions" }],
+      "instructions": null
+    }
+  }
+]

@@ -1274,8 +1274,9 @@ pub(crate) fn try_parse_responses_items_for_import(
 fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<Vec<Message>> {
     match input {
         openai::Instructions::InputItemArray(items) => {
-            let messages = try_convert_non_empty(items)?;
-            non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages))
+            let messages =
+                <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(items).ok()?;
+            Some(merge_adjacent_reasoning_assistant_messages(messages))
         }
         openai::Instructions::String(text) => Some(vec![Message::User {
             content: UserContent::String(text),
@@ -1324,8 +1325,16 @@ pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Ve
 
     if let Some(request) = try_parse::<openai::CreateResponseClass>(data) {
         if let Some(input) = request.input {
-            if let Some(messages) = try_messages_from_openai_instructions(input) {
-                return Some(messages);
+            if let Some(mut messages) = try_messages_from_openai_instructions(input) {
+                if let Some(instructions) = request.instructions.filter(|text| !text.is_empty()) {
+                    messages.insert(
+                        0,
+                        Message::System {
+                            content: UserContent::String(instructions),
+                        },
+                    );
+                }
+                return non_empty_messages(messages);
             }
         }
     }
