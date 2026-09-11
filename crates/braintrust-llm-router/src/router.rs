@@ -263,12 +263,25 @@ fn native_responses_requires_json_response(body: &[u8]) -> bool {
     }
 }
 
+#[cfg(test)]
 async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
     stream: bool,
     options: RequestPreparationOptions,
+) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
+    prepare_provider_request_with_additional_ca_bundle(body, spec, format, stream, options, None)
+        .await
+}
+
+async fn prepare_provider_request_with_additional_ca_bundle(
+    body: Bytes,
+    spec: &ModelSpec,
+    format: ProviderFormat,
+    stream: bool,
+    options: RequestPreparationOptions,
+    additional_ca_bundle: Option<&str>,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
     let (
         body,
@@ -283,6 +296,7 @@ async fn prepare_provider_request(
                 format,
                 policy,
                 options.rewrite_body_model,
+                additional_ca_bundle,
             )
             .await?;
             (
@@ -374,6 +388,7 @@ pub struct Router {
     auth_configs: HashMap<String, AuthConfig>,     // alias -> auth
     formats: HashMap<ProviderFormat, String>,      // format -> default alias
     retry_policy: RetryPolicy,
+    remote_media_additional_ca_bundle: Option<String>,
 }
 
 impl Router {
@@ -421,8 +436,15 @@ impl Router {
                 };
                 (body, None, route.format, requires_json_response, true)
             } else {
-                prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
-                    .await?
+                prepare_provider_request_with_additional_ca_bundle(
+                    body,
+                    route.spec.as_ref(),
+                    route.format,
+                    stream,
+                    options,
+                    self.remote_media_additional_ca_bundle.as_deref(),
+                )
+                .await?
             };
         Ok((
             PreparedRequestInner {
@@ -1171,6 +1193,7 @@ pub struct RouterBuilder {
     custom_catalog: Option<ModelCatalog>,
     provider_entries: Vec<ProviderEntry>,
     retry_policy: RetryPolicy,
+    remote_media_additional_ca_bundle: Option<String>,
 }
 
 impl Default for RouterBuilder {
@@ -1186,6 +1209,7 @@ impl RouterBuilder {
             custom_catalog: None,
             provider_entries: Vec::new(),
             retry_policy: RetryPolicy::default(),
+            remote_media_additional_ca_bundle: None,
         }
     }
 
@@ -1214,6 +1238,12 @@ impl RouterBuilder {
 
     pub fn with_retry_policy(mut self, policy: RetryPolicy) -> Self {
         self.retry_policy = policy;
+        self
+    }
+
+    /// Add trusted roots for remote media downloaded while preparing provider requests.
+    pub fn with_remote_media_additional_ca_bundle(mut self, bundle: Option<String>) -> Self {
+        self.remote_media_additional_ca_bundle = bundle;
         self
     }
 
@@ -1312,6 +1342,7 @@ impl RouterBuilder {
             formats,
             auth_configs,
             retry_policy: self.retry_policy,
+            remote_media_additional_ca_bundle: self.remote_media_additional_ca_bundle,
         })
     }
 }
@@ -2324,6 +2355,39 @@ mod tests {
             .expect("stream item")
             .expect("stream item succeeds");
         assert!(!first.data.is_empty());
+    }
+
+    #[tokio::test]
+    async fn router_passes_additional_ca_bundle_to_remote_media_fetches() {
+        let model = "gemini-3.1-pro-preview";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), google_spec(model));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .with_remote_media_additional_ca_bundle(Some("not a certificate".to_string()))
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .build()
+            .expect("router builds");
+        let body = Bytes::from_static(
+            br#"{"model":"gemini-3.1-pro-preview","input":[{"role":"user","content":[{"type":"input_file","filename":"sample.pdf","file_url":"https://93.184.216.34/sample.pdf"}]}]}"#,
+        );
+
+        let error = match create_test_request(&router, body, model, ProviderFormat::Google).await {
+            Ok(_) => panic!("certificate-free bundle should fail before sending the request"),
+            Err(error) => error,
+        };
+
+        assert!(error
+            .to_string()
+            .contains("additional CA bundle contains no certificates"));
     }
 
     fn google_chat_router(model: &str) -> Router {

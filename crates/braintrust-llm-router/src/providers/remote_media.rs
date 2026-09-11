@@ -1,5 +1,6 @@
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
 
 use bytes::Bytes;
 use lingua::processing::{adapter_for_format, adapters, normalize_universal_request_for_target};
@@ -191,22 +192,37 @@ pub(crate) async fn prepare_request_with_remote_media(
     format: ProviderFormat,
     policy: RemoteMediaPolicy,
     rewrite_body_model: bool,
+    additional_ca_bundle: Option<&str>,
 ) -> Result<PreparedRemoteMediaRequest> {
+    let additional_ca_bundle = additional_ca_bundle.map(Arc::<str>::from);
     prepare_request_with_remote_media_and_fetch_with_model_rewrite(
         body,
         spec,
         format,
         policy,
         rewrite_body_model,
-        |url| Box::pin(fetch_remote_media_as_base64(url)),
+        move |url| {
+            let additional_ca_bundle = additional_ca_bundle.clone();
+            Box::pin(async move {
+                fetch_remote_media_as_base64(url, additional_ca_bundle.as_deref()).await
+            })
+        },
     )
     .await
 }
 
-async fn fetch_remote_media_as_base64(url: &str) -> Result<MediaBlock> {
-    lingua::util::media::convert_media_to_base64(url, None, Some(MAX_REMOTE_MEDIA_BYTES))
-        .await
-        .map_err(|e| Error::InvalidRequest(format!("failed to fetch media URL {url}: {e}")))
+async fn fetch_remote_media_as_base64(
+    url: &str,
+    additional_ca_bundle: Option<&str>,
+) -> Result<MediaBlock> {
+    lingua::util::media::convert_media_to_base64_with_additional_ca_bundle(
+        url,
+        None,
+        Some(MAX_REMOTE_MEDIA_BYTES),
+        additional_ca_bundle,
+    )
+    .await
+    .map_err(|e| Error::InvalidRequest(format!("failed to fetch media URL {url}: {e}")))
 }
 
 #[cfg(test)]
@@ -943,6 +959,39 @@ mod tests {
                 .and_then(|file_data| file_data.file_uri.as_deref()),
             Some("gs://bucket/stored.pdf")
         );
+    }
+
+    #[tokio::test]
+    async fn remote_media_fetch_uses_additional_ca_bundle() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&json!({
+                "model": "gemini-3.1-pro-preview",
+                "input": [{
+                    "role": "user",
+                    "content": [{
+                        "type": "input_file",
+                        "filename": "sample.pdf",
+                        "file_url": "https://93.184.216.34/sample.pdf"
+                    }]
+                }]
+            }))
+            .expect("json"),
+        );
+
+        let error = prepare_request_with_remote_media(
+            body,
+            &google_spec("gemini-3.1-pro-preview"),
+            ProviderFormat::Google,
+            RemoteMediaPolicy::GOOGLE,
+            true,
+            Some("not a certificate"),
+        )
+        .await
+        .expect_err("certificate-free bundle should fail before sending the request");
+
+        assert!(error
+            .to_string()
+            .contains("additional CA bundle contains no certificates"));
     }
 
     #[tokio::test]

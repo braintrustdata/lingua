@@ -389,6 +389,21 @@ mod wasm_fetch {
             data,
         })
     }
+
+    /// Fetch a URL using the platform trust store plus an optional PEM CA bundle.
+    pub async fn fetch_url_to_base64_with_additional_ca_bundle(
+        url: &str,
+        allowed_types: Option<&[&str]>,
+        max_bytes: Option<usize>,
+        additional_ca_bundle: Option<&str>,
+    ) -> Result<MediaBlock, MediaError> {
+        if additional_ca_bundle.is_some() {
+            return Err(MediaError::FetchError(
+                "additional CA bundles are not supported on wasm32".to_string(),
+            ));
+        }
+        fetch_url_to_base64(url, allowed_types, max_bytes).await
+    }
 }
 
 // ============================================================================
@@ -593,7 +608,31 @@ mod native_fetch {
         })
     }
 
-    async fn fetch_validated_url(url: &str) -> Result<reqwest::Response, MediaError> {
+    fn add_additional_ca_bundle(
+        mut builder: reqwest::ClientBuilder,
+        additional_ca_bundle: Option<&str>,
+    ) -> Result<reqwest::ClientBuilder, MediaError> {
+        let Some(additional_ca_bundle) = additional_ca_bundle else {
+            return Ok(builder);
+        };
+
+        let certificates = reqwest::Certificate::from_pem_bundle(additional_ca_bundle.as_bytes())
+            .map_err(|error| MediaError::FetchError(error.to_string()))?;
+        if certificates.is_empty() {
+            return Err(MediaError::FetchError(
+                "additional CA bundle contains no certificates".to_string(),
+            ));
+        }
+        for certificate in certificates {
+            builder = builder.add_root_certificate(certificate);
+        }
+        Ok(builder)
+    }
+
+    async fn fetch_validated_url(
+        url: &str,
+        additional_ca_bundle: Option<&str>,
+    ) -> Result<reqwest::Response, MediaError> {
         let mut current_url = Url::parse(url)
             .map_err(|e| MediaError::FetchError(format!("invalid media URL: {e}")))?;
 
@@ -606,6 +645,7 @@ mod native_fetch {
                 client_builder =
                     client_builder.resolve_to_addrs(&hostname, &validated_url.addresses);
             }
+            client_builder = add_additional_ca_bundle(client_builder, additional_ca_bundle)?;
             let client = client_builder
                 .build()
                 .map_err(|e| MediaError::FetchError(e.to_string()))?;
@@ -676,7 +716,17 @@ mod native_fetch {
         allowed_types: Option<&[&str]>,
         max_bytes: Option<usize>,
     ) -> Result<MediaBlock, MediaError> {
-        let mut response = fetch_validated_url(url).await?;
+        fetch_url_to_base64_with_additional_ca_bundle(url, allowed_types, max_bytes, None).await
+    }
+
+    /// Fetch a URL using the default trust store plus an optional PEM CA bundle.
+    pub async fn fetch_url_to_base64_with_additional_ca_bundle(
+        url: &str,
+        allowed_types: Option<&[&str]>,
+        max_bytes: Option<usize>,
+        additional_ca_bundle: Option<&str>,
+    ) -> Result<MediaBlock, MediaError> {
+        let mut response = fetch_validated_url(url, additional_ca_bundle).await?;
 
         if !response.status().is_success() {
             return Err(MediaError::FetchError(format!(
@@ -864,15 +914,28 @@ mod native_fetch {
                 assert!(!is_blocked_ip(address), "{address} should be allowed");
             }
         }
+
+        #[test]
+        fn additional_ca_bundle_rejects_content_without_certificates() {
+            let error =
+                add_additional_ca_bundle(reqwest::Client::builder(), Some("not a certificate"))
+                    .expect_err("certificate-free bundle should fail");
+
+            assert!(matches!(
+                error,
+                MediaError::FetchError(message)
+                    if message.contains("contains no certificates")
+            ));
+        }
     }
 }
 
 // Re-export the appropriate implementation
 #[cfg(target_arch = "wasm32")]
-pub use wasm_fetch::fetch_url_to_base64;
+pub use wasm_fetch::{fetch_url_to_base64, fetch_url_to_base64_with_additional_ca_bundle};
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use native_fetch::fetch_url_to_base64;
+pub use native_fetch::{fetch_url_to_base64, fetch_url_to_base64_with_additional_ca_bundle};
 
 /// Convert media (URL or data URL) to a MediaBlock.
 ///
@@ -889,13 +952,29 @@ pub async fn convert_media_to_base64(
     allowed_types: Option<&[&str]>,
     max_bytes: Option<usize>,
 ) -> Result<MediaBlock, MediaError> {
+    convert_media_to_base64_with_additional_ca_bundle(media, allowed_types, max_bytes, None).await
+}
+
+/// Convert media to base64, trusting an optional additional PEM CA bundle for URL fetches.
+pub async fn convert_media_to_base64_with_additional_ca_bundle(
+    media: &str,
+    allowed_types: Option<&[&str]>,
+    max_bytes: Option<usize>,
+    additional_ca_bundle: Option<&str>,
+) -> Result<MediaBlock, MediaError> {
     // Try to parse as data URL first
     if let Some(block) = parse_base64_data_url(media) {
         return Ok(block);
     }
 
     // Otherwise fetch the URL
-    fetch_url_to_base64(media, allowed_types, max_bytes).await
+    fetch_url_to_base64_with_additional_ca_bundle(
+        media,
+        allowed_types,
+        max_bytes,
+        additional_ca_bundle,
+    )
+    .await
 }
 
 /// Check if a URL is a localhost URL (for special handling).
