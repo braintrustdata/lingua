@@ -6071,6 +6071,9 @@ pub struct OutputItem {
     /// The name of the function to run.
     ///
     ///
+    /// The name of the tool that produced the output.
+    ///
+    ///
     /// The name of the tool that was run.
     ///
     ///
@@ -6081,6 +6084,9 @@ pub struct OutputItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// The namespace of the function to run.
+    ///
+    ///
+    /// The namespace of the tool that produced the output.
     ///
     ///
     /// The namespace of the custom tool being called.
