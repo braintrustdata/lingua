@@ -82,12 +82,21 @@ type OpenAIResponseReasoningReplayItem = Omit<
   id?: string;
 };
 
+// Function call outputs carry the name of the tool that produced them, which
+// the installed SDK's input-item type does not expose yet.
+type OpenAIResponseFunctionCallOutputWithName =
+  OpenAI.Responses.ResponseInputItem.FunctionCallOutput & {
+    name?: string;
+  };
+
 type OpenAIResponseInputItem =
   | Exclude<
       OpenAI.Responses.ResponseInputItem,
-      OpenAI.Responses.ResponseReasoningItem
+      | OpenAI.Responses.ResponseReasoningItem
+      | OpenAI.Responses.ResponseInputItem.FunctionCallOutput
     >
   | OpenAIResponseReasoningReplayItem
+  | OpenAIResponseFunctionCallOutputWithName
   | OpenAI.Beta.Responses.BetaResponseInputItem.AgentMessage;
 
 type OpenAIResponseCreateParamsWithExtendedServiceTier<T> = T extends unknown
