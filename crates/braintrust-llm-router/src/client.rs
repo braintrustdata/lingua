@@ -248,7 +248,11 @@ fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retrya
 
     #[cfg(feature = "tracing")]
     if matches!(retryable, Some(Retryable::Transient)) {
-        tracing::warn!(error = %err, "retrying middleware request after transient error");
+        tracing::warn!(
+            error = %err,
+            error_debug = ?err,
+            "retrying middleware request after transient error"
+        );
     }
 
     retryable
