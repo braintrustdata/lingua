@@ -1,0 +1,59 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "What databases exist in the connected MongoDB instance? Use the list_databases tool."
+        }
+      ]
+    },
+    {
+      "type": "function_call",
+      "call_id": "6k7x6c84",
+      "name": "list_databases",
+      "arguments": "{}"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "6k7x6c84",
+      "name": "list_databases",
+      "output": "[{\"type\":\"text\",\"text\":\"{\\\"databases\\\":[\\\"admin\\\",\\\"config\\\",\\\"local\\\"]}\"}]"
+    },
+    {
+      "id": "msg_0c54b9937bf86ca7006aa836efb54c87d284054c143065d1a0",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The connected MongoDB instance contains these databases:\n\n- `admin`\n- `config`\n- `local`"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "list_databases",
+      "description": "List databases in the connected MongoDB instance.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ],
+  "tool_choice": "auto"
+}
