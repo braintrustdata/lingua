@@ -1,0 +1,46 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The video clip displays a classic broadcast television test pattern, characterized by its vibrant, vertical color bars. From left to right, these bars typically include black, cyan, magenta, blue, yellow, green, red, and white. A large, partially black and white circular element is prominent on the left side of the screen, and a horizontal bar showcasing a color gradient (like a rainbow) runs along the bottom.\n\nOn the right side of the screen, a black rectangular box contains white, pixelated digital numbers that function as a continuous upward-counting timer. The timer starts at \"00\" and progresses to \"1:49\" by the end of the clip.\n\nThe entire video is accompanied by a continuous, high-pitched, and steady sine wave tone, commonly associated with a television signal loss or test broadcast. The visual elements remain static while the counter increases and the tone persists."
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -2.569578065976992
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 42455,
+    "candidatesTokenCount": 182,
+    "totalTokenCount": 43736,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "AUDIO",
+        "tokenCount": 3750
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 5
+      },
+      {
+        "modality": "VIDEO",
+        "tokenCount": 38700
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 182
+      }
+    ],
+    "thoughtsTokenCount": 1099
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "createTime": "2026-08-11T15:32:56.290994Z",
+  "responseId": "qEB7arLhEf_Mw-UP19WGkQM"
+}

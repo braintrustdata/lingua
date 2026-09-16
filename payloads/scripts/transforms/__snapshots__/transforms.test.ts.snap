@@ -75,11 +75,15 @@ What would you like to do?",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 158,
     "output_tokens": 1310,
+    "output_tokens_details": {
+      "thinking_tokens": 1216,
+    },
   },
 }
 `;
@@ -122,11 +126,15 @@ exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 51,
     "output_tokens": 16,
+    "output_tokens_details": {
+      "thinking_tokens": 16,
+    },
   },
 }
 `;
@@ -202,11 +210,15 @@ exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > res
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 176,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -236,11 +248,15 @@ exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 74,
+    "output_tokens_details": {
+      "thinking_tokens": 64,
+    },
   },
 }
 `;
@@ -272,11 +288,15 @@ What would you like to do? Tell me a topic, task, or even just a bit of context,
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 7,
     "output_tokens": 329,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -332,11 +352,15 @@ So: most common - digits 0 and 1 (about 20.21% each); rarest - digits 6–9 (abo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 74,
     "output_tokens": 6276,
+    "output_tokens_details": {
+      "thinking_tokens": 5632,
+    },
   },
 }
 `;
@@ -366,6 +390,7 @@ exports[`anthropic → chat-completions > fableTemperatureParam > response 1`] =
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -411,11 +436,15 @@ exports[`anthropic → chat-completions > imageContentParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 705,
+    "output_tokens_details": {
+      "thinking_tokens": 640,
+    },
   },
 }
 `;
@@ -449,11 +478,15 @@ exports[`anthropic → chat-completions > instructionsParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 138,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -502,11 +535,15 @@ exports[`anthropic → chat-completions > jsonSchemaFormatParam > response 1`] =
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 798,
+    "output_tokens_details": {
+      "thinking_tokens": 768,
+    },
   },
 }
 `;
@@ -536,11 +573,15 @@ exports[`anthropic → chat-completions > maxCompletionTokensParam > response 1`
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 139,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -571,11 +612,15 @@ exports[`anthropic → chat-completions > metadataParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 330,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -616,11 +661,15 @@ exports[`anthropic → chat-completions > multimodalRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 99,
     "output_tokens": 300,
+    "output_tokens_details": {
+      "thinking_tokens": 300,
+    },
   },
 }
 `;
@@ -651,11 +700,15 @@ exports[`anthropic → chat-completions > opus47AdaptiveThinkingReasoningEffortP
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 74,
+    "output_tokens_details": {
+      "thinking_tokens": 64,
+    },
   },
 }
 `;
@@ -708,11 +761,15 @@ exports[`anthropic → chat-completions > outputConfigEffortWithJsonSchemaParam 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 533,
+    "output_tokens_details": {
+      "thinking_tokens": 512,
+    },
   },
 }
 `;
@@ -764,11 +821,15 @@ exports[`anthropic → chat-completions > outputConfigJsonSchemaParam > response
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 661,
+    "output_tokens_details": {
+      "thinking_tokens": 640,
+    },
   },
 }
 `;
@@ -820,11 +881,15 @@ exports[`anthropic → chat-completions > outputFormatJsonSchemaParam > response
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 213,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -880,11 +945,15 @@ exports[`anthropic → chat-completions > parallelToolCallsDisabledParam > respo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 126,
     "output_tokens": 89,
+    "output_tokens_details": {
+      "thinking_tokens": 64,
+    },
   },
 }
 `;
@@ -972,11 +1041,15 @@ Want hourly details, a 7-day outlook, or a Celsius conversion?",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 229,
     "output_tokens": 310,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1015,11 +1088,15 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 16,
     "output_tokens": 267,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1050,6 +1127,7 @@ exports[`anthropic → chat-completions > reasoningEffortLowParam > response 1`]
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1085,11 +1163,15 @@ exports[`anthropic → chat-completions > reasoningEffortMaxClampsToGpt5NanoPara
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 266,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1125,11 +1207,15 @@ Answer: 66 2/3 mph.",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 38,
     "output_tokens": 454,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -1159,11 +1245,15 @@ exports[`anthropic → chat-completions > reasoningRequestTruncated > response 1
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 38,
     "output_tokens": 100,
+    "output_tokens_details": {
+      "thinking_tokens": 100,
+    },
   },
 }
 `;
@@ -1194,11 +1284,15 @@ exports[`anthropic → chat-completions > reasoningSummaryParam > response 1`] =
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 153,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -1228,11 +1322,15 @@ exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 12,
     "output_tokens": 752,
+    "output_tokens_details": {
+      "thinking_tokens": 640,
+    },
   },
 }
 `;
@@ -1263,11 +1361,15 @@ exports[`anthropic → chat-completions > responsesReasoningEffortMaxParam > res
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 906,
+    "output_tokens_details": {
+      "thinking_tokens": 896,
+    },
   },
 }
 `;
@@ -1325,11 +1427,15 @@ What would you like to do next? For example, tell me a code search term, or ask 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 120,
     "output_tokens": 664,
+    "output_tokens_details": {
+      "thinking_tokens": 512,
+    },
   },
 }
 `;
@@ -1360,11 +1466,15 @@ exports[`anthropic → chat-completions > safetyIdentifierParam > response 1`] =
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 275,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1395,11 +1505,15 @@ exports[`anthropic → chat-completions > serviceTierParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 139,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -1429,11 +1543,15 @@ exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 203,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -1463,11 +1581,15 @@ exports[`anthropic → chat-completions > simpleRequestTruncated > response 1`] 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 15,
     "output_tokens": 16,
+    "output_tokens_details": {
+      "thinking_tokens": 16,
+    },
   },
 }
 `;
@@ -1503,6 +1625,7 @@ exports[`anthropic → chat-completions > stopSequencesParam > response 1`] = `
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1546,11 +1669,15 @@ exports[`anthropic → chat-completions > systemMessageArrayContent > response 1
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 300,
+    "output_tokens_details": {
+      "thinking_tokens": 300,
+    },
   },
 }
 `;
@@ -1581,6 +1708,7 @@ exports[`anthropic → chat-completions > temperatureParam > response 1`] = `
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1637,11 +1765,15 @@ exports[`anthropic → chat-completions > textFormatJsonSchemaParam > response 1
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 792,
+    "output_tokens_details": {
+      "thinking_tokens": 768,
+    },
   },
 }
 `;
@@ -1693,11 +1825,15 @@ exports[`anthropic → chat-completions > textFormatJsonSchemaWithDescriptionPar
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 917,
+    "output_tokens_details": {
+      "thinking_tokens": 896,
+    },
   },
 }
 `;
@@ -1727,11 +1863,15 @@ exports[`anthropic → chat-completions > thinkingDisabledParam > response 1`] =
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 10,
     "output_tokens": 266,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1787,11 +1927,15 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 148,
     "output_tokens": 154,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -1846,11 +1990,15 @@ exports[`anthropic → chat-completions > toolChoiceAnyParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 123,
     "output_tokens": 472,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -1901,11 +2049,15 @@ exports[`anthropic → chat-completions > toolChoiceAutoParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 123,
     "output_tokens": 451,
+    "output_tokens_details": {
+      "thinking_tokens": 384,
+    },
   },
 }
 `;
@@ -1962,11 +2114,15 @@ I’ll tailor the answer. If you’d rather check right away, you can search for
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 123,
     "output_tokens": 538,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -2026,11 +2182,15 @@ exports[`anthropic → chat-completions > toolChoiceRequiredParam > response 1`]
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 123,
     "output_tokens": 279,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -2060,11 +2220,15 @@ exports[`anthropic → chat-completions > topKParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 147,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -2095,6 +2259,7 @@ exports[`anthropic → chat-completions > topPParam > response 1`] = `
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2129,11 +2294,15 @@ exports[`anthropic → chat-completions > webSearchToolParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 10,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -2163,11 +2332,15 @@ exports[`anthropic → chat-completions > webSearchUserLocationParam > response 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 8,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -2250,10 +2423,14 @@ Right, so the user offered a straightforward "hello world." No complex query the
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 73,
     "output_tokens": 38,
+    "output_tokens_details": {
+      "thinking_tokens": 28,
+    },
     "service_tier": "standard",
   },
 }
@@ -2294,10 +2471,14 @@ exports[`anthropic → google > anthropicMidConversationSystemMessage > response
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 40,
     "output_tokens": 13,
+    "output_tokens_details": {
+      "thinking_tokens": 13,
+    },
     "service_tier": "standard",
   },
 }
@@ -2399,10 +2580,14 @@ exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] 
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 88,
     "output_tokens": 546,
+    "output_tokens_details": {
+      "thinking_tokens": 518,
+    },
     "service_tier": "standard",
   },
 }
@@ -2440,10 +2625,14 @@ exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > 
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
     "output_tokens": 86,
+    "output_tokens_details": {
+      "thinking_tokens": 79,
+    },
     "service_tier": "standard",
   },
 }
@@ -2481,10 +2670,14 @@ exports[`anthropic → google > bedrockAnthropicContextManagementParam > respons
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 2,
     "output_tokens": 193,
+    "output_tokens_details": {
+      "thinking_tokens": 184,
+    },
     "service_tier": "standard",
   },
 }
@@ -2529,10 +2722,14 @@ exports[`anthropic → google > cacheControl1hParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 5,
     "output_tokens": 39,
+    "output_tokens_details": {
+      "thinking_tokens": 29,
+    },
   },
 }
 `;
@@ -2576,10 +2773,14 @@ exports[`anthropic → google > cacheControl5mParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 5,
     "output_tokens": 47,
+    "output_tokens_details": {
+      "thinking_tokens": 37,
+    },
   },
 }
 `;
@@ -2619,10 +2820,14 @@ exports[`anthropic → google > chatCompletionsAnthropicCacheControlParam > resp
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 15,
     "output_tokens": 620,
+    "output_tokens_details": {
+      "thinking_tokens": 579,
+    },
     "service_tier": "standard",
   },
 }
@@ -2668,6 +2873,7 @@ exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > resp
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 18,
@@ -2716,10 +2922,14 @@ exports[`anthropic → google > chatCompletionsSystemCacheControlParam > respons
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 15,
     "output_tokens": 804,
+    "output_tokens_details": {
+      "thinking_tokens": 769,
+    },
     "service_tier": "standard",
   },
 }
@@ -2772,10 +2982,14 @@ Once you give me the code, I'll execute it and show you the output.",
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 3,
     "output_tokens": 976,
+    "output_tokens_details": {
+      "thinking_tokens": 839,
+    },
   },
 }
 `;
@@ -2892,10 +3106,14 @@ Now, let's count the occurrences of each digit (0-9) by looking at each position
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 75,
     "output_tokens": 4809,
+    "output_tokens_details": {
+      "thinking_tokens": 2753,
+    },
   },
 }
 `;
@@ -2940,10 +3158,14 @@ I need some content to work with!",
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 538,
+    "output_tokens_details": {
+      "thinking_tokens": 511,
+    },
   },
 }
 `;
@@ -2980,10 +3202,14 @@ exports[`anthropic → google > fableTemperatureParam > response 1`] = `
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 159,
+    "output_tokens_details": {
+      "thinking_tokens": 150,
+    },
     "service_tier": "standard",
   },
 }
@@ -3029,10 +3255,14 @@ It's a vibrant and lively shade, often described as **lime green**, **spring gre
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 261,
     "output_tokens": 706,
+    "output_tokens_details": {
+      "thinking_tokens": 630,
+    },
   },
 }
 `;
@@ -3076,6 +3306,7 @@ exports[`anthropic → google > instructionsParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -3131,10 +3362,14 @@ exports[`anthropic → google > jsonSchemaFormatParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 17,
     "output_tokens": 118,
+    "output_tokens_details": {
+      "thinking_tokens": 92,
+    },
   },
 }
 `;
@@ -3171,10 +3406,14 @@ exports[`anthropic → google > maxCompletionTokensParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 19,
+    "output_tokens_details": {
+      "thinking_tokens": 17,
+    },
   },
 }
 `;
@@ -3211,10 +3450,14 @@ exports[`anthropic → google > metadataParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 17,
+    "output_tokens_details": {
+      "thinking_tokens": 15,
+    },
   },
 }
 `;
@@ -3257,10 +3500,14 @@ exports[`anthropic → google > multimodalRequest > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 267,
     "output_tokens": 296,
+    "output_tokens_details": {
+      "thinking_tokens": 285,
+    },
   },
 }
 `;
@@ -3310,10 +3557,14 @@ Alright, a simple arithmetic question. They've given me "2 + 2." The user, being
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
     "output_tokens": 33,
+    "output_tokens_details": {
+      "thinking_tokens": 25,
+    },
     "service_tier": "standard",
   },
 }
@@ -3395,10 +3646,14 @@ That's it. It's a simple, direct mapping with no need for complex transformation
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
     "output_tokens": 130,
+    "output_tokens_details": {
+      "thinking_tokens": 120,
+    },
   },
 }
 `;
@@ -3453,10 +3708,14 @@ exports[`anthropic → google > outputConfigJsonSchemaParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
     "output_tokens": 117,
+    "output_tokens_details": {
+      "thinking_tokens": 104,
+    },
   },
 }
 `;
@@ -3511,10 +3770,14 @@ exports[`anthropic → google > outputFormatJsonSchemaParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
     "output_tokens": 140,
+    "output_tokens_details": {
+      "thinking_tokens": 130,
+    },
   },
 }
 `;
@@ -3591,10 +3854,14 @@ exports[`anthropic → google > parallelToolCallsDisabledParam > response 1`] = 
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 39,
     "output_tokens": 88,
+    "output_tokens_details": {
+      "thinking_tokens": 58,
+    },
   },
 }
 `;
@@ -3707,6 +3974,7 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 151,
@@ -3755,10 +4023,14 @@ exports[`anthropic → google > promptCacheKeyParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 7,
     "output_tokens": 25,
+    "output_tokens_details": {
+      "thinking_tokens": 23,
+    },
   },
 }
 `;
@@ -3808,10 +4080,14 @@ Okay, here's the deal: a straightforward arithmetic question has been posed. Giv
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
     "output_tokens": 24,
+    "output_tokens_details": {
+      "thinking_tokens": 17,
+    },
   },
 }
 `;
@@ -3861,10 +4137,14 @@ Alright, a seemingly straightforward arithmetic question has popped up. It appea
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
     "output_tokens": 28,
+    "output_tokens_details": {
+      "thinking_tokens": 20,
+    },
   },
 }
 `;
@@ -3932,10 +4212,14 @@ Let's break down the journey:
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
     "output_tokens": 891,
+    "output_tokens_details": {
+      "thinking_tokens": 541,
+    },
   },
 }
 `;
@@ -3972,10 +4256,14 @@ exports[`anthropic → google > reasoningRequestTruncated > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
     "output_tokens": 96,
+    "output_tokens_details": {
+      "thinking_tokens": 92,
+    },
   },
 }
 `;
@@ -4025,10 +4313,14 @@ Alright, I've been presented with what looks like a straightforward arithmetic p
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
     "output_tokens": 33,
+    "output_tokens_details": {
+      "thinking_tokens": 25,
+    },
   },
 }
 `;
@@ -4074,10 +4366,14 @@ However, the sky can also appear in many other colors depending on the time of d
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 7,
     "output_tokens": 497,
+    "output_tokens_details": {
+      "thinking_tokens": 287,
+    },
   },
 }
 `;
@@ -4135,10 +4431,14 @@ Therefore, my final output, based on my analysis and the desired user experience
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
     "output_tokens": 105,
+    "output_tokens_details": {
+      "thinking_tokens": 97,
+    },
     "service_tier": "standard",
   },
 }
@@ -4195,10 +4495,14 @@ exports[`anthropic → google > responsesToolSearchInputParam > response 1`] = `
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 30,
     "output_tokens": 357,
+    "output_tokens_details": {
+      "thinking_tokens": 347,
+    },
     "service_tier": "standard",
   },
 }
@@ -4236,10 +4540,14 @@ exports[`anthropic → google > safetyIdentifierParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 35,
+    "output_tokens_details": {
+      "thinking_tokens": 33,
+    },
   },
 }
 `;
@@ -4276,10 +4584,14 @@ exports[`anthropic → google > serviceTierParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 17,
+    "output_tokens_details": {
+      "thinking_tokens": 15,
+    },
   },
 }
 `;
@@ -4316,10 +4628,14 @@ exports[`anthropic → google > simpleRequest > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
     "output_tokens": 40,
+    "output_tokens_details": {
+      "thinking_tokens": 32,
+    },
   },
 }
 `;
@@ -4351,6 +4667,7 @@ exports[`anthropic → google > simpleRequestTruncated > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 10,
@@ -4395,10 +4712,14 @@ exports[`anthropic → google > stopSequencesParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 7,
     "output_tokens": 52,
+    "output_tokens_details": {
+      "thinking_tokens": 26,
+    },
   },
 }
 `;
@@ -4450,10 +4771,14 @@ SELECT
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 29,
     "output_tokens": 296,
+    "output_tokens_details": {
+      "thinking_tokens": 219,
+    },
   },
 }
 `;
@@ -4491,10 +4816,14 @@ exports[`anthropic → google > temperatureParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 28,
+    "output_tokens_details": {
+      "thinking_tokens": 26,
+    },
   },
 }
 `;
@@ -4545,10 +4874,14 @@ Please provide:
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 1019,
+    "output_tokens_details": {
+      "thinking_tokens": 835,
+    },
   },
 }
 `;
@@ -4600,10 +4933,14 @@ The more specific you are, the better I can assist you!",
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 922,
+    "output_tokens_details": {
+      "thinking_tokens": 713,
+    },
   },
 }
 `;
@@ -4653,10 +4990,14 @@ The more information you give me, the better I can assist you!",
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 844,
+    "output_tokens_details": {
+      "thinking_tokens": 678,
+    },
   },
 }
 `;
@@ -4711,10 +5052,14 @@ exports[`anthropic → google > textFormatJsonSchemaParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
     "output_tokens": 141,
+    "output_tokens_details": {
+      "thinking_tokens": 131,
+    },
   },
 }
 `;
@@ -4772,10 +5117,14 @@ exports[`anthropic → google > textFormatJsonSchemaWithDescriptionParam > respo
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
     "output_tokens": 104,
+    "output_tokens_details": {
+      "thinking_tokens": 86,
+    },
   },
 }
 `;
@@ -4812,10 +5161,14 @@ exports[`anthropic → google > thinkingDisabledParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 5,
     "output_tokens": 22,
+    "output_tokens_details": {
+      "thinking_tokens": 21,
+    },
   },
 }
 `;
@@ -4885,10 +5238,14 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
   "model": "gemini-3-flash-preview",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 73,
     "output_tokens": 68,
+    "output_tokens_details": {
+      "thinking_tokens": 49,
+    },
     "service_tier": "standard",
   },
 }
@@ -4958,10 +5315,14 @@ exports[`anthropic → google > toolChoiceAnyParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
     "output_tokens": 150,
+    "output_tokens_details": {
+      "thinking_tokens": 137,
+    },
   },
 }
 `;
@@ -5026,10 +5387,14 @@ exports[`anthropic → google > toolChoiceAutoParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
     "output_tokens": 86,
+    "output_tokens_details": {
+      "thinking_tokens": 74,
+    },
   },
 }
 `;
@@ -5094,10 +5459,14 @@ exports[`anthropic → google > toolChoiceNoneParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
     "output_tokens": 604,
+    "output_tokens_details": {
+      "thinking_tokens": 558,
+    },
   },
 }
 `;
@@ -5169,10 +5538,14 @@ exports[`anthropic → google > toolChoiceRequiredParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
     "output_tokens": 66,
+    "output_tokens_details": {
+      "thinking_tokens": 51,
+    },
   },
 }
 `;
@@ -5210,10 +5583,14 @@ exports[`anthropic → google > topKParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 18,
+    "output_tokens_details": {
+      "thinking_tokens": 16,
+    },
   },
 }
 `;
@@ -5251,10 +5628,14 @@ exports[`anthropic → google > topPParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 23,
+    "output_tokens_details": {
+      "thinking_tokens": 20,
+    },
   },
 }
 `;
@@ -5293,10 +5674,14 @@ exports[`anthropic → google > webSearchToolAdvancedParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 3,
     "output_tokens": 1020,
+    "output_tokens_details": {
+      "thinking_tokens": 982,
+    },
   },
 }
 `;
@@ -5337,10 +5722,14 @@ Here's a rundown of the latest key developments:
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 1020,
+    "output_tokens_details": {
+      "thinking_tokens": 980,
+    },
   },
 }
 `;
@@ -5377,10 +5766,14 @@ exports[`anthropic → google > webSearchUserLocationParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 3,
     "output_tokens": 1020,
+    "output_tokens_details": {
+      "thinking_tokens": 974,
+    },
   },
 }
 `;
@@ -5477,11 +5870,15 @@ Tell me your preferred language (or share another), and I’ll tailor it.",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 77,
     "output_tokens": 2245,
+    "output_tokens_details": {
+      "thinking_tokens": 2048,
+    },
   },
 }
 `;
@@ -5527,6 +5924,7 @@ exports[`anthropic → responses > anthropicMidConversationSystemMessage > respo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -5601,11 +5999,15 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > response 1
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 92,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -5636,6 +6038,7 @@ exports[`anthropic → responses > anthropicOpus5DisabledThinkingHighEffortParam
   "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_creation_input_tokens": 0,
@@ -5672,6 +6075,7 @@ exports[`anthropic → responses > bedrockAnthropicContextManagementParam > resp
   "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_creation_input_tokens": 0,
@@ -5736,11 +6140,15 @@ Rarest digits: 6, 7, 8, and 9, each 264 times, which is 264/5760 = 11/240 ≈ 4.
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 74,
     "output_tokens": 11642,
+    "output_tokens_details": {
+      "thinking_tokens": 11264,
+    },
   },
 }
 `;
@@ -5793,11 +6201,15 @@ Tell me the desired length and audience (e.g., plain language for a general audi
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 17,
     "output_tokens": 584,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -5832,11 +6244,15 @@ exports[`anthropic → responses > fableTemperatureParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 249,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -5880,11 +6296,15 @@ exports[`anthropic → responses > imageContentParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 10,
     "output_tokens": 554,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -5924,11 +6344,15 @@ exports[`anthropic → responses > instructionsParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 218,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -5982,11 +6406,15 @@ exports[`anthropic → responses > jsonSchemaFormatParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 855,
+    "output_tokens_details": {
+      "thinking_tokens": 768,
+    },
   },
 }
 `;
@@ -6021,11 +6449,15 @@ exports[`anthropic → responses > maxCompletionTokensParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 300,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -6063,11 +6495,15 @@ exports[`anthropic → responses > metadataParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 174,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -6107,11 +6543,15 @@ exports[`anthropic → responses > multimodalRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 98,
     "output_tokens": 256,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -6149,11 +6589,15 @@ exports[`anthropic → responses > opus47AdaptiveThinkingReasoningEffortParam > 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 158,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -6213,11 +6657,15 @@ exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > respo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 343,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -6274,11 +6722,15 @@ exports[`anthropic → responses > outputConfigJsonSchemaParam > response 1`] = 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 318,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -6335,11 +6787,15 @@ exports[`anthropic → responses > outputFormatJsonSchemaParam > response 1`] = 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 364,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -6398,11 +6854,15 @@ exports[`anthropic → responses > parallelToolCallsDisabledParam > response 1`]
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 122,
     "output_tokens": 159,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -6484,11 +6944,15 @@ Want a 7-day forecast or hourly details for either city?",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 136,
     "output_tokens": 750,
+    "output_tokens_details": {
+      "thinking_tokens": 704,
+    },
   },
 }
 `;
@@ -6536,11 +7000,15 @@ exports[`anthropic → responses > promptCacheKeyParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 16,
     "output_tokens": 227,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -6578,6 +7046,7 @@ exports[`anthropic → responses > reasoningEffortLowParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6620,11 +7089,15 @@ exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > res
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 351,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -6670,11 +7143,15 @@ Answer: 66 2/3 mph (about 66.7 mph).",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 38,
     "output_tokens": 619,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -6705,11 +7182,15 @@ exports[`anthropic → responses > reasoningRequestTruncated > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 38,
     "output_tokens": 64,
+    "output_tokens_details": {
+      "thinking_tokens": 64,
+    },
   },
 }
 `;
@@ -6747,11 +7228,15 @@ exports[`anthropic → responses > reasoningSummaryParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 264,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -6794,11 +7279,15 @@ If you tell me the time and location, I can describe what the sky would look lik
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 12,
     "output_tokens": 528,
+    "output_tokens_details": {
+      "thinking_tokens": 384,
+    },
   },
 }
 `;
@@ -6832,6 +7321,7 @@ exports[`anthropic → responses > responsesReasoningEffortMaxParam > response 1
   "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_creation_input_tokens": 0,
@@ -6915,11 +7405,15 @@ exports[`anthropic → responses > responsesToolSearchInputParam > response 1`] 
   "model": "gpt-5.5-2026-04-23",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 601,
     "output_tokens": 152,
+    "output_tokens_details": {
+      "thinking_tokens": 84,
+    },
   },
 }
 `;
@@ -6957,11 +7451,15 @@ exports[`anthropic → responses > safetyIdentifierParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 171,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -6997,11 +7495,15 @@ exports[`anthropic → responses > serviceTierParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 174,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7036,11 +7538,15 @@ exports[`anthropic → responses > simpleRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 155,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7071,6 +7577,7 @@ exports[`anthropic → responses > simpleRequestTruncated > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7129,11 +7636,15 @@ exports[`anthropic → responses > stopSequencesParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 338,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -7174,11 +7685,15 @@ exports[`anthropic → responses > systemMessageArrayContent > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 256,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -7249,11 +7764,15 @@ exports[`anthropic → responses > textFormatJsonSchemaParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 282,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -7310,11 +7829,15 @@ exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > re
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 389,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -7349,11 +7872,15 @@ exports[`anthropic → responses > thinkingDisabledParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 10,
     "output_tokens": 163,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7412,11 +7939,15 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 66,
     "output_tokens": 297,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -7474,11 +8005,15 @@ exports[`anthropic → responses > toolChoiceAnyParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 612,
+    "output_tokens_details": {
+      "thinking_tokens": 576,
+    },
   },
 }
 `;
@@ -7537,11 +8072,15 @@ Examples:
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 537,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -7595,11 +8134,15 @@ exports[`anthropic → responses > toolChoiceNoneParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 664,
+    "output_tokens_details": {
+      "thinking_tokens": 576,
+    },
   },
 }
 `;
@@ -7660,11 +8203,15 @@ exports[`anthropic → responses > toolChoiceRequiredParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 265,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -7699,11 +8246,15 @@ exports[`anthropic → responses > topKParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 222,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -7738,11 +8289,15 @@ exports[`anthropic → responses > topPParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 183,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7805,11 +8360,15 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 4224,
     "input_tokens": 5034,
     "output_tokens": 958,
+    "output_tokens_details": {
+      "thinking_tokens": 896,
+    },
   },
 }
 `;
@@ -7946,11 +8505,15 @@ exports[`anthropic → responses > webSearchToolParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 17489,
     "output_tokens": 872,
+    "output_tokens_details": {
+      "thinking_tokens": 640,
+    },
   },
 }
 `;
@@ -7993,11 +8556,57 @@ exports[`anthropic → responses > webSearchUserLocationParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 4444,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > bedrockAnthropicOpus48SamplingParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "temperature": 0.7,
+}
+`;
+
+exports[`chat-completions → anthropic > bedrockAnthropicOpus48SamplingParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011CdovF623Jm1vN5qyVJ7UF",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
   },
 }
 `;
@@ -8526,7 +9135,9 @@ exports[`chat-completions → anthropic > functionToolsWithReasoningEffortParam 
       "message": {
         "annotations": [],
         "reasoning": "The user is asking about the weather in Tokyo. I have a function called \`get_weather\` that takes a location as a parameter. I should call this function with "Tokyo" as the location.",
-        "reasoning_signature": "EvwCCmQIDRgCKkCJMREbp5e2miiIK0hFIPNRvo3++TX0UIQO458y2Uohnt66xyIE2vrHFRru0PGiuzpuOtupXgLk2Djqm0+dWdBsMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgxLhf9ngwOWnW8as9oaDDGyvqX4CzkkByZnjiIwWhb/nE7s3LIw89DrbLfaKD9ysU+7Emk0ri23bCBc+xqnzX2CT+J99W0/oCP5y40+KsUBjaxRWkJpOiG7mQgtPec39Q7YeLHo40W7YjTRaHxQEJ5icNagqZb1o8zFy1kfvtJzhfwglw+PykorFRyhK3zNy2i9gMFA9oTjHRHwWkMELMcBRJ2ihtE8uJYBfJIvLIznRMhrmJqlO3rs3RzqGzlqXaFXbLHxKEoJ2MhHemuMCu+PoGrUeE6DeMGn35KAM9323KgUuvKYDaJ9huexKfm6LjPn5M+4YSCQH/lBTb8zgD4Exu1WUzUFxAByXuOQ+2H4AihMT14YAQ==",
+        "reasoning_signature": [
+          "EvwCCmQIDRgCKkCJMREbp5e2miiIK0hFIPNRvo3++TX0UIQO458y2Uohnt66xyIE2vrHFRru0PGiuzpuOtupXgLk2Djqm0+dWdBsMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgxLhf9ngwOWnW8as9oaDDGyvqX4CzkkByZnjiIwWhb/nE7s3LIw89DrbLfaKD9ysU+7Emk0ri23bCBc+xqnzX2CT+J99W0/oCP5y40+KsUBjaxRWkJpOiG7mQgtPec39Q7YeLHo40W7YjTRaHxQEJ5icNagqZb1o8zFy1kfvtJzhfwglw+PykorFRyhK3zNy2i9gMFA9oTjHRHwWkMELMcBRJ2ihtE8uJYBfJIvLIznRMhrmJqlO3rs3RzqGzlqXaFXbLHxKEoJ2MhHemuMCu+PoGrUeE6DeMGn35KAM9323KgUuvKYDaJ9huexKfm6LjPn5M+4YSCQH/lBTb8zgD4Exu1WUzUFxAByXuOQ+2H4AihMT14YAQ==",
+        ],
         "role": "assistant",
         "tool_calls": [
           {
@@ -11111,6 +11722,50 @@ exports[`chat-completions → anthropic > topPReasoningModelParam > response 1`]
 }
 `;
 
+exports[`chat-completions → bedrock > bedrockAnthropicOpus48SamplingParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "global.anthropic.claude-opus-4-8",
+}
+`;
+
+exports[`chat-completions → bedrock > bedrockAnthropicOpus48SamplingParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 17,
+    "prompt_tokens": 11,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 28,
+  },
+}
+`;
+
 exports[`chat-completions → bedrock > chatCompletionsAnthropicCacheControlParam > request 1`] = `
 {
   "messages": [
@@ -11587,7 +12242,9 @@ exports[`chat-completions → bedrock > functionToolsWithReasoningEffortParam > 
       "message": {
         "annotations": [],
         "reasoning": "The user is asking for the weather in Tokyo. I have a get_weather function available that takes a location parameter. I should call this function with "Tokyo" as the location.",
-        "reasoning_signature": "EtoCCkgIDRABGAIqQCp5kPHtLqmDVjEU1Zv3wAnGh1gZeqzCMJgWVSY6ZXnprXCKZKRMtFyIhIfPj1/TUHz1bwfwHk1ktnf+da71Rj0SDNI+JPizVhPh7SeE6xoM7h7Mc0rPCZie/OPpIjCIjE6ZqqCfWwIRUCXkI2DahOwTolpJYz4RggN71Qtva3XyvKzr5zAD+bgjwii8jkIqvwGlAljnNfVai2uhnx2BDTlfn1CrnW3KPx0aT/NeMys/hmvUUz+w1hRyyt1d2dCyqvy4cJ8ADymGYORJaaNfN8+/DTaH9Kci/nD64Z6jj56aZClwQtfWK0jGbqCiD5AjZXAgQxUYs+a70kTLlosH8Cqgc26iaFximTfkhrX+oel9r/taIr6DxRPhkrA4fktM6Q2Cu8eALkxDntJdyIHJsLq66G0BXsXoEVi3vQsJEeKWJ9YiGNFIMroI5WMt/xYh1hgB",
+        "reasoning_signature": [
+          "EtoCCkgIDRABGAIqQCp5kPHtLqmDVjEU1Zv3wAnGh1gZeqzCMJgWVSY6ZXnprXCKZKRMtFyIhIfPj1/TUHz1bwfwHk1ktnf+da71Rj0SDNI+JPizVhPh7SeE6xoM7h7Mc0rPCZie/OPpIjCIjE6ZqqCfWwIRUCXkI2DahOwTolpJYz4RggN71Qtva3XyvKzr5zAD+bgjwii8jkIqvwGlAljnNfVai2uhnx2BDTlfn1CrnW3KPx0aT/NeMys/hmvUUz+w1hRyyt1d2dCyqvy4cJ8ADymGYORJaaNfN8+/DTaH9Kci/nD64Z6jj56aZClwQtfWK0jGbqCiD5AjZXAgQxUYs+a70kTLlosH8Cqgc26iaFximTfkhrX+oel9r/taIr6DxRPhkrA4fktM6Q2Cu8eALkxDntJdyIHJsLq66G0BXsXoEVi3vQsJEeKWJ9YiGNFIMroI5WMt/xYh1hgB",
+        ],
         "role": "assistant",
         "tool_calls": [
           {
@@ -14090,7 +14747,9 @@ exports[`chat-completions → bedrock > toolChoiceRequiredWithReasoningParam > r
       "message": {
         "annotations": [],
         "reasoning": "The user is asking for the weather in Tokyo. I have a function \`get_weather\` that takes a location parameter. I have all the information I need to make this call - the location is "Tokyo".",
-        "reasoning_signature": "EucCCkgIDRABGAIqQAVP+i+cJzqSYyYHxPKrYUgPgj1X+ltC16m/jyx9jFI8JmVgNtha9raswII+jSaMwTg4Y5c7Z0TH0XiX+h/v0XASDKNPlL6befq+LPPkYxoMnymImVNFr8YtVjCUIjASs8+luJ6+WfwdLkcVHqy0Kz99n0FhzZSj1OcD2sUoMNwOMk7DDikY8Nzt5tGF9pAqzAEGEpywO2jdhPbQr6Bwx2TTTm24HHU3VGmYEidK5A/Dd0iiqa/mODX3eNjIisrGm722oJykQ0pZ83yl/KmpSQNdV6I8P/kFGhNOT0w1mjI4jYnrHm/i19QsgItVO2HmehYNwOzxsL5vZnVA7Vr9YwZ8mi6lQCrtCgyZGv0LTFT3X6Wmp8zho5uTcJt0oPazaJx56GsEJooBl8tUmrrE+q+HHgZf/yOq+6F2eL1iSMA4vUuzE+QE+a5Wh9dYXxh8QeBek7/9sSPIqXn90FkYAQ==",
+        "reasoning_signature": [
+          "EucCCkgIDRABGAIqQAVP+i+cJzqSYyYHxPKrYUgPgj1X+ltC16m/jyx9jFI8JmVgNtha9raswII+jSaMwTg4Y5c7Z0TH0XiX+h/v0XASDKNPlL6befq+LPPkYxoMnymImVNFr8YtVjCUIjASs8+luJ6+WfwdLkcVHqy0Kz99n0FhzZSj1OcD2sUoMNwOMk7DDikY8Nzt5tGF9pAqzAEGEpywO2jdhPbQr6Bwx2TTTm24HHU3VGmYEidK5A/Dd0iiqa/mODX3eNjIisrGm722oJykQ0pZ83yl/KmpSQNdV6I8P/kFGhNOT0w1mjI4jYnrHm/i19QsgItVO2HmehYNwOzxsL5vZnVA7Vr9YwZ8mi6lQCrtCgyZGv0LTFT3X6Wmp8zho5uTcJt0oPazaJx56GsEJooBl8tUmrrE+q+HHgZf/yOq+6F2eL1iSMA4vUuzE+QE+a5Wh9dYXxh8QeBek7/9sSPIqXn90FkYAQ==",
+        ],
         "role": "assistant",
         "tool_calls": [
           {
@@ -14214,6 +14873,54 @@ exports[`chat-completions → bedrock > topPReasoningModelParam > response 1`] =
 }
 `;
 
+exports[`chat-completions → google > bedrockAnthropicOpus48SamplingParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "temperature": 0.7,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > bedrockAnthropicOpus48SamplingParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 116,
+    "completion_tokens_details": {
+      "reasoning_tokens": 106,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 120,
+  },
+}
+`;
+
 exports[`chat-completions → google > chatCompletionsAnthropicCacheControlParam > request 1`] = `
 {
   "contents": [
@@ -14306,6 +15013,78 @@ exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam
     "completion_tokens": 7,
     "prompt_tokens": 18,
     "total_tokens": 25,
+  },
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsGcsBackedVideoFileParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Describe this video clip.",
+        },
+        {
+          "fileData": {
+            "fileUri": "gs://lingua-test-bucket/sample-200mb.mp4",
+            "mimeType": "video/mp4",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsInputAudioParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Transcribe this audio clip.",
+        },
+        {
+          "inlineData": {
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+            "mimeType": "audio/wav",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsInputAudioParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "And, finally, you need to find the derivative of the inverse sine function.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 293,
+    "completion_tokens_details": {
+      "reasoning_tokens": 277,
+    },
+    "prompt_tokens": 7,
+    "total_tokens": 300,
   },
 }
 `;
@@ -14408,6 +15187,9 @@ exports[`chat-completions → google > chatCompletionsUrlBackedAudioFileParam > 
       "reasoning_tokens": 202,
     },
     "prompt_tokens": 87,
+    "prompt_tokens_details": {
+      "audio_tokens": 80,
+    },
     "total_tokens": 292,
   },
 }
@@ -17772,6 +18554,48 @@ exports[`chat-completions → google > topPReasoningModelParam > response 1`] = 
 }
 `;
 
+exports[`chat-completions → responses > bedrockAnthropicOpus48SamplingParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`chat-completions → responses > bedrockAnthropicOpus48SamplingParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-06f639bd05fe5cbe006a762e0271b4819db3a540687ab0bc83",
+  "model": "gpt-5.6-terra",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "usage": {
+    "completion_tokens": 6,
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 15,
+  },
+}
+`;
+
 exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlParam > request 1`] = `
 {
   "input": [
@@ -17852,6 +18676,31 @@ Once you provide the text, I’ll generate the summary in your chosen format and
     },
     "total_tokens": 1360,
   },
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsInputAudioParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Transcribe this audio clip.",
+          "type": "input_text",
+        },
+        {
+          "input_audio": {
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+            "format": "wav",
+          },
+          "type": "input_audio",
+        },
+      ],
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18924,6 +19773,93 @@ exports[`chat-completions → responses > nMultipleCompletionsParam > response 1
       "cached_tokens": 0,
     },
     "total_tokens": 354,
+  },
+}
+`;
+
+exports[`chat-completions → responses > openAIMultipleReasoningSignaturesReplayParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Perform these steps in order: (1) use web search to find the current capital of Kazakhstan; (2) after that search completes, use web search again to find its current population; (3) call record_research with the country, capital, and population. Do not answer before the function call, and do not combine the two searches.",
+      "role": "user",
+      "type": "message",
+    },
+    {
+      "content": [],
+      "encrypted_content": "gAAAAABqfNlzeppqdBPUwNBuyaHIEquF-4ImX9Ixm-r9cbTSdWrIF3Q7vLg-l3U4ZmFQXpJa734dWa4FTe4boCJlGOlkJXJ1vCA8Tbtbi_Xe_BlnbTBUjw3SwFg61ZTFuhkL3_WOP7x3-7prCGbmAAhqn7zAaC2esGvQjPqR9CE-xMewzQXpDOtN-zW2dp4uZBO4o1vzIylfmgLcTW7atHX4S6ckpyL4Oh_nD48nNiJDhH4Oo03no0DuIs2JfyB3fLak-Jd5yv8y4iATfyq-KIdg_Wy03A6w5rb6jZbWVdzE_XnQwJ6Fc2eFb-RotacFycn_Or0RXgPTaVOpu_1rkGEBtPtGPE5e0ksrFKkECy02hxCECIryjX47SptDIbeIkeukMGS2s8tGHyCnF8iNrArixUCpfLxvUMRKAaMjy-pZd-FiDnh-FKnzJ0jAe00lLq2eQP4XBlrZWPryEpAW1UDCaq_wnEfVt_zgib-WNEDDY6qEvKCSURTWL_smBFQuMPMJj84BzEjUgn5ooVXxni8aWe1bcND6KH0dtNgvOxY7OS_SgAURGn-yFsPa6xb-LoYPtNrt65U7UJsP77ihgW9Xux6lYMsx-6ZmEeGzldPAZEiu7ao_eLMnSFp5ytJpnLqRGMlqPRR4d-nGMd6XUrzf9nbMD1MRbFub2lTZ2p9fPt-hZnnD4DuBbdgdW8YoMUnwZV5XiydagxyQIBJRmQRYctno0_NwxPh7_UI3KY5xwlGNIsChhE9YyOu6j2comye66a9LFP7C_Tltm6sr9dWJY9SDG0tdyZ5W_0-1URY8fq0sMB1F372RyTvLBmLswDd_qR6gpuuGl_B2-yrqn5buyKBMczokUCN3mSYCUmh6V_-xG9YFxAvovDczTQsnPSOucU9XJIei6N366tuwsDNIbfHRp31yp82ltpzoTDXvhDw-F74SSVVQ_GNDo6VyPOuUB6yfgOMZMl3mCFVjiywMBNhqjRY2cqROIeXyUVhDKi3vN_80NJo3HGkidfLJvXYCz3x8uvuJrnyoY1quWZnX5ommovW_sUGUU1wLehecmScUaSLpUN0si7x0M5mF5eSpgcUit12hbZYwNo0_LQDQ46xCNILLttEeb41oL3IeNYsi9rfcg8yWVCKBE2nT6qOFZHOe4wDsDD2XrUw7Vv15v0M9dhP-HvJRKYDhvP3j0xeAKwGAiTxwbnud0Jn-pIrOsmk8OBYqhL6yyEkFm1qezgOwATVANRazkvhpbAEJSiIrw34bKjvAwGAiYZjuIZVW2BB-z1s7SdNqtPm5i00-pQ1NWuN1sw==",
+      "summary": [],
+      "type": "reasoning",
+    },
+    {
+      "content": [],
+      "encrypted_content": "gAAAAABqfNlz_LB-r4sk6UdWgcOGivPVP8a36glTojypQM7JUqu8j5qkglCv-0OEoatvVgwXv0ZWYZ-R5PUySDjT8Fum2Ta_f7whcgiNGgNeldgOLhLtkNt_hQeOqT8QV-zMUlLbm3GNm_KMmVxMU34YjPBx9FYpTcv8dZV29f4hRl3TK6FGDRsbs6NoE8jh0N4cKW4BvVdRU-SMyS7k1N71DKJo57uMh-BEm1cJrexsgN5LHLPrJtdi-wPuWCDYS1atD6MwAftS_mZ8Pve99Zq_3qVuGblrBlI6QhRVl58-8qO4YQDCKjuCazvmsGVFs8Mr2TqBkFncoFPZrVsPdbbQHi9AgTSaMFx0zpkuwMvfE1NtwwEGcR6j8rwNY_nE4kUZ3ObbboUgM7WbwEMI-STbznIXPCJXbO7ZE26HC4bzV_cKHxvat0dq1h8qf2zJIy9TH42eXb-1RWv217wHRIRfWYSV9D6nuFBgNvAMoIsaEhn-4eAmyGsPIHxKktUm-Tr-V4r5FFwQe3O00GAezQJSQnBal1czQQk4btyRzxJY26Cnkhyo1QDXlk3GDMfbk_0zbrpH8FT8AZllbUnBBWKS16kjouLm9ikcGS08_VaCY7Q72CpqQwbwj70c3zkQnigmFoMJuuOY6okqTv-IJRGgaKJuJ_NwqJWIJHeU5DkCb4Jr2Lwnc0aMKHIlEk-UikMzDIw7dYQJFdmQUrnLJIK3TeUZNzE8SMIGM_QT6FSD6IOCgdwQlbc4RuRdmywNKsNmVCwJKtEw4Pya5knZ3tr7TEViX1wpqzSBMApfBf8MVxSJbAEXS-EFm5RAuM9yeNkSjSlvoQH4_ZaJrQCtkxcVL_tApnlOTslMHMYn37URwIXXQn1QwKH0_0yFfYlxpBbbPAp7uEMrqriHUjjiaTXtHTvE_f3vcnfIBDhFDMcGGst2R2F07dk-qJfb4Hn_TqH17gGW13Hqd9It9MPVxLjqs4KrWZejuq_ay66n5yJXtGrlpvZ5Qt-7yW0jHIyNcmOwkbVbWawWfOXYyk4vINLmyjhopKvzKg==",
+      "summary": [],
+      "type": "reasoning",
+    },
+    {
+      "content": [],
+      "encrypted_content": "gAAAAABqfNlz4Q3g1e2MWX-hAgkKBfWnIO8ovWjZYuRt2K0g4XQ3gwXu1V_jjIqeWnLZZz-G3M_-y7sUlC4A5z70cGaUKmfswpQtjfpk3be5IRHXkxo7gUvX0sJBFbAyO6nzxhoLpkM7oR3eABGU74JgswXpYRZo1U7AEK39lJTq6eXarkbSLB0J8TnhE5vEJDekLlWTlt1-IGK0tEYL81jtkkZBe83-e1bMbv-SbNpJZLtNT-eYhO-Jj02v5JwgLbhK9Rg1PCM-_50sphqhMZwWpRPQbqpqlGp88BJ635DQzAsSckqJ7_isxgnvWzpj98-7XHj1BEuZoNBwkom8FxgsZ1p3n0Q18hg1bvWjCS0b3jFElYDjJ-mmiB0jk0xMxIKS2hzConS31C8LmNWWJMScBSjbpqkgq6BrBPyUNUYe1iD3iwJlD3lkeBs0_YdM6KLrPiRLRqLtwlw1cOUEVCZM_Z4n7_oV78hd9J4LI3qYcr0n-eKdvwlcxZ-PBthnmPfId1da4V69Txs091l6L2Dz5XsnxQkUZ1NvyDN6gwjmXVoKNbV0zBB3qKleO18eHlKS9KTKz62to5AW26VXpdO9tcN18_01a8wtoT-vPuuAc1Mw2fxJt60DFHYTlkduweGs8JHNTvIQAUBXLrIFWmaBdH_oQqmMyUIoWq_0b02wN-3rcxzh91Ss0G92kq7TxRR9iD5qIGou0iTuQO2JzwgbIsIM8ELH5iy199NXrEu5BIbsmg2o5gN_KPnNULLaasJyxe38OYkGHWLKs_Babah65iURV9Np0LrDHWauTjORYJpcVKq351tbWPM1mjLRdgwjyM0yeaxvEI40KcEzGJWlJDcmVlm-k1KuEtYotGI8Dt1o5mdIbpCRZp-tyx72hGxPHe7smOpslChT_nIHJAuVWgxgYTvuLm0vjMn3HS_OAgIm2CsMqGfcDKEqEhfTXjDqyTVKfM0yBf1YGY0tsuGuTLGDS2rghUZNz8-wHPVEFava9xtGiQupoVMB3_B9i_L2WHzqg18Gi53wq9ffp7CIaYVgL538LYpP-cimJvp5e14heAG_fMJeeGTCarKlcsALJCbywssU0LoE7QBrwvWKEc_j-l2v-uax7FNHyuAouiFYz1FWpq-Q5WYL1ALDDLvuOWVRVlckenmW1W-KH4PJCuzxLNcn3wcBp7maJ_kovD86T-VDOqX3o5VJlhioMjHQmwb9VMAWC2Y2QbawsxEwZ742alSSTcUMPjbnCZDQuHiinjsKgSWoJBxS3sIFRU5NA6X33IRyGtuSUZtmD0c1Ex246uz36sSpU9VKl6AJlX5VcYLkz3jl3pf4ZNrtbmorqcgta-PqlJ2MHQE0TaGdrZ0960Mzz8Sp2p1k5tiT30heTjQqiyFTnTbeA3NTIEpYg3aMh5_Y",
+      "summary": [],
+      "type": "reasoning",
+    },
+    {
+      "content": [],
+      "encrypted_content": "gAAAAABqfNlzO5CGfR6hGpnCM1kFTpV855Vg4B3EvevRNU72bHE7pZN09jH112WwjxdcICRUeWKhj9sOLC-1wNRjSx5_ymrpdr6hkVsIAzgYmfXHsGM0mKmu-JMi0SQ0ULqv6dVOMM1u8dXoXwIc7DZ9nAp9ZXi5wxd0fJD1uWZqdVofWJ2DYPv1aX_nQbBmqVDppnPSY8VZdSlwEG8rUf1xeVHh5iHzc-3fFp6jmSA767fsdUZXcPrBhr4DJjOeqWZS7nyR7u59dxpHaCwwpI6i0G6s8e52honLowyQUMCwii6-GqRxq3vop4L1aqcMqXn-5885LwD8GugRn070ka8axF1eXJj9IB4VNSIw15QaLSNSLytCxzHObs5SIPi5ciMgf_MA3-rpujSqadNcYRU_Xy-t90mf5-VKg6LxrX3oAuWvJJHya8DWgwz9JzzkXha7B1jyZGsGCmcvtAQ1EznXF-FNVN3lLhm0tXI2ZO_0zv0JF3vA9cILEhfkQgA1_WKqc3IWUuhfQVBmwcdyVUKXwUIP3sp5QoSmxqizRIkWrfMrwVXIQUImUBUEloiZkYgpdjDjm7sknPZLzpKhCD8IsbfaiQvoDdFUIj2Xe9qpbFLslZuX90CE1LfYLZ2ASq-t8RWpBa8ZcNxVJK9bZR-KR7zA7Tk2E8UwuQeWWp2mm9sTlZLY2S5yDSFKmETqnSTFlCWqjcgglWs_WF6vf2ISyqLCG0WoaBKXQ1EqkL45pAcjSXDeJEd4WW-P4iSSnihdHW6ih0ZJ_d-2f3QK3QRjYvX8tsWQpWxB4PyM8F9DbIJ-QIhGXY1TKBKuVsjNWHZNempyjp9zMUejGiIPBmqwEViMkq0yg6YhP5xr2XC6Qv7DRzfhASGCYoyODS13mNsUTe7yQxI_ql9y9WhpymEQs5oe_0XQ7fRHdMdVFh39n1y8nmLJCD9gcn5ju27moS9mtrjfQ9uNsp_rpsX7HRvPg4Fy4_PqMkqAKgOR7czVm-VgDasnX5Im6vefUE7azaZCaztXOR4N",
+      "summary": [],
+      "type": "reasoning",
+    },
+    {
+      "content": [],
+      "encrypted_content": "gAAAAABqfNlzlroeYISIA_aeQrTG198nzFmNy150chXnnnSTfJInKwuTMDrgEUWxH8r6hpPo_TQ-kH46zvjkgwS-zERU4zYIPZFplyHGzYg5bCADqtw2BYRVT4SJNzbm281vykEJEgldB4-fM5CqCMACJOIuUB2QbcHd2SLqmjuxxV3CZ3anjKBrr004aD6bYE8uLIH3T96LBtViE4PbtHZB4dCP0scwccf8GzUdekVEbSJ6ciihb-BdhilkHMl1KrejVplYjIMnBAQlT4eMqc7siKelbe91D72ni4RxDZ0LCsmH19EAn7T-1o-7uMDSfGJQt9L26zj5TJQf8S8Y9KDNG3-1dZ9vx-5MA5DL5gwsR4Q2ktIE8dcuozHOE09KZkTUYGR04r7-S3q14kcJjumkPcfuZaVEWGKYFcsYubyWzRpQlyRDwhPSAw1JkirhndVqBATmA6Akzmcy6I6Ga6QKpbm76EOeieBgHXLmIPZKUm_wOWPFEUXdQKZpqLEPj2J1gH6kMf8_Q_-oD5MxYlQ5coyRwlBlCSiWXykJV5T7fTsHF-208noYZlWw1EdgC19zMQd6tbfIa8m4aAdKJN7Cs8RElAamo1R0Fgkt0K28XQZ8jMXHekCb-hsS-v2TMZwzaUfu-zZEj3nHHde2lkqjMpb-Fx04yzGqZfVC3hZJ-6oaaoFW1vIteeiv8nPlCdiED8oYKv7NxypI-mT8hjZbN4N9EbI5mKNMydT3k-xq8b7lJfzEpbnTqEvoakjxpUCPX0jsG0AxVAJEeJVd4fJH8hJ8UDoCsqayn9K4-hcsU-_2lzEEB-MRMfT3X-EckTvmcNqapkPMD1ccV_e2Lqov16dEkhcLkCaHx2GxafgEcK8j1DGxcF8p0TUEXFsiFRmer2iCflwDWtr3aneiJwkRsGdZNEVY69Et7sY1pYld-j_yDKXGb7ezuCFtDC73GHDGbYJr2hjki8rUOGtj_WbajuslNqTJCbxx3wgLVNHLvT9KceBNKUBccGrsaqKt-G_wqZ17QkXnvq_gyZcy0kUsKHKIxd587oYSoLwuJVDRIK3f8a-NZzQcFO80BT_GeSy0oD-Q22BaKuk8qOWsfBek59Lqhspuq2WwvWbIwBU43V5Ys11-MhTCXudZJzVVM3h7Fs41X8pBg6y-io28Yk9uGEu6No7CzrHTHDbQyFmNeyh3AaDYj4m8vJ-A1RwaAhkcafeRQU4wq7vUbD9DPPK4odb6NDPUNVUQ64EXa2UqoJT56_Jc5RouBu5HmBUHDPqXJX66ZrQn36Tagq1Kos43M9kiCZiNfCCgKXZalSHb4mC22B-kpZ7krHoux8WFoiKL1_98hvMxgLb214rqbds1FUDgXDfwCBiB9KC2cM_UD_H4sFEmG853RxodN6ZPBNrQiXXxoJg6FvdAHa1-21XtM7ISF_2cnL8ZDjYTugCfN7tA1ZNCiOzLLh6IiE5gxTOC2kGjvUhSG8LePtGoPKg1bRT8TJ7riHPyOfz2maAyEbznK3TdE3oOlNic1N2hG62Fx5M0nVWwchp5eBWureJ9AEMUwmwN1TjNBQj4kMi4j0fJgPXGBCEh0ZC5Sp1rvwNhChofnNoAoWltAq0T9fPrqypmlRv_Xo4ZJwVcHCPvILBqKGgvNPXzQuccB9A7LwDBph-HnYfsOGnna9OJeTlPmXuQUEeDwIINHSHMIngYlHn7LQaUg_mNz528CrF0cdpxJPAW9MEleLgg5ykm2eaQnbvvJYuk5BTpK0TZnDvHDKpil7Ga5Qd3N_xg4liGfv3BLqGyE37bW04g5MdhPxF3L2FKPq6ooAni6ByOb7O6-YV6h883MrifSI1JfGyKhqAHFi_TrCuFs_PJz_p1SVv2wRxy1cJjX_2YKqtiB4mebDdGkr_IXC2s2x40grSXrW7ZfGG7HORLvVRHQSe7bose7iaajZv55rx5LixnjG3JA_ZF89NSlH-WQGHoAK7Q8M3afYm3tiE5k2LKDHgVUVg0BuDZwYpmMaN5gmspE3oXVlPJSV-cLnxydfcvAHaoHNGBMr2aik-pZXaoRsHsjWNOJbmu6aDY2UgZRzBIHwcLbdqNOCA-VuZ0JhrXm1SdRZ6dDk8EvbPJOtgwE_ZNnwj1xYulJ31wUKCiahNfjyR1DIcZI7fFxLgOnm28VeA3Ugh39KyY3e2KsSB0ZC2fAAyk6OARHybDEjVQhQupjKTcseiiWTryYusbMgKpiJ3Q_-gjLGhlta0JrYmQeQ3yepXC2Iix-o9KaZXIXmDpi83_GeU19Dj92dRcc4GtyNuSZ6YcXsqy48Euqu0YY1s03M-gi1PDEFJ_wJ6oIAKooBlDVNU9n_7vjk5Ltu7hrV9KSPhM0QEvBPYtPsmgVQWULPhs-VO2nQ4zMjNxEfvRND-0jeQx-nU1Do5mTErh5Jmz3yD1iKWQ_OLdMd_dq2cH7PELzC9wje2kTrhBPQYvwXT3yIznYxFMVpBP7Xr0Q-Vp-2chxZCuKDE4rTq1S0eyrNjW5kO8WZ0CJq8PmlpR1ACPDkJgRUBzd3OhbiDlj2gq6UmurEFQyikl0EWfsbL1PrN8nrEOuesUlI4yunyoAtkIqqbuu8VUc9LsDZd2QeMhUdFSOTXi3qVglaHzfDnxsbMSlQONMXyMecKHfuLAL6JsaXXH1a3hntc5MiCNbxdgIg8B3CRip1n9viJwQRiWnwdWkscqobwNctdqtT8Ttgq5ebacPwOh9GNqY2vrrX8g9tsi2H_lMoad2P3-xmxohNgcyFu7ID3xqvyeTn_iTeXX0UDbZuv9j7sqtaCKOIj5m8PFcAjkLWmF-gJYQdd0M4vMvXEPt_cA9mo4CeKVe7iuRVAm1G4kBSfLU1QqHf--u8DS53PutD26ezLBp1w4tch_zegkgl96t-w7nKWK1i7dvNqt33_W31XGKI5n38dfrFwKyqp195vebf7gRSQHf4kvCV-hdEmzHmblTCHPSvNZbcq04T61nsY8STQorHLIWbRZ2FcEOKOhGY_6cNjlvChETS4_fCuc6-bBE22dHxCdGCMNv75zzfFKg0G4FjINQuVWXTUk2hBkhz1RPyFR1rOSxTokirbfchizsaDXw1aL9wbICAzwkeezSXEa91zQoYhZNjtc8FzH6G7ZgtK61aOy4ak8biWVO-sVKbM4_286jyA-3MgL7ZL6NawPPQAAkxWavuAXMOTBpf7vrAw0WQH2OUElg1D-Gou8TevGW4RKUL5bjo9Nnes-j79vwHJ4ZcBnhdnlXDM4lVi6IU57cfqQM4vd6H7r-EJp8U82_qoiUUMZK6CMFCY78HV2y8JyV17IPHgSmwZFvwKoJB1Pu5l33EvcWK9MQ3DacpvNCn5VaP6ooatyCUSXHjOaJnKSwu-9ZJC7dzZhXfT6a9oTAllTe3mcRWquSOpFz5ynnNS-rmUstJ2gIDePWWpvortk-n4_9ymT39uYcJoyuPeOWpZFLUPXQu0kfT3YTJnN6-uLdS3Q6YxKoXUxFMlXq957RZDqZ_SHxtpUn6Bv0zlzptyO79dYTrPC1GWyuy69mCVzdyAs1crgGEVa6-upOAdNNq5pyouJooIoQcGcSjGEfYrQuNKrs0Om6Z48SqftWlDkLCDE8SURIo4p5be-jCZ-PWgbhRVqC7QuAtjEQuEeWWlGFgVBDdKWX1nQanCTUCzI-iC_MaYpuy-230-9D7q6yvRkpZ7jOVHjoVSt1uols5UjJWd1KZrWyk5QbI2HnXswnw5898OYBjbX6TTn9phRnJyqy22ziYFT_T2_G2QxjI53ckuM_-8TIEr5BssQeOrKt9NEbwzD66X0QFraPiM-iCOzL50PeN51FfguqMZ-S60TjFrPxcjTkA==",
+      "summary": [],
+      "type": "reasoning",
+    },
+    {
+      "content": "Now provide a concise confirmation that the prior research context was received.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-luna",
+}
+`;
+
+exports[`chat-completions → responses > openAIMultipleReasoningSignaturesReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": " to=record_research  code
+{"country":"Kazakhstan","capital":"Astana","population":21108323}Research context received.",
+        "reasoning": "",
+        "reasoning_signature": [
+          "gAAAAABqfN1R2Dd00guAg_WWbpjW70i-Y3V7H_hR27-i6PwKZkJL0AZOYRvTlGJk5Lc6EQRLvQI3MsHyGIxRWYhb9o-tePpqMpN_XjIhqcNn2DdApO5u7T6Xcxiz-RFMg6SNmuv-T8RjJQmYcwnOexS_ZH1g7vJSb3flIhIvF-_zjMabFT9D7wUULWITBLokhXTJOcBb_0WDshd7cLZ6RaGYrGPQfgh3x8CsMlXjUnwCQnbw8O6DzFk-m1Cq0n0QbV6YahRCWqa2FazAVc92zgd2iOfD25ENjstzkxFuZsBc7dwZ7cNrD_wfwXBrdSy6Er3M1MFQhlPViNeljAK1gTxKRqjYF0DbG3MbviVIZzJQtCPnV6BuotixSBPDR49ilJ0oxMk4RhbiwpzLRs9M9N12-G1ZGlTqpYaIRL84e9DiiWxKtoIFfm6VXTIFI1Yws-Xw1NyPNWqVJthH7zVk9BO602ZiLSlGif4RZmEjq9ppzGIg9cACZReoR7pZBvf2vYYolOp9Epo8z5vtdXCSlXaeLThu3gwID8mQkn0mtt7HclaPHyN5R4pBEsNzXoZbYHWHs_RsCRQ7UBim3aT9BV1K_aueVUmVZIkEQV6vjw6TNbsdGDi5CUL5dOVXcde4AihZvkpiWQWNMQuyOEukKftMLB4LcFr-RFsCHnHxvTB580_-JU7b2QC6gNEFkcST69O8EZ0vfKErTpV_4A3I7-xLcp5liCHQjwktkZvdouYjdJqnUDDGABa5d3hxEi3b8aLBzWSjMmULf7ddCOl6CLk2KSJgM_lOwxLq_UtJmu-I7qLLylh1HQcubwM-3GRaOlDmiar0p-_8jDmPdRFs7-I1dt-XNA64zQ5Q0X1lQcVm7UJrBKPPJA_WUyXxsex-_ySsbNMnp9E6IbUjguR1ScIMsIpdfCo6rOdVzRtY6ik8x1kEcK5gSOyrtsJEa9zqwuK5fxLoIecM2WXCtgMMw86yi-FYnfzXTXbmEEdOklVNzUStsRC5KkXVxJ0D3XxFTHQCxHxvYiX8So5-YMpGCMwmDZHnjL6u_nIoBxLJBEaDY5JrjdCiMJkkdZnpwnXfipiWhLRIgv5ouye0zRKe5QQ1FSBIpq4eZelt8uhJKD3wx9yInZbVxGOTuVahh0RJ_6sV1shgxyG9A3btB1zGEiM-OOSALr5b7hlva8Bt76D3blbXWGelvZh3hh_dVWBdN9BOyFQxrqWJsK2WCt-E3_xRoycXg5DoPU-81a2--Ms-A4sXIsbOWIOawVd7J9g8tJyOWph3CmD7Xhk8yxCGd2t9Lo068ODxNbgEd-40n7qOV1-32gcG0djt9tGPdkZ0DwLVUT5k3xsxN3M8RF_masKLdRf6htdVC-417R8qUo0cW7fk2pKW-LGF_iW063OV_N6H-viVV_Dx--8BXynBstgbVnY1iGdRIxg3-aFDGqDX84EhRojfOH72E5jJFX_8QFszs53XZ_LXKF261dVVOoH5KU2Ctbxp5BbZaU9jolhHODeoBanLj8xN4flXZ2RfjFDqt27XU_i8_SmFWhHcoYwGuEUvJasRvHU-S6owxc0X8i5f5QuIfq87GbVkCSzWl9tkwDAH5e9SNTcoasu-lRoOfGUwgZE_WvLcHnNHl6tG0eKNZMxjadWAWJSz97rnkD4mWi8IRKlBzS-Mkojv7H2e4mMEYv2mw5kYc5znq8HUldsjlSqM6FLq5-nYoCX3qH7SlYi3MFlCgOSmW748-qRjOsMg5ed3dFsbpDoUeKCpeQawAy35XobdBCQ2LEcqP3dIGCHfY7NdEbOhxZwnc2UimG8Wy_QHmA==",
+          "gAAAAABqfN1RyiWIw-3HamUJACXwKZ4g0zZ25GiJBz70CXmGwZzC9L6WmTtkNpNSaoXH_yhKFpN7CRO7hc87bBY3Gl9oYaNIzvo_gSse2zf1Avnax7NMykHgsUJd5V8NEOGe_e75kGnbgdtGx86d3EwNl8IO-2Giz2M4LNX8QjcULGONp2oRl9s5RuvYOtI5yFQMs41he2MqrG7sPdyDjsobn4iqdjbs6wVWPTatPacbHPhajZ4Whd3GYAZTHjDYGhyATzDxAa2xEA22x9d6jZqFix4w2mJ4s9NgxhHZwZfTqUALsbR7ycEBfxVW-Ddw3vEgaelSm5BsvQDvzguMmP_NWRAluc3OFy2mYM0zXUrfXCAezDpbVGTj4zXhCSOMlfGzFosWM-aJBuui-V0j_pdLDZzBTLqYRws7eIBgT9osVNdqAh0WD6raYYcx_YLyTeuFUOKxBqxFtpSg2ZoTerR3tORZL8m_jKCWuR0abYiyC8pVaGXREEm0sQR6qXmKU1DkfB2OkGl9W9tDN-DKGB4fai757Ym-IU3H_iRNfa7XAka_yO_pOWxE063ftfyQ5kFMxNz-LWf1nQ2X_T7cvQfRZzfstkwT1YfWeTjJy04wbixFhyJqvB-pkzASJZ0dtNY2LeWsKEjDKqXUBO_xEVBQhvYf8khfyiSOsiJS80aQZc6HKYTZWhAitdWbTHQfwP3Y1AyBuKu0rKu-qiy161oVp0WN9OjFrSgZimXFV9Z53bjfSGYNOtVUutYgw6LwZ0hlvozcqccPV_cbZCcUM-pbIPK2Oe_D2W1CwliiSmatKR29v8E0-CuDMdJYt674460TyM6QdrvXTD61rq4-qGQd_gx8Rry4BSVG0BttJoASJrZ56ZJPpwveU6gY77qrrX6TDcVrgrLMXznwgxNoMOYwNGXTKMUTIM1EiW8f4GuPnMwPyFLnI-yYSIp9e9h_Zmdy3PLLc9rmqBJfKNu68BpzYMx2iH7vs9Oip6u06dB9ceSTruhKtTcgEpiv6k9lcVMYm0_f4w7uMgFtEYCBpI-8xuUIswtndBoFzvRSI1KmMbFHeJth_5GyUefDJDB_YcY5VtVuO0qGrhgVzOkfiotzYkjV7QzVclK1JO-UYf190r3sVgCMozGaIyDjPGQKLTqQjabpuMAXBA_XqvwgScH_TMVS-UoHByUnA4ycu0s9AP1kSLS_SbtmQkjfYAvr-XJ7CY-47CBoBR4vTawZ3NukmRCzEhgIsYvIoC2Yx_vyDTUd8Ox4aiT4FXwNykgcfTQId7v1pmpp",
+          "gAAAAABqfN1RcSPNssE9gJb3fOo_xs_sRuPRTdOL_r2LuZ9yb6yr0FeNzhyUPlxszD4m7VQTrXYhGW5mLS1qWB3fRlyNai7sSaiAIrbnPCFOa86EC0hktxqPRgIUY9AW3TsmDPMyk8OkriJ2YnIqT7xwz1VVUc5M8vT_rOG-lpUCKH2dt9Yi4KZQST-_8nuWL7mryzN0HX-ZU7WY9QDt9OSjgAF3Qx3JOSHjv_xYxJUBgUqhkUrpq-loFOg2sronCi-n4p63L87pS51nj4Znbkbm8lyr2RjkJ1NTv9zEhp0KMvGpyUp-Jmw6R7qLhkHigsmakK2gqgyhhZ7Ub3YG3d3Z9hYWka1r409ruMs36U5ueg-aUaSFT2KpEe6Ln7-ZCjWveBE-Ub8X62OP_zVoOP1ao_PSTNT9dIlJa-ng5G3SoZe8gi4LbwHeBJkKrbxad9IURKwHPhc3d7WvzZBzo2oFdh1t01ZvNWsFQiLN1qqMbXausyzTiSOfPRCVt5w7sd0xIGlVqddxXr4VlcCmfln55HJnzjnXvMCXPZXINifyoohvjPKAUhJtV_6BrZY7OuUnfuaa3uQ7OdwVs-Un2w8NSSUacornr3mtshTjKP1SJx1tKg8tHkmh7YPFuv7q2adVsBNmz0857Ygkgcgzw0rQeC4pRSMBc8NJ7dp6-MuRqktPYZD16Fs37u7mnzqr4myIBfUY0hkHohUJLtTBNigwefmHJUT0N0fEl06nYfNE9BN0PP9d3KisB2YVG5Yylh6euwjG9I_lxAhm8-OATYKd5eDICHuuO8rz0WuKlJG1JpUPFyA3n5XTOr8JqWqeH4DJ3pl6ol8uymxodGmHa6IVD1SggBKpoRLl34rrJrNg1T8SwRrFybzhn2_2lNCyot4TJQRmRyMf62TxJTImBJAb5rY_hj7sm7baqN75tqXRar2fw5ziBW5VvOWVU_OJUvCZ07mXwdI7ZD7fn36SCwkS-xF6P6dSQ2sYOPC50RMWVCC-d-92nQC-j2fJAr20xfljHe9322HBSrSJeNYCdUwoz6ZjD9Dz0OYglYLCfJAhx_ixxClCrukjlOFI6yZ3lQak78ceMYBjqssqYR8_6d7HKo89-eUZAlg_y3_SgKQTp5iZentLDg_9xakoC0dgfUR8CAYHXa-V7TdeR1yTXBwAgMLMs4LSdqHEjvdYwSFk7oYeA_ZaDy-hVlyZKj_EdCicBXQztNnLJdMTDGfEFztfrBZIK6okCvz2eS0zdpoqDbEUXSEZmiEiDtO82wx4j2moGNcqyZJtqF1rpIcviCuB9tzMcBvoKGoxBFRq9bd4KP7t_q5RrJ8egQC_OBLwvcC3k_oVDst7d-DPxzn5J5d1IyxbChXNAis63RrmcLg2WnXge9xvEQg=",
+        ],
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-05f5913410e0b98d006a7cdd4cc77c819ea43952a6e707ee9a",
+  "model": "gpt-5.6-luna",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "usage": {
+    "completion_tokens": 304,
+    "completion_tokens_details": {
+      "reasoning_tokens": 255,
+    },
+    "prompt_tokens": 749,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1053,
   },
 }
 `;
@@ -21178,9 +22114,10 @@ Let me format this as the required JSON:",
   "modelVersion": "claude-sonnet-4-5-20250929",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 199,
+    "candidatesTokenCount": 40,
     "promptTokenCount": 290,
     "serviceTier": "standard",
+    "thoughtsTokenCount": 159,
     "totalTokenCount": 489,
   },
 }
@@ -26227,6 +27164,31 @@ exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
 }
 `;
 
+exports[`google → responses > googleInlineAudioParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Transcribe this audio clip.",
+          "type": "input_text",
+        },
+        {
+          "input_audio": {
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+            "format": "wav",
+          },
+          "type": "input_audio",
+        },
+      ],
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
 exports[`google → responses > googleOpenAIModelTopKParam > request 1`] = `
 {
   "input": [
@@ -28684,15 +29646,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28711,15 +29664,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 1,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28744,15 +29688,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28771,15 +29706,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 3,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28798,15 +29724,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 4,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28829,15 +29746,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 5,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28856,15 +29764,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 6,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28887,15 +29786,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 7,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28914,15 +29804,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 8,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28941,15 +29822,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 9,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28968,15 +29840,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 10,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -28995,15 +29858,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 11,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29048,7 +29902,7 @@ If you’d like, I can:
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 12,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29110,15 +29964,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29141,15 +29986,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 1,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29172,15 +30008,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29205,7 +30032,7 @@ If you’d like, I can pull the exact blog posts or press releases for any of th
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 3,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29280,7 +30107,7 @@ exports[`responses → anthropic > anthropicOpus5AdaptiveThinkingMaxEffortParam 
     },
     "output_tokens": 54,
     "output_tokens_details": {
-      "reasoning_tokens": 0,
+      "reasoning_tokens": 43,
     },
     "total_tokens": 67,
   },
@@ -31235,7 +32062,7 @@ To preserve reasoning state, I would document:
     },
     "output_tokens": 369,
     "output_tokens_details": {
-      "reasoning_tokens": 0,
+      "reasoning_tokens": 138,
     },
     "total_tokens": 416,
   },

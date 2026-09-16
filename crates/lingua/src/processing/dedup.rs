@@ -93,6 +93,11 @@ fn hash_user_content(content: &UserContent, hasher: &mut DefaultHasher) {
                         image.hash(hasher);
                         media_type.hash(hasher);
                     }
+                    UserContentPart::Audio { data, format } => {
+                        "audio".hash(hasher);
+                        data.hash(hasher);
+                        format.hash(hasher);
+                    }
                     UserContentPart::File {
                         data,
                         filename,

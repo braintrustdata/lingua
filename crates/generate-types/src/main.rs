@@ -88,7 +88,7 @@ fn generate_openai_types() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("🔍 Parsing YAML OpenAPI spec...");
 
-    let schema: serde_json::Value = match serde_yaml::from_str(&openai_spec) {
+    let schema: serde_json::Value = match yaml_serde::from_str(&openai_spec) {
         Ok(value) => value,
         Err(e) => return Err(format!("failed to parse OpenAPI spec as YAML: {e}").into()),
     };
@@ -144,7 +144,7 @@ fn generate_openai_specific_types(openai_spec: &str) -> Result<(), Box<dyn std::
 
     // Extract OpenAI OpenAPI spec
     let full_spec: serde_json::Value =
-        serde_yaml::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
+        yaml_serde::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
 
     generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec)?)?;
     println!("✅ OpenAI types generated successfully with quicktype");
@@ -244,11 +244,21 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     let responses_response_type = "Response";
 
     let default_map = serde_json::Map::new();
-    let all_schemas = spec
+    let mut all_schemas = spec
         .get("components")
         .and_then(|c| c.get("schemas"))
         .and_then(|s| s.as_object())
-        .unwrap_or(&default_map);
+        .unwrap_or(&default_map)
+        .clone();
+
+    all_schemas
+        .get_mut("InputItem")
+        .and_then(|schema| schema.get_mut("oneOf"))
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("OpenAI input item schema must be a union")
+        .push(serde_json::json!({
+            "$ref": "#/components/schemas/BetaAgentMessageItemParam"
+        }));
 
     let mut essential_schemas = serde_json::Map::new();
     let mut processed = std::collections::HashSet::new();
@@ -256,19 +266,19 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     // Add chat completion types with their dependencies
     add_openai_schema_with_dependencies(
         chat_request_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
     add_openai_schema_with_dependencies(
         chat_response_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
     add_openai_schema_with_dependencies(
         chat_stream_response_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
@@ -276,13 +286,13 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     // Add responses API types with their dependencies
     add_openai_schema_with_dependencies(
         responses_request_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
     add_openai_schema_with_dependencies(
         responses_response_type,
-        all_schemas,
+        &all_schemas,
         &mut essential_schemas,
         &mut processed,
     );
@@ -1143,6 +1153,14 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "InputImage,\n    #[serde(rename = \"input_text\")]",
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
     );
+    processed = processed.replace(
+        "    pub refusal: Option<String>,\n}\n\n/// An annotation that applies to a span of output text.",
+        "    pub refusal: Option<String>,\n    /// The audio input to the model.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub input_audio: Option<InputAudio>,\n}\n\n/// An annotation that applies to a span of output text.",
+    );
+    processed = processed.replace(
+        "    pub refusal: Option<String>,\n    /// Opaque encrypted content.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub encrypted_content: Option<String>,\n}\n\n/// An annotation that applies to a span of output text.",
+        "    pub refusal: Option<String>,\n    /// The audio input to the model.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub input_audio: Option<InputAudio>,\n    /// Opaque encrypted content.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub encrypted_content: Option<String>,\n}\n\n/// An annotation that applies to a span of output text.",
+    );
 
     processed = rename_enum_variant(&processed, "Arguments", "PurpleString", "String");
     processed = rename_enum_variant(&processed, "InputParam", "PurpleString", "String");
@@ -1199,6 +1217,10 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     );
 
     processed = add_openai_compatibility_aliases(&processed);
+
+    processed = processed
+        .replace("BetaDetailEnum", "DetailEnum")
+        .replace("PurplePromptCacheBreakpoint", "PromptCacheBreakpoint");
 
     processed
 }
@@ -1627,7 +1649,7 @@ fn generate_google_types_with_quicktype(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Generating Google types with quicktype...");
 
-    let essential_schemas = create_essential_google_schemas(spec);
+    let essential_schemas = create_essential_google_schemas(spec)?;
 
     let temp_schema_path = std::env::temp_dir().join("google_schemas.json");
     let schema_json =
@@ -1688,7 +1710,7 @@ fn generate_google_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Value {
+fn create_essential_google_schemas(spec: &serde_json::Value) -> Result<serde_json::Value, String> {
     let default_map = serde_json::Map::new();
     let all_schemas = spec
         .get("schemas")
@@ -1710,10 +1732,35 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
         );
     }
 
-    // Convert all Discovery-format schemas to JSON Schema format
+    // Discovery schema ids can include internal protobuf package prefixes. Keep those
+    // prefixes out of Lingua's public Rust and TypeScript APIs while preserving references.
+    let mut public_names = std::collections::HashMap::new();
+    let mut source_names_by_public_name = std::collections::HashMap::new();
+    for source_name in essential_schemas.keys() {
+        let public_name = google_public_schema_name(source_name)?;
+        if let Some(existing_source_name) =
+            source_names_by_public_name.insert(public_name.clone(), source_name.clone())
+        {
+            return Err(format!(
+                "Google schema name normalization collision: '{existing_source_name}' and \
+                 '{source_name}' both map to public name '{public_name}'"
+            ));
+        }
+        public_names.insert(source_name.clone(), public_name);
+    }
+
+    // Convert all Discovery-format schemas to JSON Schema format.
     let mut fixed_schemas = serde_json::Map::new();
-    for (name, schema) in essential_schemas {
-        fixed_schemas.insert(name, convert_discovery_schema_to_json_schema(&schema));
+    for (source_name, mut schema) in essential_schemas {
+        rewrite_google_schema_refs(&mut schema, &public_names);
+        let public_name = public_names
+            .get(&source_name)
+            .expect("all essential Google schemas should have a public name")
+            .clone();
+        fixed_schemas.insert(
+            public_name,
+            convert_discovery_schema_to_json_schema(&schema),
+        );
     }
 
     let root_schema = serde_json::json!({
@@ -1732,7 +1779,55 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
         "definitions": fixed_schemas
     });
 
-    root_schema
+    Ok(root_schema)
+}
+
+fn google_public_schema_name(source_name: &str) -> Result<String, String> {
+    let public_name = match source_name.strip_prefix("V1main") {
+        Some(name) => name,
+        None => source_name,
+    };
+    if public_name.is_empty() {
+        return Err(format!(
+            "Google schema id '{source_name}' has no public name after removing its V1main prefix"
+        ));
+    }
+    Ok(public_name.to_string())
+}
+
+fn rewrite_google_schema_refs(
+    value: &mut serde_json::Value,
+    public_names: &std::collections::HashMap<String, String>,
+) {
+    match value {
+        serde_json::Value::Object(object) => {
+            if let Some(reference) = object.get_mut("$ref") {
+                if let Some(reference_value) = reference.as_str() {
+                    let rewritten_reference = if reference_value.starts_with('#') {
+                        extract_type_name_from_ref(reference_value).and_then(|source_name| {
+                            public_names
+                                .get(&source_name)
+                                .map(|public_name| format!("#/definitions/{public_name}"))
+                        })
+                    } else {
+                        public_names.get(reference_value).cloned()
+                    };
+                    if let Some(rewritten_reference) = rewritten_reference {
+                        *reference = serde_json::Value::String(rewritten_reference);
+                    }
+                }
+            }
+            for child in object.values_mut() {
+                rewrite_google_schema_refs(child, public_names);
+            }
+        }
+        serde_json::Value::Array(array) => {
+            for child in array {
+                rewrite_google_schema_refs(child, public_names);
+            }
+        }
+        _ => {}
+    }
 }
 
 fn add_google_schema_with_dependencies(
@@ -1959,7 +2054,7 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
 
     // Add header with clippy allows
     processed = format!(
-        "// Generated Google AI types from Discovery JSON spec\n// Essential types for Lingua Google AI integration\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
+        "// @generated by `make generate-provider-types PROVIDER=google`; do not edit directly.\n// Source: Google Generative Language API v1beta Discovery document.\n// Essential types for Lingua Google AI integration.\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
         processed
     );
 
@@ -2306,7 +2401,93 @@ pub struct Status {}
 
 #[cfg(test)]
 mod google_post_process_tests {
-    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+    use super::{
+        add_type_enum_lowercase_aliases, create_essential_google_schemas,
+        extract_type_name_from_ref, preserve_google_public_enum_variant_names, serde_json,
+    };
+
+    fn discovery_spec_with_media_resolution_refs(refs: &[&str]) -> serde_json::Value {
+        let properties = refs
+            .iter()
+            .enumerate()
+            .map(|(index, reference)| {
+                (
+                    format!("mediaResolution{index}"),
+                    serde_json::json!({ "$ref": reference }),
+                )
+            })
+            .collect::<serde_json::Map<_, _>>();
+        let mut schemas = serde_json::Map::from_iter([
+            (
+                "GenerateContentRequest".to_string(),
+                serde_json::json!({ "type": "object", "properties": properties }),
+            ),
+            (
+                "GenerateContentResponse".to_string(),
+                serde_json::json!({ "type": "object" }),
+            ),
+        ]);
+        for reference in refs {
+            let schema_name = if reference.starts_with('#') {
+                extract_type_name_from_ref(reference).unwrap()
+            } else {
+                (*reference).to_string()
+            };
+            schemas.insert(
+                schema_name,
+                serde_json::json!({
+                    "type": "object",
+                    "properties": { "level": { "type": "string" } }
+                }),
+            );
+        }
+        serde_json::json!({ "schemas": schemas })
+    }
+
+    #[test]
+    fn strips_google_v1main_schema_prefix_from_public_definitions_and_refs() {
+        let spec = discovery_spec_with_media_resolution_refs(&["V1mainMediaResolution"]);
+
+        let generated = create_essential_google_schemas(&spec).unwrap();
+        let definitions = generated["definitions"].as_object().unwrap();
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert!(!definitions.contains_key("V1mainMediaResolution"));
+        assert_eq!(
+            definitions["GenerateContentRequest"]["properties"]["mediaResolution0"]["$ref"],
+            "#/definitions/MediaResolution"
+        );
+    }
+
+    #[test]
+    fn strips_google_v1main_schema_prefix_from_fragment_refs() {
+        let spec =
+            discovery_spec_with_media_resolution_refs(&["#/definitions/V1mainMediaResolution"]);
+
+        let generated = create_essential_google_schemas(&spec).unwrap();
+        let definitions = generated["definitions"].as_object().unwrap();
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert!(!definitions.contains_key("V1mainMediaResolution"));
+        assert_eq!(
+            definitions["GenerateContentRequest"]["properties"]["mediaResolution0"]["$ref"],
+            "#/definitions/MediaResolution"
+        );
+    }
+
+    #[test]
+    fn rejects_google_public_schema_name_collisions() {
+        let spec = discovery_spec_with_media_resolution_refs(&[
+            "MediaResolution",
+            "V1mainMediaResolution",
+        ]);
+
+        let error = create_essential_google_schemas(&spec).unwrap_err();
+
+        assert!(error.contains("Google schema name normalization collision"));
+        assert!(error.contains("MediaResolution"));
+        assert!(error.contains("V1mainMediaResolution"));
+    }
 
     #[test]
     fn preserves_string_variant_when_quicktype_renames_it() {

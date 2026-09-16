@@ -45,7 +45,8 @@ pub use processing::{
 
 // Re-export universal types
 pub use universal::{
-    FinishReason, Message, ParsableResponseInfo, ResponseRequirement, UniversalParams,
+    FinishReason, InputTokenDetails, Message, ModalityTokenCount, OutputTokenDetails,
+    ParsableResponseInfo, ResponseRequirement, TokenBreakdown, TokenModality, UniversalParams,
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
     UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
 };

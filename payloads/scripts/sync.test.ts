@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import {
   allTestCases,
@@ -9,11 +9,18 @@ import {
 } from "../cases";
 import {
   TRANSFORM_PAIRS,
+  TRANSFORMS_DIR,
   getTransformableCases,
   getResponsePath,
 } from "./transforms/helpers";
 
 const SNAPSHOTS_DIR = join(__dirname, "..", "snapshots");
+const ERRORS_PATH = join(TRANSFORMS_DIR, "transform_errors.json");
+const transformErrors: Record<string, Record<string, string>> = existsSync(
+  ERRORS_PATH
+)
+  ? JSON.parse(readFileSync(ERRORS_PATH, "utf-8"))
+  : {};
 
 const SNAPSHOT_PROVIDERS: ProviderType[] = [
   "chat-completions",
@@ -49,17 +56,23 @@ describe("test data sync", () => {
     const cases = getTransformableCases(pair);
 
     for (const caseName of cases) {
-      test(`transform capture exists: ${pair.source} → ${pair.target} / ${caseName}`, () => {
-        const responsePath = getResponsePath(
-          pair.source,
-          pair.target,
-          caseName
-        );
-        expect(
-          existsSync(responsePath),
-          `Missing transform capture: ${responsePath}. Run 'pnpm capture --filter ${caseName}'`
-        ).toBe(true);
-      });
+      const pairKey = `${pair.source}_to_${pair.target}`;
+      const transformError = transformErrors[pairKey]?.[caseName];
+
+      test.skipIf(transformError)(
+        `transform capture exists: ${pair.source} → ${pair.target} / ${caseName}`,
+        () => {
+          const responsePath = getResponsePath(
+            pair.source,
+            pair.target,
+            caseName
+          );
+          expect(
+            existsSync(responsePath),
+            `Missing transform capture: ${responsePath}. Run 'pnpm capture --filter ${caseName}'`
+          ).toBe(true);
+        }
+      );
     }
   }
 });

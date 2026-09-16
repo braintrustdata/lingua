@@ -1,5 +1,3 @@
-use std::future::Future;
-use std::pin::Pin;
 use std::time::{Duration, SystemTime};
 
 use async_trait::async_trait;
@@ -11,10 +9,7 @@ use aws_sigv4::sign::v4;
 use aws_smithy_runtime_api::client::identity::Identity;
 use bytes::Bytes;
 use http::Request as HttpRequest;
-use lingua::processing::{adapter_for_format, adapters};
 use lingua::serde_json::Value;
-use lingua::universal::message::{Message, UserContent, UserContentPart};
-use lingua::util::media::MediaBlock;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
@@ -23,17 +18,9 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{rewrite_body_model_if_required, ClientHeaders};
+use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
-use lingua::{ProviderFormat, TransformError};
-
-const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
-
-type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
-
-fn is_remote_image_url(value: &str) -> bool {
-    value.starts_with("http://") || value.starts_with("https://")
-}
+use lingua::ProviderFormat;
 
 /// Percent-encode a Bedrock model identifier for use as a single URL path
 /// segment.
@@ -50,155 +37,12 @@ fn encode_bedrock_model_id(model: &str) -> String {
     urlencoding::encode(model).into_owned()
 }
 
-async fn fetch_remote_image_as_base64(url: &str) -> Result<MediaBlock> {
-    lingua::util::media::convert_media_to_base64(url, None, Some(BEDROCK_REMOTE_MEDIA_MAX_BYTES))
-        .await
-        .map_err(|e| Error::InvalidRequest(format!("failed to fetch image URL {url}: {e}")))
-}
-
-pub(crate) fn requires_bedrock_request_preparation(format: ProviderFormat) -> bool {
-    matches!(
-        format,
-        ProviderFormat::BedrockAnthropic | ProviderFormat::Converse
-    )
-}
-
 // Some Bedrock models are served only on the `bedrock-mantle` host, not
 // `bedrock-runtime`: xAI/Grok (`xai.`) and Google Gemma 4 (`google.gemma-4`).
 // Gemma 3 is excluded on purpose — it is served on `bedrock-runtime` and uses a
 // different mantle OpenAI path (`/v1` rather than `/openai/v1`).
 fn is_bedrock_mantle_only_model(model: &str) -> bool {
     model.starts_with("xai.") || model.starts_with("google.gemma-4")
-}
-
-#[derive(Debug)]
-pub(crate) struct PreparedBedrockRequest {
-    pub(crate) bytes: Bytes,
-    pub(crate) requires_json_response: bool,
-}
-
-/// Prepare a Bedrock-targeted request by inlining client-provided remote image URLs.
-///
-/// The router still owns the Bedrock-specific fork, but the Bedrock module owns
-/// the request preparation details so the async fetch-and-inline behavior stays
-/// next to the Bedrock transport code.
-pub(crate) async fn prepare_bedrock_request(
-    body: Bytes,
-    spec: &ModelSpec,
-    format: ProviderFormat,
-) -> Result<PreparedBedrockRequest> {
-    prepare_bedrock_request_with_fetch(body, spec, format, |url| {
-        Box::pin(fetch_remote_image_as_base64(url))
-    })
-    .await
-}
-
-async fn prepare_bedrock_request_with_fetch<F>(
-    body: Bytes,
-    spec: &ModelSpec,
-    format: ProviderFormat,
-    fetch: F,
-) -> Result<PreparedBedrockRequest>
-where
-    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
-{
-    if !requires_bedrock_request_preparation(format) {
-        return Ok(PreparedBedrockRequest {
-            bytes: body,
-            requires_json_response: false,
-        });
-    }
-
-    let parsed = lingua::parse_json_body(body)?;
-    let payload = parsed.value;
-    let body = parsed.bytes;
-
-    let source_adapter = match adapters()
-        .iter()
-        .map(|adapter| adapter.as_ref())
-        .find(|adapter| adapter.detect_request(&payload))
-    {
-        Some(adapter) => adapter,
-        None => return Err(TransformError::UnableToDetectRequestFormat.into()),
-    };
-
-    let requires_json_response = source_adapter
-        .request_requires_json_response(&payload)
-        .map_err(Error::from)?;
-
-    if source_adapter.format() == format {
-        return Ok(PreparedBedrockRequest {
-            bytes: rewrite_body_model_if_required(body, format, &spec.model),
-            requires_json_response,
-        });
-    }
-
-    let mut request = match source_adapter.request_to_universal(payload) {
-        Ok(request) => request,
-        Err(err) => return Err(err.into()),
-    };
-
-    inline_remote_image_urls_with_fetch(&mut request, fetch).await?;
-    request.model = Some(spec.model.clone());
-
-    let target_adapter =
-        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
-    target_adapter.apply_defaults(&mut request);
-    let prepared = target_adapter.request_from_universal(&request)?;
-
-    let bytes = lingua::serde_json::to_vec(&prepared)
-        .map(Bytes::from)
-        .map_err(Error::LinguaJson)?;
-    Ok(PreparedBedrockRequest {
-        bytes,
-        requires_json_response,
-    })
-}
-
-async fn inline_remote_image_urls_with_fetch<F>(
-    request: &mut lingua::UniversalRequest,
-    mut fetch: F,
-) -> Result<()>
-where
-    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
-{
-    for message in &mut request.messages {
-        let content = match message {
-            Message::System { content }
-            | Message::Developer { content }
-            | Message::User { content } => content,
-            Message::Assistant { .. } | Message::Tool { .. } | Message::AdditionalTools { .. } => {
-                continue;
-            }
-        };
-
-        let UserContent::Array(parts) = content else {
-            continue;
-        };
-
-        for part in parts {
-            let UserContentPart::Image {
-                image, media_type, ..
-            } = part
-            else {
-                continue;
-            };
-
-            let Some(url) = image.as_str() else {
-                continue;
-            };
-
-            if !is_remote_image_url(url) {
-                continue;
-            }
-
-            let media_block = fetch(url).await?;
-            *image = lingua::serde_json::Value::String(media_block.data);
-            *media_type = Some(media_block.media_type);
-        }
-    }
-
-    Ok(())
 }
 
 #[derive(Debug, Clone)]
@@ -641,6 +485,12 @@ impl crate::providers::Provider for BedrockProvider {
 mod tests {
     use super::*;
     use crate::catalog::{ModelFlavor, ModelSpec};
+    use crate::providers::remote_media::{
+        inline_remote_media_with_fetch, prepare_request_with_remote_media_and_fetch,
+        RemoteMediaPolicy,
+    };
+    use lingua::universal::message::Message;
+    use lingua::util::media::MediaBlock;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
 
@@ -899,28 +749,6 @@ mod tests {
         assert_eq!(url.as_str(), "https://my-proxy.example.com/v1/responses");
     }
 
-    #[test]
-    fn requires_bedrock_request_preparation_matches_legacy_proxy_formats() {
-        assert!(requires_bedrock_request_preparation(
-            ProviderFormat::BedrockAnthropic
-        ));
-        assert!(requires_bedrock_request_preparation(
-            ProviderFormat::Converse
-        ));
-        assert!(!requires_bedrock_request_preparation(
-            ProviderFormat::Anthropic
-        ));
-        assert!(!requires_bedrock_request_preparation(
-            ProviderFormat::ChatCompletions
-        ));
-        assert!(!requires_bedrock_request_preparation(
-            ProviderFormat::Responses
-        ));
-        assert!(!requires_bedrock_request_preparation(
-            ProviderFormat::Google
-        ));
-    }
-
     #[tokio::test]
     async fn prepare_request_passes_through_same_format_converse_without_fetch() {
         let body = Bytes::from(
@@ -939,13 +767,14 @@ mod tests {
             .unwrap(),
         );
 
-        let prepared = prepare_bedrock_request_with_fetch(
+        let prepared = prepare_request_with_remote_media_and_fetch(
             body.clone(),
             &bedrock_spec(
                 "anthropic.claude-3-haiku-20240307-v1:0",
                 ProviderFormat::Converse,
             ),
             ProviderFormat::Converse,
+            RemoteMediaPolicy::BEDROCK,
             |_url| {
                 Box::pin(async {
                     panic!("fetch should not be called for same-format converse requests");
@@ -977,13 +806,14 @@ mod tests {
             .unwrap(),
         );
 
-        let prepared = prepare_bedrock_request_with_fetch(
+        let prepared = prepare_request_with_remote_media_and_fetch(
             body,
             &bedrock_spec(
                 "anthropic.claude-3-5-sonnet-20241022-v2:0",
                 ProviderFormat::Converse,
             ),
             ProviderFormat::Converse,
+            RemoteMediaPolicy::BEDROCK,
             |_url| {
                 Box::pin(async {
                     panic!("fetch should not be called for same-format converse requests");
@@ -1017,13 +847,14 @@ mod tests {
             br#"{"modelId":"anthropic.claude-3-haiku-20240307-v1:0","messages":[{"role":"user","content":[{"text":"bad \uD83D text"}]}]}"#,
         );
 
-        let prepared = prepare_bedrock_request_with_fetch(
+        let prepared = prepare_request_with_remote_media_and_fetch(
             body,
             &bedrock_spec(
                 "anthropic.claude-3-haiku-20240307-v1:0",
                 ProviderFormat::Converse,
             ),
             ProviderFormat::Converse,
+            RemoteMediaPolicy::BEDROCK,
             |_url| {
                 Box::pin(async {
                     panic!("fetch should not be called for same-format converse requests");
@@ -1052,13 +883,14 @@ mod tests {
             .unwrap(),
         );
 
-        let prepared = prepare_bedrock_request_with_fetch(
+        let prepared = prepare_request_with_remote_media_and_fetch(
             body,
             &bedrock_spec(
                 "anthropic.claude-3-haiku-20240307-v1:0",
                 ProviderFormat::Converse,
             ),
             ProviderFormat::Converse,
+            RemoteMediaPolicy::BEDROCK,
             |_url| {
                 Box::pin(async {
                     panic!("fetch should not be called for text-only requests");
@@ -1088,13 +920,14 @@ mod tests {
             .unwrap(),
         );
 
-        let prepared = prepare_bedrock_request_with_fetch(
+        let prepared = prepare_request_with_remote_media_and_fetch(
             body,
             &bedrock_spec(
                 "anthropic.claude-3-haiku-20240307-v1:0",
                 ProviderFormat::Converse,
             ),
             ProviderFormat::Converse,
+            RemoteMediaPolicy::BEDROCK,
             |_url| {
                 Box::pin(async {
                     Ok(MediaBlock {
@@ -1133,7 +966,7 @@ mod tests {
             params: Default::default(),
         };
 
-        inline_remote_image_urls_with_fetch(&mut request, |_url| {
+        inline_remote_media_with_fetch(&mut request, RemoteMediaPolicy::BEDROCK, |_url| {
             Box::pin(async {
                 panic!("fetch should not be called for additional_tools messages");
             })
@@ -1170,13 +1003,14 @@ mod tests {
             .unwrap(),
         );
 
-        let prepared = prepare_bedrock_request_with_fetch(
+        let prepared = prepare_request_with_remote_media_and_fetch(
             body,
             &bedrock_spec(
                 "anthropic.claude-3-haiku-20240307-v1:0",
                 ProviderFormat::BedrockAnthropic,
             ),
             ProviderFormat::BedrockAnthropic,
+            RemoteMediaPolicy::BEDROCK,
             |_url| {
                 Box::pin(async {
                     Ok(MediaBlock {
@@ -1225,13 +1059,14 @@ mod tests {
             .unwrap(),
         );
 
-        let err = prepare_bedrock_request_with_fetch(
+        let err = prepare_request_with_remote_media_and_fetch(
             body,
             &bedrock_spec(
                 "anthropic.claude-3-haiku-20240307-v1:0",
                 ProviderFormat::Converse,
             ),
             ProviderFormat::Converse,
+            RemoteMediaPolicy::BEDROCK,
             {
                 let fetch_calls = Arc::clone(&fetch_calls);
                 move |url| {

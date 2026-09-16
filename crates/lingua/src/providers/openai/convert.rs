@@ -9,15 +9,45 @@ use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
 use crate::universal::{
-    AssistantContent, AssistantContentPart, CacheControl, Message, ProviderOptions,
+    AssistantContent, AssistantContentPart, AudioFormat, CacheControl, Message, ProviderOptions,
     TextContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
     ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
     UserContentPart,
 };
-use crate::util::media::{infer_mime_type_from_reference, parse_base64_data_url};
+use crate::util::media::{
+    infer_mime_type_from_reference, is_remote_media_uri, parse_base64_data_url,
+};
 use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
+
+fn universal_audio_from_openai(audio: openai::InputAudio) -> Result<UserContentPart, ConvertError> {
+    base64::engine::general_purpose::STANDARD
+        .decode(&audio.data)
+        .map_err(|error| ConvertError::ContentConversionFailed {
+            reason: format!("OpenAI input_audio.data must be base64: {error}"),
+        })?;
+
+    let format = match audio.format {
+        openai::InputAudioFormat::Mp3 => AudioFormat::Mp3,
+        openai::InputAudioFormat::Wav => AudioFormat::Wav,
+    };
+
+    Ok(UserContentPart::Audio {
+        data: audio.data,
+        format,
+    })
+}
+
+fn openai_audio_from_universal(data: String, format: AudioFormat) -> openai::InputAudio {
+    openai::InputAudio {
+        data,
+        format: match format {
+            AudioFormat::Mp3 => openai::InputAudioFormat::Mp3,
+            AudioFormat::Wav => openai::InputAudioFormat::Wav,
+        },
+    }
+}
 
 fn tool_caller_from_provider<T>(caller: Option<T>) -> Result<Option<ToolCaller>, ConvertError>
 where
@@ -153,22 +183,26 @@ fn function_call_item_status_to_string(
     }
 }
 
-fn merge_reasoning_signature(
-    current: &mut Option<String>,
-    next: &Option<String>,
-) -> Result<(), ConvertError> {
-    let Some(next) = next else {
-        return Ok(());
-    };
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ReasoningSignature {
+    Single(String),
+    Multiple(Vec<String>),
+}
 
-    match current {
-        Some(current) if current != next => Err(ConvertError::ContentConversionFailed {
-            reason: "OpenAI Chat Completions response messages only support one reasoning_signature, but the assistant content contains multiple distinct encrypted tool/reasoning signatures".to_string(),
-        }),
-        Some(_) => Ok(()),
-        None => {
-            *current = Some(next.clone());
-            Ok(())
+impl ReasoningSignature {
+    fn from_values(values: Vec<String>) -> Option<Self> {
+        match values.len() {
+            0 => None,
+            1 => values.into_iter().next().map(Self::Single),
+            _ => Some(Self::Multiple(values)),
+        }
+    }
+
+    fn into_values(self) -> Vec<String> {
+        match self {
+            Self::Single(value) => vec![value],
+            Self::Multiple(values) => values,
         }
     }
 }
@@ -181,15 +215,18 @@ fn merge_reasoning_signature(
 ///
 /// These extension type uses `#[serde(flatten)]` to wrap the generated type while adding
 /// the `reasoning` field, keeping generated types faithful to the official spec.
+///
+/// The `reasoning_content` alias covers the DeepSeek/vLLM OpenAI-compatible convention,
+/// which carries chain-of-thought tokens in a `reasoning_content` sibling of `content`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatCompletionResponseMessageExt {
     #[serde(flatten)]
     pub base: openai::ChatCompletionResponseMessage,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "reasoning_content", skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<String>,
-    /// Encrypted reasoning signature for cross-provider roundtrips (e.g., Anthropic's signature)
+    /// Encrypted reasoning signatures for cross-provider roundtrips (e.g., Anthropic's signature)
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning_signature: Option<String>,
+    pub reasoning_signature: Option<ReasoningSignature>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -211,11 +248,11 @@ pub struct ChatCompletionRequestMessageExt {
     pub tool_call_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "reasoning_content", skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<ChatCompletionRequestReasoning>,
-    /// Encrypted reasoning signature for cross-provider roundtrips (e.g., Anthropic's signature)
+    /// Encrypted reasoning signatures for cross-provider roundtrips (e.g., Anthropic's signature)
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning_signature: Option<String>,
+    pub reasoning_signature: Option<ReasoningSignature>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -401,6 +438,79 @@ pub(crate) fn assistant_content_parts_from_openai_tool_calls(
     tool_calls: Vec<openai::ToolCall>,
     reasoning_signature: Option<String>,
 ) -> Vec<AssistantContentPart> {
+    assistant_content_parts_from_openai_tool_calls_with_signatures(
+        tool_calls,
+        reasoning_signature.into_iter().cycle(),
+    )
+}
+
+fn tool_call_reasoning_signatures(
+    reasoning_signature: &Option<ReasoningSignature>,
+    _reasoning_emitted: bool,
+    tool_call_count: usize,
+) -> Result<Vec<String>, ConvertError> {
+    match reasoning_signature {
+        Some(ReasoningSignature::Single(signature)) => Ok(vec![signature.clone(); tool_call_count]),
+        Some(ReasoningSignature::Multiple(signatures)) if !_reasoning_emitted => {
+            if signatures.len() != tool_call_count {
+                return Err(ConvertError::ContentConversionFailed {
+                    reason: format!(
+                        "reasoning_signature contains {} entries for {} function tool calls",
+                        signatures.len(),
+                        tool_call_count
+                    ),
+                });
+            }
+            Ok(signatures.clone())
+        }
+        _ => Ok(vec![]),
+    }
+}
+
+fn combined_reasoning_signature(
+    mut reasoning_signatures: Vec<String>,
+    tool_call_signatures: Vec<Option<String>>,
+) -> Result<Option<ReasoningSignature>, ConvertError> {
+    let signed_tool_calls = tool_call_signatures
+        .iter()
+        .filter_map(|signature| signature.clone())
+        .collect::<Vec<_>>();
+    let shared_signature = if signed_tool_calls.is_empty() {
+        None
+    } else {
+        reasoning_signatures
+            .first()
+            .filter(|signature| {
+                reasoning_signatures.iter().all(|value| value == *signature)
+                    && signed_tool_calls.iter().all(|value| value == *signature)
+            })
+            .cloned()
+    };
+    if let Some(shared_signature) = shared_signature {
+        return Ok(Some(ReasoningSignature::Single(shared_signature)));
+    }
+    if !reasoning_signatures.is_empty() && !signed_tool_calls.is_empty() {
+        return Err(ConvertError::ContentConversionFailed {
+            reason:
+                "reasoning_signature cannot preserve distinct reasoning and tool-call provenance"
+                    .to_string(),
+        });
+    }
+    if !reasoning_signatures.is_empty() && !tool_call_signatures.is_empty() {
+        return Ok(Some(ReasoningSignature::Multiple(reasoning_signatures)));
+    }
+    reasoning_signatures.extend(signed_tool_calls);
+    Ok(ReasoningSignature::from_values(reasoning_signatures))
+}
+
+fn assistant_content_parts_from_openai_tool_calls_with_signatures<I>(
+    tool_calls: Vec<openai::ToolCall>,
+    reasoning_signatures: I,
+) -> Vec<AssistantContentPart>
+where
+    I: IntoIterator<Item = String>,
+{
+    let mut reasoning_signatures = reasoning_signatures.into_iter();
     tool_calls
         .into_iter()
         .filter_map(|tool_call| {
@@ -409,7 +519,7 @@ pub(crate) fn assistant_content_parts_from_openai_tool_calls(
                 tool_call_id: tool_call.id,
                 tool_name: function.name,
                 arguments: function.arguments.into(),
-                encrypted_content: reasoning_signature.clone(),
+                encrypted_content: reasoning_signatures.next(),
                 provider_options: None,
                 status: None,
                 caller: None,
@@ -984,7 +1094,7 @@ fn universal_file_payload_from_openai(
     let reference_url = file_url.as_deref().or_else(|| {
         file_data
             .as_deref()
-            .filter(|data| data.starts_with("http://") || data.starts_with("https://"))
+            .filter(|data| is_remote_media_uri(data))
     });
     let media_type = openai_media_type_from_reference(filename.as_deref(), reference_url);
 
@@ -1164,8 +1274,9 @@ pub(crate) fn try_parse_responses_items_for_import(
 fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<Vec<Message>> {
     match input {
         openai::Instructions::InputItemArray(items) => {
-            let messages = try_convert_non_empty(items)?;
-            non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages))
+            let messages =
+                <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(items).ok()?;
+            Some(merge_adjacent_reasoning_assistant_messages(messages))
         }
         openai::Instructions::String(text) => Some(vec![Message::User {
             content: UserContent::String(text),
@@ -1214,8 +1325,16 @@ pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Ve
 
     if let Some(request) = try_parse::<openai::CreateResponseClass>(data) {
         if let Some(input) = request.input {
-            if let Some(messages) = try_messages_from_openai_instructions(input) {
-                return Some(messages);
+            if let Some(mut messages) = try_messages_from_openai_instructions(input) {
+                if let Some(instructions) = request.instructions.filter(|text| !text.is_empty()) {
+                    messages.insert(
+                        0,
+                        Message::System {
+                            content: UserContent::String(instructions),
+                        },
+                    );
+                }
+                return non_empty_messages(messages);
             }
         }
     }
@@ -1239,6 +1358,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
         for mut input in inputs {
             let pending_tool_search_call_id = last_tool_search_call_id.take();
             match input.input_item_type {
+                Some(openai::InputItemType::AgentMessage) => {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses agent_message".to_string(),
+                        to: "Lingua messages (agent routing and encrypted content are provider-specific)",
+                    });
+                }
                 // Built-in tool calls - convert to ToolCall with provider_executed: true
                 Some(openai::InputItemType::WebSearchCall) => {
                     let tool_call = AssistantContentPart::ToolCall {
@@ -1656,6 +1781,12 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
 
     fn try_from(value: openai::InputContent) -> Result<Self, Self::Error> {
         Ok(match value.input_content_type {
+            openai::InputItemContentListType::EncryptedContent => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "OpenAI Responses encrypted_content".to_string(),
+                    to: "Lingua user content (opaque agent replay state is provider-specific)",
+                });
+            }
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
                 let cache_control = cache_control_from_responses_prompt_cache_breakpoint(
@@ -1723,10 +1854,18 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 }
             }
             openai::InputItemContentListType::InputAudio => {
-                // Handle audio input if needed in the future
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: "InputAudio content type".to_string(),
-                });
+                if value.prompt_cache_breakpoint.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses input_audio prompt_cache_breakpoint".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(value.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)?
             }
             openai::InputItemContentListType::InputFile => {
                 if value.prompt_cache_breakpoint.is_some() {
@@ -1860,6 +1999,11 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
+            UserContentPart::Audio { data, format } => openai::InputContent {
+                input_content_type: openai::InputItemContentListType::InputAudio,
+                input_audio: Some(openai_audio_from_universal(data, format)),
+                ..Default::default()
+            },
             UserContentPart::File {
                 data,
                 filename,
@@ -1899,6 +2043,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
 impl Default for openai::InputContent {
     fn default() -> Self {
         Self {
+            encrypted_content: None,
             text: None,
             input_content_type: openai::InputItemContentListType::InputText,
             detail: None,
@@ -1907,6 +2052,7 @@ impl Default for openai::InputContent {
             file_data: None,
             file_url: None,
             filename: None,
+            input_audio: None,
             annotations: None,
             logprobs: None,
             refusal: None,
@@ -2117,6 +2263,9 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
 impl Default for openai::InputItem {
     fn default() -> Self {
         Self {
+            agent: None,
+            author: None,
+            recipient: None,
             role: None,
             content: None,
             phase: None,
@@ -2855,11 +3004,10 @@ pub fn universal_to_responses_input(
                     }
                     AssistantContent::Array(parts) => {
                         // Categorize all parts into separate collections
-                        let mut reasoning_parts: Vec<openai::SummaryText> = vec![];
-                        let mut has_reasoning = false;
-                        let mut encrypted_content = None;
+                        let mut reasoning_items: Vec<(Vec<String>, Option<String>)> = vec![];
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
                         let mut sequenced_items: Vec<ResponsesSequencedInputItem> = vec![];
+                        let mut has_tool_call_signature = false;
 
                         for part in parts {
                             match part {
@@ -2867,13 +3015,11 @@ pub fn universal_to_responses_input(
                                     text,
                                     encrypted_content: ec,
                                 } => {
-                                    has_reasoning = true;
-                                    encrypted_content = ec.clone();
-                                    if !text.is_empty() {
-                                        reasoning_parts.push(openai::SummaryText {
-                                            text: text.clone(),
-                                            summary_text_type: openai::SummaryType::SummaryText,
-                                        });
+                                    if ec.is_some() || reasoning_items.is_empty() {
+                                        reasoning_items.push((vec![text.clone()], ec.clone()));
+                                    } else if let Some((summaries, _)) = reasoning_items.last_mut()
+                                    {
+                                        summaries.push(text.clone());
                                     }
                                 }
                                 AssistantContentPart::ToolCall {
@@ -2882,10 +3028,11 @@ pub fn universal_to_responses_input(
                                     arguments,
                                     status,
                                     caller,
-                                    encrypted_content: _,
+                                    encrypted_content,
                                     provider_options,
                                     provider_executed,
                                 } => {
+                                    has_tool_call_signature |= encrypted_content.is_some();
                                     sequenced_items.push(ResponsesSequencedInputItem::ToolCall(
                                         ResponsesToolCallInfo {
                                             tool_call_id: tool_call_id.clone(),
@@ -2972,15 +3119,33 @@ pub fn universal_to_responses_input(
                             }
                         }
 
-                        // 1. Emit reasoning item if any reasoning part existed (even with empty text)
-                        if has_reasoning {
+                        if reasoning_items.is_empty() && has_tool_call_signature {
+                            return Err(ConvertError::ContentConversionFailed {
+                                reason: "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls".to_string(),
+                            });
+                        }
+
+                        let has_reasoning = !reasoning_items.is_empty();
+                        for (index, (summaries, encrypted_content)) in
+                            reasoning_items.into_iter().enumerate()
+                        {
+                            let summary = Some(
+                                summaries
+                                    .into_iter()
+                                    .filter(|text| !text.is_empty())
+                                    .map(|text| openai::SummaryText {
+                                        text,
+                                        summary_text_type: openai::SummaryType::SummaryText,
+                                    })
+                                    .collect(),
+                            );
                             result.push(openai::InputItem {
                                 role: None,
                                 content: Some(openai::InputItemContent::InputContentArray(vec![])),
                                 input_item_type: Some(openai::InputItemType::Reasoning),
-                                id: id.clone(),
-                                summary: Some(reasoning_parts),
-                                encrypted_content: encrypted_content.clone(),
+                                id: if index == 0 { id.clone() } else { None },
+                                summary,
+                                encrypted_content,
                                 ..Default::default()
                             });
                         }
@@ -3239,6 +3404,12 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
     fn try_from(input_item: openai::InputItem) -> Result<Self, Self::Error> {
         // Convert InputItem to OutputItem by mapping the fields
         let output_item_type = match input_item.input_item_type {
+            Some(openai::InputItemType::AgentMessage) => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "OpenAI Responses agent_message".to_string(),
+                    to: "OpenAI Responses output items (agent routing is unsupported)",
+                });
+            }
             Some(openai::InputItemType::Message) => Some(openai::OutputItemType::Message),
             Some(openai::InputItemType::Reasoning) => Some(openai::OutputItemType::Reasoning),
             Some(openai::InputItemType::FunctionCall) => Some(openai::OutputItemType::FunctionCall),
@@ -3918,7 +4089,16 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         text,
                                         encrypted_content,
                                     } => {
-                                        // Accumulate reasoning summaries
+                                        if encrypted_content.is_some() && has_pending_reasoning {
+                                            flush_reasoning(
+                                                &mut result,
+                                                &mut pending_reasoning_summaries,
+                                                &mut pending_encrypted_content,
+                                                &mut has_pending_reasoning,
+                                                &mut id_used,
+                                                &id,
+                                            );
+                                        }
                                         has_pending_reasoning = true;
                                         if !text.is_empty() {
                                             pending_reasoning_summaries.push(openai::SummaryText {
@@ -4325,6 +4505,12 @@ fn convert_input_content_to_output_message_content(
     input_content: openai::InputContent,
 ) -> Result<openai::OutputMessageContent, ConvertError> {
     match input_content.input_content_type {
+        openai::InputItemContentListType::EncryptedContent => {
+            Err(ConvertError::UnsupportedMapping {
+                from: "OpenAI Responses encrypted_content".to_string(),
+                to: "OpenAI Responses output message content (opaque agent replay state is unsupported)",
+            })
+        }
         openai::InputItemContentListType::OutputText
         | openai::InputItemContentListType::InputText => Ok(openai::OutputMessageContent {
             output_message_content_type: openai::ContentType::OutputText,
@@ -4449,15 +4635,36 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
             }
             openai::ChatCompletionRequestMessageRole::Assistant => {
                 let mut content_parts: Vec<AssistantContentPart> = Vec::new();
+                let reasoning_signatures = msg
+                    .reasoning_signature
+                    .clone()
+                    .map(ReasoningSignature::into_values)
+                    .unwrap_or_default();
+                let mut reasoning_emitted = false;
 
                 // Add reasoning FIRST if present (natural model output order)
                 // Note: We preserve empty reasoning strings because the presence of the
                 // reasoning field indicates reasoning occurred (content may be hidden/summarized)
                 if let Some(reasoning) = msg.reasoning.and_then(|r| r.into_text()) {
-                    content_parts.push(AssistantContentPart::Reasoning {
-                        text: reasoning,
-                        encrypted_content: msg.reasoning_signature.clone(),
-                    });
+                    if reasoning_signatures.is_empty() {
+                        content_parts.push(AssistantContentPart::Reasoning {
+                            text: reasoning,
+                            encrypted_content: None,
+                        });
+                        reasoning_emitted = true;
+                    } else {
+                        content_parts.extend(reasoning_signatures.iter().enumerate().map(
+                            |(index, signature)| AssistantContentPart::Reasoning {
+                                text: if index == 0 {
+                                    reasoning.clone()
+                                } else {
+                                    String::new()
+                                },
+                                encrypted_content: Some(signature.clone()),
+                            },
+                        ));
+                        reasoning_emitted = true;
+                    }
                 }
 
                 // Add text content if present
@@ -4512,10 +4719,20 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
 
                 // Add tool calls if present
                 if let Some(tool_calls) = msg.tool_calls {
-                    content_parts.extend(assistant_content_parts_from_openai_tool_calls(
-                        tool_calls,
-                        msg.reasoning_signature,
-                    ));
+                    let tool_call_signatures = tool_call_reasoning_signatures(
+                        &msg.reasoning_signature,
+                        reasoning_emitted,
+                        tool_calls
+                            .iter()
+                            .filter(|tool_call| tool_call.function.is_some())
+                            .count(),
+                    )?;
+                    content_parts.extend(
+                        assistant_content_parts_from_openai_tool_calls_with_signatures(
+                            tool_calls,
+                            tool_call_signatures,
+                        ),
+                    );
                 }
 
                 let content = assistant_content_from_parts(content_parts);
@@ -4690,6 +4907,20 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     provider_options: None,
                 })
             }
+            openai::PurpleType::InputAudio => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions input_audio cache metadata".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(part.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -4778,6 +5009,20 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                     provider_options: None,
                 })
             }
+            openai::PurpleType::InputAudio => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions input_audio cache metadata".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(part.base.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -4794,32 +5039,50 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
 
     fn try_from(msg: Message) -> Result<Self, Self::Error> {
         match msg {
-            Message::System { content } => Ok(ChatCompletionRequestMessageExt {
-                role: openai::ChatCompletionRequestMessageRole::System,
-                content: Some(convert_user_content_to_chat_completion_content(content)?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-                cache_control: None,
-                reasoning: None,
-                reasoning_signature: None,
-            }),
-            Message::Developer { content } => Ok(ChatCompletionRequestMessageExt {
-                role: openai::ChatCompletionRequestMessageRole::Developer,
-                content: Some(convert_user_content_to_chat_completion_content(content)?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-                cache_control: None,
-                reasoning: None,
-                reasoning_signature: None,
-            }),
+            Message::System { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "OpenAI Chat Completions system/developer message",
+                    });
+                }
+
+                Ok(ChatCompletionRequestMessageExt {
+                    role: openai::ChatCompletionRequestMessageRole::System,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    cache_control: None,
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
+            Message::Developer { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "OpenAI Chat Completions system/developer message",
+                    });
+                }
+
+                Ok(ChatCompletionRequestMessageExt {
+                    role: openai::ChatCompletionRequestMessageRole::Developer,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    cache_control: None,
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
             Message::User { content } => Ok(ChatCompletionRequestMessageExt {
                 role: openai::ChatCompletionRequestMessageRole::User,
                 content: Some(convert_user_content_to_chat_completion_content(content)?),
@@ -5089,6 +5352,15 @@ and Anthropic document blocks do not map safely.",
                 ),
             })
         }
+        UserContentPart::Audio { data, format } => Ok(openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::InputAudio,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: Some(openai_audio_from_universal(data, format)),
+            file: None,
+            refusal: None,
+        }),
     }
 }
 
@@ -5096,7 +5368,7 @@ type ExtractedContentResult = (
     Option<ChatCompletionRequestMessageContentExt>,
     Option<Vec<openai::ToolCall>>,
     Option<String>,
-    Option<String>, // reasoning_signature
+    Option<ReasoningSignature>,
 );
 
 /// Extract text content, tool calls, reasoning, and reasoning_signature from AssistantContent
@@ -5106,7 +5378,8 @@ fn extract_content_tool_calls_and_reasoning(
     let mut text_parts = Vec::new();
     let mut tool_calls = Vec::new();
     let mut reasoning_parts = Vec::new();
-    let mut reasoning_signature: Option<String> = None;
+    let mut reasoning_signatures = Vec::new();
+    let mut tool_call_signatures = Vec::new();
 
     match content {
         AssistantContent::String(text) => {
@@ -5128,9 +5401,8 @@ fn extract_content_tool_calls_and_reasoning(
                         encrypted_content,
                     } => {
                         reasoning_parts.push(text);
-                        // Take the first signature if multiple reasoning blocks exist
-                        if reasoning_signature.is_none() {
-                            reasoning_signature = encrypted_content;
+                        if let Some(encrypted_content) = encrypted_content {
+                            reasoning_signatures.push(encrypted_content);
                         }
                     }
                     AssistantContentPart::ToolCall {
@@ -5140,9 +5412,7 @@ fn extract_content_tool_calls_and_reasoning(
                         encrypted_content,
                         ..
                     } => {
-                        if reasoning_signature.is_none() {
-                            reasoning_signature = encrypted_content.clone();
-                        }
+                        tool_call_signatures.push(encrypted_content);
                         tool_calls.push(openai::ToolCall {
                             id: tool_call_id,
                             tool_call_type: openai::FluffyType::Function,
@@ -5178,7 +5448,13 @@ fn extract_content_tool_calls_and_reasoning(
         }
     }
 
-    let text_content = chat_completion_assistant_text_content(text_parts)?;
+    let text_content = match chat_completion_assistant_text_content(text_parts)? {
+        Some(content) => Some(content),
+        None if !reasoning_parts.is_empty() => {
+            Some(ChatCompletionRequestMessageContentExt::String(String::new()))
+        }
+        None => None,
+    };
 
     let tool_calls_option = if tool_calls.is_empty() {
         None
@@ -5196,7 +5472,7 @@ fn extract_content_tool_calls_and_reasoning(
         text_content,
         tool_calls_option,
         reasoning,
-        reasoning_signature,
+        combined_reasoning_signature(reasoning_signatures, tool_call_signatures)?,
     ))
 }
 
@@ -5274,15 +5550,36 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
         match msg.base.role {
             openai::MessageRole::Assistant => {
                 let mut content_parts: Vec<AssistantContentPart> = Vec::new();
+                let reasoning_signatures = msg
+                    .reasoning_signature
+                    .clone()
+                    .map(ReasoningSignature::into_values)
+                    .unwrap_or_default();
+                let mut reasoning_emitted = false;
 
                 // Add reasoning FIRST if present (natural model output order: think first, respond after)
                 // Note: We preserve empty reasoning strings because the presence of the
                 // reasoning field indicates reasoning occurred (content may be hidden/summarized)
                 if let Some(reasoning) = msg.reasoning {
-                    content_parts.push(AssistantContentPart::Reasoning {
-                        text: reasoning,
-                        encrypted_content: msg.reasoning_signature.clone(),
-                    });
+                    if reasoning_signatures.is_empty() {
+                        content_parts.push(AssistantContentPart::Reasoning {
+                            text: reasoning,
+                            encrypted_content: None,
+                        });
+                        reasoning_emitted = true;
+                    } else {
+                        content_parts.extend(reasoning_signatures.iter().enumerate().map(
+                            |(index, signature)| AssistantContentPart::Reasoning {
+                                text: if index == 0 {
+                                    reasoning.clone()
+                                } else {
+                                    String::new()
+                                },
+                                encrypted_content: Some(signature.clone()),
+                            },
+                        ));
+                        reasoning_emitted = true;
+                    }
                 }
 
                 // Add text content if present
@@ -5299,13 +5596,22 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
 
                 // Add tool calls if present
                 if let Some(tool_calls) = &msg.base.tool_calls {
+                    let mut tool_call_signatures = tool_call_reasoning_signatures(
+                        &msg.reasoning_signature,
+                        reasoning_emitted,
+                        tool_calls
+                            .iter()
+                            .filter(|tool_call| tool_call.function.is_some())
+                            .count(),
+                    )?
+                    .into_iter();
                     for tool_call in tool_calls {
                         if let Some(function) = &tool_call.function {
                             content_parts.push(AssistantContentPart::ToolCall {
                                 tool_call_id: tool_call.id.clone(),
                                 tool_name: function.name.clone(),
                                 arguments: function.arguments.clone().into(),
-                                encrypted_content: msg.reasoning_signature.clone(),
+                                encrypted_content: tool_call_signatures.next(),
                                 provider_options: None,
                                 status: None,
                                 caller: None,
@@ -5344,9 +5650,9 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                             })
                             .collect();
 
-                        // Extract reasoning from parts and concatenate, also capture signature
+                        // Extract reasoning from parts and concatenate, preserving signatures.
                         let mut reasonings: Vec<String> = Vec::new();
-                        let mut signature: Option<String> = None;
+                        let mut reasoning_signatures = Vec::new();
                         for part in parts {
                             if let AssistantContentPart::Reasoning {
                                 text,
@@ -5354,12 +5660,15 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                             } = part
                             {
                                 reasonings.push(text.clone());
-                                merge_reasoning_signature(&mut signature, encrypted_content)?;
+                                if let Some(encrypted_content) = encrypted_content {
+                                    reasoning_signatures.push(encrypted_content.clone());
+                                }
                             }
                         }
 
                         // Extract tool calls from parts
                         let mut tool_calls: Vec<openai::ToolCall> = Vec::new();
+                        let mut tool_call_signatures = Vec::new();
                         for part in parts {
                             if let AssistantContentPart::ToolCall {
                                 tool_call_id,
@@ -5369,7 +5678,7 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                                 ..
                             } = part
                             {
-                                merge_reasoning_signature(&mut signature, encrypted_content)?;
+                                tool_call_signatures.push(encrypted_content.clone());
                                 tool_calls.push(openai::ToolCall {
                                     id: tool_call_id.clone(),
                                     tool_call_type: openai::FluffyType::Function,
@@ -5400,7 +5709,15 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                             Some(tool_calls)
                         };
 
-                        (content_text, tool_calls_option, reasoning, signature)
+                        (
+                            content_text,
+                            tool_calls_option,
+                            reasoning,
+                            combined_reasoning_signature(
+                                reasoning_signatures,
+                                tool_call_signatures,
+                            )?,
+                        )
                     }
                 };
 
@@ -5429,7 +5746,181 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::capabilities::ProviderFormat;
+    use crate::processing::transform::transform_request;
     use crate::serde_json::json;
+    use bytes::Bytes;
+
+    fn wav_base64() -> String {
+        base64::engine::general_purpose::STANDARD.encode(include_bytes!(
+            "../../../../../payloads/fixtures/audio/strawberry.wav"
+        ))
+    }
+
+    #[test]
+    fn chat_input_audio_converts_to_universal_audio() {
+        let audio = wav_base64();
+        let part = openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::InputAudio,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: Some(openai::InputAudio {
+                data: audio,
+                format: openai::InputAudioFormat::Wav,
+            }),
+            file: None,
+            refusal: None,
+        };
+
+        let actual = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(part)
+        .expect("audio should convert");
+
+        assert!(matches!(
+            actual,
+            UserContentPart::Audio {
+                format: AudioFormat::Wav,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn responses_input_audio_converts_to_universal_audio() {
+        let audio = wav_base64();
+        let part = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputAudio,
+            input_audio: Some(openai::InputAudio {
+                data: audio,
+                format: openai::InputAudioFormat::Wav,
+            }),
+            ..Default::default()
+        };
+
+        let actual = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(part)
+            .expect("audio should convert");
+
+        assert!(matches!(
+            actual,
+            UserContentPart::Audio {
+                format: AudioFormat::Wav,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn chat_system_and_developer_audio_are_rejected() {
+        for message in [
+            Message::System {
+                content: UserContent::Array(vec![UserContentPart::Audio {
+                    data: wav_base64(),
+                    format: AudioFormat::Wav,
+                }]),
+            },
+            Message::Developer {
+                content: UserContent::Array(vec![UserContentPart::Audio {
+                    data: wav_base64(),
+                    format: AudioFormat::Wav,
+                }]),
+            },
+        ] {
+            let error = <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(message)
+                .expect_err("Chat Completions instruction roles must not emit input_audio");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        }
+    }
+
+    #[test]
+    fn chat_input_audio_transforms_to_google_inline_data() {
+        let audio = wav_base64();
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "messages": [{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Score this call."},
+                    {"type": "input_audio", "input_audio": {"data": audio, "format": "wav"}}
+                ]
+            }]
+        });
+
+        let transformed = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect("audio request should transform to Google");
+        let value: serde_json::Value = serde_json::from_slice(transformed.as_bytes()).unwrap();
+
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["mimeType"],
+            "audio/wav"
+        );
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["data"],
+            audio
+        );
+    }
+
+    #[test]
+    fn responses_wav_input_audio_transforms_to_google_inline_data() {
+        let audio = wav_base64();
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "input": [{
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": "Score this call."},
+                    {"type": "input_audio", "input_audio": {"data": audio, "format": "wav"}}
+                ]
+            }]
+        });
+
+        let transformed = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect("audio request should transform to Google");
+        let value: serde_json::Value = serde_json::from_slice(transformed.as_bytes()).unwrap();
+
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["mimeType"],
+            "audio/wav"
+        );
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["data"],
+            audio
+        );
+    }
+
+    #[test]
+    fn url_input_audio_is_rejected_outside_router_preprocessing() {
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "input_audio",
+                    "input_audio": {"data": "https://example.com/audio.wav", "format": "wav"}
+                }]
+            }]
+        });
+
+        let error = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect_err("router-only audio URL should fail direct conversion");
+
+        assert!(error
+            .to_string()
+            .contains("input_audio.data must be base64"));
+    }
 
     #[test]
     fn tool_caller_from_provider_rejects_program_without_caller_id() {
@@ -6287,6 +6778,80 @@ mod tests {
     }
 
     #[test]
+    fn request_scalar_reasoning_signature_applies_to_reasoning_and_tool_calls() {
+        let value = json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": "thinking",
+            "reasoning_signature": "thought_signature_123",
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "get_summary", "arguments": "{}" }
+            }]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt = serde_json::from_value(value).unwrap();
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("scalar signature should apply to reasoning and tool calls");
+        let Message::Assistant { content, .. } = message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant array content");
+        };
+        let signatures = parts
+            .iter()
+            .filter_map(|part| match part {
+                AssistantContentPart::Reasoning {
+                    encrypted_content, ..
+                }
+                | AssistantContentPart::ToolCall {
+                    encrypted_content, ..
+                } => encrypted_content.clone(),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            signatures,
+            vec![
+                "thought_signature_123".to_string(),
+                "thought_signature_123".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn shared_tool_call_signature_applies_to_every_tool_call() {
+        let tool_calls: Vec<openai::ToolCall> = serde_json::from_value(json!([
+            {
+                "id": "call_1",
+                "type": "function",
+                "function": { "name": "first", "arguments": "{}" }
+            },
+            {
+                "id": "call_2",
+                "type": "function",
+                "function": { "name": "second", "arguments": "{}" }
+            }
+        ]))
+        .expect("tool calls should deserialize");
+
+        let parts = assistant_content_parts_from_openai_tool_calls(
+            tool_calls,
+            Some("shared_signature".to_string()),
+        );
+        assert!(parts.iter().all(|part| {
+            matches!(
+                part,
+                AssistantContentPart::ToolCall { encrypted_content, .. }
+                    if encrypted_content.as_deref() == Some("shared_signature")
+            )
+        }));
+    }
+
+    #[test]
     fn response_message_tool_call_signature_becomes_reasoning_signature() {
         let message = Message::Assistant {
             content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
@@ -6307,8 +6872,10 @@ mod tests {
                 .expect("message should convert");
 
         assert_eq!(
-            converted.reasoning_signature.as_deref(),
-            Some("dGhvdWdodF9zaWduYXR1cmVfMTIz")
+            converted.reasoning_signature,
+            Some(ReasoningSignature::Single(
+                "dGhvdWdodF9zaWduYXR1cmVfMTIz".to_string()
+            ))
         );
         assert_eq!(
             converted.base.tool_calls,
@@ -6321,6 +6888,538 @@ mod tests {
                 }),
                 custom: None,
             }])
+        );
+    }
+
+    #[test]
+    fn multiple_reasoning_signatures_round_trip_to_responses_reasoning_parts() {
+        let response_message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "first reasoning step".to_string(),
+                    encrypted_content: Some("signature_one".to_string()),
+                },
+                AssistantContentPart::Reasoning {
+                    text: "second reasoning step".to_string(),
+                    encrypted_content: Some("signature_two".to_string()),
+                },
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_123".to_string(),
+                    tool_name: "lookup_weather".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: None,
+                    provider_options: None,
+                    status: None,
+                    caller: None,
+                    provider_executed: None,
+                },
+            ]),
+            id: None,
+        };
+
+        let chat_response =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&response_message)
+                .expect("response should convert to extended chat message");
+        let serialized =
+            serde_json::to_value(&chat_response).expect("extended chat message should serialize");
+        assert_eq!(
+            serialized["reasoning_signature"],
+            json!(["signature_one", "signature_two"])
+        );
+        let chat_request: ChatCompletionRequestMessageExt = serde_json::from_value(serialized)
+            .expect("extended chat message should be accepted as chat history");
+        let reparsed =
+            <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(chat_request)
+                .expect("chat history should convert to universal message");
+
+        let Message::Assistant { content, .. } = &reparsed else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+
+        let reasoning_signatures = parts
+            .iter()
+            .filter_map(|part| match part {
+                AssistantContentPart::Reasoning {
+                    encrypted_content, ..
+                } => encrypted_content.clone(),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            reasoning_signatures,
+            vec!["signature_one".to_string(), "signature_two".to_string()]
+        );
+
+        let chat_request = messages_to_chat_completion_messages(vec![reparsed.clone()])
+            .expect("universal message should convert to chat history");
+        assert!(matches!(
+            chat_request[0].content,
+            Some(ChatCompletionRequestMessageContentExt::String(ref text)) if text.is_empty()
+        ));
+
+        let responses_input = universal_to_responses_input(&[reparsed])
+            .expect("universal message should convert to Responses input");
+        let replayed_signatures = responses_input
+            .iter()
+            .filter(|item| item.input_item_type == Some(openai::InputItemType::Reasoning))
+            .filter_map(|item| item.encrypted_content.clone())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            replayed_signatures,
+            vec!["signature_one".to_string(), "signature_two".to_string()]
+        );
+    }
+
+    #[test]
+    fn chat_messages_keep_reasoning_signatures_and_tool_calls() {
+        let responses_items = json!([
+            {
+                "type": "reasoning",
+                "id": "reasoning_123",
+                "content": [],
+                "encrypted_content": "reasoning_signature",
+                "summary": []
+            },
+            {
+                "type": "function_call",
+                "id": "function_call_123",
+                "call_id": "call_123",
+                "name": "lookup_weather",
+                "arguments": "{\"city\":\"Springfield\"}",
+                "status": "completed"
+            }
+        ]);
+        let messages = try_parse_responses_items_for_import(&responses_items)
+            .expect("Responses items should import");
+
+        let replay_messages = messages_to_chat_completion_messages(messages.clone())
+            .expect("replay conversion should succeed");
+        assert_eq!(
+            replay_messages[0].reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "reasoning_signature".to_string()
+            ]))
+        );
+        assert_eq!(
+            replay_messages[0]
+                .tool_calls
+                .as_ref()
+                .expect("tool calls should be preserved")
+                .len(),
+            1
+        );
+    }
+
+    #[test]
+    fn responses_input_assigns_assistant_id_to_first_split_reasoning_item() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "first reasoning step".to_string(),
+                    encrypted_content: Some("signature_one".to_string()),
+                },
+                AssistantContentPart::Reasoning {
+                    text: "second reasoning step".to_string(),
+                    encrypted_content: Some("signature_two".to_string()),
+                },
+            ]),
+            id: Some("msg_123".to_string()),
+        };
+
+        let input_items = universal_to_responses_input(&[message])
+            .expect("universal message should convert to Responses input");
+
+        assert_eq!(input_items.len(), 2);
+        assert_eq!(input_items[0].id.as_deref(), Some("msg_123"));
+        assert_eq!(input_items[1].id, None);
+    }
+
+    #[test]
+    fn responses_reasoning_summaries_round_trip_in_one_item() {
+        let input_items: Vec<openai::InputItem> = serde_json::from_value(json!([
+            {
+                "type": "reasoning",
+                "id": "rs_123",
+                "summary": [
+                    { "type": "summary_text", "text": "first summary" },
+                    { "type": "summary_text", "text": "second summary" }
+                ],
+                "encrypted_content": "signature_123"
+            }
+        ]))
+        .expect("reasoning input should deserialize");
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(input_items)
+            .expect("reasoning input should convert to universal messages");
+        let roundtrip = universal_to_responses_input(&messages)
+            .expect("universal messages should convert back to Responses input");
+
+        assert_eq!(roundtrip.len(), 1);
+        assert_eq!(roundtrip[0].id.as_deref(), Some("rs_123"));
+        assert_eq!(
+            roundtrip[0].encrypted_content.as_deref(),
+            Some("signature_123")
+        );
+        assert_eq!(
+            roundtrip[0]
+                .summary
+                .as_ref()
+                .expect("reasoning summary should be present")
+                .iter()
+                .map(|summary| summary.text.clone())
+                .collect::<Vec<_>>(),
+            vec!["first summary".to_string(), "second summary".to_string()]
+        );
+    }
+
+    #[test]
+    fn response_message_deduplicates_shared_reasoning_and_tool_signature() {
+        let response: ChatCompletionResponseMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": "reasoning",
+            "reasoning_signature": "signature_123",
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "lookup", "arguments": "{}" }
+            }]
+        }))
+        .expect("chat response should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(response)
+            .expect("chat response should convert to universal message");
+        let roundtrip =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("universal message should convert to chat response");
+
+        assert_eq!(
+            roundtrip.reasoning_signature,
+            Some(ReasoningSignature::Single("signature_123".to_string()))
+        );
+    }
+
+    #[test]
+    fn response_message_preserves_reasoning_only_signature_vector_with_tool_call() {
+        let response: ChatCompletionResponseMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": "reasoning",
+            "reasoning_signature": ["signature_123"],
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "lookup", "arguments": "{}" }
+            }]
+        }))
+        .expect("chat response should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(response)
+            .expect("chat response should convert to universal message");
+        let roundtrip =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("universal message should convert to chat response");
+
+        assert_eq!(
+            roundtrip.reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "signature_123".to_string()
+            ]))
+        );
+
+        let replayed: ChatCompletionResponseMessageExt = serde_json::from_value(
+            serde_json::to_value(roundtrip).expect("chat response should serialize"),
+        )
+        .expect("serialized chat response should deserialize");
+        let replayed_message =
+            <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(replayed)
+                .expect("serialized chat response should preserve signature provenance");
+        let Message::Assistant { content, .. } = replayed_message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+        assert!(matches!(
+            &parts[1],
+            AssistantContentPart::ToolCall {
+                encrypted_content: None,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn response_message_preserves_duplicate_reasoning_only_signatures() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "first".to_string(),
+                    encrypted_content: Some("signature_123".to_string()),
+                },
+                AssistantContentPart::Reasoning {
+                    text: "second".to_string(),
+                    encrypted_content: Some("signature_123".to_string()),
+                },
+            ]),
+            id: None,
+        };
+        let roundtrip =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("universal message should convert to chat response");
+
+        assert_eq!(
+            roundtrip.reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "signature_123".to_string(),
+                "signature_123".to_string(),
+            ]))
+        );
+    }
+
+    #[test]
+    fn response_message_preserves_duplicate_positional_tool_signatures() {
+        let response: ChatCompletionResponseMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "reasoning_signature": ["signature_one", "signature_one", "signature_two"],
+            "tool_calls": [
+                { "id": "call_1", "type": "function", "function": { "name": "first", "arguments": "{}" } },
+                { "id": "call_2", "type": "function", "function": { "name": "second", "arguments": "{}" } },
+                { "id": "call_3", "type": "function", "function": { "name": "third", "arguments": "{}" } }
+            ]
+        }))
+        .expect("chat response should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(response)
+            .expect("chat response should convert to universal message");
+        let roundtrip =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("universal message should convert to chat response");
+
+        assert_eq!(
+            roundtrip.reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "signature_one".to_string(),
+                "signature_one".to_string(),
+                "signature_two".to_string(),
+            ]))
+        );
+    }
+
+    #[test]
+    fn empty_request_reasoning_replays_positional_tool_signatures() {
+        let request: ChatCompletionRequestMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": [],
+            "reasoning_signature": ["signature_123"],
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "lookup", "arguments": "{}" }
+            }]
+        }))
+        .expect("chat request should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
+            .expect("chat request should convert to universal message");
+
+        let Message::Assistant { content, .. } = message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+        assert!(matches!(
+            &parts[0],
+            AssistantContentPart::ToolCall { encrypted_content, .. }
+                if encrypted_content.as_deref() == Some("signature_123")
+        ));
+    }
+
+    #[test]
+    fn responses_input_rejects_tool_only_reasoning_signatures() {
+        let messages = vec![Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                tool_call_id: "call_123".to_string(),
+                tool_name: "lookup".to_string(),
+                arguments: ToolCallArguments::from("{}".to_string()),
+                encrypted_content: Some("signature_123".to_string()),
+                provider_options: None,
+                status: None,
+                caller: None,
+                provider_executed: None,
+            }]),
+            id: None,
+        }];
+
+        let error = universal_to_responses_input(&messages)
+            .expect_err("tool-only signatures should not be silently dropped");
+
+        assert!(matches!(
+            error,
+            ConvertError::ContentConversionFailed { .. }
+        ));
+        assert!(error
+            .to_string()
+            .contains("attached only to function tool calls"));
+    }
+
+    #[test]
+    fn request_rejects_unmatched_positional_tool_signatures() {
+        let request: ChatCompletionRequestMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning_signature": ["signature_one", "signature_two"],
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "lookup", "arguments": "{}" }
+            }]
+        }))
+        .expect("chat request should deserialize");
+
+        let error = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
+            .expect_err("unmatched signatures should fail conversion");
+        assert!(matches!(
+            error,
+            ConvertError::ContentConversionFailed { .. }
+        ));
+    }
+
+    #[test]
+    fn request_scalar_signature_applies_to_multiple_tool_calls() {
+        let request: ChatCompletionRequestMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning_signature": "signature_123",
+            "tool_calls": [
+                { "id": "call_1", "type": "function", "function": { "name": "first", "arguments": "{}" } },
+                { "id": "call_2", "type": "function", "function": { "name": "second", "arguments": "{}" } }
+            ]
+        }))
+        .expect("chat request should deserialize");
+
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
+            .expect("scalar signature should apply to every tool call");
+        let Message::Assistant { content, .. } = message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+        let signatures = parts
+            .iter()
+            .filter_map(|part| match part {
+                AssistantContentPart::ToolCall {
+                    encrypted_content, ..
+                } => encrypted_content.clone(),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            signatures,
+            vec!["signature_123".to_string(), "signature_123".to_string()]
+        );
+    }
+
+    #[test]
+    fn response_message_preserves_mixed_tool_signature_slots_as_scalar() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_1".to_string(),
+                    tool_name: "first".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: None,
+                    provider_options: None,
+                    status: None,
+                    caller: None,
+                    provider_executed: None,
+                },
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_2".to_string(),
+                    tool_name: "second".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: Some("signature_123".to_string()),
+                    provider_options: None,
+                    status: None,
+                    caller: None,
+                    provider_executed: None,
+                },
+            ]),
+            id: None,
+        };
+
+        let converted =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("mixed signature slots should preserve the legacy scalar signature");
+
+        assert_eq!(
+            converted.reasoning_signature,
+            Some(ReasoningSignature::Single("signature_123".to_string()))
+        );
+    }
+
+    #[test]
+    fn response_message_rejects_mixed_reasoning_and_tool_signature_provenance() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "reasoning".to_string(),
+                    encrypted_content: Some("reasoning_signature".to_string()),
+                },
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_123".to_string(),
+                    tool_name: "lookup".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: Some("tool_signature".to_string()),
+                    provider_options: None,
+                    status: None,
+                    caller: None,
+                    provider_executed: None,
+                },
+            ]),
+            id: None,
+        };
+
+        let error = <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+            .expect_err("mixed signature provenance should fail conversion");
+        assert!(matches!(
+            error,
+            ConvertError::ContentConversionFailed { .. }
+        ));
+    }
+
+    #[test]
+    fn responses_output_keeps_reasoning_signatures_in_separate_items() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "first reasoning step".to_string(),
+                    encrypted_content: Some("signature_one".to_string()),
+                },
+                AssistantContentPart::Reasoning {
+                    text: "second reasoning step".to_string(),
+                    encrypted_content: Some("signature_two".to_string()),
+                },
+            ]),
+            id: Some("msg_123".to_string()),
+        };
+
+        let output_items =
+            <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(vec![message])
+                .expect("universal message should convert to Responses output");
+
+        assert_eq!(output_items.len(), 2);
+        assert_eq!(output_items[0].id.as_deref(), Some("msg_123"));
+        assert_ne!(output_items[1].id, output_items[0].id);
+        assert_eq!(
+            output_items
+                .iter()
+                .filter_map(|item| item.encrypted_content.clone())
+                .collect::<Vec<_>>(),
+            vec!["signature_one".to_string(), "signature_two".to_string()]
         );
     }
 
@@ -6440,7 +7539,7 @@ mod tests {
     }
 
     #[test]
-    fn response_message_rejects_distinct_tool_call_signatures() {
+    fn response_message_preserves_distinct_tool_call_signatures() {
         let message = Message::Assistant {
             content: AssistantContent::Array(vec![
                 AssistantContentPart::ToolCall {
@@ -6467,12 +7566,17 @@ mod tests {
             id: None,
         };
 
-        let error = <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
-            .expect_err("distinct per-call signatures should not be collapsed");
+        let converted =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("distinct per-call signatures should be preserved");
 
-        assert!(error
-            .to_string()
-            .contains("multiple distinct encrypted tool/reasoning signatures"));
+        assert_eq!(
+            converted.reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "signature_one".to_string(),
+                "signature_two".to_string(),
+            ]))
+        );
     }
 
     #[test]
@@ -7024,6 +8128,43 @@ mod tests {
         match converted {
             UserContentPart::File { media_type, .. } => {
                 assert_eq!(media_type, "audio/mp3");
+            }
+            other => panic!("expected file content, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn chat_completions_gcs_backed_file_preserves_uri_and_infers_video_mime_type() {
+        let input = openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::File,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: None,
+            file: Some(openai::File {
+                file_data: Some("gs://lingua-test-bucket/sample-200mb.mp4".to_string()),
+                file_id: None,
+                filename: None,
+            }),
+            refusal: None,
+        };
+
+        let converted = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(input)
+        .expect("GCS-backed file should import");
+
+        match converted {
+            UserContentPart::File {
+                data, media_type, ..
+            } => {
+                assert_eq!(
+                    data,
+                    serde_json::Value::String(
+                        "gs://lingua-test-bucket/sample-200mb.mp4".to_string()
+                    )
+                );
+                assert_eq!(media_type, "video/mp4");
             }
             other => panic!("expected file content, got {:?}", other),
         }

@@ -1,0 +1,19 @@
+{
+  "model": "publishers/google/models/gemini-2.5-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Describe this video clip."
+        },
+        {
+          "fileData": {
+            "fileUri": "gs://lingua-test-bucket/sample-200mb.mp4",
+            "mimeType": "video/mp4"
+          }
+        }
+      ]
+    }
+  ]
+}

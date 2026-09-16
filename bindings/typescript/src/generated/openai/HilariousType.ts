@@ -12,5 +12,7 @@
  * The type of the refusal. Always `refusal`.
  *
  * The type of the reasoning text. Always `reasoning_text`.
+ *
+ * The type of the input item. Always `encrypted_content`.
  */
-export type HilariousType = "input_file" | "input_image" | "input_audio" | "input_text" | "output_text" | "reasoning_text" | "refusal";
+export type HilariousType = "encrypted_content" | "input_file" | "input_image" | "input_audio" | "input_text" | "output_text" | "reasoning_text" | "refusal";

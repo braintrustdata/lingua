@@ -1,0 +1,23 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant"
+  ],
+  "expectedAssistantContentPartTypes": [
+    ["reasoning", "text", "reasoning", "text", "reasoning", "text"]
+  ],
+  "expectedReasoningEncryptedContent": [
+    "top-level-signature",
+    "text-fallback-signature",
+    "thinking-extras-signature"
+  ],
+  "mustContainText": [
+    "First internal reasoning.",
+    "First visible answer.",
+    "Second internal reasoning.",
+    "Second visible answer.",
+    "Third internal reasoning.",
+    "Third visible answer."
+  ]
+}

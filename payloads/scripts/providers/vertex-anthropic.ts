@@ -186,7 +186,7 @@ function createSignedJwt(key: ServiceAccountKey): string {
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
-async function getAccessToken(): Promise<string> {
+export async function getVertexAccessToken(): Promise<string> {
   if (cachedToken && Date.now() < cachedToken.expiresAt - 60_000) {
     return cachedToken.token;
   }
@@ -305,7 +305,7 @@ export async function executeVertexAnthropic(
     );
   }
   const { stream } = options ?? {};
-  const token = await getAccessToken();
+  const token = await getVertexAccessToken();
   const { model, body, bodyObj } = buildVertexBody(payload);
   const result: CaptureResult<
     AnthropicMessageCreateParams | VertexAnthropicBody,

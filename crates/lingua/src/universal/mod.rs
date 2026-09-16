@@ -30,12 +30,13 @@ pub use request::{
     SummaryMode, TokenBudget, ToolChoiceConfig, ToolChoiceMode, UniversalParams, UniversalRequest,
 };
 pub use response::{
-    FinishReason, ParsableResponseInfo, ResponseRequirement, ServedServiceTier, UniversalResponse,
+    FinishReason, InputTokenDetails, ModalityTokenCount, OutputTokenDetails, ParsableResponseInfo,
+    ResponseRequirement, ServedServiceTier, TokenBreakdown, TokenModality, UniversalResponse,
     UniversalUsage,
 };
 pub use stream::{
-    UniversalReasoningDelta, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UniversalReasoningDelta, UniversalReasoningSignature, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
 };
 pub use tools::{
     tools_to_openai_chat_value, tools_to_responses_value, BuiltinToolProvider, UniversalTool,

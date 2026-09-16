@@ -1,0 +1,21 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Describe this video clip."
+        },
+        {
+          "type": "file",
+          "file": {
+            "filename": "sample-200mb.mp4",
+            "file_data": "gs://lingua-test-bucket/sample-200mb.mp4"
+          }
+        }
+      ]
+    }
+  ]
+}

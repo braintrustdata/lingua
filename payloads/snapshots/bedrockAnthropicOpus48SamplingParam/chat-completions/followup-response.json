@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-EAKH1oxVGGTiUTTdaLPffmMmgSAJq",
+  "object": "chat.completion",
+  "created": 1786129919,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "That depends on what you're looking to achieve! Here are a few suggestions based on different interests:\n\n1. **Learning**: Consider exploring a new topic or skill online, like coding, cooking, or a new language.\n2. **Relaxation**: Take a break and enjoy a book, listen to music, or go for a walk.\n3. **Productivity**: Make a to-do list for tasks you want to accomplish today or this week.\n4. **Connection**: Reach out to a friend or family member for a chat or plan a get-together.\n5. **Creativity**: Try drawing, writing, or engaging in any form of artistic expression.\n\nLet me know if you want more specific suggestions!",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 33,
+    "completion_tokens": 147,
+    "total_tokens": 180,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_0950b7f384"
+}

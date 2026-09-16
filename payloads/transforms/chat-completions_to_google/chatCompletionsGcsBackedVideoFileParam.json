@@ -1,0 +1,23 @@
+{
+  "request": {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Describe this video clip."
+          },
+          {
+            "fileData": {
+              "fileUri": "gs://lingua-test-bucket/sample-200mb.mp4",
+              "mimeType": "video/mp4"
+            }
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "model": "gemini-3.5-flash"
+  },
+  "error": "Google API error (400): {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"Referencing Google Cloud Storage files directly is not supported. Register them using FileService.RegisterFile first. \",\n    \"status\": \"INVALID_ARGUMENT\"\n  }\n}\n",
+  "name": "Error"
+}

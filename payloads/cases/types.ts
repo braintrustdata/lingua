@@ -73,8 +73,26 @@ export type ChatCompletionCreateParams = Omit<
   >;
 };
 
+// The Responses API accepts replayed encrypted reasoning items without an ID,
+// although the SDK's response-object type requires one.
+type OpenAIResponseReasoningReplayItem = Omit<
+  OpenAI.Responses.ResponseReasoningItem,
+  "id"
+> & {
+  id?: string;
+};
+
+type OpenAIResponseInputItem =
+  | Exclude<
+      OpenAI.Responses.ResponseInputItem,
+      OpenAI.Responses.ResponseReasoningItem
+    >
+  | OpenAIResponseReasoningReplayItem
+  | OpenAI.Beta.Responses.BetaResponseInputItem.AgentMessage;
+
 type OpenAIResponseCreateParamsWithExtendedServiceTier<T> = T extends unknown
-  ? Omit<T, "service_tier"> & {
+  ? Omit<T, "input" | "service_tier"> & {
+      input?: string | OpenAIResponseInputItem[];
       service_tier?:
         | "auto"
         | "default"
@@ -112,6 +130,7 @@ export interface TestCase {
   bedrock: BedrockConverseRequest | null;
   "bedrock-anthropic"?: AnthropicMessageCreateParams | null;
   "vertex-anthropic"?: AnthropicMessageCreateParams | null;
+  "vertex-google"?: GoogleGenerateContentRequest | null;
   // Baseten serves OSS models via an OpenAI-compatible chat-completions API.
   baseten?: ChatCompletionCreateParams | null;
   // Optional expectations for proxy compatibility tests
@@ -134,4 +153,5 @@ export const PROVIDER_TYPES = [
   "bedrock",
   "bedrock-anthropic",
   "vertex-anthropic",
+  "vertex-google",
 ] as const;

@@ -874,6 +874,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                     UserContent::String(text) => generated::MessageContent::PurpleString(text),
                     UserContent::Array(parts) => {
                         for part in &parts {
+                            if matches!(part, UserContentPart::Audio { .. }) {
+                                return Err(ConvertError::UnsupportedMapping {
+                                    from: "Lingua audio content".to_string(),
+                                    to: "Anthropic document input",
+                                });
+                            }
+
                             let UserContentPart::File {
                                 data: Value::String(data),
                                 media_type,
@@ -1146,6 +1153,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         file_id: None,
                                     })
                                 },
+                                UserContentPart::Audio { .. } => None,
                             })
                             .collect();
                         generated::MessageContent::InputContentBlockArray(blocks)

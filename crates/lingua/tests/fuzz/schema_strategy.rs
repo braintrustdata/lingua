@@ -312,7 +312,7 @@ pub fn load_openapi_definitions(spec_path: &str) -> Map<String, Value> {
 
     // Try JSON first (Anthropic spec is JSON despite .yml extension), then YAML
     let spec: Value = serde_json::from_str(&content)
-        .or_else(|_| serde_yaml::from_str::<Value>(&content).map_err(|e| e.to_string()))
+        .or_else(|_| yaml_serde::from_str::<Value>(&content).map_err(|e| e.to_string()))
         .unwrap_or_else(|e| panic!("Failed to parse spec at {}: {}", spec_path, e));
 
     spec.get("components")

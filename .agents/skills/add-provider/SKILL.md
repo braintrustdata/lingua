@@ -1,6 +1,6 @@
 ---
 name: add-provider
-description: Add support for a new LLM provider format to Lingua. Follow the test-first workflow with payload snapshots.
+description: Add support for a new LLM provider format to Lingua. Classify provider-specific features and reject unsupported cross-provider mappings explicitly.
 ---
 
 # Add Provider Skill
@@ -12,8 +12,17 @@ Add support for a new LLM provider to Lingua using a test-first approach.
 ## Workflow Overview
 
 ```
-1. Add payload snapshots → 2. Add ProviderFormat → 3. Create module → 4. Implement adapter → 5. Validate with coverage-report
+1. Add payload snapshots → 2. Add ProviderFormat → 3. Create module → 4. Classify and implement conversions → 5. Validate with coverage-report
 ```
+
+## Transformation boundary
+
+Adding a provider requires faithful native types, detection, validation, and same-format handling. It does not require every provider-specific capability to transform into every other format.
+
+- Implement cross-provider conversion only for features with a clear provider-neutral meaning and a semantically equivalent target representation.
+- Do not emulate provider-managed services or translate their opaque execution state, handles, replay data, or lifecycle events into superficially similar target features.
+- Return a clear unsupported-mapping error when preserving meaning is impossible. Do not drop the feature, stringify it, flatten it into text, simulate it, or partially convert the request.
+- A coverage gap for correctly rejected provider-specific behavior is an intentional limitation, not unfinished adapter work.
 
 ## Step 1: Add Payload Snapshots
 
@@ -80,7 +89,7 @@ default = ["openai", "anthropic", "google", "bedrock", "myprovider"]
 myprovider = []
 ```
 
-## Step 4: Implement ProviderAdapter
+## Step 4: Classify and implement ProviderAdapter conversions
 
 **File**: `crates/lingua/src/providers/myprovider/adapter.rs`
 
@@ -97,6 +106,14 @@ Required methods (9 total):
 | `detect_response()` | Return `true` if response is this format |
 | `response_to_universal()` | Provider response → UniversalResponse |
 | `response_from_universal()` | UniversalResponse → Provider response |
+
+Before implementing each conversion path, classify provider-specific blocks and fields:
+
+- **Transformable**: Stable meaning, representable in the universal model, and semantically supported by the target.
+- **Native-only**: Valid provider data that must be preserved for native validation or same-format passthrough but rejected during cross-provider conversion.
+- **Ambiguous**: Stop and clarify the intended provider-neutral contract before adding a universal type or fallback.
+
+Test native-only cases for a meaningful unsupported error. Do not force them through `UniversalRequest` or `UniversalResponse` to satisfy method completeness.
 
 **Register in** `crates/lingua/src/processing/adapters.rs`:
 ```rust
@@ -168,5 +185,7 @@ if let Some(extras) = req.provider_extras.get(&ProviderFormat::MyProvider) {
 - [ ] `ProviderAdapter` trait implemented
 - [ ] Adapter registered in `adapters.rs`
 - [ ] Feature flag added to `Cargo.toml`
+- [ ] Provider-managed and opaque features classified as transformable, native-only, or ambiguous
+- [ ] Native-only cross-provider paths return tested unsupported-mapping errors
 - [ ] Coverage report shows transformations working
 - [ ] Roundtrip tests passing (Provider → Universal → Provider)

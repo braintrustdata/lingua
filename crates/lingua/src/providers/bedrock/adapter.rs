@@ -12,6 +12,7 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
+use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::generated::Thinking;
 use crate::providers::bedrock::convert::universal_to_bedrock_messages;
 use crate::providers::bedrock::params::BedrockParams;
@@ -289,21 +290,27 @@ impl ProviderAdapter for BedrockAdapter {
             .and_then(|v| v.get("type"))
             .and_then(|t| t.as_str())
             .is_some_and(|t| t == "enabled");
-        let temperature = if reasoning_enabled {
+        let strip_sampling_params = capabilities::model_needs_transforms(model_id);
+        let temperature = if reasoning_enabled || strip_sampling_params {
             None
         } else {
             req.params.temperature
         };
+        let top_p = if strip_sampling_params {
+            None
+        } else {
+            req.params.top_p
+        };
 
         let has_params = temperature.is_some()
-            || req.params.top_p.is_some()
+            || top_p.is_some()
             || req.params.output_token_budget().is_some()
             || req.params.stop.is_some();
 
         if has_params {
             let config = BedrockInferenceConfiguration {
                 temperature,
-                top_p: req.params.top_p,
+                top_p,
                 max_tokens: req.params.output_token_budget().map(|t| t as i32),
                 stop_sequences: req.params.stop.clone(),
             };
@@ -588,7 +595,7 @@ impl ProviderAdapter for BedrockAdapter {
                                         }]
                                     })
                                     .unwrap_or_default(),
-                                reasoning_signature: reasoning_content.signature,
+                                reasoning_signature: reasoning_content.signature.map(Into::into),
                                 ..Default::default()
                             })),
                             finish_reason: None,
@@ -765,6 +772,7 @@ impl ProviderAdapter for BedrockAdapter {
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use crate::universal::UniversalReasoningSignature;
 
     #[test]
     fn test_bedrock_detect_request() {
@@ -777,6 +785,40 @@ mod tests {
             }]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_bedrock_streaming_usage_preserves_cache_buckets() {
+        let adapter = BedrockAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![],
+            None,
+            Some(UniversalUsage {
+                prompt_tokens: Some(100),
+                completion_tokens: Some(25),
+                total_tokens: Some(125),
+                prompt_cached_tokens: Some(40),
+                prompt_cache_creation_tokens: Some(15),
+                ..Default::default()
+            }),
+        );
+
+        let metadata = adapter.stream_from_universal(&chunk).unwrap();
+        assert_eq!(metadata["metadata"]["usage"]["inputTokens"], 45);
+        assert_eq!(metadata["metadata"]["usage"]["cacheReadInputTokens"], 40);
+        assert_eq!(metadata["metadata"]["usage"]["cacheWriteInputTokens"], 15);
+
+        let roundtrip = adapter
+            .stream_to_universal(metadata)
+            .unwrap()
+            .expect("metadata should produce a universal usage chunk");
+        let usage = roundtrip.usage.expect("roundtrip should preserve usage");
+        assert_eq!(usage.prompt_tokens, Some(45));
+        assert_eq!(usage.prompt_cached_tokens, Some(40));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(15));
+        assert_eq!(usage.inclusive_prompt_tokens(), Some(100));
     }
 
     #[test]
@@ -983,6 +1025,29 @@ mod tests {
     }
 
     #[test]
+    fn test_bedrock_anthropic_opus_4_8_strips_sampling_params() {
+        let adapter = BedrockAdapter;
+        let universal = UniversalRequest {
+            model: Some("global.anthropic.claude-opus-4-8".to_string()),
+            messages: vec![],
+            params: UniversalParams {
+                temperature: Some(0.7),
+                top_p: Some(0.9),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                ..Default::default()
+            },
+        };
+
+        let reconstructed: BedrockParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+        let inference_config = reconstructed.inference_config.unwrap();
+
+        assert_eq!(inference_config.temperature, None);
+        assert_eq!(inference_config.top_p, None);
+        assert_eq!(inference_config.max_tokens, Some(4096));
+    }
+
+    #[test]
     fn test_bedrock_reasoning_roundtrip() {
         let adapter = BedrockAdapter;
 
@@ -1155,7 +1220,10 @@ mod tests {
         let delta = choice.delta_view().unwrap();
 
         assert_eq!(choice.index, 0);
-        assert_eq!(delta.reasoning_signature.as_deref(), Some("sig_123"));
+        assert_eq!(
+            delta.reasoning_signature,
+            Some(UniversalReasoningSignature::Single("sig_123".to_string()))
+        );
     }
 
     #[test]

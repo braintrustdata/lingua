@@ -235,6 +235,14 @@ pub struct BedrockTokenUsage {
 
     /// Total number of tokens
     pub total_tokens: i32,
+
+    /// Number of cache-read input tokens
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_read_input_tokens: Option<i32>,
+
+    /// Number of cache-write input tokens
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_write_input_tokens: Option<i32>,
 }
 
 /// Performance metrics for the request

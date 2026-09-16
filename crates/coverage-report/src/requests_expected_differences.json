@@ -197,6 +197,62 @@
   ],
   "perTestCase": [
     {
+      "testCase": "openaiAgentMessageParam",
+      "source": "Responses",
+      "target": "*",
+      "errors": [
+        { "pattern": "cannot convert OpenAI Responses agent_message to Lingua messages", "reason": "Agent routing and encrypted agent replay content are OpenAI-specific and have no lossless universal representation." }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "toolCallRequest",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "toolChoiceAnyParam",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredParam",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "toolModeValidatedParam",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "The Chat Completions replay form preserves a Google tool-call thought signature that has no representable OpenAI Responses input form." }
+      ]
+    },
+    {
       "testCase": "openaiServiceTierFastParam",
       "source": "Responses",
       "target": "Anthropic",
@@ -1490,6 +1546,94 @@
       "target": "Bedrock",
       "errors": [
         { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].filename", "reason": "Google fileData has no filename field; it preserves the GCS URI and inferred video MIME type for Vertex" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to OpenAI Responses input_file", "reason": "OpenAI Responses input_file does not support video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to Anthropic document input", "reason": "Anthropic document input does not support GCS-backed video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock",
+      "errors": [
+        { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock Anthropic",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to Anthropic document input", "reason": "Bedrock Anthropic does not support URL-backed video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Vertex Anthropic",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to Anthropic document input", "reason": "Vertex Anthropic does not support URL-backed video files" }
+      ]
+    },
+    {
+      "testCase": "openAIMultipleReasoningSignaturesReplayParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Responses replays each encrypted reasoning signature as a separate reasoning input item" }
+      ]
+    },
+    {
+      "testCase": "googleInlineAudioParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "Lingua audio content to OpenAI Chat Completions input_audio for the selected model", "reason": "The configured Chat Completions model has no verified input_audio support" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsInputAudioParam",
+      "source": "ChatCompletions",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "Lingua audio content to OpenAI Chat Completions input_audio for the selected model", "reason": "The configured Chat Completions model has no verified input_audio support" }
+      ]
+    },
+    {
+      "testCase": "googleInlineAudioParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Lingua audio content to Anthropic document input", "reason": "Anthropic-compatible targets cannot represent audio input" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsInputAudioParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Lingua audio content to Anthropic document input", "reason": "Anthropic-compatible targets cannot represent audio input" }
       ]
     }
   ]

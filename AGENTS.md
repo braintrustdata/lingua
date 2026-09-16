@@ -8,13 +8,16 @@ Lingua is a universal message format that compiles to provider-specific formats 
 
 ## Key principles
 
-- **Universal compatibility**: Supports 100% of provider-specific quirks and capabilities
+- **Native fidelity and deliberate interoperability**: Model provider-native formats completely, but only translate across providers when the semantic mapping is clear.
 - **Zero runtime overhead**: Pure compile-time translation to native provider formats
 - **Type safety**: Full TypeScript and Rust type generation with bidirectional validation
 - **No network calls**: This is a message format library, not an API client
 - **Explicit error handling**: All errors must be properly handled, never silently swallowed
 - **No hidden marker fields**: Do not encode provider semantics via internal marker keys (for example in `provider_options`) to fake lossless roundtrips.
-- **Ask when non-lossy mapping is unclear**: If the universal type cannot represent a provider feature non-lossily, stop and ask for clarification on the intended canonical representation before implementing a workaround.
+- **Transform semantics, not surface shapes**: Similar field names or JSON shapes do not establish equivalent behavior. Only map features with a clear, provider-neutral meaning and compatible target semantics.
+- **Do not emulate provider services**: Provider-managed or opaque behavior such as hosted code execution, browser sessions, managed tools, and replay state is not cross-provider data merely because another provider has a similarly named feature.
+- **Reject unsupported mappings explicitly**: If the universal type or target provider cannot represent a feature without changing its meaning, return a clear unsupported-mapping error. Do not silently drop it, stringify it, flatten it into text, simulate it, or invent a best-effort substitute.
+- **Keep provider converters faithful**: Do not add display-only, redacted, or otherwise lossy variants of a provider conversion to work around replay-only fields. Render or redact messages in the consuming presentation layer. A shared presentation API requires explicit approval and a provider-neutral contract.
 - **No unapproved fallback logic**: Do not add ad-hoc fallback parsing/translation paths (for example `fallback_*` helpers) without checking with the programmer first.
 - **Typed boundaries only**: At provider boundaries, parse into well-defined typed structs/enums. Do not add lenient raw-JSON parsing that guesses defaults for required fields (for example defaulting missing `role` to `user`, lowercasing unknown roles, or inventing empty `content`).
 - **Do not handwrite provider-format structs**: Do not manually define Rust structs/enums that represent provider wire formats when generated or canonical provider types already exist. Fix generation or add typed adapters around canonical types instead.
@@ -53,6 +56,15 @@ Each provider should have:
 - **Separate request/response types**: Don't conflate them into single structs
 - **Complete type coverage**: All fields from provider SDKs, even optional ones
 - **Validation tests**: TypeScript compatibility tests in `tests/typescript/{provider}/`
+
+### Cross-provider transformation policy
+
+- Keep representation separate from transformability. Provider-native types and same-format passthrough should preserve valid provider-specific fields even when cross-provider conversion rejects them.
+- Transform a feature only when its meaning is stable outside the source provider and the target has a genuinely equivalent representation.
+- Treat provider-managed execution, hidden state, opaque handles, continuation/replay data, and lifecycle-coupled events as unsupported unless a lossless provider-neutral contract already exists.
+- Error on a request containing an unsupported semantic block instead of partially converting the request and losing behavior. Lossy conversion requires an explicit, separately approved contract.
+- Do not add universal variants solely to make provider-specific operational state appear transformable.
+- Treat coverage reports as diagnostics, not a mandate for 100% cross-provider conversion. A correctly classified unsupported mapping is preferable to a higher coverage score obtained through semantic loss.
 
 ## Type generation workflow
 
@@ -117,12 +129,17 @@ When fixing provider transform behavior, follow this order. Do not skip steps.
    - Use a case name that maps directly to the behavior being fixed.
 2. **Capture and triage failures.**
    - Run `make capture FILTER=<case_name>`.
-   - If capture emits failed requests/transforms, treat this as unresolved logic in adapter/converter code.
+   - Treat unexpected request/transform failures as unresolved adapter/converter logic.
+   - If capture returns an explicit unsupported-mapping error, verify that it identifies the provider-specific semantic boundary, then classify it in the next step instead of assuming converter logic is missing.
    - Use transform path names to triage ownership:
      - `payloads/transforms/chat-completions_to_anthropic/<case>.json` → Anthropic adapter path
      - `payloads/transforms/chat-completions_to_google/<case>.json` → Google adapter path
      - same pattern for other providers.
-3. **Write the fix plan before implementation.**
+3. **Classify whether the feature is transformable.**
+   - Confirm the source meaning is provider-neutral and the target representation is semantically equivalent.
+   - If behavior depends on provider-managed execution, opaque state, replay context, or another black-box service, add or preserve an explicit unsupported-mapping error instead of implementing a lossy adapter.
+   - Do not treat a coverage failure alone as evidence that converter logic is missing.
+4. **Write the fix plan before implementation.**
    - Create `plan.md` in `lingua/` before making code changes.
    - The plan must include:
      - root cause,
@@ -131,15 +148,16 @@ When fixing provider transform behavior, follow this order. Do not skip steps.
      - tests to add/update,
      - expected-diff impact (if any),
      - command sequence to validate.
-4. **Fix adapter/converter logic first.**
+5. **Fix adapter/converter logic first.**
    - Do not use artifact regeneration as a substitute for code fixes.
    - Prefer provider `adapter.rs` for cross-field policy/orchestration fixes.
    - Keep typed boundaries: parse into typed structs/enums; avoid new ad-hoc raw `Value` access.
-5. **Run targeted tests, then re-capture.**
+6. **Run targeted tests, then re-capture.**
    - Run focused Rust tests for touched adapters first.
    - Re-run capture for the affected case/pair.
    - Run payload tests and sync checks.
-6. **Only then update expected diffs (if intentional behavior loss remains).**
+7. **Only then update expected diffs or unsupported cases.**
+   - Prefer an explicit unsupported transformation with a meaningful error over an expected diff that accepts silent semantic loss.
    - Use narrow `perTestCase` entries in:
      - `crates/coverage-report/src/requests_expected_differences.json`
      - `crates/coverage-report/src/streaming_expected_differences.json`
@@ -178,6 +196,8 @@ make typed-boundary-check-branch BASE=main
 
 - Do not run `make regenerate-failed-transforms` before fixing adapter/converter logic.
 - Do not patch transform/snapshot files manually to hide failing transforms.
+- Do not improve coverage by dropping, stringifying, flattening, simulating, or partially converting unsupported provider-specific behavior.
+- Do not infer equivalence between provider-managed tools from similar names or request shapes.
 - Do not add new direct `Value.get(...)` assertions/logic in typed-boundary-protected paths.
 - Do not add new semantic branching in `parse_lenient_*` or import compatibility code using raw JSON map access; use typed compatibility structs/enums.
 

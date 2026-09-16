@@ -1,0 +1,64 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "She wasn't that pretty anyway."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 8,
+      "totalTokenCount": 111,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 96,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "B8icauKMFLWV_uMP27jXwAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EqoECqcEARFNMg87zzfHkkkP0X7++8dv7yldd/h1riXEPc/H01wYNDf3yme4tbE2YOxa8DRyAP4ovx2xUGcVJlzsMdx+T2IYb3qGZmiryA6ymMyyKsQ0RxrgqZl4zNF4MprbyiPuRUKuFAY14zEKTF3bu4Djxf9gTOL6rBZn2xvORB7m58Q7Qt8dwvJiizc0gxQn/npIbVYayXWEU75qzBg7lYHs1OZvmGLq5YwFQ4oxAa1SY1pXU1UtBq0/I7tgTAnKhjiSA+aKV53vchWtGZ9f18h8AFWvhTpGza2sBji5/tJDHYHnOFjr7n25FEGrY+EQ/x7VqwY4eww2altSmiFNk6OK4kW47nlqtPRmRhU5OYC3wylXyFkYIr+whv07Jy+DkVY+ladn9Qdl33/vDgzVxJqMdd95zWqkrS+QgMHrVVJjE1WjpblAq5kJWlccb8eoH5AhiXpzlHStLJ7ln1gyobY7SLeNoF1eglxyQBe+y5EnWVBJodw0HFbQWXvmzkW+HiNcQsoasAWi7lIoNgu6bmODxEDBa9dEjGusJxCxvrMY5QHMLoG6JlDpbm9Srj5coBxoSG+8gOiQQaiEWsFy8vdVFPco94lu9Etr2FDttxnSMXDVbOGxBQx7kPLhlyeIG8xZo8Fs9/L/eZdVTsxnukhbCCA5nfi7MmxWQD0O9FzJNJe1ia24bs4tejn5/iaafycJ+ND2IXx3CYCooRecnboEB5/WapxOejE="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 8,
+      "totalTokenCount": 111,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 96,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "B8icauKMFLWV_uMP27jXwAI"
+  }
+]

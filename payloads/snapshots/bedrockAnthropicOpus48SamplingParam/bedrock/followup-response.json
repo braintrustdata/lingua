@@ -1,0 +1,28 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I'd love to help, but I don't have enough context to give you useful advice! \"What should I do next\" depends a lot on what you're working on or trying to achieve.\n\nCould you tell me more about:\n\n- **What are you working on?** (a project, a decision, a problem?)\n- **What's your goal?** (what are you hoping to accomplish?)\n- **Where are you stuck?** (or is this just starting something new?)\n\nGive me a bit more detail and I'll do my best to point you in the right direction! 😊"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 36,
+    "outputTokens": 160,
+    "totalTokens": 196,
+    "cacheReadInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 3027
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "ea0f7bd2-e489-4623-a79b-6aba6ac6465d",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
