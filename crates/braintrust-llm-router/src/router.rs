@@ -38,8 +38,9 @@ pub struct CompleteResponseWithRaw {
 }
 
 use crate::providers::{
-    is_openai_compatible, AnthropicProvider, AzureProvider, BedrockProvider, DatabricksProvider,
-    GoogleProvider, MistralProvider, OpenAIProvider, VertexProvider,
+    is_openai_compatible, openai_compatible_endpoint, AnthropicProvider, AzureProvider,
+    BedrockProvider, DatabricksProvider, GoogleProvider, MistralProvider, OpenAIProvider,
+    VertexProvider,
 };
 
 /// Create a provider instance from configuration parameters.
@@ -50,7 +51,7 @@ use crate::providers::{
 /// # Arguments
 ///
 /// * `kind` - Provider type: "openai", "anthropic", "azure", "google", "vertex", "bedrock", "mistral", or OpenAI-compatible
-/// * `endpoint` - Custom endpoint URL (optional)
+/// * `endpoint` - Custom endpoint URL (optional; uses the provider's registered default when omitted)
 /// * `endpoint_template` - Endpoint template with `<model>` placeholder (optional, OpenAI only)
 /// * `timeout` - Request timeout (optional)
 /// * `metadata` - Provider-specific options (organization_id, project, api_version, etc.)
@@ -125,16 +126,31 @@ pub fn create_provider(
             timeout,
             client_settings,
         )?)),
-        kind if is_openai_compatible(kind) => Ok(Arc::new(
-            OpenAIProvider::from_config(
-                endpoint,
-                endpoint_template,
-                timeout,
-                metadata,
-                client_settings,
-            )?
-            .with_provider_alias(kind.to_ascii_lowercase()),
-        )),
+        kind if is_openai_compatible(kind) => {
+            let mut default_endpoint = None;
+            let mut endpoint_template = endpoint_template;
+            if endpoint.is_none() && endpoint_template.is_none() {
+                if let Some(default) = openai_compatible_endpoint(kind) {
+                    if default.is_template {
+                        endpoint_template = Some(default.url);
+                    } else {
+                        default_endpoint = Some(Url::parse(default.url).map_err(|e| {
+                            Error::InvalidRequest(format!("invalid {kind} default endpoint: {e}"))
+                        })?);
+                    }
+                }
+            }
+            Ok(Arc::new(
+                OpenAIProvider::from_config(
+                    endpoint.or(default_endpoint.as_ref()),
+                    endpoint_template,
+                    timeout,
+                    metadata,
+                    client_settings,
+                )?
+                .with_provider_alias(kind.to_ascii_lowercase()),
+            ))
+        }
         other => Err(Error::InvalidRequest(format!(
             "unsupported provider kind: {other}"
         ))),
