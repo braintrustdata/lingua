@@ -69,6 +69,14 @@ pub struct GenerateContentRequest {
     /// Optional. Configuration options for model generation and outputs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generation_config: Option<GenerationConfig>,
+    /// Optional. Labels with user-defined metadata for the request. Optional. Labels must follow
+    /// standard unified Cloud label requirements: - Label keys must start with a letter. - Label
+    /// keys and values can be no longer than 63 characters (Unicode codepoints) and can only
+    /// contain lowercase letters, numeric characters, underscores, and dashes. - International
+    /// characters are allowed. Usage: - Safety identifiers from aggregators: Use the key
+    /// `safety_identifier` (e.g. `{"safety_identifier": "user_session_123"}`)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<HashMap<String, String>>,
     /// Required. The name of the `Model` to use for generating the completion. Format:
     /// `models/{model}`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -148,6 +156,10 @@ pub struct Content {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct Part {
+    /// Optional. Audio (input or output) transcription. This is only set when this Part contains
+    /// audio data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_transcription: Option<AudioTranscription>,
     /// Result of executing the `ExecutableCode`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code_execution_result: Option<CodeExecutionResult>,
@@ -169,6 +181,11 @@ pub struct Part {
     /// Inline media bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inline_data: Option<Blob>,
+    /// Optional. How the model processes this part's media for understanding. Only meaningful
+    /// for video parts (`inline_data` or `file_data` with video mime). Non-video parts ignore
+    /// this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_processing: Option<MediaProcessing>,
     /// Optional. Media resolution for the input media.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub media_resolution: Option<MediaResolution>,
@@ -201,6 +218,44 @@ pub struct Part {
     /// presented in inline_data or file_data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub video_metadata: Option<VideoMetadata>,
+}
+
+/// Optional. Audio (input or output) transcription. This is only set when this Part contains
+/// audio data.
+///
+/// The transcription of an audio part. For multi-speaker audio, each speaker segment is a
+/// separate Part with its own AudioTranscription carrying the speaker_label.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct AudioTranscription {
+    /// Optional. A label identifying the speaker of this audio segment (e.g. "spk_1", "spk_2").
+    /// Present when diarization is set.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speaker_label: Option<String>,
+    /// Required. The transcription text of this audio segment.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    /// Optional. Detailed word-level transcriptions and timing details. Present when
+    /// word_timestamp is set.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub words: Option<Vec<WordInfo>>,
+}
+
+/// Information about a single recognized word.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct WordInfo {
+    /// Optional. End offset in time of the word relative to the start of the audio.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_offset: Option<String>,
+    /// Optional. Start offset in time of the word relative to the start of the audio.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_offset: Option<String>,
+    /// Required. Transcript of the word.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub word: Option<String>,
 }
 
 /// Result of executing the `ExecutableCode`.
@@ -273,6 +328,11 @@ pub enum Language {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct FileData {
+    /// Optional. Specifies the name used to refer to this file to the model (e.g.
+    /// "my_file.pdf"). Used as the file reference identifier when `verbalization_mode` is set to
+    /// `REFERENCE_ONLY`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
     /// Required. URI.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file_uri: Option<String>,
@@ -407,6 +467,11 @@ pub struct Blob {
     /// Raw bytes for media formats.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
+    /// Optional. Specifies the name used to refer to this blob to the model (e.g.
+    /// "my_blob.png"). Used as the blob reference identifier when `verbalization_mode` is set to
+    /// `REFERENCE_ONLY`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
     /// The IANA standard MIME type of the source data. Examples of supported types: - Images:
     /// image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/gif,
     /// image/avif - Audio: audio/*, video/audio/s16le, video/audio/wav - Video: video/* - Text:
@@ -421,18 +486,31 @@ pub struct Blob {
     pub mime_type: Option<String>,
 }
 
+/// Optional. How the model processes this part's media for understanding. Only meaningful
+/// for video parts (`inline_data` or `file_data` with video mime). Non-video parts ignore
+/// this field.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum MediaProcessing {
+    Agentic,
+    #[serde(rename = "MEDIA_PROCESSING_UNSPECIFIED")]
+    MediaProcessingUnspecified,
+    Static,
+}
+
 /// Optional. Media resolution for the input media.
 ///
-/// Media resolution for the input media.
+/// Media resolution for tokenization.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "google/")]
 pub struct MediaResolution {
-    /// The media resolution level.
+    /// The tokenization quality used for given media. for Gemini API support .
     #[serde(skip_serializing_if = "Option::is_none")]
     pub level: Option<Level>,
 }
 
-/// The media resolution level.
+/// The tokenization quality used for given media. for Gemini API support .
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export_to = "google/")]
@@ -470,6 +548,9 @@ pub struct ToolCall {
     /// the matching `id`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+    /// Optional. The name of the tool that was called.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_name: Option<String>,
     /// Required. The type of tool that was called.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_type: Option<ToolType>,
@@ -554,6 +635,9 @@ pub struct GenerationConfig {
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response_json_schema: Option<serde_json::Value>,
+    /// Optional. Config for audio transcription (speech recognition).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_transcription_config: Option<AudioTranscriptionConfig>,
     /// Optional. Number of generated responses to return. If unset, this will default to 1.
     /// Please note that this doesn't work for previous generation models (Gemini 1.0 family)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -631,6 +715,7 @@ pub struct GenerationConfig {
     /// primitives or arrays. If set, a compatible `response_mime_type` must also be set.
     /// Compatible MIME types: `application/json`: Schema for JSON response. Refer to the [JSON
     /// text generation guide](https://ai.google.dev/gemini-api/docs/json-mode) for more details.
+    /// Deprecated. Use `response_format` instead.
     pub response_schema: Box<Option<Schema>>,
     /// Optional. Seed used in decoding. If not set, the request uses a randomly generated seed.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -674,6 +759,76 @@ pub struct GenerationConfig {
     /// Optional. Config for translation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub translation_config: Option<TranslationConfig>,
+}
+
+/// Optional. Config for audio transcription (speech recognition).
+///
+/// The audio transcription configuration.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct AudioTranscriptionConfig {
+    /// Optional. A list of phrases used for speech adaptation, which biases the ASR model to
+    /// improve recognition of these specific terms.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub adaptation_phrases: Option<Vec<String>>,
+    /// Optional. A list of custom vocabulary phrases to bias the speech recognition model toward
+    /// recognizing specific terms (product names, proper nouns, jargon).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_vocabulary: Option<Vec<String>>,
+    /// Optional. Configures speaker diarization.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diarization: Option<bool>,
+    /// Optional. The model will detect the language automatically.
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language_auto: Option<serde_json::Map<String, serde_json::Value>>,
+    /// Optional. BCP-47 language codes providing hints about the languages present in the audio.
+    /// If omitted or empty, defaults to automatic language detection.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language_codes: Option<Vec<String>>,
+    /// Optional. Specifies one or more languages in the audio.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language_hints: Option<LanguageHints>,
+    /// Optional. Configures transcription mode. Supported values: `VERBATIM`, `SMART`. If
+    /// unspecified, defaults to `VERBATIM` transcription. In `SMART` mode, the model performs
+    /// disfluency removal (eliminating filler words, repetitions, and false starts), light
+    /// grammatical cleanup, automatic formatting (paragraphs, bullet points, numbered lists),
+    /// and minor user edits (inline self-corrections). Timestamps and diarization are
+    /// incompatible with mode `SMART`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<AudioTranscriptionConfigMode>,
+    /// Optional. Configures word-level timestamp generation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub word_timestamp: Option<bool>,
+}
+
+/// Optional. Specifies one or more languages in the audio.
+///
+/// Provides hints to the model about possible languages present in the audio.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct LanguageHints {
+    /// Required. BCP-47 language codes.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language_codes: Option<Vec<String>>,
+}
+
+/// Optional. Configures transcription mode. Supported values: `VERBATIM`, `SMART`. If
+/// unspecified, defaults to `VERBATIM` transcription. In `SMART` mode, the model performs
+/// disfluency removal (eliminating filler words, repetitions, and false starts), light
+/// grammatical cleanup, automatic formatting (paragraphs, bullet points, numbered lists),
+/// and minor user edits (inline self-corrections). Timestamps and diarization are
+/// incompatible with mode `SMART`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum AudioTranscriptionConfigMode {
+    #[serde(rename = "MODE_UNSPECIFIED")]
+    ModeUnspecified,
+    Smart,
+    Verbatim,
 }
 
 /// Optional. Config for image generation. An error will be returned if this field is set for
@@ -915,8 +1070,8 @@ pub enum ResponseModality {
 /// [OpenAPI schema](https://spec.openapis.org/oas/v3.0.3#schema) and can be objects,
 /// primitives or arrays. If set, a compatible `response_mime_type` must also be set.
 /// Compatible MIME types: `application/json`: Schema for JSON response. Refer to the [JSON
-/// text generation guide](https://ai.google.dev/gemini-api/docs/json-mode) for more
-/// details.
+/// text generation guide](https://ai.google.dev/gemini-api/docs/json-mode) for more details.
+/// Deprecated. Use `response_format` instead.
 ///
 /// The `Schema` object allows the definition of input and output data types. These types can
 /// be objects, but also primitives and arrays. Represents a select subset of an [OpenAPI 3.0
@@ -1112,7 +1267,7 @@ pub struct VoiceConfig {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct PrebuiltVoiceConfig {
-    /// The name of the preset voice to use.
+    /// Optional. The name of the preset voice to use.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub voice_name: Option<String>,
 }
@@ -1344,7 +1499,7 @@ pub struct LatLng {
 
 /// Tool details that the model may use to generate response. A `Tool` is a piece of code
 /// that enables the system to interact with external systems to perform an action, or set of
-/// actions, outside of knowledge and scope of the model. Next ID: 16
+/// actions, outside of knowledge and scope of the model. Next ID: 17
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
@@ -1629,7 +1784,7 @@ pub enum DynamicRetrievalConfigMode {
 }
 
 /// A MCPServer is a server that can be called by the model to perform actions. It is a
-/// server that implements the MCP protocol. Next ID: 6
+/// server that implements the MCP protocol. Next ID: 7
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
@@ -1816,6 +1971,8 @@ pub enum FinishReason {
     Other,
     #[serde(rename = "PROHIBITED_CONTENT")]
     ProhibitedContent,
+    #[serde(rename = "PUP_LIMITED_DISABLED")]
+    PupLimitedDisabled,
     Recitation,
     Safety,
     Spii,
