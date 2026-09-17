@@ -40,7 +40,7 @@ pub struct Turn {
     pub response_id: Option<String>,
 
     // Step definition
-    pub request: Vec<Message>,
+    pub request: Option<Vec<Message>>,
     pub response: Option<AgentResponse>,
     pub work: Vec<WorkStep>,
 
@@ -49,20 +49,28 @@ pub struct Turn {
 
     pub start_time: DateTime<Utc>,
     pub end_time: Option<DateTime<Utc>>,
+    pub compaction: Option<Compaction>,
+}
+
+pub struct Compaction {
+    pub id: String,
+    pub replaced_message_count: Option<usize>,
 }
 
 pub struct AgentResponse {
     pub response: Option<AssistantContent>,
 
     pub usage: Option<UniversalUsage>,
+    pub start_time: Option<DateTime<Utc>>,
+    pub end_time: Option<DateTime<Utc>>,
 }
 
 pub struct ToolResult {
-    pub content: ToolContent,
+    pub content: Option<ToolContent>,
 }
 
 pub struct LLMAnalysis {
-    pub work: Vec<Message>,
+    pub work: Option<Vec<Message>>,
     pub model: Option<String>,
     pub params: Option<UniversalParams>,
     pub usage: Option<UniversalUsage>,
@@ -71,6 +79,9 @@ pub struct LLMAnalysis {
 pub struct WorkStep {
     pub id: String,        // span's id
     pub span_type: String, // span type
+    pub name: Option<String>,
+    pub error: Option<Value>,
+    pub tool_call_id: Option<String>,
 
     pub start_time: DateTime<Utc>,
     pub end_time: Option<DateTime<Utc>>,
