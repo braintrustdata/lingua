@@ -1,5 +1,5 @@
 use crate::{
-    universal::{AssistantContent, UserContent},
+    universal::{AssistantContent, ToolContent, UserContent},
     Message, UniversalParams, UniversalUsage,
 };
 use serde_json::{Map, Value};
@@ -32,30 +32,51 @@ pub struct Section {
     pub step_ids: Vec<String>,
 }
 
+pub enum Step {
+    Turn(Turn),
+    Activity(Activity),
+}
+
 pub struct Turn {
-    pub id: String, // Best practice is to use the id of the first span
-    pub kind: StepKind,
+    pub request_id: String,
+    pub response_id: Option<String>,
 
     // Step definition
     pub request: Vec<Message>,
+    pub response: Option<AgentResponse>,
     pub work: Vec<WorkStep>,
-    pub response: Option<AssistantContent>,
     pub model: Option<String>,
     pub params: Option<UniversalParams>,
+}
 
-    // Metrics
+pub struct AgentResponse {
+    pub id: String,
+    pub response: Option<AssistantContent>,
+
     pub usage: Option<UniversalUsage>,
     pub start_time: std::time::Instant,
     pub end_time: Option<std::time::Instant>,
 }
 
-pub enum StepKind {
-    Agent,
-    SupportingWork, // Can u come up with a better name plz
-    Custom(String),
+pub struct ToolResult {
+    pub id: String,
+    pub content: ToolContent,
+
+    pub start_time: std::time::Instant,
+    pub end_time: Option<std::time::Instant>,
+}
+
+pub struct SupportingWork {
+    pub id: String,
+    pub work: Vec<Message>,
+    pub usage: Option<UniversalUsage>,
+    pub start_time: std::time::Instant,
+    pub end_time: Option<std::time::Instant>,
 }
 
 pub enum WorkStep {
-    Step(Box<Step>),
-    Trajectory(Box<Trajectory>),
+    AgentResponse(Box<AgentResponse>),
+    ToolResult(Box<ToolResult>),
+    SupportingWork(Box<SupportingWork>),
+    SubAgent(Box<Trajectory>),
 }
