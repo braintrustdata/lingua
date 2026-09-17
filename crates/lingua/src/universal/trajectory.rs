@@ -81,7 +81,6 @@ pub struct WorkStep {
     pub span_type: String, // span type
     pub name: Option<String>,
     pub error: Option<Value>,
-    pub tool_call_id: Option<String>,
 
     pub start_time: DateTime<Utc>,
     pub end_time: Option<DateTime<Utc>>,
