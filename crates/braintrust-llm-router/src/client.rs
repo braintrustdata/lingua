@@ -1,6 +1,7 @@
 use std::error::Error as StdError;
 use std::io::ErrorKind;
 use std::net::SocketAddr;
+use std::sync::{Arc, Weak};
 use std::time::Duration;
 
 use dashmap::DashMap;
@@ -187,16 +188,15 @@ fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
     );
 
     reqwest_middleware::ClientBuilder::new(client)
-        .with(ResponseMetadataMiddleware)
         .with(retry_middleware)
         // Time each retry attempt through response headers, including connection acquisition,
         // setup, upload, and upstream processing; exclude retry backoff and response body reads.
-        .with(HeaderTimingMiddleware)
+        .with(ResponseMetadataMiddleware)
         .build()
 }
 
 #[derive(Clone, Default)]
-pub struct HttpRequestStats(std::sync::Arc<parking_lot::Mutex<HttpRequestMeasurements>>);
+pub struct HttpRequestStats(Arc<parking_lot::Mutex<HttpRequestMeasurements>>);
 
 #[derive(Default)]
 struct HttpRequestMeasurements {
@@ -230,41 +230,28 @@ struct HttpAttemptTimer {
 }
 
 impl HttpAttemptTimer {
-    fn start() -> Option<Self> {
-        HTTP_REQUEST_STATS
-            .try_with(|stats| {
-                stats.0.lock().attempts += 1;
-                Self {
-                    stats: stats.clone(),
-                    started: tokio::time::Instant::now(),
-                }
-            })
-            .ok()
+    fn start(extensions: &mut Extensions) -> Option<Arc<Self>> {
+        if extensions
+            .get::<Weak<Self>>()
+            .and_then(Weak::upgrade)
+            .is_some()
+        {
+            return None;
+        }
+        let stats = HTTP_REQUEST_STATS.try_with(Clone::clone).ok()?;
+        stats.0.lock().attempts += 1;
+        let timer = Arc::new(Self {
+            stats,
+            started: tokio::time::Instant::now(),
+        });
+        extensions.insert(Arc::downgrade(&timer));
+        Some(timer)
     }
 }
 
 impl Drop for HttpAttemptTimer {
     fn drop(&mut self) {
         self.stats.0.lock().elapsed += self.started.elapsed();
-    }
-}
-
-struct HeaderTimingMiddleware;
-
-#[async_trait::async_trait]
-impl Middleware for HeaderTimingMiddleware {
-    async fn handle(
-        &self,
-        req: Request,
-        extensions: &mut Extensions,
-        next: Next<'_>,
-    ) -> reqwest_middleware::Result<Response> {
-        let timer = HttpAttemptTimer::start();
-        let result = next.run(req, extensions).await;
-        if let (Some(timer), Ok(response)) = (&timer, &result) {
-            timer.stats.0.lock().last_response_peer_address = response.remote_addr();
-        }
-        result
     }
 }
 
@@ -278,7 +265,11 @@ impl Middleware for ResponseMetadataMiddleware {
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> reqwest_middleware::Result<Response> {
+        let timer = HttpAttemptTimer::start(extensions);
         let response = next.run(req, extensions).await?;
+        if let Some(timer) = &timer {
+            timer.stats.0.lock().last_response_peer_address = response.remote_addr();
+        }
 
         #[cfg(feature = "tracing")]
         tracing::Span::current().record(
@@ -387,7 +378,11 @@ static SHARED_CLIENTS: Lazy<DashMap<ClientSettings, ClientWithMiddleware>> =
     Lazy::new(DashMap::new);
 
 pub fn set_override_client(client: ClientWithMiddleware) {
-    *OVERRIDE_CLIENT.write() = Some(client);
+    *OVERRIDE_CLIENT.write() = Some(
+        reqwest_middleware::ClientBuilder::from_client(client)
+            .with(ResponseMetadataMiddleware)
+            .build(),
+    );
 }
 
 pub fn clear_override_client() {
@@ -470,7 +465,7 @@ mod tests {
         assert_eq!(slow_response.unwrap().text().await.unwrap(), "ok");
         assert_eq!(fast.snapshot(), Some((10.0, 1)));
         assert_eq!(slow.snapshot(), Some((100.0, 1)));
-        assert!(HttpAttemptTimer::start().is_none());
+        assert!(HttpAttemptTimer::start(&mut Extensions::new()).is_none());
         assert!(HttpRequestStats::default().snapshot().is_none());
     }
 
@@ -506,21 +501,40 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn http_stats_record_last_response_peer_address() {
+    #[serial]
+    async fn http_stats_cover_default_and_override_clients_without_duplicate_attempts() {
+        struct ClearOverride;
+        impl Drop for ClearOverride {
+            fn drop(&mut self) {
+                clear_override_client();
+            }
+        }
+        let _cleanup = ClearOverride;
         let server = MockServer::start().await;
         Mock::given(method("GET"))
-            .respond_with(ResponseTemplate::new(200))
+            .respond_with(ResponseTemplate::new(200).set_delay(Duration::from_millis(10)))
             .mount(&server)
             .await;
-        let client = build_retrying_middleware_client(Client::new());
-        let stats = HttpRequestStats::default();
-        assert_eq!(stats.last_response_peer_address(), None);
-        stats.scope(client.get(server.uri()).send()).await.unwrap();
-        assert_eq!(stats.last_response_peer_address(), Some(*server.address()));
-        assert_eq!(
-            HttpRequestStats::default().last_response_peer_address(),
-            None
-        );
+        for override_client in [
+            None,
+            Some(ClientWithMiddleware::from(Client::new())),
+            Some(build_retrying_middleware_client(Client::new())),
+        ] {
+            match override_client {
+                Some(client) => set_override_client(client),
+                None => clear_override_client(),
+            }
+            for _ in 0..2 {
+                let client = build_middleware_client(&ClientSettings::default()).unwrap();
+                let stats = HttpRequestStats::default();
+                assert_eq!(stats.last_response_peer_address(), None);
+                stats.scope(client.get(server.uri()).send()).await.unwrap();
+                let (elapsed_ms, attempts) = stats.snapshot().unwrap();
+                assert!(elapsed_ms >= 10.0);
+                assert_eq!(attempts, 1);
+                assert_eq!(stats.last_response_peer_address(), Some(*server.address()));
+            }
+        }
     }
 
     // Fixed localhost-only TLS material for these tests. The private key does not authenticate to
