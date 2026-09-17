@@ -198,37 +198,6 @@ fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>
     let mut messages = Vec::new();
 
     for item in items {
-        if let Ok(message) = serde_json::from_value::<Message>(item.clone()) {
-            let has_media = match &message {
-                Message::User {
-                    content: UserContent::Array(parts),
-                }
-                | Message::System {
-                    content: UserContent::Array(parts),
-                }
-                | Message::Developer {
-                    content: UserContent::Array(parts),
-                } => parts.iter().any(|part| {
-                    matches!(
-                        part,
-                        UserContentPart::Image { .. }
-                            | UserContentPart::File { .. }
-                            | UserContentPart::Audio { .. }
-                    )
-                }),
-                Message::Assistant {
-                    content: AssistantContent::Array(parts),
-                    ..
-                } => parts
-                    .iter()
-                    .any(|part| matches!(part, AssistantContentPart::File { .. })),
-                _ => false,
-            };
-            if has_media {
-                messages.push(message);
-                continue;
-            }
-        }
         // Native Anthropic thinking blocks must use the canonical parser so adjacent text
         // metadata survives. Keep the existing parser order for every other role message.
         #[cfg(feature = "anthropic")]
