@@ -653,7 +653,7 @@ mod native_fetch {
                 .get(current_url.clone())
                 .send()
                 .await
-                .map_err(|e| MediaError::FetchError(e.to_string()))?;
+                .map_err(|e| MediaError::FetchError(e.without_url().to_string()))?;
 
             if !response.status().is_redirection() {
                 return Ok(response);
