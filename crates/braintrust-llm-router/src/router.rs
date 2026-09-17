@@ -716,6 +716,8 @@ impl Router {
         output_format: ProviderFormat,
         fallback_aliases: &[String],
     ) -> Result<Vec<ProviderRoute>> {
+        let (spec, catalog_format, aliases) = self.resolver.resolve(model)?;
+        Self::validate_http_model(&spec)?;
         if !fallback_aliases.is_empty() {
             return self.resolve_provider_routes_for_failover(
                 model,
@@ -724,7 +726,6 @@ impl Router {
             );
         }
 
-        let (spec, catalog_format, aliases) = self.resolver.resolve(model)?;
         let routes: Vec<Result<ProviderRoute>> = aliases
             .iter()
             .map(|alias| {
@@ -965,13 +966,7 @@ impl Router {
             })
     }
 
-    fn resolve_provider(
-        &self,
-        output_format: ProviderFormat,
-        spec: Arc<ModelSpec>,
-        catalog_format: ProviderFormat,
-        alias: String,
-    ) -> Result<ProviderRoute> {
+    fn validate_http_model(spec: &ModelSpec) -> Result<()> {
         let voice_endpoint = match spec.flavor {
             ModelFlavor::Realtime => Some("/realtime"),
             ModelFlavor::Live => Some("/live/sessions"),
@@ -983,6 +978,18 @@ impl Router {
                 spec.model
             )));
         }
+
+        Ok(())
+    }
+
+    fn resolve_provider(
+        &self,
+        output_format: ProviderFormat,
+        spec: Arc<ModelSpec>,
+        catalog_format: ProviderFormat,
+        alias: String,
+    ) -> Result<ProviderRoute> {
+        Self::validate_http_model(&spec)?;
 
         #[cfg(feature = "tracing")]
         let registered: Vec<&str> = self.providers.keys().map(String::as_str).collect();
@@ -3037,7 +3044,7 @@ mod tests {
             ("gpt-live-1", "live", "/live/sessions"),
         ] {
             let catalog = ModelCatalog::from_json_str(&format!(
-                r#"{{"{model}":{{"format":"openai","flavor":"{flavor}"}}}}"#
+                r#"{{"{model}":{{"format":"openai","flavor":"{flavor}","fallback_models":["gpt-5-mini"]}},"gpt-5-mini":{{"format":"openai","flavor":"chat"}}}}"#
             ))
             .expect("voice catalog parses");
             let router = Router::builder()
