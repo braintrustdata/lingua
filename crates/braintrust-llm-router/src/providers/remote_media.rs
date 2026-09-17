@@ -585,7 +585,7 @@ mod tests {
             "https://bucket.s3.amazonaws.com/opaque-key?X-Amz-Expires=3600&response-content-disposition=attachment%3B%20filename%3D%22invoice.PDF%22",
             "https://bucket.s3.amazonaws.com/opaque-key?X-Amz-Expires=3600&response-content-type=application%2Fpdf",
         ] {
-            for format in [ProviderFormat::ChatCompletions, ProviderFormat::Anthropic, ProviderFormat::Responses] {
+            for format in [ProviderFormat::ChatCompletions, ProviderFormat::Anthropic, ProviderFormat::VertexAnthropic, ProviderFormat::Responses] {
                 let body = Bytes::from(lingua::serde_json::to_vec(&json!({
                     "model": "gpt-5-mini",
                     "messages": [{"role": "user", "content": [
@@ -613,8 +613,9 @@ mod tests {
                     assert_eq!(content[1]["type"], "file");
                     assert_eq!(content[1]["file"]["file_data"], "data:application/pdf;base64,JVBERi0xLjQ=");
                     assert_eq!(content[2]["type"], "image_url");
-                } else if format == ProviderFormat::Anthropic {
+                } else if matches!(format, ProviderFormat::Anthropic | ProviderFormat::VertexAnthropic) {
                     assert_eq!(content[1]["type"], "document");
+                    assert_eq!(content[1]["source"]["type"], "base64");
                     assert_eq!(content[1]["source"]["media_type"], "application/pdf");
                     assert_eq!(content[1]["source"]["data"], "JVBERi0xLjQ=");
                     assert_eq!(content[2]["type"], "image");
