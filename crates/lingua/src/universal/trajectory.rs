@@ -2,6 +2,7 @@ use crate::{
     universal::{AssistantContent, ToolContent, UserContent},
     Message, UniversalParams, UniversalUsage,
 };
+use chrono::{DateTime, Utc};
 use serde_json::{Map, Value};
 use std::vec::Vec;
 
@@ -11,6 +12,7 @@ pub struct Trajectory {
     pub sections: Option<Vec<Section>>,
     pub turns: Vec<Turn>,
     pub metadata: Map<String, Value>,
+    pub version: Option<String>,
 }
 
 pub enum Scope {
@@ -23,7 +25,7 @@ pub struct Agent {
     pub name: Option<String>,
     pub version: Option<String>,
     pub metadata: Map<String, Value>,
-    pub instructions: Option<UserContent>, // System prompt goes here
+    pub instructions: Option<UserContent>,
 }
 
 pub struct Section {
@@ -32,12 +34,8 @@ pub struct Section {
     pub step_ids: Vec<String>,
 }
 
-pub enum Step {
-    Turn(Turn),
-    Activity(Activity),
-}
-
 pub struct Turn {
+    // Each of these is the id of the corresponding span
     pub request_id: String,
     pub response_id: Option<String>,
 
@@ -45,38 +43,44 @@ pub struct Turn {
     pub request: Vec<Message>,
     pub response: Option<AgentResponse>,
     pub work: Vec<WorkStep>,
+
     pub model: Option<String>,
     pub params: Option<UniversalParams>,
+
+    pub start_time: DateTime<Utc>,
+    pub end_time: Option<DateTime<Utc>>,
 }
 
 pub struct AgentResponse {
-    pub id: String,
     pub response: Option<AssistantContent>,
 
     pub usage: Option<UniversalUsage>,
-    pub start_time: std::time::Instant,
-    pub end_time: Option<std::time::Instant>,
 }
 
 pub struct ToolResult {
-    pub id: String,
     pub content: ToolContent,
-
-    pub start_time: std::time::Instant,
-    pub end_time: Option<std::time::Instant>,
 }
 
-pub struct SupportingWork {
-    pub id: String,
+pub struct LLMAnalysis {
     pub work: Vec<Message>,
+    pub model: Option<String>,
+    pub params: Option<UniversalParams>,
     pub usage: Option<UniversalUsage>,
-    pub start_time: std::time::Instant,
-    pub end_time: Option<std::time::Instant>,
 }
 
-pub enum WorkStep {
+pub struct WorkStep {
+    pub id: String,        // span's id
+    pub span_type: String, // span type
+
+    pub start_time: DateTime<Utc>,
+    pub end_time: Option<DateTime<Utc>>,
+
+    pub work: Work,
+}
+
+pub enum Work {
     AgentResponse(Box<AgentResponse>),
     ToolResult(Box<ToolResult>),
-    SupportingWork(Box<SupportingWork>),
+    LLMAnalysis(Box<LLMAnalysis>),
     SubAgent(Box<Trajectory>),
 }
