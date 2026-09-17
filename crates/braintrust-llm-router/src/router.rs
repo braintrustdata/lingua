@@ -10,7 +10,8 @@ use bytes::Bytes;
 
 use crate::auth::AuthConfig;
 use crate::catalog::{
-    is_gemini_api_model, load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec,
+    is_gemini_api_model, load_catalog_from_disk, ModelCatalog, ModelFlavor, ModelResolver,
+    ModelSpec,
 };
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
@@ -971,6 +972,18 @@ impl Router {
         catalog_format: ProviderFormat,
         alias: String,
     ) -> Result<ProviderRoute> {
+        let voice_endpoint = match spec.flavor {
+            ModelFlavor::Realtime => Some("/realtime"),
+            ModelFlavor::Live => Some("/live/sessions"),
+            _ => None,
+        };
+        if let Some(endpoint) = voice_endpoint {
+            return Err(Error::InvalidRequest(format!(
+                "Model {} requires the {endpoint} WebSocket endpoint",
+                spec.model
+            )));
+        }
+
         #[cfg(feature = "tracing")]
         let registered: Vec<&str> = self.providers.keys().map(String::as_str).collect();
         if !self.providers.contains_key(alias.as_str()) {
@@ -3015,6 +3028,39 @@ mod tests {
         let (alias, _, _, _, format) = &routes[0];
         assert_eq!(alias, "custom-vertex");
         assert_eq!(*format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn voice_models_reject_http_routes() {
+        for (model, flavor, endpoint) in [
+            ("gpt-realtime-2.1", "realtime", "/realtime"),
+            ("gpt-live-1", "live", "/live/sessions"),
+        ] {
+            let catalog = ModelCatalog::from_json_str(&format!(
+                r#"{{"{model}":{{"format":"openai","flavor":"{flavor}"}}}}"#
+            ))
+            .expect("voice catalog parses");
+            let router = Router::builder()
+                .with_catalog(Arc::new(catalog))
+                .add_provider(
+                    "openai",
+                    FakeProvider {
+                        name: "openai",
+                        formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                    },
+                    dummy_auth(),
+                    vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                )
+                .build()
+                .expect("router builds");
+            for format in [ProviderFormat::ChatCompletions, ProviderFormat::Responses] {
+                for aliases in [vec![], vec!["openai".to_string()]] {
+                    let result = router.resolve_provider_routes(model, format, &aliases);
+                    assert!(matches!(result, Err(Error::InvalidRequest(message))
+                        if message.contains(model) && message.contains(endpoint)));
+                }
+            }
+        }
     }
 
     #[test]
