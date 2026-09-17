@@ -17,6 +17,8 @@ pub struct Trajectory {
     pub agent: Agent,
     #[ts(optional)]
     pub sections: Option<Vec<Section>>,
+    #[ts(optional)]
+    pub findings: Option<Vec<Finding>>,
     pub turns: Vec<Turn>,
     #[ts(type = "Record<string, unknown>")]
     pub metadata: Map<String, Value>,
@@ -51,6 +53,71 @@ pub struct Section {
     pub name: String,
     pub description: String,
     pub step_ids: Vec<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct Finding {
+    #[ts(optional)]
+    pub title: Option<String>,
+    #[ts(optional)]
+    pub severity: Option<FindingSeverity>,
+    #[ts(optional)]
+    pub kind: Option<String>,
+    #[ts(optional)]
+    pub hypothesis: Option<String>,
+    #[ts(optional)]
+    pub root_cause: Option<String>,
+    #[ts(optional)]
+    pub next_steps: Option<Vec<String>>,
+    #[ts(optional)]
+    pub evidence: Option<Vec<FindingEvidence>>,
+    #[ts(optional)]
+    pub pattern_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum FindingSeverity {
+    Critical,
+    High,
+    Medium,
+    Low,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct FindingEvidence {
+    pub step_id: String,
+    #[ts(optional)]
+    pub field: Option<EvidenceField>,
+    #[ts(optional)]
+    pub part: Option<EvidencePart>,
+    #[ts(optional)]
+    pub explanation: Option<String>,
+    #[ts(optional)]
+    pub quote: Option<String>,
+    #[ts(optional)]
+    pub highlight_terms: Option<Vec<String>>,
+    #[ts(optional)]
+    pub leading_text: Option<String>,
+    #[ts(optional)]
+    pub trailing_text: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidenceField {
+    Input,
+    Output,
+    Error,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidencePart {
+    Reasoning,
+    Arguments,
 }
 
 #[skip_serializing_none]
