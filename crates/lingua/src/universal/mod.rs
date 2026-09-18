@@ -19,6 +19,7 @@ pub mod response_format;
 pub mod stream;
 pub mod tool_choice;
 pub mod tools;
+pub mod trajectory;
 pub mod transform;
 
 // Re-export main types for convenience

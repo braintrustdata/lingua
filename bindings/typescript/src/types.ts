@@ -42,3 +42,8 @@ export type { TokenBudget } from "./generated/TokenBudget";
 export type { ChatCompletionRequestMessage } from "./generated/openai/ChatCompletionRequestMessage";
 export type { InputItem } from "./generated/openai/InputItem";
 export type { InputMessage } from "./generated/anthropic/InputMessage";
+export type { Trajectory } from "./generated/Trajectory";
+export type { Turn } from "./generated/Turn";
+export type { WorkStep } from "./generated/WorkStep";
+export type { AgentResponse } from "./generated/AgentResponse";
+export type { UniversalUsage } from "./generated/UniversalUsage";
