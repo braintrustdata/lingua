@@ -1072,6 +1072,13 @@ fn openai_file_payload_from_data(
         return Ok(OpenAIFilePayload::FileUrl(data));
     }
 
+    if media_type.eq_ignore_ascii_case("application/pdf") {
+        return Ok(OpenAIFilePayload::FileData(format!(
+            "data:application/pdf;base64,{}",
+            data
+        )));
+    }
+
     Ok(OpenAIFilePayload::FileData(format!(
         "data:{};base64,{}",
         media_type,
@@ -1113,7 +1120,8 @@ fn universal_file_payload_from_openai(
             let decoded_text = base64::engine::general_purpose::STANDARD
                 .decode(&block.data)
                 .ok()
-                .and_then(|bytes| String::from_utf8(bytes).ok());
+                .and_then(|bytes| String::from_utf8(bytes).ok())
+                .filter(|_| !block.media_type.eq_ignore_ascii_case("application/pdf"));
             let has_known_extension = filename
                 .as_deref()
                 .and_then(|name| name.rsplit('.').next())
@@ -5340,6 +5348,32 @@ fn convert_user_content_part_to_chat_completion_part(
             })
         }
         UserContentPart::File {
+            data: serde_json::Value::String(data),
+            filename,
+            media_type,
+            provider_options: None,
+        } if media_type.eq_ignore_ascii_case("application/pdf")
+            && !is_remote_media_uri(&data) => {
+            let OpenAIFilePayload::FileData(file_data) = openai_file_payload_from_data(serde_json::Value::String(data), &media_type)? else {
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: "Remote PDF URLs are not supported by OpenAI ChatCompletions; provide PDF data instead".into(),
+                });
+            };
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: None,
+                content_part_type: openai::PurpleType::File,
+                prompt_cache_breakpoint: None,
+                image_url: None,
+                input_audio: None,
+                file: Some(openai::File {
+                    file_data: Some(file_data),
+                    file_id: None,
+                    filename: openai_filename_for_file(filename, &media_type, &None),
+                }),
+                refusal: None,
+            })
+        }
+        UserContentPart::File {
             media_type,
             ..
         } => {
@@ -7730,6 +7764,52 @@ mod tests {
         assert!(error
             .to_string()
             .contains("is not supported by OpenAI ChatCompletions"));
+    }
+
+    #[test]
+    fn chat_completions_pdf_rejects_remote_urls_and_provider_options() {
+        for (data, provider_options) in [
+            ("https://example.com/document.pdf", None),
+            (
+                "JVBERi0xLjQ=",
+                Some(ProviderOptions {
+                    options: serde_json::from_str(r#"{"citations":{"enabled":true}}"#).unwrap(),
+                }),
+            ),
+        ] {
+            let input = UserContentPart::File {
+                data: serde_json::Value::String(data.into()),
+                filename: Some("document.pdf".into()),
+                media_type: "application/pdf".into(),
+                provider_options,
+            };
+            let error = convert_user_content_part_to_chat_completion_part(input).unwrap_err();
+            assert!(matches!(error, ConvertError::UnsupportedInputType { .. }));
+        }
+    }
+
+    #[test]
+    fn responses_input_pdf_preserves_utf8_compatible_bytes() {
+        let input = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputFile,
+            file_data: Some("data:application/pdf;base64,JVBERi0xLjQ=".to_string()),
+            filename: Some("document.pdf".to_string()),
+            ..Default::default()
+        };
+        let converted = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(input)
+            .expect("PDF should import");
+        let UserContentPart::File {
+            data,
+            filename,
+            media_type,
+            ..
+        } = converted
+        else {
+            panic!("expected file content");
+        };
+        assert_eq!(data, serde_json::Value::String("JVBERi0xLjQ=".to_string()));
+        assert_eq!(filename.as_deref(), Some("document.pdf"));
+        assert_eq!(media_type, "application/pdf");
     }
 
     #[test]

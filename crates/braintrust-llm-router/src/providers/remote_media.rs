@@ -6,11 +6,14 @@ use bytes::Bytes;
 use lingua::processing::{adapter_for_format, adapters, normalize_universal_request_for_target};
 use lingua::providers::google::generated::Part;
 use lingua::providers::openai::generated::{
-    ContentInputItemContentList, HilariousType, InputAudio, InputAudioFormat, PurpleContentPart,
-    PurpleType,
+    ContentInputItemContentList, File, HilariousType, InputAudio, InputAudioFormat,
+    PurpleContentPart, PurpleType,
 };
 use lingua::universal::message::{AudioFormat, Message, UserContent, UserContentPart};
-use lingua::util::media::MediaBlock;
+use lingua::util::media::{
+    media_block_to_url, parse_base64_data_url, parse_file_metadata_from_url, FileMetadata,
+    MediaBlock,
+};
 use lingua::{ProviderFormat, TransformError};
 
 use crate::catalog::ModelSpec;
@@ -23,6 +26,7 @@ use super::json_selection::{
 };
 
 const MAX_REMOTE_MEDIA_BYTES: usize = 5 * 1024 * 1024;
+const MAX_REMOTE_PDF_BYTES: usize = 20 * 1024 * 1024;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct RemoteMediaPolicy {
@@ -50,21 +54,98 @@ impl RemoteMediaPolicy {
         inline_audio: true,
     };
 
+    pub(crate) const NONE: Self = Self {
+        inline_images: false,
+        inline_files: false,
+        inline_audio: false,
+    };
+
     pub(crate) fn for_format(format: ProviderFormat) -> Option<Self> {
         match format {
             ProviderFormat::Google => Some(Self::GOOGLE),
             ProviderFormat::BedrockAnthropic | ProviderFormat::Converse => Some(Self::BEDROCK),
             ProviderFormat::ChatCompletions => Some(Self::OPENAI),
             ProviderFormat::Anthropic
-            | ProviderFormat::Mistral
-            | ProviderFormat::Responses
             | ProviderFormat::VertexAnthropic
-            | ProviderFormat::Unknown => None,
+            | ProviderFormat::Responses => Some(Self::NONE),
+            ProviderFormat::Mistral | ProviderFormat::Unknown => None,
         }
     }
 }
 
 type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
+
+fn pdf_url_metadata(url: &str) -> Option<FileMetadata> {
+    if !is_remote_media_url(url) {
+        return None;
+    }
+    parse_file_metadata_from_url(url).filter(|metadata| {
+        metadata.filename.to_ascii_lowercase().ends_with(".pdf")
+            || metadata
+                .content_type
+                .as_deref()
+                .is_some_and(|mime| normalized_media_type(mime) == "application/pdf")
+    })
+}
+
+async fn normalize_pdf_images<F>(body: Bytes, fetch: &mut F) -> Result<Bytes>
+where
+    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+{
+    let mut replacements = Vec::new();
+    for (pointer, part) in
+        select::<PurpleContentPart>(&body, &[Key("messages"), Each, Key("content"), Each])?
+    {
+        if part.content_part_type != PurpleType::ImageUrl {
+            continue;
+        }
+        let Some(image) = part.image_url else {
+            continue;
+        };
+        let (filename, mut media) = if let Some(media) = parse_base64_data_url(&image.url) {
+            if normalized_media_type(&media.media_type) != "application/pdf" {
+                continue;
+            }
+            ("file.pdf".to_string(), media)
+        } else if let Some(metadata) = pdf_url_metadata(&image.url) {
+            let media = fetch(&image.url).await?;
+            if normalized_media_type(&media.media_type) != "application/pdf" {
+                return Err(Error::InvalidRequest(
+                    "PDF attachment URL did not return application/pdf".into(),
+                ));
+            }
+            (metadata.filename, media)
+        } else {
+            continue;
+        };
+        media.media_type = "application/pdf".into();
+        replacements.push((
+            pointer,
+            File {
+                filename: Some(filename),
+                file_data: Some(media_block_to_url(&media)),
+                file_id: None,
+            },
+        ));
+    }
+    if replacements.is_empty() {
+        return Ok(body);
+    }
+    let mut payload: lingua::serde_json::Value = lingua::serde_json::from_slice(&body)?;
+    for (pointer, file) in replacements {
+        let part = payload
+            .pointer_mut(&pointer)
+            .and_then(|part| part.as_object_mut())
+            .ok_or_else(|| Error::InvalidRequest("selected PDF part is missing".into()))?;
+        part.remove("image_url");
+        part.insert(
+            "type".into(),
+            lingua::serde_json::to_value(PurpleType::File)?,
+        );
+        part.insert("file".into(), lingua::serde_json::to_value(file)?);
+    }
+    Ok(Bytes::from(lingua::serde_json::to_vec(&payload)?))
+}
 
 // An internal fetch operation, not a provider wire format. Paths are obtained while
 // deserializing generated content parts; only the selected data string is replaced.
@@ -215,14 +296,19 @@ async fn fetch_remote_media_as_base64(
     url: &str,
     additional_ca_bundle: Option<&str>,
 ) -> Result<MediaBlock> {
+    let is_pdf = pdf_url_metadata(url).is_some();
     lingua::util::media::convert_media_to_base64_with_additional_ca_bundle(
         url,
-        None,
-        Some(MAX_REMOTE_MEDIA_BYTES),
+        is_pdf.then_some(&["application/pdf"][..]),
+        Some(if is_pdf {
+            MAX_REMOTE_PDF_BYTES
+        } else {
+            MAX_REMOTE_MEDIA_BYTES
+        }),
         additional_ca_bundle,
     )
     .await
-    .map_err(|e| Error::InvalidRequest(format!("failed to fetch media URL {url}: {e}")))
+    .map_err(|e| Error::InvalidRequest(format!("failed to fetch media URL: {e}")))
 }
 
 #[cfg(test)]
@@ -254,13 +340,27 @@ where
     F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
 {
     let parsed = lingua::parse_json_body(body)?;
-    let payload = parsed.value;
-    let body = parsed.bytes;
     let source_adapter = adapters()
         .iter()
         .map(|adapter| adapter.as_ref())
-        .find(|adapter| adapter.detect_request(&payload))
+        .find(|adapter| adapter.detect_request(&parsed.value))
         .ok_or(TransformError::UnableToDetectRequestFormat)?;
+    let normalized_body = if source_adapter.format() == ProviderFormat::ChatCompletions {
+        normalize_pdf_images(parsed.bytes.clone(), &mut fetch).await?
+    } else {
+        parsed.bytes.clone()
+    };
+    let pdf_normalized = normalized_body != parsed.bytes;
+    let parsed = if pdf_normalized {
+        lingua::parse_json_body(normalized_body)?
+    } else {
+        parsed
+    };
+    let payload = parsed.value;
+    let body = parsed.bytes;
+    if source_adapter.format() == ProviderFormat::Responses {
+        reject_remote_responses_audio(&body)?;
+    }
     let requires_json_response = source_adapter
         .request_requires_json_response(&payload)
         .map_err(Error::from)?;
@@ -282,7 +382,7 @@ where
             },
             detected_format: None,
             requires_json_response,
-            lingua_passthrough: true,
+            lingua_passthrough: !pdf_normalized,
         });
     }
 
@@ -476,6 +576,114 @@ mod tests {
         spec(model, ProviderFormat::ChatCompletions)
     }
 
+    #[tokio::test]
+    async fn playground_pdf_image_url_becomes_provider_document() {
+        for url in [
+            "data:application/pdf;base64,JVBERi0xLjQ=",
+            "data:APPLICATION/PDF;base64,JVBERi0xLjQ=",
+            "https://bucket.s3.amazonaws.com/opaque-key?X-Amz-Expires=3600&response-content-type=application%2Fpdf&response-content-disposition=attachment%3B%20filename%3D%22invoice.pdf%22",
+            "https://bucket.s3.amazonaws.com/opaque-key?X-Amz-Expires=3600&response-content-disposition=attachment%3B%20filename%3D%22invoice.PDF%22",
+            "https://bucket.s3.amazonaws.com/opaque-key?X-Amz-Expires=3600&response-content-type=application%2Fpdf",
+        ] {
+            for format in [ProviderFormat::ChatCompletions, ProviderFormat::Anthropic, ProviderFormat::VertexAnthropic, ProviderFormat::Responses] {
+                let body = Bytes::from(lingua::serde_json::to_vec(&json!({
+                    "model": "gpt-5-mini",
+                    "messages": [{"role": "user", "content": [
+                        {"type": "text", "text": "Extract this document"},
+                        {"type": "image_url", "image_url": {"url": url}},
+                        {"type": "image_url", "image_url": {"url": "https://example.com/image.png"}}
+                    ]}]
+                })).unwrap());
+                let prepared = prepare_request_with_remote_media_and_fetch(
+                    body,
+                    &spec("gpt-5-mini", format),
+                    format,
+                    RemoteMediaPolicy::for_format(format).unwrap(),
+                    |fetched_url| {
+                        assert_eq!(fetched_url, url);
+                        Box::pin(async { Ok(MediaBlock {
+                            media_type: "application/pdf".into(),
+                            data: "JVBERi0xLjQ=".into(),
+                        }) })
+                    },
+                ).await.unwrap();
+                let actual: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared.bytes).unwrap();
+                let content = &actual["messages"][0]["content"];
+                if format == ProviderFormat::ChatCompletions {
+                    assert_eq!(content[1]["type"], "file");
+                    assert_eq!(content[1]["file"]["file_data"], "data:application/pdf;base64,JVBERi0xLjQ=");
+                    assert_eq!(content[2]["type"], "image_url");
+                } else if matches!(format, ProviderFormat::Anthropic | ProviderFormat::VertexAnthropic) {
+                    assert_eq!(content[1]["type"], "document");
+                    assert_eq!(content[1]["source"]["type"], "base64");
+                    assert_eq!(content[1]["source"]["media_type"], "application/pdf");
+                    assert_eq!(content[1]["source"]["data"], "JVBERi0xLjQ=");
+                    assert_eq!(content[2]["type"], "image");
+                } else {
+                    assert_eq!(actual["input"][0]["content"][1]["type"], "input_file");
+                    assert_eq!(actual["input"][0]["content"][1]["file_data"], "data:application/pdf;base64,JVBERi0xLjQ=");
+                    assert_eq!(actual["input"][0]["content"][2]["type"], "input_image");
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn playground_pdf_normalization_preserves_native_fields() {
+        let body = json!({
+            "model": "gpt-5-mini", "custom": {"keep": true},
+            "messages": [{"role": "user", "custom": 42, "content": [
+                {"type": "image_url", "custom": "keep", "image_url": {
+                    "url": "data:application/pdf;base64,JVBERi0xLjQ="
+                }},
+                {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBORw0KGgo=", "detail": "low"}},
+                {"type": "file", "file": {"file_id": "file-existing"}}
+            ]}]
+        });
+        let prepared = prepare_request_with_remote_media_and_fetch(
+            Bytes::from(lingua::serde_json::to_vec(&body).unwrap()),
+            &openai_spec("gpt-5-mini"),
+            ProviderFormat::ChatCompletions,
+            RemoteMediaPolicy::OPENAI,
+            |_| panic!("inline PDFs must not fetch"),
+        )
+        .await
+        .unwrap();
+        let mut expected = body;
+        expected["messages"][0]["content"][0] = json!({
+            "type": "file", "custom": "keep", "file": {
+                "filename": "file.pdf", "file_data": "data:application/pdf;base64,JVBERi0xLjQ="
+            }
+        });
+        let actual: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
+        assert_eq!(actual, expected);
+        assert!(!prepared.lingua_passthrough);
+    }
+
+    #[tokio::test]
+    async fn playground_pdf_download_errors_propagate() {
+        for mismatched_type in [false, true] {
+            let result = normalize_pdf_images(
+                Bytes::from_static(br#"{"messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"https://example.com/file.pdf?secret=token"}}]}]}"#),
+                &mut move |_| Box::pin(async move {
+                    if mismatched_type {
+                        Ok(MediaBlock {media_type: "image/png".into(), data: "iVBORw0KGgo=".into()})
+                    } else {
+                        Err(Error::InvalidRequest("HTTP 403".into()))
+                    }
+                }),
+            ).await.unwrap_err();
+            assert!(matches!(result, Error::InvalidRequest(_)));
+            assert!(!result.to_string().contains("secret=token"));
+            assert!(result.to_string().contains(if mismatched_type {
+                "application/pdf"
+            } else {
+                "HTTP 403"
+            }));
+        }
+    }
+
     fn wav_fetch(
         expected_url: &'static str,
     ) -> impl for<'a> FnMut(&'a str) -> FetchMediaFuture<'a> {
@@ -510,7 +718,7 @@ mod tests {
         );
         assert_eq!(
             RemoteMediaPolicy::for_format(ProviderFormat::Anthropic),
-            None
+            Some(RemoteMediaPolicy::NONE)
         );
     }
 

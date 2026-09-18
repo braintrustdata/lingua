@@ -2131,6 +2131,50 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn prepare_provider_request_normalizes_playground_pdf_attachments() {
+        for (model, format, pointer, expected) in [
+            (
+                "gpt-5-mini",
+                ProviderFormat::ChatCompletions,
+                "/messages/0/content/0/type",
+                "file",
+            ),
+            (
+                "gpt-5-mini",
+                ProviderFormat::Responses,
+                "/input/0/content/0/type",
+                "input_file",
+            ),
+            (
+                "claude-sonnet-4-6",
+                ProviderFormat::Anthropic,
+                "/messages/0/content/0/type",
+                "document",
+            ),
+        ] {
+            let body = Bytes::from_static(br#"{"model":"playground-model","messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:application/pdf;base64,JVBERi0xLjQ="}}]}]}"#);
+            let mut spec = openai_spec(model, ModelFlavor::Chat);
+            spec.format = format;
+            let (payload, _, actual_format, _, passthrough) = prepare_provider_request(
+                body,
+                &spec,
+                format,
+                false,
+                RequestPreparationOptions::default(),
+            )
+            .await
+            .expect("PDF request prepares");
+            let parsed: Value = serde_json::from_slice(&payload).unwrap();
+            assert_eq!(actual_format, format);
+            assert_eq!(
+                parsed.pointer(pointer).and_then(Value::as_str),
+                Some(expected)
+            );
+            assert!(!passthrough);
+        }
+    }
+
+    #[tokio::test]
     async fn prepare_provider_request_can_preserve_same_format_body_model() {
         let body = Bytes::from_static(
             br#"{"model":"gpt-4","messages":[{"role":"user","name":"example_user","content":"Ping"}]}"#,

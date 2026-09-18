@@ -37,6 +37,27 @@ pub enum MediaError {
     Base64Error(String),
 }
 
+fn validate_media_type(
+    content_type: &str,
+    allowed_types: Option<&[&str]>,
+) -> Result<String, MediaError> {
+    let media_type = content_type
+        .split(';')
+        .next()
+        .unwrap_or(content_type)
+        .trim()
+        .to_ascii_lowercase();
+    if let Some(allowed) = allowed_types {
+        if !allowed
+            .iter()
+            .any(|allowed| allowed.eq_ignore_ascii_case(&media_type))
+        {
+            return Err(MediaError::UnsupportedMediaType(media_type));
+        }
+    }
+    Ok(media_type)
+}
+
 /// Parse a base64 data URL into its components.
 ///
 /// Returns `None` if the URL is not a valid data URL.
@@ -347,20 +368,7 @@ mod wasm_fetch {
             .map_err(|e| MediaError::FetchError(format!("{:?}", e)))?
             .ok_or(MediaError::MissingContentType)?;
 
-        // Extract base content type (before semicolon)
-        let base_content_type = content_type
-            .split(';')
-            .next()
-            .unwrap_or(&content_type)
-            .trim()
-            .to_string();
-
-        // Check allowed types
-        if let Some(allowed) = allowed_types {
-            if !allowed.contains(&base_content_type.as_str()) {
-                return Err(MediaError::UnsupportedMediaType(base_content_type));
-            }
-        }
+        let base_content_type = validate_media_type(&content_type, allowed_types)?;
 
         // Get array buffer
         let array_buffer = JsFuture::from(
@@ -653,7 +661,7 @@ mod native_fetch {
                 .get(current_url.clone())
                 .send()
                 .await
-                .map_err(|e| MediaError::FetchError(e.to_string()))?;
+                .map_err(|e| MediaError::FetchError(e.without_url().to_string()))?;
 
             if !response.status().is_redirection() {
                 return Ok(response);
@@ -743,20 +751,7 @@ mod native_fetch {
             .ok_or(MediaError::MissingContentType)?
             .to_string();
 
-        // Extract base content type (before semicolon)
-        let base_content_type = content_type
-            .split(';')
-            .next()
-            .unwrap_or(&content_type)
-            .trim()
-            .to_string();
-
-        // Check allowed types
-        if let Some(allowed) = allowed_types {
-            if !allowed.contains(&base_content_type.as_str()) {
-                return Err(MediaError::UnsupportedMediaType(base_content_type));
-            }
-        }
+        let base_content_type = validate_media_type(&content_type, allowed_types)?;
 
         // Get bytes
         let bytes = response_bytes_with_limit(&mut response, max_bytes).await?;
@@ -985,6 +980,30 @@ pub fn is_localhost_url(url: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fetched_pdf_media_type_is_case_insensitive() {
+        for content_type in [
+            "application/pdf",
+            "Application/PDF",
+            " APPLICATION/PDF ; charset=UTF-8",
+        ] {
+            for allowed in ["application/pdf", "Application/PDF"] {
+                assert_eq!(
+                    validate_media_type(content_type, Some(&[allowed])).unwrap(),
+                    "application/pdf"
+                );
+            }
+        }
+        assert_eq!(
+            validate_media_type("Application/PDF", None).unwrap(),
+            "application/pdf"
+        );
+        assert!(matches!(
+            validate_media_type("Image/PNG; charset=UTF-8", Some(&["application/pdf"])),
+            Err(MediaError::UnsupportedMediaType(media_type)) if media_type == "image/png"
+        ));
+    }
 
     #[test]
     fn test_parse_base64_data_url_valid() {
