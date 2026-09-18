@@ -18,6 +18,12 @@ pub enum ModelFlavor {
     Responses,
     /// Evaluation/judge models (e.g., TypeSafe's jev-*)
     Evaluation,
+    /// Any flavor value the router does not yet model. Keeps catalog parsing
+    /// resilient when the upstream `model_list.json` introduces a new flavor
+    /// before the router adds first-class support, instead of failing the
+    /// entire catalog parse.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
