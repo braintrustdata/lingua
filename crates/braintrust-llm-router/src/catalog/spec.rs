@@ -12,6 +12,8 @@ pub enum ModelFlavor {
     Chat,
     Completion,
     Embedding,
+    Realtime,
+    Live,
     /// Models using OpenAI's Responses API (e.g., o1-pro, o3-pro, gpt-5-pro, gpt-5-codex)
     Responses,
     /// Evaluation/judge models (e.g., TypeSafe's jev-*)
