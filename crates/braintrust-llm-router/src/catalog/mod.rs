@@ -195,6 +195,30 @@ mod tests {
     use crate::error::Error;
 
     #[test]
+    fn unknown_flavor_does_not_fail_whole_catalog_parse() {
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "gpt-5-mini": {
+    "format": "openai",
+    "flavor": "chat"
+  },
+  "some-future-model": {
+    "format": "openai",
+    "flavor": "some-future-flavor"
+  }
+}"#,
+        )
+        .expect("catalog with an unknown flavor parses");
+
+        assert_eq!(catalog.len(), 2);
+        assert!(catalog.get("gpt-5-mini").is_some());
+        assert_eq!(
+            catalog.get("some-future-model").expect("present").flavor,
+            ModelFlavor::Unknown
+        );
+    }
+
+    #[test]
     fn fallback_models_are_available_from_any_member() {
         let catalog = ModelCatalog::from_json_str(
             r#"{
