@@ -44,7 +44,10 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
         "gpt-5",
         &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
     ),
-    ("gpt-6", &[StripTemperature]),
+    (
+        "gpt-6",
+        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+    ),
     // TODO: would be nice if we could apply these rules by provider instead of model name, and
     // apply these to all Mistral models
     ("mistral", &[ForceMaxTokens]),
