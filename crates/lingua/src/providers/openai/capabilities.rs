@@ -63,8 +63,12 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
     let lower = model.to_ascii_lowercase();
+    let normalized = match lower.strip_prefix("openai.") {
+        Some(normalized) => normalized,
+        None => &lower,
+    };
     for (prefix, transforms) in MODEL_TRANSFORM_RULES {
-        if lower.starts_with(prefix) {
+        if normalized.starts_with(prefix) {
             return transforms;
         }
     }
@@ -370,6 +374,10 @@ mod tests {
             ),
             (
                 "gpt-5-mini",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "openai.gpt-6-astra",
                 &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
             ),
             ("gpt-4", &[][..]),
