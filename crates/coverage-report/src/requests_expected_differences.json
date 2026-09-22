@@ -478,6 +478,14 @@
       ]
     },
     {
+      "testCase": "responsesFunctionCallOutputToolNameParam",
+      "source": "Responses",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content[*].tool_name", "reason": "ChatCompletions, Anthropic, and Bedrock tool result wire formats identify results by tool_call_id/tool_use_id and do not represent the redundant tool name" }
+      ]
+    },
+    {
       "testCase": "responsesToolSearchInputParam",
       "source": "Responses",
       "target": "*",

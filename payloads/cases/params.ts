@@ -839,6 +839,7 @@ export const paramsCases: TestCaseCollection = {
           call_id: "6k7x6c84",
           name: "list_databases",
           arguments: "{}",
+          status: "completed",
         },
         {
           type: "function_call_output",
@@ -892,7 +893,7 @@ export const paramsCases: TestCaseCollection = {
           call_id: "6k7x6c84",
           name: "list_databases",
           output:
-            '[{"type":"text","text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}"}]',
+            '[{"text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}","type":"text"}]',
         },
       ],
       tools: [

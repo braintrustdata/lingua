@@ -14,13 +14,14 @@
       "type": "function_call",
       "call_id": "6k7x6c84",
       "name": "list_databases",
-      "arguments": "{}"
+      "arguments": "{}",
+      "status": "completed"
     },
     {
       "type": "function_call_output",
       "call_id": "6k7x6c84",
       "name": "list_databases",
-      "output": "[{\"type\":\"text\",\"text\":\"{\\\"databases\\\":[\\\"admin\\\",\\\"config\\\",\\\"local\\\"]}\"}]"
+      "output": "[{\"text\":\"{\\\"databases\\\":[\\\"admin\\\",\\\"config\\\",\\\"local\\\"]}\",\"type\":\"text\"}]"
     },
     {
       "id": "msg_0c54b9937bf86ca7006aa836efb54c87d284054c143065d1a0",
