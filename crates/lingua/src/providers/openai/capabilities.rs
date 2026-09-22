@@ -191,9 +191,9 @@ fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
 
     if point_release.is_some_and(|release| release.starts_with('6')) {
         Some(EffortFamily::NoneLowMediumHighXhighMax)
-    } else if point_release
-        .is_some_and(|release| release.starts_with('4') || release.starts_with('2'))
-    {
+    } else if point_release.is_some_and(|release| {
+        release.starts_with('5') || release.starts_with('4') || release.starts_with('2')
+    }) {
         if point_release.is_some_and(|release| release.starts_with("2-codex")) {
             Some(EffortFamily::LowMediumHighXhigh)
         } else {
@@ -524,6 +524,9 @@ mod tests {
             ),
             ("gpt-5.4", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
             ("gpt-5.4", ReasoningEffort::Max, ReasoningEffort::Xhigh),
+            ("gpt-5.5", ReasoningEffort::None, ReasoningEffort::None),
+            ("gpt-5.5", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
+            ("gpt-5.5", ReasoningEffort::Max, ReasoningEffort::Xhigh),
             (
                 "gpt-5.6-terra",
                 ReasoningEffort::None,
@@ -546,6 +549,11 @@ mod tests {
                 "databricks-gpt-5-6-luna",
                 ReasoningEffort::None,
                 ReasoningEffort::None,
+            ),
+            (
+                "databricks-gpt-5-5",
+                ReasoningEffort::Max,
+                ReasoningEffort::Xhigh,
             ),
             (
                 "databricks-gpt-5-1",

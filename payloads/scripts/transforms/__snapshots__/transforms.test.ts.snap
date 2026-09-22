@@ -31810,6 +31810,114 @@ However, the sky can appear different colors depending on conditions:
 }
 `;
 
+exports[`responses → anthropic > responsesFunctionCallOutputToolNameParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What databases exist in the connected MongoDB instance? Use the list_databases tool.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "6k7x6c84",
+          "input": {},
+          "name": "list_databases",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "[{"text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}","type":"text"}]",
+          "tool_use_id": "6k7x6c84",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "List databases in the connected MongoDB instance.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object",
+      },
+      "name": "list_databases",
+      "strict": false,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > responsesFunctionCallOutputToolNameParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011Cf3mmHDJr3WR4U2dofF4o",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "The connected MongoDB instance contains the following databases:
+
+1. **admin** - The administrative database for user authentication and authorization
+2. **config** - Used by MongoDB for sharded cluster configuration
+3. **local** - Used to store data local to a single MongoDB server (not replicated)
+
+These are the default system databases that come with a MongoDB installation. There don't appear to be any custom user databases created yet.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "The connected MongoDB instance contains the following databases:
+
+1. **admin** - The administrative database for user authentication and authorization
+2. **config** - Used by MongoDB for sharded cluster configuration
+3. **local** - Used to store data local to a single MongoDB server (not replicated)
+
+These are the default system databases that come with a MongoDB installation. There don't appear to be any custom user databases created yet.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 642,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 91,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 733,
+  },
+}
+`;
+
 exports[`responses → anthropic > responsesFunctionCallOutputWithoutThoughtSignatureParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -36101,6 +36209,125 @@ exports[`responses → google > responsesCustomToolCallStreamingParam > response
       "reasoning_tokens": 638,
     },
     "total_tokens": 730,
+  },
+}
+`;
+
+exports[`responses → google > responsesFunctionCallOutputToolNameParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What databases exist in the connected MongoDB instance? Use the list_databases tool.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {},
+            "id": "6k7x6c84",
+            "name": "list_databases",
+          },
+          "thoughtSignature": "skip_thought_signature_validator",
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "id": "6k7x6c84",
+            "name": "list_databases",
+            "response": {
+              "output": [
+                {
+                  "text": "{"databases":["admin","config","local"]}",
+                  "type": "text",
+                },
+              ],
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "List databases in the connected MongoDB instance.",
+          "name": "list_databases",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`responses → google > responsesFunctionCallOutputToolNameParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Based on the list_databases tool, the following databases exist in the connected MongoDB instance:
+
+* **admin**
+* **config**
+* **local**",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Based on the list_databases tool, the following databases exist in the connected MongoDB instance:
+
+* **admin**
+* **config**
+* **local**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 87,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 33,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 120,
   },
 }
 `;
