@@ -144,6 +144,8 @@ pub struct Turn {
     #[ts(optional)]
     pub end_time: Option<DateTime<Utc>>,
     #[ts(optional)]
+    pub interrupted: Option<bool>,
+    #[ts(optional)]
     pub compaction: Option<Compaction>,
 }
 
