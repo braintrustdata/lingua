@@ -1,0 +1,1370 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0c54b9937bf86ca7006aa836f05c7087d2bd4da0f3aa21113d",
+      "object": "response",
+      "created_at": 1789409008,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "List databases in the connected MongoDB instance.",
+          "name": "list_databases",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0c54b9937bf86ca7006aa836f05c7087d2bd4da0f3aa21113d",
+      "object": "response",
+      "created_at": 1789409008,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "List databases in the connected MongoDB instance.",
+          "name": "list_databases",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Those",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "d1mDd1DPMb2",
+    "output_index": 0,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " are",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "YO4dzKmaPt7K",
+    "output_index": 0,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Mongo",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "HgV8eSSoJg",
+    "output_index": 0,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "DB",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "2W5UD9Yf9K6vn3",
+    "output_index": 0,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’s",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "0TQULbOa0TzBrX",
+    "output_index": 0,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " default",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "j6LWCvPX",
+    "output_index": 0,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " system",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "VhHLje1wN",
+    "output_index": 0,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " databases",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "OPk2R7",
+    "output_index": 0,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "m0NqTFVFwWav6Xn",
+    "output_index": 0,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " so",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "HTuelyK8agoT5",
+    "output_index": 0,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " there",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "dcPzIIRTqr",
+    "output_index": 0,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " may",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "LXyJwAnyDl9z",
+    "output_index": 0,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " not",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "3rnxs1vmGxSK",
+    "output_index": 0,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " be",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "lUmMS383EUexd",
+    "output_index": 0,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " application",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "rQHK",
+    "output_index": 0,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " data",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "8UvV4Jmk2cr",
+    "output_index": 0,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " loaded",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "40zhRmtCw",
+    "output_index": 0,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " yet",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "FyvQnLCNvu6r",
+    "output_index": 0,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".\n\n",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "93irMex4O6G7c",
+    "output_index": 0,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Next",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "IxlA9hHZfGJ4",
+    "output_index": 0,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " steps",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "Xpu3gptKCc",
+    "output_index": 0,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "n2JDU0kHE3Bl",
+    "output_index": 0,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " could",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "mTohEQnmVL",
+    "output_index": 0,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " take",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "q12zdSfGvPr",
+    "output_index": 0,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":\n\n",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "QgWomiijEYaIL",
+    "output_index": 0,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "1",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "1fWbPwcS1ilTH56",
+    "output_index": 0,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "GmBMadS4ZPxgnYw",
+    "output_index": 0,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " **",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "XQZqHAWM4YndH",
+    "output_index": 0,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Check",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "xml62plL6Ds",
+    "output_index": 0,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " collections",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "yPSJ",
+    "output_index": 0,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "**",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "gaGeYlPr7Z8jy7",
+    "output_index": 0,
+    "sequence_number": 34
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " in",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "SltxKBerRf06H",
+    "output_index": 0,
+    "sequence_number": 35
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " each",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "dVUJQrWerOx",
+    "output_index": 0,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " database",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "IhC71iX",
+    "output_index": 0,
+    "sequence_number": 37
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "xp6kJC3SnFzDGOq",
+    "output_index": 0,
+    "sequence_number": 38
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " especially",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "BAJeC",
+    "output_index": 0,
+    "sequence_number": 39
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "ZL2DR66keprY5C",
+    "output_index": 0,
+    "sequence_number": 40
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "admin",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "PIh8MiN3Rw4",
+    "output_index": 0,
+    "sequence_number": 41
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "EfhKSOK42WxHxwb",
+    "output_index": 0,
+    "sequence_number": 42
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "JPtAf1x2nOoG",
+    "output_index": 0,
+    "sequence_number": 43
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "QQeEYhGIiJVeBr",
+    "output_index": 0,
+    "sequence_number": 44
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "config",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "SNWqYv6kTh",
+    "output_index": 0,
+    "sequence_number": 45
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`,",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "WivFPLPJRSj0T9",
+    "output_index": 0,
+    "sequence_number": 46
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " to",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "NigGlTBkFYUHg",
+    "output_index": 0,
+    "sequence_number": 47
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " confirm",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "xsPP6URW",
+    "output_index": 0,
+    "sequence_number": 48
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " whether",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "5f3vKlaH",
+    "output_index": 0,
+    "sequence_number": 49
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " anything",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "oHJuDbd",
+    "output_index": 0,
+    "sequence_number": 50
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " custom",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "EqibTV49x",
+    "output_index": 0,
+    "sequence_number": 51
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " exists",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "aMTMgUzJp",
+    "output_index": 0,
+    "sequence_number": 52
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".\n",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "nljm99pKWDZ9q9",
+    "output_index": 0,
+    "sequence_number": 53
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "2",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "fkQsqlTmlu6cQkx",
+    "output_index": 0,
+    "sequence_number": 54
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "GBmdNxNN4AHQoV3",
+    "output_index": 0,
+    "sequence_number": 55
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " **",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "zofI4coXpWMOW",
+    "output_index": 0,
+    "sequence_number": 56
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Create",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "3Bux3Dk9Vb",
+    "output_index": 0,
+    "sequence_number": 57
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "hWgzGV9d1JCx4",
+    "output_index": 0,
+    "sequence_number": 58
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " connect",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "BHYBHuNh",
+    "output_index": 0,
+    "sequence_number": 59
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " to",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "Jni6MUJP9GVs5",
+    "output_index": 0,
+    "sequence_number": 60
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " an",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "vTri045XR2fas",
+    "output_index": 0,
+    "sequence_number": 61
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " application",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "SpAU",
+    "output_index": 0,
+    "sequence_number": 62
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " database",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "4PV8VWU",
+    "output_index": 0,
+    "sequence_number": 63
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "**",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "2V6h94ExRL4Zt1",
+    "output_index": 0,
+    "sequence_number": 64
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " if",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "51ZiaXklhr2Et",
+    "output_index": 0,
+    "sequence_number": 65
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "6gFCTp2Zc6Mr",
+    "output_index": 0,
+    "sequence_number": 66
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’re",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "sf4j47sYOXZGC",
+    "output_index": 0,
+    "sequence_number": 67
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " setting",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "K0y007bT",
+    "output_index": 0,
+    "sequence_number": 68
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " up",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "MZsTVH6y63fkH",
+    "output_index": 0,
+    "sequence_number": 69
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " a",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "u8KLl4Tmr7ZYEr",
+    "output_index": 0,
+    "sequence_number": 70
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " new",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "3GT1UXxd1lr0",
+    "output_index": 0,
+    "sequence_number": 71
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " project",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "XoWQdHJF",
+    "output_index": 0,
+    "sequence_number": 72
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".\n",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "mKDf6X8lpcAjpa",
+    "output_index": 0,
+    "sequence_number": 73
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "3",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "kNez14YGwzjImgR",
+    "output_index": 0,
+    "sequence_number": 74
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "KPG0T5GgBBnHORs",
+    "output_index": 0,
+    "sequence_number": 75
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " **",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "W0aArsE419LvF",
+    "output_index": 0,
+    "sequence_number": 76
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Load",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "ljL9Z9ciA4z5",
+    "output_index": 0,
+    "sequence_number": 77
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "/import",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "w0B5X6iWU",
+    "output_index": 0,
+    "sequence_number": 78
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " data",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "2c5bA9Elz9A",
+    "output_index": 0,
+    "sequence_number": 79
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "**",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "J0MPcQPyXoykIl",
+    "output_index": 0,
+    "sequence_number": 80
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " if",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "MD6euKXT8EAHW",
+    "output_index": 0,
+    "sequence_number": 81
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "ErGyZgRxs7Ez",
+    "output_index": 0,
+    "sequence_number": 82
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " expected",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "qqsuMSH",
+    "output_index": 0,
+    "sequence_number": 83
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " an",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "d1zvS6zFyIDPa",
+    "output_index": 0,
+    "sequence_number": 84
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " existing",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "uBH0Qgz",
+    "output_index": 0,
+    "sequence_number": 85
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " dataset",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "hqB7bdpM",
+    "output_index": 0,
+    "sequence_number": 86
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".\n",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "3xZHNIlxZBISwn",
+    "output_index": 0,
+    "sequence_number": 87
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "4",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "t5jPNf2DvF1b2De",
+    "output_index": 0,
+    "sequence_number": 88
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "Sy0FA4FVR5i1Cu8",
+    "output_index": 0,
+    "sequence_number": 89
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " **",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "zuxWCVWB3XfMB",
+    "output_index": 0,
+    "sequence_number": 90
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Verify",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "ay7pB0iyZO",
+    "output_index": 0,
+    "sequence_number": 91
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " your",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "COMUSrqbFeI",
+    "output_index": 0,
+    "sequence_number": 92
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " connection",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "cceuk",
+    "output_index": 0,
+    "sequence_number": 93
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " string",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "bIsfwGq1s",
+    "output_index": 0,
+    "sequence_number": 94
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "**",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "yVcOnEJynd9o5A",
+    "output_index": 0,
+    "sequence_number": 95
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " if",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "nwZylfsp0yQcY",
+    "output_index": 0,
+    "sequence_number": 96
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "8c3QuA6liV9I",
+    "output_index": 0,
+    "sequence_number": 97
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " expected",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "lWSYxUu",
+    "output_index": 0,
+    "sequence_number": 98
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " to",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "KJeNttMwmxtDj",
+    "output_index": 0,
+    "sequence_number": 99
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " see",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "7VmXKFmszirT",
+    "output_index": 0,
+    "sequence_number": 100
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " other",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "YbKSzo6SfK",
+    "output_index": 0,
+    "sequence_number": 101
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " databases",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "BbkXI2",
+    "output_index": 0,
+    "sequence_number": 102
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " but",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "vTllixZ1jvn5",
+    "output_index": 0,
+    "sequence_number": 103
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " don",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "aS06WfX4uDS2",
+    "output_index": 0,
+    "sequence_number": 104
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’t",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "nHEewHPXjWUrZu",
+    "output_index": 0,
+    "sequence_number": 105
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "obfuscation": "wTei1947CULxoju",
+    "output_index": 0,
+    "sequence_number": 106
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "logprobs": [],
+    "output_index": 0,
+    "sequence_number": 107,
+    "text": "Those are MongoDB’s default system databases, so there may not be application data loaded yet.\n\nNext steps you could take:\n\n1. **Check collections** in each database, especially `admin` and `config`, to confirm whether anything custom exists.\n2. **Create or connect to an application database** if you’re setting up a new project.\n3. **Load/import data** if you expected an existing dataset.\n4. **Verify your connection string** if you expected to see other databases but don’t."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Those are MongoDB’s default system databases, so there may not be application data loaded yet.\n\nNext steps you could take:\n\n1. **Check collections** in each database, especially `admin` and `config`, to confirm whether anything custom exists.\n2. **Create or connect to an application database** if you’re setting up a new project.\n3. **Load/import data** if you expected an existing dataset.\n4. **Verify your connection string** if you expected to see other databases but don’t."
+    },
+    "sequence_number": 108
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Those are MongoDB’s default system databases, so there may not be application data loaded yet.\n\nNext steps you could take:\n\n1. **Check collections** in each database, especially `admin` and `config`, to confirm whether anything custom exists.\n2. **Create or connect to an application database** if you’re setting up a new project.\n3. **Load/import data** if you expected an existing dataset.\n4. **Verify your connection string** if you expected to see other databases but don’t."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 109
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0c54b9937bf86ca7006aa836f05c7087d2bd4da0f3aa21113d",
+      "object": "response",
+      "created_at": 1789409008,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1789409010,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [
+        {
+          "id": "msg_0c54b9937bf86ca7006aa836f129a487d283ab2642545ad582",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Those are MongoDB’s default system databases, so there may not be application data loaded yet.\n\nNext steps you could take:\n\n1. **Check collections** in each database, especially `admin` and `config`, to confirm whether anything custom exists.\n2. **Create or connect to an application database** if you’re setting up a new project.\n3. **Load/import data** if you expected an existing dataset.\n4. **Verify your connection string** if you expected to see other databases but don’t."
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "List databases in the connected MongoDB instance.",
+          "name": "list_databases",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 144,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 107,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 251
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 110
+  }
+]

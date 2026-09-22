@@ -1,0 +1,108 @@
+{
+  "id": "resp_0c54b9937bf86ca7006aa836f0424087d287859f424625fa9b",
+  "object": "response",
+  "created_at": 1789409008,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1789409012,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "msg_0c54b9937bf86ca7006aa836f1292c87d2b7452341ec690602",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The instance currently shows only MongoDB’s standard system databases:\n\n- `admin` — administrative users and roles\n- `config` — cluster metadata (commonly used in sharded deployments)\n- `local` — node-local operational data\n\nNext steps depend on your goal:\n\n1. **Explore existing data:** There may be no application databases yet; inspect collections in a database if you expect data to exist.\n2. **Create an application database:** Insert data into a chosen database name—MongoDB creates the database and collection on first write.\n3. **Set up access control:** Create application-specific users/roles rather than using broad admin access.\n4. **Verify connectivity/configuration:** Confirm you are connected to the expected MongoDB deployment, especially if you expected application databases to appear."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [
+    {
+      "type": "function",
+      "description": "List databases in the connected MongoDB instance.",
+      "name": "list_databases",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 144,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 162,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 306
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "The instance currently shows only MongoDB’s standard system databases:\n\n- `admin` — administrative users and roles\n- `config` — cluster metadata (commonly used in sharded deployments)\n- `local` — node-local operational data\n\nNext steps depend on your goal:\n\n1. **Explore existing data:** There may be no application databases yet; inspect collections in a database if you expect data to exist.\n2. **Create an application database:** Insert data into a chosen database name—MongoDB creates the database and collection on first write.\n3. **Set up access control:** Create application-specific users/roles rather than using broad admin access.\n4. **Verify connectivity/configuration:** Confirm you are connected to the expected MongoDB deployment, especially if you expected application databases to appear."
+}

@@ -839,12 +839,61 @@ export const paramsCases: TestCaseCollection = {
           call_id: "6k7x6c84",
           name: "list_databases",
           arguments: "{}",
+          status: "completed",
         },
         {
           type: "function_call_output",
           call_id: "6k7x6c84",
           output:
             '[{"type":"text","text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}"}]',
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          name: "list_databases",
+          description: "List databases in the connected MongoDB instance.",
+          parameters: {
+            type: "object",
+            properties: {},
+            additionalProperties: false,
+          },
+          strict: false,
+        },
+      ],
+      tool_choice: "auto",
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesFunctionCallOutputToolNameParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "What databases exist in the connected MongoDB instance? Use the list_databases tool.",
+            },
+          ],
+        },
+        {
+          type: "function_call",
+          call_id: "6k7x6c84",
+          name: "list_databases",
+          arguments: "{}",
+        },
+        {
+          type: "function_call_output",
+          call_id: "6k7x6c84",
+          name: "list_databases",
+          output:
+            '[{"text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}","type":"text"}]',
         },
       ],
       tools: [

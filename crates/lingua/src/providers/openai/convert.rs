@@ -870,6 +870,21 @@ fn provider_options_from_openai_tool_call(namespace: Option<String>) -> Option<P
     Some(ProviderOptions { options })
 }
 
+/// `namespace` on a function call output names the OpenAI-side tool registry
+/// scope that produced the output, so it has no provider-neutral meaning.
+/// Reject it explicitly rather than dropping it when the tool result enters the
+/// universal model; same-format requests and responses keep it byte-for-byte
+/// through the passthrough path instead of being re-serialized.
+fn reject_function_call_output_namespace(namespace: Option<&str>) -> Result<(), ConvertError> {
+    match namespace {
+        Some(namespace) if !namespace.is_empty() => Err(ConvertError::UnsupportedMapping {
+            from: format!("OpenAI Responses function_call_output namespace '{namespace}'"),
+            to: "Lingua tool result (tool namespaces are provider-scoped registry state)",
+        }),
+        _ => Ok(()),
+    }
+}
+
 fn non_completed_function_call_status_to_string(
     status: Option<openai::FunctionCallItemStatus>,
     field: &str,
@@ -1710,6 +1725,8 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             .ok_or_else(|| ConvertError::MissingRequiredField {
                                 field: "function call output call_id".to_string(),
                             })?;
+
+                    reject_function_call_output_namespace(input.namespace.as_deref())?;
 
                     let output = input
                         .output
@@ -3239,6 +3256,12 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             Some(openai::OutputItemType::CustomToolCall) => {
                 Some(openai::InputItemType::CustomToolCall)
             }
+            Some(openai::OutputItemType::FunctionCallOutput) => {
+                Some(openai::InputItemType::FunctionCallOutput)
+            }
+            Some(openai::OutputItemType::CustomToolCallOutput) => {
+                Some(openai::InputItemType::CustomToolCallOutput)
+            }
             Some(openai::OutputItemType::Program) => Some(openai::InputItemType::Program),
             Some(openai::OutputItemType::ProgramOutput) => {
                 Some(openai::InputItemType::ProgramOutput)
@@ -3881,6 +3904,20 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                 }
                 Some(openai::OutputItemType::AdditionalTools) => {
                     messages.push(tool_discovery::message_from_output_additional_tools(item)?);
+                    continue;
+                }
+                Some(openai::OutputItemType::FunctionCallOutput)
+                | Some(openai::OutputItemType::CustomToolCallOutput) => {
+                    // Tool results carry no output-only fields, so reuse the
+                    // request-side input item conversion instead of duplicating
+                    // it; that keeps both directions in step.
+                    let input_item =
+                        <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(item)?;
+                    messages.extend(
+                        <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![
+                            input_item,
+                        ])?,
+                    );
                     continue;
                 }
                 _ => {
@@ -5783,6 +5820,7 @@ mod tests {
     use crate::capabilities::ProviderFormat;
     use crate::processing::transform::transform_request;
     use crate::serde_json::json;
+    use crate::TransformResult;
     use bytes::Bytes;
 
     fn wav_base64() -> String {
@@ -8584,6 +8622,216 @@ mod tests {
         assert_eq!(
             input_item.input_item_type,
             Some(openai::InputItemType::AdditionalTools)
+        );
+    }
+
+    fn function_call_output_item(
+        output_item_type: openai::OutputItemType,
+        name: Option<&str>,
+    ) -> openai::OutputItem {
+        openai::OutputItem {
+            output_item_type: Some(output_item_type),
+            call_id: Some("call_list_databases".to_string()),
+            name: name.map(str::to_string),
+            output: Some(openai::OutputUnion::String(
+                r#"{"databases":["admin"]}"#.to_string(),
+            )),
+            ..Default::default()
+        }
+    }
+
+    fn single_tool_result(messages: &[Message]) -> &ToolResultContentPart {
+        let [Message::Tool { content }] = messages else {
+            panic!("expected exactly one tool message, got {messages:?}");
+        };
+        let [ToolContentPart::ToolResult(result)] = content.as_slice() else {
+            panic!("expected exactly one tool result, got {content:?}");
+        };
+        result
+    }
+
+    #[test]
+    fn responses_response_import_maps_function_call_output_to_tool_result() {
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![
+            function_call_output_item(
+                openai::OutputItemType::FunctionCallOutput,
+                Some("list_databases"),
+            ),
+        ])
+        .expect("function_call_output output item should import");
+
+        let result = single_tool_result(&messages);
+        assert_eq!(result.tool_call_id, "call_list_databases");
+        assert_eq!(result.tool_name, "list_databases");
+        assert_eq!(result.output, json!({"databases": ["admin"]}));
+        assert_eq!(result.custom_tool_call, None);
+    }
+
+    #[test]
+    fn responses_response_import_maps_custom_tool_call_output_to_tool_result() {
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![
+            function_call_output_item(
+                openai::OutputItemType::CustomToolCallOutput,
+                Some("list_databases"),
+            ),
+        ])
+        .expect("custom_tool_call_output output item should import");
+
+        let result = single_tool_result(&messages);
+        assert_eq!(result.tool_name, "list_databases");
+        assert_eq!(result.custom_tool_call, Some(true));
+    }
+
+    #[test]
+    fn responses_response_function_call_output_without_call_id_is_rejected() {
+        let item = openai::OutputItem {
+            call_id: None,
+            ..function_call_output_item(
+                openai::OutputItemType::FunctionCallOutput,
+                Some("list_databases"),
+            )
+        };
+
+        let error = <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![item])
+            .expect_err("function_call_output without call_id should be rejected");
+        assert!(
+            matches!(error, ConvertError::MissingRequiredField { ref field }
+                if field == "function call output call_id"),
+            "unexpected error: {error:?}"
+        );
+    }
+
+    #[test]
+    fn responses_response_function_call_output_tool_name_round_trips() {
+        for name in [Some("list_databases"), None] {
+            let item = function_call_output_item(openai::OutputItemType::FunctionCallOutput, name);
+            let messages =
+                <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![item.clone()])
+                    .expect("function_call_output output item should import");
+            let exported =
+                <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
+                    .expect("tool result should export as an output item");
+
+            let [exported_item] = exported.as_slice() else {
+                panic!("expected exactly one output item, got {exported:?}");
+            };
+            // An absent name must stay absent rather than becoming the empty
+            // string, which the spec rejects via `minLength: 1`.
+            assert_eq!(exported_item.name, item.name);
+            assert_eq!(exported_item.call_id, item.call_id);
+            assert_eq!(
+                exported_item.output_item_type,
+                Some(openai::OutputItemType::FunctionCallOutput)
+            );
+        }
+    }
+
+    fn responses_request_with_function_call_output(namespace: Option<&str>) -> serde_json::Value {
+        let mut output_item = json!({
+            "type": "function_call_output",
+            "call_id": "call_list_databases",
+            "name": "list_databases",
+            "output": r#"{"databases":["admin"]}"#
+        });
+        if let Some(namespace) = namespace {
+            output_item["namespace"] = json!(namespace);
+        }
+
+        json!({
+            "model": "gpt-5.1",
+            "input": [
+                {"role": "user", "content": "Which databases exist?"},
+                {
+                    "type": "function_call",
+                    "call_id": "call_list_databases",
+                    "name": "list_databases",
+                    "arguments": "{}"
+                },
+                output_item
+            ]
+        })
+    }
+
+    #[test]
+    fn function_call_output_namespace_survives_same_format_passthrough() {
+        let request = responses_request_with_function_call_output(Some("mongodb"));
+        let bytes = Bytes::from(serde_json::to_vec(&request).unwrap());
+
+        let transformed = transform_request(bytes.clone(), ProviderFormat::Responses, None)
+            .expect("same-format Responses request should transform");
+
+        match transformed.result {
+            TransformResult::PassThrough(passed) => assert_eq!(passed, bytes),
+            other => panic!("expected byte-preserving passthrough, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn function_call_output_namespace_is_rejected_on_cross_provider_import() {
+        let with_namespace = responses_request_with_function_call_output(Some("mongodb"));
+        let error = transform_request(
+            Bytes::from(serde_json::to_vec(&with_namespace).unwrap()),
+            ProviderFormat::Anthropic,
+            None,
+        )
+        .expect_err("function_call_output namespace should not convert cross-provider");
+        let message = error.to_string();
+        assert!(
+            message.contains("namespace") && message.contains("function_call_output"),
+            "error should name the unsupported field and item kind: {message}"
+        );
+
+        let without_namespace = responses_request_with_function_call_output(None);
+        transform_request(
+            Bytes::from(serde_json::to_vec(&without_namespace).unwrap()),
+            ProviderFormat::Anthropic,
+            None,
+        )
+        .expect("the same item without a namespace should still convert");
+    }
+
+    #[test]
+    fn function_call_output_namespace_is_not_smuggled_into_the_tool_result() {
+        let input_item = openai::InputItem {
+            input_item_type: Some(openai::InputItemType::FunctionCallOutput),
+            call_id: Some("call_list_databases".to_string()),
+            name: Some("list_databases".to_string()),
+            output: Some(openai::Output::String("ok".to_string())),
+            ..Default::default()
+        };
+
+        let messages =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![input_item])
+                .expect("function_call_output input item should import");
+
+        // Pinning the serialized shape guards against reintroducing the opaque
+        // round-trip carrier used by the tool-call arm: any extra key here means
+        // provider-scoped state slipped into the universal model.
+        assert_eq!(
+            serde_json::to_value(single_tool_result(&messages)).unwrap(),
+            json!({
+                "tool_call_id": "call_list_databases",
+                "tool_name": "list_databases",
+                "output": "ok",
+            })
+        );
+    }
+
+    #[test]
+    fn response_function_call_output_namespace_is_rejected_on_import() {
+        let item = openai::OutputItem {
+            namespace: Some("mongodb".to_string()),
+            ..function_call_output_item(
+                openai::OutputItemType::FunctionCallOutput,
+                Some("list_databases"),
+            )
+        };
+
+        let error = <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![item])
+            .expect_err("response-side namespace should not enter the universal model");
+        assert!(
+            matches!(error, ConvertError::UnsupportedMapping { .. }),
+            "unexpected error: {error:?}"
         );
     }
 }
