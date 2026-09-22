@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// Note: The `Responses` variant must be kept in sync with lingua's
 /// `requires_responses_api` detection in `capabilities.rs`. Models that
-/// require the Responses API include: o1-pro*, o3-pro*, gpt-5-pro*, gpt-5-codex*.
+/// require the Responses API include: o1-pro*, o3-pro*, gpt-5-pro*, gpt-5-codex*,
+/// GPT-5.3+, and later GPT major versions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ModelFlavor {
@@ -66,15 +67,28 @@ pub fn model_requires_responses_api(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
     // Bedrock namespaces OpenAI models as `openai.<model>` (e.g. `openai.gpt-5.4`).
     let normalized = lower.strip_prefix("openai.").unwrap_or(lower.as_str());
-    let gpt5_minor = normalized
-        .strip_prefix("gpt-5.")
-        .and_then(|rest| rest.split(|c: char| !c.is_ascii_digit()).next())
-        .and_then(|minor| (!minor.is_empty()).then_some(minor))
-        .and_then(|minor| minor.parse::<u32>().ok());
+    let parse_version_component = |component: &str| {
+        let digit_count = component.bytes().take_while(u8::is_ascii_digit).count();
+        if digit_count == 0 {
+            return None;
+        }
+        component[..digit_count].parse::<u32>().ok()
+    };
+    let gpt_version = normalized.strip_prefix("gpt-").and_then(|version| {
+        let (major, minor) = version
+            .split_once('.')
+            .map_or((version, None), |(major, minor)| (major, Some(minor)));
+        Some((
+            parse_version_component(major)?,
+            minor.and_then(parse_version_component),
+        ))
+    });
     normalized.starts_with("o1-pro")
         || normalized.starts_with("o3-pro")
         || normalized.starts_with("gpt-5-pro")
-        || gpt5_minor.is_some_and(|minor| minor >= 3)
+        || gpt_version.is_some_and(|(major, minor)| {
+            major > 5 || (major == 5 && minor.is_some_and(|minor| minor >= 3))
+        })
         || (normalized.starts_with("gpt-5") && normalized.contains("-codex"))
 }
 
@@ -102,8 +116,12 @@ mod tests {
             "gpt-5-codex",
             "gpt-5.1-codex",
             "gpt-5.1-codex-mini",
+            "gpt-6-astra",
+            "gpt-7",
+            "gpt-10.2-preview",
             "openai.gpt-5.4",
             "openai.gpt-5.5",
+            "openai.gpt-6-astra",
         ];
         for model in required {
             assert!(
@@ -121,6 +139,7 @@ mod tests {
             "gpt-5.1",
             "gpt-5.2-chat-latest",
             "gpt-4o",
+            "gpt-next",
             "claude-sonnet-4",
             "openai.gpt-oss-120b",
             "openai.gpt-oss-safeguard-120b",
@@ -134,10 +153,12 @@ mod tests {
     }
 
     #[test]
-    fn model_requires_responses_api_applies_to_minor_versions_three_and_above() {
+    fn model_requires_responses_api_applies_to_current_and_future_versions() {
         assert!(!model_requires_responses_api("gpt-5.2"));
         assert!(model_requires_responses_api("gpt-5.3"));
         assert!(model_requires_responses_api("gpt-5.10-preview"));
+        assert!(model_requires_responses_api("gpt-6-astra"));
+        assert!(model_requires_responses_api("gpt-10-preview"));
     }
 
     #[test]
