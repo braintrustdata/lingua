@@ -1131,6 +1131,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                 },
                                                 source_type: if is_url {
                                                     generated::Base64ImageSourceType::Url
+                                                } else if media_type == "application/pdf" {
+                                                    generated::Base64ImageSourceType::Base64
                                                 } else {
                                                     generated::Base64ImageSourceType::Text
                                                 },
@@ -3520,7 +3522,7 @@ mod tests {
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
                 assert!(matches!(
                     source.source_type,
-                    generated::Base64ImageSourceType::Text
+                    generated::Base64ImageSourceType::Base64
                 ));
                 assert_eq!(source.data.as_deref(), Some("base64encodeddata"));
                 assert!(source.url.is_none());
@@ -3528,6 +3530,33 @@ mod tests {
                 panic!("Expected SourceSource");
             }
         }
+    }
+
+    #[test]
+    fn test_plain_text_document_keeps_text_source() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::File {
+                data: serde_json::Value::String("Sample text.".into()),
+                filename: None,
+                media_type: "text/plain".into(),
+                provider_options: None,
+            }]),
+        };
+        let input_msg = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)
+            .expect("text document should convert");
+        let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content else {
+            panic!("expected content blocks");
+        };
+        let Some(generated::SourceUnion::Source(source)) = &blocks[0].source else {
+            panic!("expected document source");
+        };
+        assert_eq!(source.source_type, generated::Base64ImageSourceType::Text);
+        assert_eq!(
+            source.media_type,
+            Some(generated::Base64ImageSourceMediaType::TextPlain)
+        );
+        assert_eq!(source.data.as_deref(), Some("Sample text."));
+        assert!(source.url.is_none());
     }
 
     #[test]

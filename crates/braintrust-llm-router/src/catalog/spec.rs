@@ -12,8 +12,18 @@ pub enum ModelFlavor {
     Chat,
     Completion,
     Embedding,
+    Realtime,
+    Live,
     /// Models using OpenAI's Responses API (e.g., o1-pro, o3-pro, gpt-5-pro, gpt-5-codex)
     Responses,
+    /// Evaluation/judge models (e.g., TypeSafe's jev-*)
+    Evaluation,
+    /// Any flavor value the router does not yet model. Keeps catalog parsing
+    /// resilient when the upstream `model_list.json` introduces a new flavor
+    /// before the router adds first-class support, instead of failing the
+    /// entire catalog parse.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
