@@ -44,6 +44,10 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
         "gpt-5",
         &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
     ),
+    (
+        "gpt-6",
+        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+    ),
     // TODO: would be nice if we could apply these rules by provider instead of model name, and
     // apply these to all Mistral models
     ("mistral", &[ForceMaxTokens]),
@@ -58,9 +62,9 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
 
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
-    let lower = model.to_ascii_lowercase();
+    let normalized = normalize_openai_model_name(model);
     for (prefix, transforms) in MODEL_TRANSFORM_RULES {
-        if lower.starts_with(prefix) {
+        if normalized.starts_with(prefix) {
             return transforms;
         }
     }
@@ -169,7 +173,10 @@ impl EffortFamily {
 
 fn normalize_openai_model_name(model: &str) -> String {
     let lower = model.to_ascii_lowercase();
-    if let Some(stripped) = lower.strip_prefix("openai/") {
+    if let Some(stripped) = lower
+        .strip_prefix("openai/")
+        .or_else(|| lower.strip_prefix("openai."))
+    {
         stripped.to_string()
     } else {
         lower
@@ -396,6 +403,14 @@ mod tests {
             ),
             (
                 "gpt-5-mini",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "openai.gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "openai/gpt-6-astra",
                 &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
             ),
             ("gpt-4", &[][..]),
