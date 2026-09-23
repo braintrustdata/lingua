@@ -812,10 +812,7 @@ fn openai_router(catalog: Arc<ModelCatalog>) -> (Router, Arc<Mutex<Option<Provid
 }
 
 #[tokio::test]
-async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
-    // Use gpt-5.2-mini (minor version 2 < 3) so model_requires_responses_api() returns
-    // false. Only the body-level detection (reasoning_effort + tools) should trigger the
-    // upgrade from ChatCompletions to Responses.
+async fn plain_gpt_chat_uses_responses() {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
         "gpt-5.2-mini".into(),
@@ -841,20 +838,7 @@ async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
 
     let body = to_body(json!({
         "model": "gpt-5.2-mini",
-        "messages": [{"role": "user", "content": "Tokyo weather?"}],
-        "reasoning_effort": "medium",
-        "tools": [{
-            "type": "function",
-            "function": {
-                "name": "get_weather",
-                "description": "Get weather",
-                "parameters": {
-                    "type": "object",
-                    "properties": {"location": {"type": "string"}},
-                    "required": ["location"]
-                }
-            }
-        }]
+        "messages": [{"role": "user", "content": "Hello"}]
     }));
 
     let (request, metadata) = create_request(

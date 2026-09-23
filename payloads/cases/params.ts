@@ -614,6 +614,7 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  // A GPT request with no tools must use Responses transport even with reasoning disabled.
   reasoningEffortNoneParam: {
     "chat-completions": {
       model: OPENAI_REASONING_NONE_MODEL,

@@ -2230,50 +2230,6 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn prepare_provider_request_upgrades_actual_format_to_responses_for_reasoning_plus_tools()
-    {
-        // A chat-completions request with reasoning_effort + tools should have its actual_format
-        // upgraded to Responses so the router sends it to the correct endpoint.
-        let body = Bytes::from(
-            serde_json::json!({
-                "model": "gpt-5.4-mini",
-                "messages": [{"role": "user", "content": "Tokyo weather?"}],
-                "reasoning_effort": "medium",
-                "tools": [{
-                    "type": "function",
-                    "function": {
-                        "name": "get_weather",
-                        "description": "Get weather",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {"location": {"type": "string"}},
-                            "required": ["location"]
-                        }
-                    }
-                }]
-            })
-            .to_string(),
-        );
-        let spec = openai_spec("gpt-5.4-mini", ModelFlavor::Chat);
-
-        let (_, _, actual_format, _, _) = prepare_provider_request(
-            body,
-            &spec,
-            ProviderFormat::ChatCompletions,
-            false,
-            RequestPreparationOptions::default(),
-        )
-        .await
-        .expect("request prepares");
-
-        assert_eq!(
-            actual_format,
-            ProviderFormat::Responses,
-            "actual_format must be Responses so the router uses the /v1/responses endpoint"
-        );
-    }
-
     fn dummy_auth() -> AuthConfig {
         AuthConfig::ApiKey {
             key: "test".into(),
@@ -3167,8 +3123,8 @@ mod tests {
     }
 
     #[test]
-    fn non_responses_model_keeps_chat_completions_format() {
-        let model = "gpt-5-mini";
+    fn non_gpt_model_keeps_chat_completions_format() {
+        let model = "custom-model";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
         let router = Router::builder()
@@ -3245,7 +3201,7 @@ mod tests {
     }
 
     #[test]
-    fn azure_ai_gateway_preserves_chat_completions_transport_for_anthropic_output() {
+    fn azure_ai_gateway_uses_responses_for_gpt_with_anthropic_output() {
         let model = "gpt-5-mini";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
@@ -3272,7 +3228,7 @@ mod tests {
             .expect("resolves");
 
         assert_eq!(routes.len(), 1);
-        assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
+        assert_eq!(routes[0].format, ProviderFormat::Responses);
     }
 
     #[test]

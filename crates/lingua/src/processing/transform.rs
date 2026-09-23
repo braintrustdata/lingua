@@ -126,9 +126,7 @@ pub enum TransformResult {
         source_format: ProviderFormat,
         /// The format the payload was actually transformed into.
         ///
-        /// Usually equal to the `target_format` passed to the transform function, but may
-        /// differ when the transform function upgrades the target (e.g. `ChatCompletions` →
-        /// `Responses` when `reasoning_effort` + `tools` are present).
+        /// Matches the `target_format` passed to the transform function.
         actual_target_format: ProviderFormat,
     },
 }
@@ -280,31 +278,6 @@ pub fn extract_model(input: &[u8]) -> Option<String> {
 /// let result = transform_request(openai_payload, ProviderFormat::Anthropic, None).unwrap();
 /// let output_bytes = result.into_bytes();
 /// ```
-/// Returns `true` when a Chat Completions request should be redirected to the Responses API.
-///
-/// The `/v1/chat/completions` endpoint rejects requests that combine `reasoning_effort`
-/// with function `tools` for certain models (e.g. `gpt-5.4-mini`). The Responses API
-/// (`/v1/responses`) supports this combination, so we upgrade the target automatically.
-#[cfg(feature = "openai")]
-fn chat_completions_needs_responses_upgrade(payload: &Value) -> bool {
-    let has_reasoning_effort = payload
-        .get("reasoning_effort")
-        .and_then(Value::as_str)
-        .is_some_and(|e| e != "none");
-
-    let has_tools = payload
-        .get("tools")
-        .and_then(Value::as_array)
-        .is_some_and(|t| !t.is_empty());
-
-    has_reasoning_effort && has_tools
-}
-
-#[cfg(feature = "openai")]
-fn chat_completions_model_disables_responses_upgrade(model: &str) -> bool {
-    model.starts_with("gemini-") || model.starts_with("models/gemini-")
-}
-
 #[cfg(feature = "openai")]
 fn chat_completions_request_model(request_bytes: &[u8]) -> Option<String> {
     #[derive(serde::Deserialize)]
@@ -315,18 +288,6 @@ fn chat_completions_request_model(request_bytes: &[u8]) -> Option<String> {
     parse_json::<RequestModel>(request_bytes)
         .ok()
         .and_then(|request| request.model)
-}
-
-#[cfg(feature = "openai")]
-fn chat_completions_upgrade_model(
-    model: Option<&str>,
-    request_model: Option<&str>,
-) -> Option<String> {
-    if let Some(model) = model {
-        return Some(model.to_string());
-    }
-
-    request_model.map(str::to_string)
 }
 
 /// Claude Code prepends a billing-attribution text block to the front of the
@@ -432,27 +393,8 @@ pub fn transform_request(
 
     #[cfg(feature = "openai")]
     let request_model = chat_completions_request_model(&request_bytes);
-    #[cfg(feature = "openai")]
-    let upgrade_model = chat_completions_upgrade_model(model, request_model.as_deref());
     #[cfg(not(feature = "openai"))]
     let request_model: Option<String> = None;
-    #[cfg(not(feature = "openai"))]
-    let upgrade_model = model.map(str::to_string);
-
-    // Upgrade ChatCompletions → Responses when reasoning_effort + tools are
-    // both present, except for OpenAI-compatible providers that do not support
-    // the Responses API.
-    #[cfg(feature = "openai")]
-    let target_format = if target_format == ProviderFormat::ChatCompletions
-        && chat_completions_needs_responses_upgrade(&payload)
-        && !upgrade_model
-            .as_deref()
-            .is_some_and(chat_completions_model_disables_responses_upgrade)
-    {
-        ProviderFormat::Responses
-    } else {
-        target_format
-    };
 
     let source_format = source_adapter.format();
     let target_adapter = adapter_for_format(target_format)
@@ -2994,106 +2936,12 @@ mod tests {
     }
 
     // =========================================================================
-    // chat_completions_needs_responses_upgrade / format upgrade tests
+    // Request format tests
     // =========================================================================
 
     #[test]
     #[cfg(feature = "openai")]
-    fn test_upgrade_detection_triggers_with_reasoning_effort_and_tools() {
-        let payload = json!({
-            "reasoning_effort": "medium",
-            "tools": [{"type": "function", "function": {"name": "get_weather"}}]
-        });
-        assert!(chat_completions_needs_responses_upgrade(&payload));
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_upgrade_detection_triggers_with_low_reasoning_effort() {
-        let payload = json!({
-            "reasoning_effort": "low",
-            "tools": [{"type": "function", "function": {"name": "fn"}}]
-        });
-        assert!(chat_completions_needs_responses_upgrade(&payload));
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_upgrade_detection_skips_when_reasoning_effort_none() {
-        let payload = json!({
-            "reasoning_effort": "none",
-            "tools": [{"type": "function", "function": {"name": "fn"}}]
-        });
-        assert!(!chat_completions_needs_responses_upgrade(&payload));
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_upgrade_detection_skips_when_no_reasoning_effort() {
-        let payload = json!({
-            "tools": [{"type": "function", "function": {"name": "fn"}}]
-        });
-        assert!(!chat_completions_needs_responses_upgrade(&payload));
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_upgrade_detection_skips_when_no_tools() {
-        let payload = json!({ "reasoning_effort": "medium" });
-        assert!(!chat_completions_needs_responses_upgrade(&payload));
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_upgrade_detection_skips_when_tools_empty() {
-        let payload = json!({ "reasoning_effort": "medium", "tools": [] });
-        assert!(!chat_completions_needs_responses_upgrade(&payload));
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_transform_request_upgrades_target_to_responses_for_reasoning_plus_tools() {
-        let payload = json!({
-            "model": "gpt-5.4-mini",
-            "messages": [{"role": "user", "content": "Tokyo weather?"}],
-            "reasoning_effort": "medium",
-            "tools": [{
-                "type": "function",
-                "function": {
-                    "name": "get_weather",
-                    "description": "Get weather",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {"location": {"type": "string"}},
-                        "required": ["location"]
-                    }
-                }
-            }]
-        });
-        let input = to_bytes(&payload);
-
-        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
-
-        match result.result {
-            TransformResult::Transformed {
-                actual_target_format,
-                ..
-            } => {
-                assert_eq!(
-                    actual_target_format,
-                    ProviderFormat::Responses,
-                    "Should upgrade to Responses when reasoning_effort + tools are present"
-                );
-            }
-            TransformResult::PassThrough(_) => {
-                panic!("Expected transformation, got passthrough");
-            }
-        }
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_transform_request_does_not_upgrade_gemini_reasoning_plus_tools() {
+    fn test_transform_request_respects_chat_target_for_gemini() {
         let payload = json!({
             "model": "gemini-2.5-flash",
             "messages": [{"role": "user", "content": "Tokyo weather?"}],
@@ -3152,35 +3000,6 @@ mod tests {
             output.get("model").and_then(Value::as_str),
             Some("gemini-2.5-flash")
         );
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_transform_request_does_not_upgrade_without_tools() {
-        let payload = json!({
-            "model": "gpt-5.4-mini",
-            "messages": [{"role": "user", "content": "Hello"}],
-            "reasoning_effort": "medium"
-        });
-        let input = to_bytes(&payload);
-
-        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
-
-        match result.result {
-            TransformResult::Transformed {
-                actual_target_format,
-                ..
-            } => {
-                assert_eq!(
-                    actual_target_format,
-                    ProviderFormat::ChatCompletions,
-                    "Should not upgrade without tools"
-                );
-            }
-            TransformResult::PassThrough(_) => {
-                // PassThrough is also acceptable here (no upgrade, no forced translation)
-            }
-        }
     }
 
     #[test]

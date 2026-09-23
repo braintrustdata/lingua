@@ -1000,7 +1000,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn remote_chat_audio_is_inlined_before_responses_upgrade() {
+    async fn remote_chat_audio_is_inlined_before_responses_transform() {
         let body = Bytes::from(
             lingua::serde_json::to_vec(&json!({
                 "model": "gpt-5.4-mini",
@@ -1035,17 +1035,17 @@ mod tests {
 
         let transformed = lingua::transform_request(
             prepared.bytes,
-            ProviderFormat::ChatCompletions,
+            ProviderFormat::Responses,
             Some("gpt-5.4-mini"),
         )
-        .expect("request upgrades to Responses");
+        .expect("request transforms to Responses");
         let lingua::TransformResult::Transformed {
             bytes,
             actual_target_format,
             ..
         } = transformed.result
         else {
-            panic!("reasoning plus tools must transform to Responses");
+            panic!("request must transform to Responses");
         };
         assert_eq!(actual_target_format, ProviderFormat::Responses);
         let response: lingua::serde_json::Value =
