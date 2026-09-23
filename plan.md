@@ -4,6 +4,8 @@
 
 Google `Part.audioTranscription` is omitted by content conversion and streaming conversion. `GenerationConfig.audioTranscriptionConfig` and request `labels` are retained only in Google extras, then lost on cross-provider conversion. These fields have no approved lossless universal mapping. The PR's native type additions also need compilation, generation, and payload validation.
 
+The full payload CI suite additionally requires live Google snapshots for four new request cases. This devbox has no `GOOGLE_API_KEY`, so those snapshots cannot be captured. The two existing PR cases for file display names and finish reasons also lack cross-provider response captures. Mark only those unavailable live captures as pending while retaining offline converter and transform tests.
+
 ## Target files
 
 - `crates/lingua/src/providers/google/convert.rs`: reject transcript parts in both content roles.
@@ -13,6 +15,7 @@ Google `Part.audioTranscription` is omitted by content conversion and streaming 
 - `payloads/cases/params.ts` and `types.ts`: describe the affected request behaviors for capture.
 - `payloads/transforms/transform_errors.json` and the two cases' captured transform errors: classify each unsupported target pair narrowly.
 - `payloads/scripts/transforms/__snapshots__/transforms.test.ts.snap`: refresh Google file display names emitted by the PR's existing file conversion change.
+- `payloads/cases/types.ts`, `params.ts`, and `payloads/scripts/sync.test.ts`: declare the four pending live capture cases and skip only their missing-fixture sync checks until real provider snapshots can be recorded.
 - Generator, bindings, and expected transform artifacts only if validation shows they need repair or regeneration.
 
 ## Expected behavior
@@ -22,6 +25,8 @@ Google requests, responses, and streams continue to preserve native fields throu
 ## Tests and expected diffs
 
 Add focused Rust tests for transcript request/response/stream and request configuration/labels, including error identity and native passthrough. Captured cross-provider artifacts may change from silently lossy output to explicit unsupported errors. Keep differences narrow to the new cases.
+
+The full `pnpm test` suite should pass with the four unavailable live-capture cases reported as skipped. The six explicit unsupported transform captures remain active tests.
 
 ## Validation commands
 

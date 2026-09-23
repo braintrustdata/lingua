@@ -101,6 +101,8 @@ const openAIMultipleReasoningSignaturesReplayAssistantMessage: ChatCompletionAss
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
   googleRequestLabelsParam: {
+    capturePendingReason:
+      "A live Google response has not been captured for this request",
     "chat-completions": null,
     responses: null,
     anthropic: null,
@@ -113,6 +115,8 @@ export const paramsCases: TestCaseCollection = {
   },
 
   googleAudioTranscriptionConfigParam: {
+    capturePendingReason:
+      "A live Google response has not been captured for this request",
     "chat-completions": null,
     responses: null,
     anthropic: null,
@@ -153,6 +157,8 @@ export const paramsCases: TestCaseCollection = {
   // Pins Blob.displayName / FileData.displayName against the universal file
   // `filename` so an attachment keeps its name across providers.
   googleFileDisplayNameParam: {
+    capturePendingReason:
+      "A live Google response has not been captured for this request",
     "chat-completions": null,
     responses: null,
     anthropic: null,
@@ -183,6 +189,8 @@ export const paramsCases: TestCaseCollection = {
   // Pins the google response finish-reason path: a hard output cap makes the
   // capture terminate with a non-STOP finish reason.
   googleFinishReasonMappingParam: {
+    capturePendingReason:
+      "A live Google response has not been captured for this request",
     "chat-completions": null,
     responses: null,
     anthropic: null,
