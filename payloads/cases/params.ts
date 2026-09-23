@@ -124,6 +124,63 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  // Pins Blob.displayName / FileData.displayName against the universal file
+  // `filename` so an attachment keeps its name across providers.
+  googleFileDisplayNameParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Which revenue figure does the attached note give?" },
+            {
+              inlineData: {
+                mimeType: "text/plain",
+                displayName: "revenue-note.txt",
+                data: "UXVhcnRlcmx5IHJldmVudWU6IDQyLg==",
+              },
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+      },
+    },
+    bedrock: null,
+  },
+
+  // Pins the google response finish-reason path: a hard output cap makes the
+  // capture terminate with a non-STOP finish reason.
+  googleFinishReasonMappingParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "List every country in Europe with its capital city, one per line.",
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 16,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    },
+    bedrock: null,
+  },
+
   chatCompletionsInputAudioParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

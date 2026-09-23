@@ -1692,6 +1692,7 @@ fn generate_google_types_with_quicktype(
     let _ = std::fs::remove_file(&temp_schema_path);
 
     let processed_output = post_process_quicktype_output_for_google(&quicktype_output);
+    validate_google_public_type_names(&processed_output)?;
 
     let dest_path = "crates/lingua/src/providers/google/generated.rs";
 
@@ -1707,6 +1708,49 @@ fn generate_google_types_with_quicktype(
 
     println!("📝 Generated Google types to: {}", dest_path);
     println!("✅ Google Discovery types generated and formatted");
+    Ok(())
+}
+
+/// Guards the public names Lingua actually exports for Google.
+///
+/// The pre-generation check in `create_essential_google_schemas` only sees Discovery schema
+/// ids, so it cannot see the types quicktype derives from inline enums (`MediaProcessing`,
+/// `Level`, ...). Those names share one namespace with the schema-derived ones, so an
+/// upstream schema that starts colliding with an inline-enum name - or a leaked internal
+/// `V1main` prefix - has to fail generation loudly instead of reaching the crate.
+fn validate_google_public_type_names(generated: &str) -> Result<(), String> {
+    let mut seen = std::collections::HashSet::new();
+
+    for line in generated.lines() {
+        let Some(name) = line
+            .strip_prefix("pub struct ")
+            .or_else(|| line.strip_prefix("pub enum "))
+        else {
+            continue;
+        };
+        let name = name
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .next()
+            .unwrap_or_default();
+        if name.is_empty() {
+            continue;
+        }
+
+        if name.starts_with("V1main") || name.starts_with("V1Main") {
+            return Err(format!(
+                "Google public type '{name}' keeps an internal Discovery package prefix; \
+                 normalize it in google_public_schema_name instead of exporting it"
+            ));
+        }
+
+        if !seen.insert(name.to_string()) {
+            return Err(format!(
+                "Google public type name collision: '{name}' is generated more than once \
+                 (an upstream schema and an inline enum now claim the same public name)"
+            ));
+        }
+    }
+
     Ok(())
 }
 
@@ -1757,10 +1801,9 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> Result<serde_jso
             .get(&source_name)
             .expect("all essential Google schemas should have a public name")
             .clone();
-        fixed_schemas.insert(
-            public_name,
-            convert_discovery_schema_to_json_schema(&schema),
-        );
+        let mut converted = convert_discovery_schema_to_json_schema(&schema);
+        close_google_empty_object_schema(&mut converted);
+        fixed_schemas.insert(public_name, converted);
     }
 
     let root_schema = serde_json::json!({
@@ -1780,6 +1823,32 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> Result<serde_jso
     });
 
     Ok(root_schema)
+}
+
+/// Discovery models a "no options" message as an object schema with no properties, for
+/// example `LanguageAuto`. Left open, quicktype degrades that to an untyped
+/// `serde_json::Map`, which would let arbitrary JSON through a typed boundary. Closing the
+/// schema keeps the generated field a named marker struct.
+fn close_google_empty_object_schema(schema: &mut serde_json::Value) {
+    let Some(object) = schema.as_object_mut() else {
+        return;
+    };
+
+    if object.get("type").and_then(serde_json::Value::as_str) != Some("object") {
+        return;
+    }
+
+    let has_no_properties = object
+        .get("properties")
+        .and_then(serde_json::Value::as_object)
+        .is_some_and(serde_json::Map::is_empty);
+
+    if has_no_properties && !object.contains_key("additionalProperties") {
+        object.insert(
+            "additionalProperties".to_string(),
+            serde_json::Value::Bool(false),
+        );
+    }
 }
 
 fn google_public_schema_name(source_name: &str) -> Result<String, String> {
@@ -1842,11 +1911,7 @@ fn add_google_schema_with_dependencies(
 
     processed.insert(type_name.to_string());
 
-    let Some(schema) = all_schemas
-        .get(type_name)
-        .cloned()
-        .or_else(|| google_missing_discovery_schema(type_name))
-    else {
+    let Some(schema) = all_schemas.get(type_name).cloned() else {
         return;
     };
 
@@ -1871,39 +1936,6 @@ fn add_google_schema_with_dependencies(
                 processed,
             );
         }
-    }
-}
-
-fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
-    match type_name {
-        // The live Google Discovery spec references MediaResolution from Part but does not
-        // currently include a MediaResolution entry in schemas. Preserve the schema shape
-        // from prior Discovery specs so generation can remain fully typed.
-        "MediaResolution" => Some(serde_json::json!({
-            "description": "Media resolution for the input media.",
-            "type": "object",
-            "properties": {
-                "level": {
-                    "description": "The media resolution level.",
-                    "type": "string",
-                    "enum": [
-                        "MEDIA_RESOLUTION_UNSPECIFIED",
-                        "MEDIA_RESOLUTION_LOW",
-                        "MEDIA_RESOLUTION_MEDIUM",
-                        "MEDIA_RESOLUTION_HIGH",
-                        "MEDIA_RESOLUTION_ULTRA_HIGH"
-                    ],
-                    "enumDescriptions": [
-                        "Media resolution has not been set.",
-                        "Media resolution set to low.",
-                        "Media resolution set to medium.",
-                        "Media resolution set to high.",
-                        "Media resolution set to ultra high."
-                    ]
-                }
-            }
-        })),
-        _ => None,
     }
 }
 
@@ -2404,6 +2436,7 @@ mod google_post_process_tests {
     use super::{
         add_type_enum_lowercase_aliases, create_essential_google_schemas,
         extract_type_name_from_ref, preserve_google_public_enum_variant_names, serde_json,
+        validate_google_public_type_names,
     };
 
     fn discovery_spec_with_media_resolution_refs(refs: &[&str]) -> serde_json::Value {
@@ -2487,6 +2520,80 @@ mod google_post_process_tests {
         assert!(error.contains("Google schema name normalization collision"));
         assert!(error.contains("MediaResolution"));
         assert!(error.contains("V1mainMediaResolution"));
+    }
+
+    #[test]
+    fn google_discovery_supplies_media_resolution_without_the_hand_written_fallback() {
+        let spec_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../specs/google/discovery.json");
+        let spec: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&spec_path).unwrap()).unwrap();
+
+        assert!(
+            spec["schemas"].get("V1mainMediaResolution").is_some(),
+            "upstream must supply the media resolution schema now that the fallback is gone"
+        );
+
+        let generated = create_essential_google_schemas(&spec).unwrap();
+        let definitions = generated["definitions"].as_object().unwrap();
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert!(!definitions.contains_key("V1mainMediaResolution"));
+    }
+
+    #[test]
+    fn google_empty_properties_schema_generates_a_typed_marker_struct() {
+        let spec_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../specs/google/discovery.json");
+        let spec: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&spec_path).unwrap()).unwrap();
+
+        let generated = create_essential_google_schemas(&spec).unwrap();
+        let language_auto = &generated["definitions"]["LanguageAuto"];
+
+        assert_eq!(language_auto["type"], "object");
+        assert_eq!(
+            language_auto["additionalProperties"],
+            serde_json::Value::Bool(false),
+            "an empty-properties schema must stay closed so it is not emitted as an untyped map"
+        );
+    }
+
+    #[test]
+    fn google_public_name_collision_detects_schema_versus_inline_enum() {
+        let generated = r#"pub struct MediaProcessing {
+    pub level: Option<String>,
+}
+
+pub enum MediaProcessing {
+    Agentic,
+}"#;
+
+        let error = validate_google_public_type_names(generated).unwrap_err();
+
+        assert!(error.contains("Google public type name collision"));
+        assert!(error.contains("MediaProcessing"));
+    }
+
+    #[test]
+    fn google_public_names_reject_internal_discovery_prefixes() {
+        let generated = "pub struct V1mainMediaResolution {\n}";
+
+        let error = validate_google_public_type_names(generated).unwrap_err();
+
+        assert!(error.contains("internal Discovery package prefix"));
+        assert!(error.contains("V1mainMediaResolution"));
+    }
+
+    #[test]
+    fn google_generated_types_have_unique_unprefixed_public_names() {
+        let generated = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../crates/lingua/src/providers/google/generated.rs"),
+        )
+        .unwrap();
+
+        validate_google_public_type_names(&generated).unwrap();
     }
 
     #[test]
