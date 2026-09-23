@@ -412,8 +412,6 @@ impl Router {
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
         let native_responses = if output_format == ProviderFormat::Responses
             && route.format == ProviderFormat::Responses
-            && route.provider.id() == "openai"
-            && route.provider.matches_provider_alias("openai")
         {
             lingua::serde_json::from_slice::<NativeResponsesMetadata>(&body)
                 .ok()
@@ -1015,8 +1013,12 @@ impl Router {
         })?;
         let provider_formats = provider.provider_formats();
         let format = if provider_formats.contains(&ProviderFormat::Responses)
-            && spec.requires_responses_api()
-        {
+            && (spec.flavor == ModelFlavor::Responses
+                || (output_format == ProviderFormat::Responses
+                    && matches!(
+                        catalog_format,
+                        ProviderFormat::ChatCompletions | ProviderFormat::Responses
+                    ))) {
             ProviderFormat::Responses
         } else if provider.id() == "azure_ai_gateway" {
             // Azure AI Gateway has distinct endpoints for each provider format.
@@ -1038,15 +1040,7 @@ impl Router {
                 ProviderFormat::Anthropic
             }
         } else if provider.id() == "bedrock" {
-            // Bedrock supports both native Converse/invoke endpoints and an
-            // OpenAI-compatible Chat Completions endpoint. Use the OpenAI-compatible
-            // endpoint only when the model entry explicitly declares OpenAI format;
-            // otherwise preserve the catalog's Bedrock wire format.
-            if catalog_format == ProviderFormat::ChatCompletions {
-                ProviderFormat::ChatCompletions
-            } else {
-                catalog_format
-            }
+            catalog_format
         } else if provider.id() == "google" {
             // Google supports both native GenerateContent and an OpenAI-compatible
             // Chat Completions endpoint. Match Anthropic/Bedrock behavior: use the
@@ -1778,47 +1772,44 @@ mod tests {
             br#"{ "model": "gpt-5.6-sol", "input": [{"type":"future_input_item","opaque":9007199254740993}], "stream": true }"#,
         );
 
-        for stream in [false, true] {
-            let (prepared, metadata) = router
-                .create_prepared_request_internal(
-                    body.clone(),
-                    ProviderFormat::Responses,
-                    &route,
-                    stream,
-                    RequestPreparationOptions::default(),
-                )
-                .await
-                .expect("native request prepares without detecting its schema");
-            assert_eq!(prepared.payload, body);
-            assert_eq!(prepared.payload.as_ptr(), body.as_ptr());
-            assert_eq!(metadata.detected_input_format, ProviderFormat::Responses);
-            assert_eq!(metadata.provider_format, ProviderFormat::Responses);
-            assert!(metadata.lingua_passthrough);
-            assert!(!prepared.requires_json_response);
+        for provider in ["openai", "azure", "bedrock", "azure_ai_gateway"] {
+            let route = ProviderRoute {
+                provider: Arc::new(FakeProvider {
+                    name: provider,
+                    formats: vec![ProviderFormat::Responses],
+                }),
+                ..route.clone()
+            };
+            for stream in [false, true] {
+                let (prepared, metadata) = router
+                    .create_prepared_request_internal(
+                        body.clone(),
+                        ProviderFormat::Responses,
+                        &route,
+                        stream,
+                        RequestPreparationOptions::default(),
+                    )
+                    .await
+                    .expect("native request prepares without detecting its schema");
+                assert_eq!(prepared.payload, body);
+                assert_eq!(prepared.payload.as_ptr(), body.as_ptr());
+                assert_eq!(metadata.detected_input_format, ProviderFormat::Responses);
+                assert_eq!(metadata.provider_format, ProviderFormat::Responses);
+                assert!(metadata.lingua_passthrough);
+                assert!(!prepared.requires_json_response);
+            }
         }
 
-        let non_openai_route = ProviderRoute {
-            provider: Arc::new(FakeProvider {
-                name: "azure",
-                formats: vec![ProviderFormat::Responses],
-            }),
-            ..route.clone()
-        };
-        for (format, route) in [
-            (ProviderFormat::ChatCompletions, &route),
-            (ProviderFormat::Responses, &non_openai_route),
-        ] {
-            assert!(router
-                .create_prepared_request_internal(
-                    body.clone(),
-                    format,
-                    route,
-                    false,
-                    RequestPreparationOptions::default(),
-                )
-                .await
-                .is_err());
-        }
+        assert!(router
+            .create_prepared_request_internal(
+                body,
+                ProviderFormat::ChatCompletions,
+                &route,
+                false,
+                RequestPreparationOptions::default(),
+            )
+            .await
+            .is_err());
     }
 
     #[tokio::test]
@@ -3114,11 +3105,80 @@ mod tests {
         }
     }
 
+    #[tokio::test]
+    async fn responses_routes_preserve_native_requests() {
+        for provider in ["openai", "azure", "bedrock", "azure_ai_gateway"] {
+            for model in [
+                "global.openai.gpt-6-astra",
+                "us.openai.gpt-6-astra",
+                "custom-model",
+            ] {
+                let mut spec = openai_spec(model, ModelFlavor::Chat);
+                spec.available_providers = vec![provider.into()];
+                let mut catalog = ModelCatalog::empty();
+                catalog.insert(model.into(), spec);
+                let router = Router::builder()
+                    .with_catalog(Arc::new(catalog))
+                    .add_provider(
+                        provider,
+                        FakeProvider {
+                            name: provider,
+                            formats: vec![
+                                ProviderFormat::ChatCompletions,
+                                ProviderFormat::Responses,
+                            ],
+                        },
+                        dummy_auth(),
+                        vec![],
+                    )
+                    .build()
+                    .expect("router builds");
+                let routes = router
+                    .resolve_provider_routes(model, ProviderFormat::Responses, &[])
+                    .expect("resolves");
+                let route = &routes[0];
+                assert_eq!(
+                    route.format,
+                    ProviderFormat::Responses,
+                    "{provider}: {model}"
+                );
+
+                for stream in [false, true] {
+                    let body = Bytes::from(
+                        serde_json::to_vec(&serde_json::json!({
+                            "model": model,
+                            "input": [{"role": "user", "content": "Hello"}],
+                            "tools": [{"type": "namespace", "name": "functions", "tools": [{
+                                "type": "function", "name": "get_weather",
+                                "parameters": {"type": "object", "properties": {}}
+                            }]}],
+                            "stream": stream
+                        }))
+                        .unwrap(),
+                    );
+                    let (prepared, metadata) = router
+                        .create_prepared_request_internal(
+                            body.clone(),
+                            ProviderFormat::Responses,
+                            route,
+                            stream,
+                            RequestPreparationOptions::default(),
+                        )
+                        .await
+                        .expect("Responses-only tools pass through");
+                    assert_eq!(prepared.payload, body);
+                    assert!(metadata.lingua_passthrough);
+                    assert_eq!(metadata.provider_format, ProviderFormat::Responses);
+                }
+            }
+        }
+    }
+
     #[test]
-    fn responses_required_model_forces_responses_format_for_chat_output() {
-        let model = "gpt-5-pro";
+    fn responses_catalog_flavor_selects_responses_format_for_chat_output() {
+        let model = "custom-model";
         let mut catalog = ModelCatalog::empty();
-        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Responses));
         let router = Router::builder()
             .with_catalog(Arc::new(catalog))
             .add_provider(
@@ -3141,7 +3201,7 @@ mod tests {
     }
 
     #[test]
-    fn codex_variant_forces_responses_format_for_chat_output() {
+    fn model_name_does_not_override_catalog_flavor() {
         let model = "gpt-5.1-codex";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
@@ -3163,7 +3223,7 @@ mod tests {
             .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        assert_eq!(routes[0].format, ProviderFormat::Responses);
+        assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
     }
 
     #[test]
@@ -3276,7 +3336,7 @@ mod tests {
     }
 
     #[test]
-    fn bedrock_converse_catalog_format_keeps_converse_transport_for_chat_output() {
+    fn bedrock_converse_catalog_format_keeps_converse_transport() {
         let bedrock_spec = |model: &str, format: ProviderFormat| ModelSpec {
             model: model.to_string(),
             format,
@@ -3303,7 +3363,11 @@ mod tests {
                 "bedrock",
                 FakeProvider {
                     name: "bedrock",
-                    formats: vec![ProviderFormat::Converse, ProviderFormat::BedrockAnthropic],
+                    formats: vec![
+                        ProviderFormat::Converse,
+                        ProviderFormat::BedrockAnthropic,
+                        ProviderFormat::Responses,
+                    ],
                 },
                 dummy_auth(),
                 vec![],
@@ -3311,19 +3375,21 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let routes = router
-            .resolve_providers(model, ProviderFormat::ChatCompletions)
-            .expect("resolves");
-        assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format) = routes[0];
-        assert_eq!(format, ProviderFormat::Converse);
+        for output_format in [ProviderFormat::ChatCompletions, ProviderFormat::Responses] {
+            let routes = router
+                .resolve_providers(model, output_format)
+                .expect("resolves");
+            assert_eq!(routes.len(), 1);
+            let (_, _, _, _, format) = routes[0];
+            assert_eq!(format, ProviderFormat::Converse);
+        }
     }
 
     #[test]
     fn responses_required_model_without_responses_support_stays_chat_completions() {
         let model = "gpt-5-pro";
         let mut catalog = ModelCatalog::empty();
-        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Responses));
         let router = Router::builder()
             .with_catalog(Arc::new(catalog))
             .add_provider(
@@ -3338,18 +3404,20 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
-            .expect("resolves");
-        assert_eq!(routes.len(), 1);
-        assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
+        for format in [ProviderFormat::ChatCompletions, ProviderFormat::Responses] {
+            let routes = router
+                .resolve_provider_routes(model, format, &[])
+                .expect("resolves");
+            assert_eq!(routes.len(), 1);
+            assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
+        }
     }
 
     #[test]
     fn responses_required_model_falls_back_to_azure_provider() {
         let model = "gpt-5-pro";
         let mut catalog = ModelCatalog::empty();
-        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Responses));
         let router = Router::builder()
             .with_catalog(Arc::new(catalog))
             .add_provider(
