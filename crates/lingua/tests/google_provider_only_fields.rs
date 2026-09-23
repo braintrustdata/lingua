@@ -72,10 +72,55 @@ fn hosted_tool_call_response() -> serde_json::Value {
     })
 }
 
+fn audio_transcription_request() -> serde_json::Value {
+    json!({
+        "contents": [{
+            "role": "user",
+            "parts": [{
+                "audioTranscription": {
+                    "speakerLabel": "spk_1",
+                    "text": "Hello there.",
+                    "words": [{"word": "Hello", "startOffset": "0s", "endOffset": "0.5s"}]
+                }
+            }]
+        }]
+    })
+}
+
+fn audio_transcription_response() -> serde_json::Value {
+    json!({
+        "candidates": [{
+            "content": {
+                "role": "model",
+                "parts": [{
+                    "audioTranscription": {"speakerLabel": "spk_1", "text": "Hello there."}
+                }]
+            },
+            "finishReason": "STOP"
+        }]
+    })
+}
+
+fn audio_transcription_config_request() -> serde_json::Value {
+    json!({
+        "contents": [{"role": "user", "parts": [{"text": "Transcribe this audio."}]}],
+        "generationConfig": {
+            "audioTranscriptionConfig": {"diarization": true, "wordTimestamp": true}
+        }
+    })
+}
+
+fn labels_request() -> serde_json::Value {
+    json!({
+        "contents": [{"role": "user", "parts": [{"text": "Hello."}]}],
+        "labels": {"safety_identifier": "test123"}
+    })
+}
+
 fn assert_to_universal_failure_mentions(error: TransformError, google_field: &str) {
     assert!(
-        matches!(&error, TransformError::ToUniversalFailed(reason) if reason.contains(google_field)),
-        "expected a to-universal failure naming {google_field}, got: {error:?}"
+        matches!(&error, TransformError::ToUniversalFailed(reason) if reason.contains("Unsupported mapping") && reason.contains(google_field)),
+        "expected an unsupported mapping naming {google_field}, got: {error:?}"
     );
 }
 
@@ -151,4 +196,62 @@ fn google_hosted_tool_call_response_is_rejected_for_non_google_target() {
     .expect_err("a hosted toolCall turn must not vanish from the transformed response");
 
     assert_to_universal_failure_mentions(error, "toolCall");
+}
+
+#[test]
+fn google_hosted_tool_call_stream_is_rejected_for_non_google_target() {
+    let error = lingua::transform_stream_chunk(
+        request_bytes(hosted_tool_call_response()),
+        ProviderFormat::ChatCompletions,
+    )
+    .expect_err("hosted toolCall stream part must not be dropped");
+    assert_to_universal_failure_mentions(error, "toolCall");
+}
+
+#[test]
+fn google_audio_transcription_parts_preserve_native_bytes_and_reject_cross_provider() {
+    let request = request_bytes(audio_transcription_request());
+    let native = lingua::transform_request(request.clone(), ProviderFormat::Google, None)
+        .expect("native request passthrough");
+    assert!(matches!(native.result, TransformResult::PassThrough(bytes) if bytes == request));
+    let error = lingua::transform_request(request, ProviderFormat::Anthropic, None)
+        .expect_err("transcript request must be rejected");
+    assert_to_universal_failure_mentions(error, "audioTranscription");
+
+    let response = request_bytes(audio_transcription_response());
+    let native = lingua::transform_response(response.clone(), ProviderFormat::Google)
+        .expect("native response passthrough");
+    assert!(matches!(native.result, TransformResult::PassThrough(bytes) if bytes == response));
+    let error = lingua::transform_response(response.clone(), ProviderFormat::ChatCompletions)
+        .expect_err("transcript response must be rejected");
+    assert_to_universal_failure_mentions(error, "audioTranscription");
+
+    let native = lingua::transform_stream_chunk(response.clone(), ProviderFormat::Google)
+        .expect("native stream passthrough");
+    assert!(matches!(native, TransformResult::PassThrough(bytes) if bytes == response));
+    let error = lingua::transform_stream_chunk(response, ProviderFormat::ChatCompletions)
+        .expect_err("transcript stream chunk must be rejected");
+    assert_to_universal_failure_mentions(error, "audioTranscription");
+}
+
+#[test]
+fn google_audio_transcription_config_preserves_native_bytes_and_rejects_cross_provider() {
+    let request = request_bytes(audio_transcription_config_request());
+    let native = lingua::transform_request(request.clone(), ProviderFormat::Google, None)
+        .expect("native config passthrough");
+    assert!(matches!(native.result, TransformResult::PassThrough(bytes) if bytes == request));
+    let error = lingua::transform_request(request, ProviderFormat::Anthropic, None)
+        .expect_err("transcription settings must be rejected");
+    assert_to_universal_failure_mentions(error, "audioTranscriptionConfig");
+}
+
+#[test]
+fn google_request_labels_preserve_native_bytes_and_reject_cross_provider() {
+    let request = request_bytes(labels_request());
+    let native = lingua::transform_request(request.clone(), ProviderFormat::Google, None)
+        .expect("native labels passthrough");
+    assert!(matches!(native.result, TransformResult::PassThrough(bytes) if bytes == request));
+    let error = lingua::transform_request(request, ProviderFormat::Anthropic, None)
+        .expect_err("labels must be rejected");
+    assert_to_universal_failure_mentions(error, "labels");
 }

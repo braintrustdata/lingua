@@ -7,7 +7,13 @@ import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
 export interface GoogleGenerateContentRequest {
   model?: string;
   contents: Content[];
-  generationConfig?: GenerateContentConfig;
+  generationConfig?: GenerateContentConfig & {
+    audioTranscriptionConfig?: {
+      diarization?: boolean;
+      wordTimestamp?: boolean;
+    };
+  };
+  labels?: Record<string, string>;
   tools?: Tool[];
   toolConfig?: Record<string, unknown>;
   systemInstruction?: Content;

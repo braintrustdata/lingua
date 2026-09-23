@@ -81,14 +81,14 @@ fn reject_unnameable_display_name(
     Ok(())
 }
 
-/// Google parts can carry directives that only Google's own stack can execute:
-/// `mediaProcessing` selects Google-hosted video navigation, `speechMetadata` drives
-/// Google speech synthesis, and `toolCall`/`toolResponse` are the provider-hosted
-/// toolset echo protocol. None of them has a provider-neutral meaning, so a
-/// cross-provider conversion must fail instead of dropping them. Same-format Google
-/// requests, responses, and streams keep them via the byte-preserving passthrough path.
-fn reject_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
-    let google_field = if part.media_processing.is_some() {
+/// Reject Google parts without a lossless universal representation.
+/// `audioTranscription` needs a speech contract that preserves speaker segments and
+/// word timing. The other fields carry Google-managed directives or hosted tool state.
+/// Same-format traffic keeps these fields through byte-preserving passthrough.
+pub(super) fn reject_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
+    let google_field = if part.audio_transcription.is_some() {
+        "audioTranscription"
+    } else if part.media_processing.is_some() {
         "mediaProcessing"
     } else if part.speech_metadata.is_some() {
         "speechMetadata"
