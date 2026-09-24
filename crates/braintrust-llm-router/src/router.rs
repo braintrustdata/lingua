@@ -3560,28 +3560,29 @@ mod tests {
 
     #[test]
     fn responses_required_model_name_overrides_chat_catalog_flavor() {
-        let model = "@openai/gpt-5.6-luna";
-        let mut catalog = ModelCatalog::empty();
-        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
-        let router = Router::builder()
-            .with_catalog(Arc::new(catalog))
-            .add_provider(
-                "azure_ai_gateway",
-                FakeProvider {
-                    name: "azure_ai_gateway",
-                    formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
-                },
-                dummy_auth(),
-                vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
-            )
-            .build()
-            .expect("router builds");
+        for model in ["@openai/gpt-5.6-luna", "braintrust/gpt-6-luna"] {
+            let mut catalog = ModelCatalog::empty();
+            catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+            let router = Router::builder()
+                .with_catalog(Arc::new(catalog))
+                .add_provider(
+                    "azure_ai_gateway",
+                    FakeProvider {
+                        name: "azure_ai_gateway",
+                        formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                    },
+                    dummy_auth(),
+                    vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                )
+                .build()
+                .expect("router builds");
 
-        let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
-            .expect("resolves");
-        assert_eq!(routes.len(), 1);
-        assert_eq!(routes[0].format, ProviderFormat::Responses);
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
+                .expect("resolves");
+            assert_eq!(routes.len(), 1, "{model}");
+            assert_eq!(routes[0].format, ProviderFormat::Responses, "{model}");
+        }
     }
 
     #[test]
