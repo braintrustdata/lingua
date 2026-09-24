@@ -1073,7 +1073,7 @@ impl Router {
             }
             output_format
         } else if provider_formats.contains(&ProviderFormat::Responses)
-            && (spec.flavor == ModelFlavor::Responses
+            && (spec.requires_responses_api()
                 || (output_format == ProviderFormat::Responses
                     && matches!(
                         catalog_format,
@@ -3183,7 +3183,7 @@ mod tests {
                     "custom-endpoint",
                     FakeProvider {
                         name: "custom",
-                        formats: vec![format],
+                        formats: vec![format, ProviderFormat::Responses],
                     },
                     dummy_auth(),
                     vec![format],
@@ -3559,16 +3559,16 @@ mod tests {
     }
 
     #[test]
-    fn model_name_does_not_override_catalog_flavor() {
-        let model = "gpt-5.1-codex";
+    fn responses_required_model_name_overrides_chat_catalog_flavor() {
+        let model = "gpt-5.2-codex";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
         let router = Router::builder()
             .with_catalog(Arc::new(catalog))
             .add_provider(
-                "openai",
+                "azure_ai_gateway",
                 FakeProvider {
-                    name: "openai",
+                    name: "azure_ai_gateway",
                     formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
                 },
                 dummy_auth(),
@@ -3581,7 +3581,7 @@ mod tests {
             .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
+        assert_eq!(routes[0].format, ProviderFormat::Responses);
     }
 
     #[test]
@@ -3747,7 +3747,7 @@ mod tests {
     fn responses_required_model_without_responses_support_stays_chat_completions() {
         let model = "gpt-5-pro";
         let mut catalog = ModelCatalog::empty();
-        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Responses));
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
         let router = Router::builder()
             .with_catalog(Arc::new(catalog))
             .add_provider(
@@ -3773,9 +3773,9 @@ mod tests {
 
     #[test]
     fn responses_required_model_falls_back_to_azure_provider() {
-        let model = "gpt-5-pro";
+        let model = "gpt-5.3-codex-gateway-integration-test";
         let mut catalog = ModelCatalog::empty();
-        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Responses));
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
         let router = Router::builder()
             .with_catalog(Arc::new(catalog))
             .add_provider(
