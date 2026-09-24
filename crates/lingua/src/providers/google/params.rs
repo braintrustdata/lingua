@@ -99,4 +99,38 @@ mod tests {
         // Custom field should be preserved
         assert_eq!(back.get("customField"), json.get("customField"));
     }
+
+    /// Typed view of the request tagging map added in Discovery revision 20260915.
+    #[derive(Debug, Deserialize, PartialEq)]
+    struct GoogleLabelsView {
+        labels: BTreeMap<String, String>,
+    }
+
+    fn expected_labels() -> BTreeMap<String, String> {
+        BTreeMap::from([
+            ("env".to_string(), "prod".to_string()),
+            ("team".to_string(), "search".to_string()),
+        ])
+    }
+
+    /// `GenerateContentRequest.labels` is deliberately not a named `GoogleParams` field, so the
+    /// flattened extras map carries it losslessly. Promoting it to a typed member later must not
+    /// silently drop it from the round trip.
+    #[test]
+    fn test_google_params_captures_labels_in_extras() {
+        let json = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "labels": {"team": "search", "env": "prod"}
+        });
+
+        let params: GoogleParams = serde_json::from_value(json).unwrap();
+        assert!(
+            params.extras.contains_key("labels"),
+            "labels must fall through serde(flatten) into extras"
+        );
+
+        let back: GoogleLabelsView = serde_json::from_value(serde_json::to_value(&params).unwrap())
+            .expect("labels must be re-emitted at the top level");
+        assert_eq!(back.labels, expected_labels());
+    }
 }
