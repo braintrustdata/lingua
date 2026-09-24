@@ -62,6 +62,7 @@ fn model_requires_responses_api(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
     let normalized = lower
         .strip_prefix("@openai/")
+        .or_else(|| lower.strip_prefix("braintrust/"))
         .or_else(|| lower.strip_prefix("openai."))
         .unwrap_or(lower.as_str());
     let parse_version_component = |component: &str| {
@@ -111,6 +112,8 @@ mod tests {
             "gpt-5.4",
             "gpt-5.5-chat-latest",
             "@openai/gpt-5.6-luna",
+            "braintrust/gpt-5.6-luna",
+            "braintrust/gpt-6-luna",
             "gpt-5-codex",
             "gpt-5.1-codex",
             "gpt-5.1-codex-mini",
@@ -136,6 +139,7 @@ mod tests {
             "gpt-5",
             "gpt-5.1",
             "gpt-5.2-chat-latest",
+            "braintrust/gpt-5.2",
             "gpt-4o",
             "gpt-next",
             "claude-sonnet-4",
