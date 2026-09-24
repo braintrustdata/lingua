@@ -813,9 +813,6 @@ fn openai_router(catalog: Arc<ModelCatalog>) -> (Router, Arc<Mutex<Option<Provid
 
 #[tokio::test]
 async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
-    // Use gpt-5.2-mini (minor version 2 < 3) so model_requires_responses_api() returns
-    // false. Only the body-level detection (reasoning_effort + tools) should trigger the
-    // upgrade from ChatCompletions to Responses.
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
         "gpt-5.2-mini".into(),
@@ -892,7 +889,7 @@ async fn responses_required_model_uses_responses_for_anthropic_messages_output()
         ModelSpec {
             model: "gpt-5.5".into(),
             format: ProviderFormat::ChatCompletions,
-            flavor: ModelFlavor::Chat,
+            flavor: ModelFlavor::Responses,
             display_name: None,
             parent: None,
             input_cost_per_mil_tokens: None,
