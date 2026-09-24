@@ -815,9 +815,9 @@ fn openai_router(catalog: Arc<ModelCatalog>) -> (Router, Arc<Mutex<Option<Provid
 async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
-        "gpt-5.2-mini".into(),
+        "@openai/gpt-5.6-luna".into(),
         ModelSpec {
-            model: "gpt-5.2-mini".into(),
+            model: "@openai/gpt-5.6-luna".into(),
             format: ProviderFormat::ChatCompletions,
             flavor: ModelFlavor::Chat,
             display_name: None,
@@ -837,7 +837,7 @@ async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
     let (router, recorded_format) = openai_router(Arc::new(catalog));
 
     let body = to_body(json!({
-        "model": "gpt-5.2-mini",
+        "model": "@openai/gpt-5.6-luna",
         "messages": [{"role": "user", "content": "Tokyo weather?"}],
         "reasoning_effort": "medium",
         "tools": [{
@@ -857,7 +857,7 @@ async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
     let (request, metadata) = create_request(
         &router,
         body,
-        "gpt-5.2-mini",
+        "@openai/gpt-5.6-luna",
         ProviderFormat::ChatCompletions,
     )
     .await

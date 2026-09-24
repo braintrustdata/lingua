@@ -3560,7 +3560,7 @@ mod tests {
 
     #[test]
     fn responses_required_model_name_overrides_chat_catalog_flavor() {
-        let model = "gpt-5.2-codex";
+        let model = "@openai/gpt-5.6-luna";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
         let router = Router::builder()
