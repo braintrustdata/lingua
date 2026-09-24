@@ -245,6 +245,11 @@ struct NativeResponsesMetadata {
     stream: Option<bool>,
 }
 
+#[derive(Deserialize)]
+struct StreamFlagMetadata {
+    stream: Option<bool>,
+}
+
 fn native_responses_requires_json_response(body: &[u8]) -> bool {
     use lingua::providers::openai::generated::{ResponseFormatType, ResponseTextParam};
 
@@ -425,6 +430,15 @@ impl Router {
         };
         let (payload, detected_format, actual_format, requires_json_response, lingua_passthrough) =
             if route.passthrough {
+                let body = if stream
+                    && !lingua::serde_json::from_slice::<StreamFlagMetadata>(&body)
+                        .ok()
+                        .is_some_and(|metadata| metadata.stream == Some(true))
+                {
+                    enable_streaming_payload(body, route.format)
+                } else {
+                    body
+                };
                 (body, None, route.format, false, true)
             } else if let Some(metadata) = native_responses {
                 reject_remote_responses_audio(&body)?;
@@ -3203,6 +3217,50 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn unknown_model_stream_requests_enable_body_streaming() {
+        for format in [
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Responses,
+            ProviderFormat::Anthropic,
+        ] {
+            let router = Router::builder()
+                .with_catalog(Arc::new(ModelCatalog::empty()))
+                .add_provider(
+                    "custom-endpoint",
+                    FakeProvider {
+                        name: "custom",
+                        formats: vec![format],
+                    },
+                    dummy_auth(),
+                    vec![format],
+                )
+                .build()
+                .unwrap();
+            let model = "custom-model";
+            for stream_field in ["", r#", "stream": false"#] {
+                let body = Bytes::from(format!(
+                    r#"{{ "model": "{model}", "future_input": 9007199254740993{stream_field} }}"#
+                ));
+                let (request, metadata) = create_test_stream_request(&router, body, model, format)
+                    .await
+                    .expect("unknown model stream request prepares");
+                let actual: Value = lingua::serde_json::from_slice(&request.inner.payload).unwrap();
+                assert_eq!(
+                    actual,
+                    lingua::serde_json::json!({
+                        "model": model,
+                        "future_input": 9007199254740993_u64,
+                        "stream": true,
+                    }),
+                    "{format:?}: {stream_field}"
+                );
+                assert_eq!(metadata.provider_format, format);
+                assert!(metadata.lingua_passthrough);
+            }
+        }
+    }
+
+    #[tokio::test]
     async fn unknown_models_preserve_responses_and_stream_capture() {
         let response = Bytes::from_static(br#"{ "future_response": 9007199254740993 }"#);
         let chunk = Bytes::from_static(br#"{ "type": "future_event", "opaque": true }"#);
@@ -3285,7 +3343,7 @@ mod tests {
 
     #[tokio::test]
     async fn unknown_models_forward_native_http_and_upstream_errors() {
-        use wiremock::matchers::{body_bytes, method, path};
+        use wiremock::matchers::{body_json, method, path};
         use wiremock::{Mock, MockServer, ResponseTemplate};
 
         for provider in ["openai", "bedrock"] {
@@ -3303,10 +3361,19 @@ mod tests {
             let routes = router
                 .resolve_provider_routes(model, ProviderFormat::Responses, &[])
                 .unwrap();
-            for (streaming, status) in [(false, 200), (true, 200), (false, 400)] {
-                let body = Bytes::from(format!(
-                    r#"{{ "model": "{model}", "future_input": true, "stream": {streaming} }}"#
-                ));
+            for (streaming, status, stream_field) in [
+                (false, 200, Some(false)),
+                (true, 200, Some(true)),
+                (true, 200, Some(false)),
+                (true, 200, None),
+                (false, 400, Some(false)),
+            ] {
+                let body = Bytes::from(match stream_field {
+                    Some(value) => format!(
+                        r#"{{ "model": "{model}", "future_input": true, "stream": {value} }}"#
+                    ),
+                    None => format!(r#"{{ "model": "{model}", "future_input": true }}"#),
+                });
                 let response = if streaming {
                     "event: response.future_event\ndata: {\"future_output\":true}\n\n"
                 } else {
@@ -3314,7 +3381,11 @@ mod tests {
                 };
                 Mock::given(method("POST"))
                     .and(path("/v1/responses"))
-                    .and(body_bytes(body.to_vec()))
+                    .and(body_json(serde_json::json!({
+                        "model": model,
+                        "future_input": true,
+                        "stream": streaming,
+                    })))
                     .respond_with(ResponseTemplate::new(status).set_body_raw(
                         response,
                         if streaming {
