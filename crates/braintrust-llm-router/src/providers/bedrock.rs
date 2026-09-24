@@ -185,6 +185,21 @@ impl BedrockProvider {
             return self.mantle_openai_url("chat/completions");
         }
 
+        self.openai_url("chat/completions")
+    }
+
+    fn responses_url(&self, model: &str) -> Result<Url> {
+        let is_inference_profile = model.split_once('.').is_some_and(|(prefix, _)| {
+            matches!(prefix, "global" | "us" | "eu" | "apac" | "au" | "jp" | "in")
+        });
+        if self.is_aws_managed_endpoint() && !is_inference_profile {
+            return self.mantle_openai_url("responses");
+        }
+
+        self.openai_url("responses")
+    }
+
+    fn openai_url(&self, suffix: &str) -> Result<Url> {
         let mut url = self.config.endpoint.clone();
         // The AWS-managed `bedrock-runtime` host serves the OpenAI API under
         // `/openai/v1`; a custom api_base uses a plain `/v1/chat/completions`.
@@ -206,32 +221,7 @@ impl BedrockProvider {
             if !has_v1 {
                 segments.push("v1");
             }
-            segments.push("chat");
-            segments.push("completions");
-        }
-        Ok(url)
-    }
-
-    fn responses_url(&self) -> Result<Url> {
-        // AWS serves the Responses API on the `bedrock-mantle` host; a custom
-        // api_base is honored as-is with `v1/responses` appended.
-        if self.is_aws_managed_endpoint() {
-            return self.mantle_openai_url("responses");
-        }
-
-        let mut url = self.config.endpoint.clone();
-        let has_v1 = url
-            .path_segments()
-            .is_some_and(|segments| segments.into_iter().any(|segment| segment == "v1"));
-        {
-            let mut segments = url
-                .path_segments_mut()
-                .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
-            segments.pop_if_empty();
-            if !has_v1 {
-                segments.push("v1");
-            }
-            segments.push("responses");
+            segments.extend(suffix.split('/'));
         }
         Ok(url)
     }
@@ -411,7 +401,7 @@ impl crate::providers::Provider for BedrockProvider {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, false)?,
             ProviderFormat::ChatCompletions => self.chat_completions_url(&spec.model)?,
-            ProviderFormat::Responses => self.responses_url()?,
+            ProviderFormat::Responses => self.responses_url(&spec.model)?,
             _ => self.converse_url(&spec.model, false)?,
         };
         let response = self.send_signed(url, payload, auth, client_headers).await?;
@@ -435,7 +425,7 @@ impl crate::providers::Provider for BedrockProvider {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, true)?,
             ProviderFormat::ChatCompletions => self.chat_completions_url(&spec.model)?,
-            ProviderFormat::Responses => self.responses_url()?,
+            ProviderFormat::Responses => self.responses_url(&spec.model)?,
             _ => self.converse_url(&spec.model, true)?,
         };
 
@@ -713,7 +703,7 @@ mod tests {
     #[test]
     fn responses_url_uses_bedrock_mantle_host_for_aws_runtime() {
         let provider = provider();
-        let url = provider.responses_url().unwrap();
+        let url = provider.responses_url("openai.gpt-5.4").unwrap();
         assert_eq!(
             url.as_str(),
             "https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses"
@@ -729,7 +719,7 @@ mod tests {
             timeout: None,
         };
         let provider = BedrockProvider::new(config).unwrap();
-        let url = provider.responses_url().unwrap();
+        let url = provider.responses_url("openai.gpt-5.4").unwrap();
         assert_eq!(
             url.as_str(),
             "https://bedrock-mantle.us-west-2.api.aws/openai/v1/responses"
@@ -745,8 +735,46 @@ mod tests {
             timeout: None,
         };
         let provider = BedrockProvider::new(config).unwrap();
-        let url = provider.responses_url().unwrap();
+        let url = provider.responses_url("openai.gpt-5.4").unwrap();
         assert_eq!(url.as_str(), "https://my-proxy.example.com/v1/responses");
+    }
+
+    #[test]
+    fn responses_url_keeps_cross_region_profiles_on_runtime() {
+        for model in [
+            "global.openai.gpt-5.6-terra",
+            "us.openai.gpt-6-astra",
+            "in.openai.gpt-5.6-luna",
+        ] {
+            let provider = provider();
+            let url = provider.responses_url(model).unwrap();
+            assert_eq!(
+                url.as_str(),
+                "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/responses",
+                "{model}"
+            );
+        }
+    }
+
+    #[test]
+    fn responses_url_preserves_existing_openai_v1_path() {
+        for endpoint in [
+            "https://bedrock-runtime.us-west-2.amazonaws.com/openai/v1/",
+            "https://my-proxy.example.com/openai/v1/",
+        ] {
+            let provider = BedrockProvider::new(BedrockConfig {
+                endpoint: Url::parse(endpoint).unwrap(),
+                ..BedrockConfig::default()
+            })
+            .unwrap();
+            assert_eq!(
+                provider
+                    .responses_url("global.openai.gpt-5.6-terra")
+                    .unwrap()
+                    .as_str(),
+                format!("{endpoint}responses")
+            );
+        }
     }
 
     #[tokio::test]

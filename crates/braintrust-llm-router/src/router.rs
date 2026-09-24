@@ -7,6 +7,7 @@ use tokio::time::sleep;
 use tracing::Instrument;
 
 use bytes::Bytes;
+use futures::TryStreamExt;
 
 use crate::auth::AuthConfig;
 use crate::catalog::{
@@ -156,6 +157,7 @@ pub struct ProviderRoute {
     auth: AuthConfig,
     spec: Arc<ModelSpec>,
     format: ProviderFormat,
+    passthrough: bool,
 }
 
 impl ProviderRoute {
@@ -218,6 +220,7 @@ struct PreparedRequestInner {
     output_format: ProviderFormat,
     requires_json_response: bool,
     strategy: RetryStrategy,
+    passthrough: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -239,6 +242,11 @@ struct NativeResponsesMetadata {
     _input: serde::de::IgnoredAny,
     messages: Option<serde::de::IgnoredAny>,
     contents: Option<serde::de::IgnoredAny>,
+    stream: Option<bool>,
+}
+
+#[derive(Deserialize)]
+struct StreamFlagMetadata {
     stream: Option<bool>,
 }
 
@@ -410,10 +418,9 @@ impl Router {
         stream: bool,
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
-        let native_responses = if output_format == ProviderFormat::Responses
+        let native_responses = if !route.passthrough
+            && output_format == ProviderFormat::Responses
             && route.format == ProviderFormat::Responses
-            && route.provider.id() == "openai"
-            && route.provider.matches_provider_alias("openai")
         {
             lingua::serde_json::from_slice::<NativeResponsesMetadata>(&body)
                 .ok()
@@ -422,7 +429,18 @@ impl Router {
             None
         };
         let (payload, detected_format, actual_format, requires_json_response, lingua_passthrough) =
-            if let Some(metadata) = native_responses {
+            if route.passthrough {
+                let body = if stream
+                    && !lingua::serde_json::from_slice::<StreamFlagMetadata>(&body)
+                        .ok()
+                        .is_some_and(|metadata| metadata.stream == Some(true))
+                {
+                    enable_streaming_payload(body, route.format)
+                } else {
+                    body
+                };
+                (body, None, route.format, false, true)
+            } else if let Some(metadata) = native_responses {
                 reject_remote_responses_audio(&body)?;
                 let requires_json_response = native_responses_requires_json_response(&body);
                 let body = if options.rewrite_body_model {
@@ -457,6 +475,7 @@ impl Router {
                 output_format,
                 requires_json_response,
                 strategy: self.retry_policy.strategy(),
+                passthrough: route.passthrough,
             },
             RouterMetadata {
                 detected_input_format: detected_format.unwrap_or(route.format),
@@ -556,6 +575,7 @@ impl Router {
             output_format,
             requires_json_response,
             strategy,
+            passthrough,
         } = request.inner;
         let fallback_response_model = spec.model.clone();
         let response_bytes = self
@@ -569,6 +589,18 @@ impl Router {
                 client_headers,
             )
             .await?;
+        if passthrough {
+            return Ok(CompleteResponseWithRaw {
+                response: response_bytes.clone(),
+                raw_response: response_bytes,
+                parsable_info: ParsableResponseInfo {
+                    complete: false,
+                    content_is_json: false,
+                    saw_terminal_finish: false,
+                },
+                requires_json_response,
+            });
+        }
         let result = lingua::transform_response(response_bytes.clone(), output_format).map_err(
             |source| Error::ResponseTransform {
                 source,
@@ -687,11 +719,19 @@ impl Router {
             output_format,
             requires_json_response: _,
             strategy: _,
+            passthrough,
         } = request.inner;
         let raw_stream = provider
             .clone()
             .complete_stream(payload, &auth, spec.as_ref(), format, client_headers)
             .await?;
+        if passthrough {
+            return Ok(Box::pin(raw_stream.inspect_ok(move |chunk| {
+                if let Some(capture) = &raw_chunk_capture {
+                    capture(chunk);
+                }
+            })));
+        }
         Ok(transform_provider_stream(
             raw_stream,
             output_format,
@@ -716,9 +756,41 @@ impl Router {
         output_format: ProviderFormat,
         fallback_aliases: &[String],
     ) -> Result<Vec<ProviderRoute>> {
-        let (spec, catalog_format, aliases) = self.resolver.resolve(model)?;
+        let (spec, catalog_format, aliases, passthrough) = match self.resolver.resolve(model) {
+            Ok((spec, format, aliases)) => (spec, format, aliases, false),
+            Err(Error::UnknownModel(_)) if !model.is_empty() => {
+                let spec = Arc::new(ModelSpec {
+                    model: model.to_string(),
+                    format: output_format,
+                    flavor: ModelFlavor::Unknown,
+                    display_name: None,
+                    parent: None,
+                    input_cost_per_mil_tokens: None,
+                    output_cost_per_mil_tokens: None,
+                    input_cache_read_cost_per_mil_tokens: None,
+                    multimodal: None,
+                    reasoning: None,
+                    max_input_tokens: None,
+                    max_output_tokens: None,
+                    supports_streaming: true,
+                    extra: Default::default(),
+                    available_providers: Vec::new(),
+                });
+                let mut seen = HashSet::new();
+                let aliases = self
+                    .formats
+                    .get(&output_format)
+                    .into_iter()
+                    .chain(fallback_aliases)
+                    .filter_map(|alias| self.matching_provider_alias(alias, alias))
+                    .filter(|alias| seen.insert(alias.clone()))
+                    .collect();
+                (spec, output_format, aliases, true)
+            }
+            Err(error) => return Err(error),
+        };
         Self::validate_http_model(&spec)?;
-        if !fallback_aliases.is_empty() {
+        if !passthrough && !fallback_aliases.is_empty() {
             return self.resolve_provider_routes_for_failover(
                 model,
                 output_format,
@@ -734,6 +806,7 @@ impl Router {
                     spec.clone(),
                     catalog_format,
                     alias.to_string(),
+                    passthrough,
                 )
             })
             .collect();
@@ -750,31 +823,7 @@ impl Router {
                 }
             })
             .collect();
-        if !fallback_aliases.is_empty() {
-            let mut seen: HashSet<String> = successes
-                .first()
-                .map(|route| route.provider_alias.clone())
-                .into_iter()
-                .collect();
-            let mut routes: Vec<ProviderRoute> = successes.into_iter().take(1).collect();
-            routes.extend(
-                fallback_aliases
-                    .iter()
-                    .filter(|alias| aliases.contains(alias))
-                    .filter(|alias| seen.insert((*alias).clone()))
-                    .filter_map(|alias| {
-                        self.resolve_provider(
-                            output_format,
-                            spec.clone(),
-                            catalog_format,
-                            alias.clone(),
-                        )
-                        .ok()
-                    }),
-            );
-            successes = routes;
-        }
-        if successes.is_empty() && fallback_aliases.is_empty() {
+        if !passthrough && successes.is_empty() && fallback_aliases.is_empty() {
             if is_gemini_api_model(model) && catalog_format != ProviderFormat::Google {
                 return Err(Error::NoProvider(ProviderFormat::Google));
             }
@@ -784,6 +833,7 @@ impl Router {
                     spec.clone(),
                     catalog_format,
                     fallback_alias.clone(),
+                    false,
                 ) {
                     Ok(route) => successes.push(route),
                     Err(fallback_error) => {
@@ -845,6 +895,7 @@ impl Router {
                     spec.clone(),
                     *catalog_format,
                     alias.to_string(),
+                    false,
                 ) {
                     Ok(route) => {
                         seen.insert(route.provider_alias.clone());
@@ -877,6 +928,7 @@ impl Router {
                     spec.clone(),
                     *catalog_format,
                     provider_alias,
+                    false,
                 ) {
                     Ok(route) => {
                         seen.insert(route.provider_alias.clone());
@@ -988,6 +1040,7 @@ impl Router {
         spec: Arc<ModelSpec>,
         catalog_format: ProviderFormat,
         alias: String,
+        passthrough: bool,
     ) -> Result<ProviderRoute> {
         Self::validate_http_model(&spec)?;
 
@@ -1014,8 +1067,18 @@ impl Router {
             Error::NoProvider(catalog_format)
         })?;
         let provider_formats = provider.provider_formats();
-        let format = if provider_formats.contains(&ProviderFormat::Responses)
-            && spec.requires_responses_api()
+        let format = if passthrough {
+            if !provider_formats.contains(&output_format) {
+                return Err(Error::NoProvider(output_format));
+            }
+            output_format
+        } else if provider_formats.contains(&ProviderFormat::Responses)
+            && (spec.requires_responses_api()
+                || (output_format == ProviderFormat::Responses
+                    && matches!(
+                        catalog_format,
+                        ProviderFormat::ChatCompletions | ProviderFormat::Responses
+                    )))
         {
             ProviderFormat::Responses
         } else if provider.id() == "azure_ai_gateway" {
@@ -1038,15 +1101,7 @@ impl Router {
                 ProviderFormat::Anthropic
             }
         } else if provider.id() == "bedrock" {
-            // Bedrock supports both native Converse/invoke endpoints and an
-            // OpenAI-compatible Chat Completions endpoint. Use the OpenAI-compatible
-            // endpoint only when the model entry explicitly declares OpenAI format;
-            // otherwise preserve the catalog's Bedrock wire format.
-            if catalog_format == ProviderFormat::ChatCompletions {
-                ProviderFormat::ChatCompletions
-            } else {
-                catalog_format
-            }
+            catalog_format
         } else if provider.id() == "google" {
             // Google supports both native GenerateContent and an OpenAI-compatible
             // Chat Completions endpoint. Match Anthropic/Bedrock behavior: use the
@@ -1078,6 +1133,7 @@ impl Router {
             auth,
             spec,
             format,
+            passthrough,
         })
     }
 
@@ -1720,6 +1776,7 @@ mod tests {
             auth: dummy_auth(),
             spec: Arc::new(openai_spec("gpt-5.6-sol", ModelFlavor::Chat)),
             format: ProviderFormat::Responses,
+            passthrough: false,
         };
         (router, route)
     }
@@ -1778,47 +1835,44 @@ mod tests {
             br#"{ "model": "gpt-5.6-sol", "input": [{"type":"future_input_item","opaque":9007199254740993}], "stream": true }"#,
         );
 
-        for stream in [false, true] {
-            let (prepared, metadata) = router
-                .create_prepared_request_internal(
-                    body.clone(),
-                    ProviderFormat::Responses,
-                    &route,
-                    stream,
-                    RequestPreparationOptions::default(),
-                )
-                .await
-                .expect("native request prepares without detecting its schema");
-            assert_eq!(prepared.payload, body);
-            assert_eq!(prepared.payload.as_ptr(), body.as_ptr());
-            assert_eq!(metadata.detected_input_format, ProviderFormat::Responses);
-            assert_eq!(metadata.provider_format, ProviderFormat::Responses);
-            assert!(metadata.lingua_passthrough);
-            assert!(!prepared.requires_json_response);
+        for provider in ["openai", "azure", "bedrock", "azure_ai_gateway"] {
+            let route = ProviderRoute {
+                provider: Arc::new(FakeProvider {
+                    name: provider,
+                    formats: vec![ProviderFormat::Responses],
+                }),
+                ..route.clone()
+            };
+            for stream in [false, true] {
+                let (prepared, metadata) = router
+                    .create_prepared_request_internal(
+                        body.clone(),
+                        ProviderFormat::Responses,
+                        &route,
+                        stream,
+                        RequestPreparationOptions::default(),
+                    )
+                    .await
+                    .expect("native request prepares without detecting its schema");
+                assert_eq!(prepared.payload, body);
+                assert_eq!(prepared.payload.as_ptr(), body.as_ptr());
+                assert_eq!(metadata.detected_input_format, ProviderFormat::Responses);
+                assert_eq!(metadata.provider_format, ProviderFormat::Responses);
+                assert!(metadata.lingua_passthrough);
+                assert!(!prepared.requires_json_response);
+            }
         }
 
-        let non_openai_route = ProviderRoute {
-            provider: Arc::new(FakeProvider {
-                name: "azure",
-                formats: vec![ProviderFormat::Responses],
-            }),
-            ..route.clone()
-        };
-        for (format, route) in [
-            (ProviderFormat::ChatCompletions, &route),
-            (ProviderFormat::Responses, &non_openai_route),
-        ] {
-            assert!(router
-                .create_prepared_request_internal(
-                    body.clone(),
-                    format,
-                    route,
-                    false,
-                    RequestPreparationOptions::default(),
-                )
-                .await
-                .is_err());
-        }
+        assert!(router
+            .create_prepared_request_internal(
+                body,
+                ProviderFormat::ChatCompletions,
+                &route,
+                false,
+                RequestPreparationOptions::default(),
+            )
+            .await
+            .is_err());
     }
 
     #[tokio::test]
@@ -3114,11 +3168,375 @@ mod tests {
         }
     }
 
+    #[tokio::test]
+    async fn unknown_models_preserve_requests() {
+        for format in [
+            ProviderFormat::Responses,
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Anthropic,
+            ProviderFormat::Google,
+            ProviderFormat::Converse,
+        ] {
+            let router = Router::builder()
+                .with_catalog(Arc::new(ModelCatalog::empty()))
+                .add_provider(
+                    "custom-endpoint",
+                    FakeProvider {
+                        name: "custom",
+                        formats: vec![format, ProviderFormat::Responses],
+                    },
+                    dummy_auth(),
+                    vec![format],
+                )
+                .build()
+                .unwrap();
+            let model = "gpt-99-custom";
+            let body = Bytes::from_static(
+                br#"{ "model": "gpt-99-custom", "input": [{"type":"future_input_item","opaque":9007199254740993}], "temperature": 0.7, "stream": true }"#,
+            );
+            let routes = router.resolve_provider_routes(model, format, &[]).unwrap();
+            assert_eq!(routes.len(), 1);
+            assert_eq!(routes[0].model(), model);
+            for stream in [false, true] {
+                let (prepared, metadata) = router
+                    .create_prepared_request_internal(
+                        body.clone(),
+                        format,
+                        &routes[0],
+                        stream,
+                        RequestPreparationOptions::default(),
+                    )
+                    .await
+                    .unwrap();
+                assert_eq!(prepared.payload, body);
+                assert_eq!(prepared.payload.as_ptr(), body.as_ptr());
+                assert_eq!(prepared.format, format);
+                assert!(metadata.lingua_passthrough);
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn unknown_model_stream_requests_enable_body_streaming() {
+        for format in [
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Responses,
+            ProviderFormat::Anthropic,
+        ] {
+            let router = Router::builder()
+                .with_catalog(Arc::new(ModelCatalog::empty()))
+                .add_provider(
+                    "custom-endpoint",
+                    FakeProvider {
+                        name: "custom",
+                        formats: vec![format],
+                    },
+                    dummy_auth(),
+                    vec![format],
+                )
+                .build()
+                .unwrap();
+            let model = "custom-model";
+            for stream_field in ["", r#", "stream": false"#] {
+                let body = Bytes::from(format!(
+                    r#"{{ "model": "{model}", "future_input": 9007199254740993{stream_field} }}"#
+                ));
+                let (request, metadata) = create_test_stream_request(&router, body, model, format)
+                    .await
+                    .expect("unknown model stream request prepares");
+                let actual: Value = lingua::serde_json::from_slice(&request.inner.payload).unwrap();
+                assert_eq!(
+                    actual,
+                    lingua::serde_json::json!({
+                        "model": model,
+                        "future_input": 9007199254740993_u64,
+                        "stream": true,
+                    }),
+                    "{format:?}: {stream_field}"
+                );
+                assert_eq!(metadata.provider_format, format);
+                assert!(metadata.lingua_passthrough);
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn unknown_models_preserve_responses_and_stream_capture() {
+        let response = Bytes::from_static(br#"{ "future_response": 9007199254740993 }"#);
+        let chunk = Bytes::from_static(br#"{ "type": "future_event", "opaque": true }"#);
+        let router = Router::builder()
+            .with_catalog(Arc::new(ModelCatalog::empty()))
+            .add_provider(
+                "custom-endpoint",
+                StaticProvider {
+                    response: response.clone(),
+                    stream_chunks: vec![chunk.clone()],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .unwrap();
+        let model = "custom-model";
+        let body = Bytes::from_static(br#"{"model":"custom-model","future_input":true}"#);
+        let (request, _) = create_test_request(
+            &router,
+            body.clone(),
+            model,
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .unwrap();
+        let result = router
+            .complete_with_raw_response(request, &ClientHeaders::default())
+            .await
+            .unwrap();
+        assert_eq!(result.response, response);
+        assert_eq!(result.raw_response, response);
+        assert!(!result
+            .parsable_info
+            .reusable_for_request(lingua::ResponseRequirement::Any));
+
+        let (request, _) =
+            create_test_stream_request(&router, body, model, ProviderFormat::ChatCompletions)
+                .await
+                .unwrap();
+        let captured = Arc::new(Mutex::new(Vec::new()));
+        let captured_clone = captured.clone();
+        let capture = Arc::new(move |chunk: &StreamChunk| {
+            captured_clone.lock().unwrap().push(chunk.data.clone());
+        });
+        let mut stream = router
+            .complete_stream_with_raw_response_capture(
+                request,
+                &ClientHeaders::default(),
+                None,
+                capture,
+            )
+            .await
+            .unwrap();
+        assert_eq!(stream.next().await.unwrap().unwrap().data, chunk);
+        assert!(stream.next().await.is_none());
+        assert_eq!(*captured.lock().unwrap(), vec![chunk]);
+    }
+
     #[test]
-    fn responses_required_model_forces_responses_format_for_chat_output() {
-        let model = "gpt-5-pro";
+    fn unknown_models_require_a_provider_for_the_requested_format() {
+        let router = Router::builder()
+            .with_catalog(Arc::new(ModelCatalog::empty()))
+            .add_provider(
+                "anthropic",
+                FakeProvider {
+                    name: "anthropic",
+                    formats: vec![ProviderFormat::Anthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .unwrap();
+        assert!(matches!(
+            router.resolve_provider_routes("custom-model", ProviderFormat::Responses, &[]),
+            Err(Error::NoProvider(ProviderFormat::Responses))
+        ));
+    }
+
+    #[tokio::test]
+    async fn unknown_models_forward_native_http_and_upstream_errors() {
+        use wiremock::matchers::{body_json, method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        for provider in ["openai", "bedrock"] {
+            let server = MockServer::start().await;
+            let endpoint = Url::parse(&format!("{}/v1/", server.uri())).unwrap();
+            let provider =
+                create_provider(provider, Some(&endpoint), None, None, &HashMap::new(), None)
+                    .unwrap();
+            let router = Router::builder()
+                .with_catalog(Arc::new(ModelCatalog::empty()))
+                .add_provider_arc("custom-endpoint", provider, dummy_auth(), vec![])
+                .build()
+                .unwrap();
+            let model = "global.openai.unknown-model";
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::Responses, &[])
+                .unwrap();
+            for (streaming, status, stream_field) in [
+                (false, 200, Some(false)),
+                (true, 200, Some(true)),
+                (true, 200, Some(false)),
+                (true, 200, None),
+                (false, 400, Some(false)),
+            ] {
+                let body = Bytes::from(match stream_field {
+                    Some(value) => format!(
+                        r#"{{ "model": "{model}", "future_input": true, "stream": {value} }}"#
+                    ),
+                    None => format!(r#"{{ "model": "{model}", "future_input": true }}"#),
+                });
+                let response = if streaming {
+                    "event: response.future_event\ndata: {\"future_output\":true}\n\n"
+                } else {
+                    "{ \"future_response\": true }"
+                };
+                Mock::given(method("POST"))
+                    .and(path("/v1/responses"))
+                    .and(body_json(serde_json::json!({
+                        "model": model,
+                        "future_input": true,
+                        "stream": streaming,
+                    })))
+                    .respond_with(ResponseTemplate::new(status).set_body_raw(
+                        response,
+                        if streaming {
+                            "text/event-stream"
+                        } else {
+                            "application/json"
+                        },
+                    ))
+                    .expect(1)
+                    .mount(&server)
+                    .await;
+                if streaming {
+                    let (request, _) = router
+                        .create_stream_request(body, ProviderFormat::Responses, &routes[0], false)
+                        .await
+                        .unwrap();
+                    let mut stream = router
+                        .complete_stream(request, &ClientHeaders::default(), None)
+                        .await
+                        .unwrap();
+                    let chunk = stream.next().await.unwrap().unwrap();
+                    assert_eq!(chunk.data, r#"{"future_output":true}"#);
+                    assert_eq!(chunk.event_type.as_deref(), Some("response.future_event"));
+                    assert!(stream.next().await.is_none());
+                } else {
+                    let (request, _) = router
+                        .create_request(body, ProviderFormat::Responses, &routes[0], false)
+                        .await
+                        .unwrap();
+                    let result = router.complete(request, &ClientHeaders::default()).await;
+                    if status == 200 {
+                        assert_eq!(result.unwrap(), response);
+                    } else {
+                        assert!(
+                            matches!(result, Err(Error::Provider { http: Some(error), .. })
+                            if error.status() == status && error.body == response)
+                        );
+                    }
+                }
+                server.verify().await;
+                server.reset().await;
+            }
+        }
+    }
+
+    #[test]
+    fn unknown_models_keep_default_provider_and_explicit_fallback_order() {
+        let format = ProviderFormat::Responses;
+        let mut builder = Router::builder().with_catalog(Arc::new(ModelCatalog::empty()));
+        for name in ["primary", "fallback", "unrequested"] {
+            builder = builder.add_provider(
+                name,
+                FakeProvider {
+                    name,
+                    formats: vec![format],
+                },
+                dummy_auth(),
+                if name == "primary" {
+                    vec![format]
+                } else {
+                    vec![]
+                },
+            );
+        }
+        let router = builder.build().unwrap();
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                "unknown-model",
+                format,
+                &["fallback", "fallback", "primary"]
+            )
+            .unwrap(),
+            vec!["primary", "fallback"]
+        );
+    }
+
+    #[tokio::test]
+    async fn responses_routes_preserve_native_requests() {
+        for provider in ["openai", "azure", "bedrock", "azure_ai_gateway"] {
+            for model in [
+                "global.openai.gpt-6-astra",
+                "us.openai.gpt-6-astra",
+                "custom-model",
+            ] {
+                let mut spec = openai_spec(model, ModelFlavor::Chat);
+                spec.available_providers = vec![provider.into()];
+                let mut catalog = ModelCatalog::empty();
+                catalog.insert(model.into(), spec);
+                let router = Router::builder()
+                    .with_catalog(Arc::new(catalog))
+                    .add_provider(
+                        provider,
+                        FakeProvider {
+                            name: provider,
+                            formats: vec![
+                                ProviderFormat::ChatCompletions,
+                                ProviderFormat::Responses,
+                            ],
+                        },
+                        dummy_auth(),
+                        vec![],
+                    )
+                    .build()
+                    .expect("router builds");
+                let routes = router
+                    .resolve_provider_routes(model, ProviderFormat::Responses, &[])
+                    .expect("resolves");
+                let route = &routes[0];
+                assert_eq!(
+                    route.format,
+                    ProviderFormat::Responses,
+                    "{provider}: {model}"
+                );
+
+                for stream in [false, true] {
+                    let body = Bytes::from(
+                        serde_json::to_vec(&serde_json::json!({
+                            "model": model,
+                            "input": [{"role": "user", "content": "Hello"}],
+                            "tools": [{"type": "namespace", "name": "functions", "tools": [{
+                                "type": "function", "name": "get_weather",
+                                "parameters": {"type": "object", "properties": {}}
+                            }]}],
+                            "stream": stream
+                        }))
+                        .unwrap(),
+                    );
+                    let (prepared, metadata) = router
+                        .create_prepared_request_internal(
+                            body.clone(),
+                            ProviderFormat::Responses,
+                            route,
+                            stream,
+                            RequestPreparationOptions::default(),
+                        )
+                        .await
+                        .expect("Responses-only tools pass through");
+                    assert_eq!(prepared.payload, body);
+                    assert!(metadata.lingua_passthrough);
+                    assert_eq!(metadata.provider_format, ProviderFormat::Responses);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn responses_catalog_flavor_selects_responses_format_for_chat_output() {
+        let model = "custom-model";
         let mut catalog = ModelCatalog::empty();
-        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Responses));
         let router = Router::builder()
             .with_catalog(Arc::new(catalog))
             .add_provider(
@@ -3141,29 +3559,30 @@ mod tests {
     }
 
     #[test]
-    fn codex_variant_forces_responses_format_for_chat_output() {
-        let model = "gpt-5.1-codex";
-        let mut catalog = ModelCatalog::empty();
-        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
-        let router = Router::builder()
-            .with_catalog(Arc::new(catalog))
-            .add_provider(
-                "openai",
-                FakeProvider {
-                    name: "openai",
-                    formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
-                },
-                dummy_auth(),
-                vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
-            )
-            .build()
-            .expect("router builds");
+    fn responses_required_model_name_overrides_chat_catalog_flavor() {
+        for model in ["@openai/gpt-5.6-luna", "braintrust/gpt-6-luna"] {
+            let mut catalog = ModelCatalog::empty();
+            catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+            let router = Router::builder()
+                .with_catalog(Arc::new(catalog))
+                .add_provider(
+                    "azure_ai_gateway",
+                    FakeProvider {
+                        name: "azure_ai_gateway",
+                        formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                    },
+                    dummy_auth(),
+                    vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                )
+                .build()
+                .expect("router builds");
 
-        let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
-            .expect("resolves");
-        assert_eq!(routes.len(), 1);
-        assert_eq!(routes[0].format, ProviderFormat::Responses);
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
+                .expect("resolves");
+            assert_eq!(routes.len(), 1, "{model}");
+            assert_eq!(routes[0].format, ProviderFormat::Responses, "{model}");
+        }
     }
 
     #[test]
@@ -3276,7 +3695,7 @@ mod tests {
     }
 
     #[test]
-    fn bedrock_converse_catalog_format_keeps_converse_transport_for_chat_output() {
+    fn bedrock_converse_catalog_format_keeps_converse_transport() {
         let bedrock_spec = |model: &str, format: ProviderFormat| ModelSpec {
             model: model.to_string(),
             format,
@@ -3303,7 +3722,11 @@ mod tests {
                 "bedrock",
                 FakeProvider {
                     name: "bedrock",
-                    formats: vec![ProviderFormat::Converse, ProviderFormat::BedrockAnthropic],
+                    formats: vec![
+                        ProviderFormat::Converse,
+                        ProviderFormat::BedrockAnthropic,
+                        ProviderFormat::Responses,
+                    ],
                 },
                 dummy_auth(),
                 vec![],
@@ -3311,12 +3734,14 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let routes = router
-            .resolve_providers(model, ProviderFormat::ChatCompletions)
-            .expect("resolves");
-        assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format) = routes[0];
-        assert_eq!(format, ProviderFormat::Converse);
+        for output_format in [ProviderFormat::ChatCompletions, ProviderFormat::Responses] {
+            let routes = router
+                .resolve_providers(model, output_format)
+                .expect("resolves");
+            assert_eq!(routes.len(), 1);
+            let (_, _, _, _, format) = routes[0];
+            assert_eq!(format, ProviderFormat::Converse);
+        }
     }
 
     #[test]
@@ -3338,16 +3763,18 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
-            .expect("resolves");
-        assert_eq!(routes.len(), 1);
-        assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
+        for format in [ProviderFormat::ChatCompletions, ProviderFormat::Responses] {
+            let routes = router
+                .resolve_provider_routes(model, format, &[])
+                .expect("resolves");
+            assert_eq!(routes.len(), 1);
+            assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
+        }
     }
 
     #[test]
     fn responses_required_model_falls_back_to_azure_provider() {
-        let model = "gpt-5-pro";
+        let model = "gpt-5.3-codex-gateway-integration-test";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
         let router = Router::builder()
