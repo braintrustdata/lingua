@@ -29,6 +29,9 @@ pub struct GoogleParams {
     // === Generation configuration ===
     pub generation_config: Option<GenerationConfig>,
 
+    // === Request labels ===
+    pub labels: Option<BTreeMap<String, String>>,
+
     // === Safety settings ===
     pub safety_settings: Option<Value>,
 

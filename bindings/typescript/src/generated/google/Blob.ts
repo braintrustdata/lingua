@@ -11,6 +11,12 @@ export type Blob = {
  */
 data: string | null, 
 /**
+ * Optional. Specifies the name used to refer to this blob to the model (e.g.
+ * "my_blob.png"). Used as the blob reference identifier when `verbalization_mode` is set to
+ * `REFERENCE_ONLY`.
+ */
+displayName: string | null, 
+/**
  * The IANA standard MIME type of the source data. Examples of supported types: - Images:
  * image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/gif,
  * image/avif - Audio: audio/*, video/audio/s16le, video/audio/wav - Video: video/* - Text:

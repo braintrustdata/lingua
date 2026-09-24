@@ -42,13 +42,18 @@ describe("test data sync", () => {
       const caseData = getCaseForProvider(allTestCases, caseName, provider);
       if (caseData == null) continue;
 
-      test(`snapshot exists: ${provider}/${caseName}`, () => {
-        const snapshotDir = join(SNAPSHOTS_DIR, caseName, provider);
-        expect(
-          existsSync(snapshotDir),
-          `Missing snapshot directory: ${snapshotDir}. Run 'pnpm capture --filter ${caseName}'`
-        ).toBe(true);
-      });
+      const snapshotDir = join(SNAPSHOTS_DIR, caseName, provider);
+      const pendingLiveCapture =
+        Boolean(testCase?.capturePendingReason) && !existsSync(snapshotDir);
+      test.skipIf(pendingLiveCapture)(
+        `snapshot exists: ${provider}/${caseName}`,
+        () => {
+          expect(
+            existsSync(snapshotDir),
+            `Missing snapshot directory: ${snapshotDir}. Run 'pnpm capture --filter ${caseName}'`
+          ).toBe(true);
+        }
+      );
     }
   }
 
@@ -58,15 +63,14 @@ describe("test data sync", () => {
     for (const caseName of cases) {
       const pairKey = `${pair.source}_to_${pair.target}`;
       const transformError = transformErrors[pairKey]?.[caseName];
+      const responsePath = getResponsePath(pair.source, pair.target, caseName);
+      const pendingLiveCapture =
+        Boolean(allTestCases[caseName]?.capturePendingReason) &&
+        !existsSync(responsePath);
 
-      test.skipIf(transformError)(
+      test.skipIf(Boolean(transformError) || pendingLiveCapture)(
         `transform capture exists: ${pair.source} → ${pair.target} / ${caseName}`,
         () => {
-          const responsePath = getResponsePath(
-            pair.source,
-            pair.target,
-            caseName
-          );
           expect(
             existsSync(responsePath),
             `Missing transform capture: ${responsePath}. Run 'pnpm capture --filter ${caseName}'`
