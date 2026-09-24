@@ -60,7 +60,10 @@ fn default_true() -> bool {
 
 fn model_requires_responses_api(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
-    let normalized = lower.strip_prefix("openai.").unwrap_or(lower.as_str());
+    let normalized = lower
+        .strip_prefix("@openai/")
+        .or_else(|| lower.strip_prefix("openai."))
+        .unwrap_or(lower.as_str());
     let parse_version_component = |component: &str| {
         let digit_count = component.bytes().take_while(u8::is_ascii_digit).count();
         if digit_count == 0 {
@@ -107,6 +110,7 @@ mod tests {
             "gpt-5.3-chat-latest",
             "gpt-5.4",
             "gpt-5.5-chat-latest",
+            "@openai/gpt-5.6-luna",
             "gpt-5-codex",
             "gpt-5.1-codex",
             "gpt-5.1-codex-mini",
