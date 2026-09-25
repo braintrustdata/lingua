@@ -27,6 +27,7 @@ use super::json_selection::{
 
 const MAX_REMOTE_MEDIA_BYTES: usize = 5 * 1024 * 1024;
 const MAX_REMOTE_PDF_BYTES: usize = 20 * 1024 * 1024;
+const MAX_REMOTE_AUDIO_BYTES: usize = 250 * 1024 * 1024;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct RemoteMediaPolicy {
@@ -303,12 +304,34 @@ async fn fetch_remote_media_as_base64(
         Some(if is_pdf {
             MAX_REMOTE_PDF_BYTES
         } else {
-            MAX_REMOTE_MEDIA_BYTES
+            remote_media_size_limit(url)
         }),
         additional_ca_bundle,
     )
     .await
     .map_err(|e| Error::InvalidRequest(format!("failed to fetch media URL: {e}")))
+}
+
+fn remote_media_size_limit(url: &str) -> usize {
+    let audio_filename = parse_file_metadata_from_url(url).is_some_and(|metadata| {
+        metadata
+            .content_type
+            .as_deref()
+            .is_some_and(|mime| normalized_media_type(mime).starts_with("audio/"))
+            || metadata.filename.to_ascii_lowercase().ends_with(".wav")
+            || metadata.filename.to_ascii_lowercase().ends_with(".ogg")
+    });
+    let audio_content_type = url::Url::parse(url).ok().is_some_and(|parsed| {
+        parsed.query_pairs().any(|(key, value)| {
+            (key == "response-content-type" || key == "rsct")
+                && normalized_media_type(&value).starts_with("audio/")
+        })
+    });
+    if audio_filename || audio_content_type {
+        MAX_REMOTE_AUDIO_BYTES
+    } else {
+        MAX_REMOTE_MEDIA_BYTES
+    }
 }
 
 #[cfg(test)]
@@ -547,6 +570,26 @@ mod tests {
     use super::*;
     use crate::catalog::ModelFlavor;
     use lingua::serde_json::json;
+
+    #[test]
+    fn remote_audio_uses_audio_size_limit() {
+        assert_eq!(
+            remote_media_size_limit("https://storage.example.com/composed.wav"),
+            MAX_REMOTE_AUDIO_BYTES
+        );
+        assert_eq!(
+            remote_media_size_limit("https://storage.example.com/key?X-Amz-Expires=3600&response-content-type=audio%2Fwav"),
+            MAX_REMOTE_AUDIO_BYTES
+        );
+        assert_eq!(
+            remote_media_size_limit("https://storage.example.com/key?rsct=audio%2Fwav"),
+            MAX_REMOTE_AUDIO_BYTES
+        );
+        assert_eq!(
+            remote_media_size_limit("https://storage.example.com/image.png"),
+            MAX_REMOTE_MEDIA_BYTES
+        );
+    }
 
     fn spec(model: &str, format: ProviderFormat) -> ModelSpec {
         ModelSpec {
