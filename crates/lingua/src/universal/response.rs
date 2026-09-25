@@ -11,6 +11,7 @@ use crate::universal::defaults::PLACEHOLDER_ID;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use ts_rs::TS;
 
 /// Universal response envelope for LLM API responses.
 ///
@@ -79,7 +80,7 @@ impl ParsableResponseInfo {
 }
 
 /// A provider-independent token modality.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum TokenModality {
     Unspecified,
@@ -91,69 +92,86 @@ pub enum TokenModality {
 }
 
 /// Token count for one modality.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct ModalityTokenCount {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub modality: Option<TokenModality>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional, type = "number")]
     pub token_count: Option<i64>,
 }
 
 /// A token subset with an optional modality breakdown.
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct TokenBreakdown {
+    #[ts(optional, type = "number")]
     pub total_tokens: Option<i64>,
+    #[ts(optional)]
     pub by_modality: Option<Vec<ModalityTokenCount>>,
 }
 
 /// Detailed subsets of inclusive prompt/input usage.
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct InputTokenDetails {
     /// User/request content tokens by modality. Provider-generated tool prompts are separate.
+    #[ts(optional)]
     pub content_by_modality: Option<Vec<ModalityTokenCount>>,
     /// Cache-read tokens, which are included in `UniversalUsage::prompt_tokens`.
+    #[ts(optional)]
     pub cached: Option<TokenBreakdown>,
     /// Cache-write tokens, which are included in `UniversalUsage::prompt_tokens` when reported.
+    #[ts(optional)]
     pub cache_creation: Option<TokenBreakdown>,
     /// Provider-generated tool prompt tokens included in `UniversalUsage::prompt_tokens`.
+    #[ts(optional)]
     pub tool_prompt: Option<TokenBreakdown>,
 }
 
 /// Detailed subsets of inclusive completion/output usage.
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct OutputTokenDetails {
     /// Returned candidate content tokens by modality. Reasoning tokens are separate.
+    #[ts(optional)]
     pub content_by_modality: Option<Vec<ModalityTokenCount>>,
     /// Reasoning/thinking tokens included in `UniversalUsage::completion_tokens`.
+    #[ts(optional)]
     pub reasoning: Option<TokenBreakdown>,
 }
 
 /// Token usage statistics.
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 pub struct UniversalUsage {
     /// Tokens in the prompt/input, including provider-generated tool prompts when reported.
+    #[ts(optional, type = "number")]
     pub prompt_tokens: Option<i64>,
 
     /// Tokens in the completion/output
+    #[ts(optional, type = "number")]
     pub completion_tokens: Option<i64>,
 
     /// Total tokens. Preserves a provider-reported value or falls back to prompt plus completion.
+    #[ts(optional, type = "number")]
     pub total_tokens: Option<i64>,
 
     /// Cached tokens in the prompt (from prompt caching)
+    #[ts(optional, type = "number")]
     pub prompt_cached_tokens: Option<i64>,
 
     /// Tokens written to cache during this request
+    #[ts(optional, type = "number")]
     pub prompt_cache_creation_tokens: Option<i64>,
 
     /// Tokens written to the 5-minute-TTL cache (Anthropic split cache writes)
+    #[ts(optional, type = "number")]
     pub prompt_cache_creation_5m_tokens: Option<i64>,
 
     /// Tokens written to the 1-hour-TTL cache (Anthropic split cache writes)
+    #[ts(optional, type = "number")]
     pub prompt_cache_creation_1h_tokens: Option<i64>,
 
     /// True when `prompt_tokens` excludes the cache read/creation buckets.
@@ -165,16 +183,20 @@ pub struct UniversalUsage {
     /// Anthropic-style exclusive input count must subtract the cache buckets
     /// when this is not set; see [`UniversalUsage::exclusive_prompt_tokens`].
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    #[ts(as = "Option<bool>", optional)]
     pub prompt_tokens_exclude_cache: bool,
 
     /// Reasoning/thinking tokens used in the completion.
     /// `Some(n)` only when `n > 0`; otherwise `None`.
+    #[ts(optional, type = "number")]
     pub completion_reasoning_tokens: Option<i64>,
 
     /// Detailed prompt/input token subsets and modality breakdowns.
+    #[ts(optional)]
     pub input_details: Option<InputTokenDetails>,
 
     /// Detailed completion/output token subsets and modality breakdowns.
+    #[ts(optional)]
     pub output_details: Option<OutputTokenDetails>,
 }
 

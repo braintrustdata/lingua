@@ -34,7 +34,8 @@ serde_json.workspace = true
 bytes.workspace = true
 yaml_serde.workspace = true
 serde_with.workspace = true
-ts-rs.workspace = true
+chrono.workspace = true
+ts-rs = { workspace = true, features = ["chrono-impl"] }
 thiserror.workspace = true
 url.workspace = true
 urlencoding.workspace = true

@@ -197,6 +197,15 @@
   ],
   "perTestCase": [
     {
+      "testCase": "outputFormatJsonSchemaParam",
+      "source": "Anthropic",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.extras.anthropic.output_format", "reason": "Legacy output_format is emitted as output_config.format; params.response_format still verifies the JSON schema" },
+        { "pattern": "params.extras.anthropic.output_config", "reason": "Legacy output_format is emitted as output_config.format; params.response_format still verifies the JSON schema" }
+      ]
+    },
+    {
       "testCase": "openaiAgentMessageParam",
       "source": "Responses",
       "target": "*",
