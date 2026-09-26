@@ -700,8 +700,7 @@ fn normalize_responses_items_for_import(data: &serde_json::Value) -> Option<serd
         data
     };
 
-    let compat_items =
-        serde_json::from_value::<Vec<ResponsesImportCompatItem>>(candidate.clone()).ok()?;
+    let compat_items = Vec::<ResponsesImportCompatItem>::deserialize(candidate).ok()?;
     let normalized = serde_json::to_value(compat_items).ok()?;
 
     if normalized == *candidate {

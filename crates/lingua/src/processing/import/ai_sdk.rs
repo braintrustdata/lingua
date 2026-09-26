@@ -122,7 +122,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
             let mut converted_parts = Vec::new();
 
             for part in parts {
-                let parsed = serde_json::from_value::<AISDKContentPartCompat>(part.clone());
+                let parsed = AISDKContentPartCompat::deserialize(&part);
                 let Ok(parsed) = parsed else {
                     if let Some(text) = value_to_string(&part) {
                         converted_parts.push(UserContentPart::Text(TextContentPart {
@@ -193,7 +193,7 @@ fn parse_assistant_parts(parts: Vec<Value>) -> Vec<AssistantContentPart> {
     let mut converted_parts = Vec::new();
 
     for part in parts {
-        let parsed = serde_json::from_value::<AISDKContentPartCompat>(part.clone());
+        let parsed = AISDKContentPartCompat::deserialize(&part);
         let Ok(parsed) = parsed else {
             if let Some(text) = value_to_string(&part) {
                 if !text.is_empty() {
@@ -521,7 +521,7 @@ fn parse_step_message(step: &Value) -> Option<Message> {
         let assistant_parts: Vec<AssistantContentPart> = parts
             .iter()
             .filter_map(|part| {
-                let parsed = serde_json::from_value::<AISDKContentPartCompat>(part.clone()).ok()?;
+                let parsed = AISDKContentPartCompat::deserialize(part).ok()?;
                 match parsed {
                     AISDKContentPartCompat::Text { text } => {
                         if text.is_empty() {

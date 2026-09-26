@@ -126,7 +126,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     #[cfg(feature = "openai")]
     {
         if let Ok(provider_messages) =
-            serde_json::from_value::<Vec<ChatCompletionRequestMessageExt>>(data_to_parse.clone())
+            Vec::<ChatCompletionRequestMessageExt>::deserialize(data_to_parse)
         {
             if let Ok(messages) = <Vec<Message> as TryFromLLM<
                 Vec<ChatCompletionRequestMessageExt>,
@@ -295,7 +295,7 @@ fn try_parse_anthropic_or_system_message(item: AnthropicOrSystemMessage) -> Opti
 
 #[cfg(feature = "anthropic")]
 fn try_anthropic_or_system_messages(data: &Value) -> Option<Vec<Message>> {
-    let items: Vec<AnthropicOrSystemMessage> = serde_json::from_value(data.clone()).ok()?;
+    let items = Vec::<AnthropicOrSystemMessage>::deserialize(data).ok()?;
     if items.is_empty() {
         return None;
     }
@@ -402,7 +402,7 @@ fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
         content,
         tool_calls,
         reasoning_signature,
-    } = serde_json::from_value(item.clone()).ok()?;
+    } = ReasoningAssistantMessageCompat::deserialize(item).ok()?;
 
     if !content.iter().any(|part| {
         matches!(
@@ -524,7 +524,7 @@ fn try_lenient_message_parsing(data: &Value) -> Option<Vec<Message>> {
 }
 
 fn try_parse_lenient_text_content_part(item: &Value) -> Option<TextContentPart> {
-    match serde_json::from_value::<LenientTextContentPartCompat>(item.clone()).ok()? {
+    match LenientTextContentPartCompat::deserialize(item).ok()? {
         LenientTextContentPartCompat::Text { text } => Some(TextContentPart {
             text,
             encrypted_content: None,
@@ -537,7 +537,7 @@ fn try_parse_lenient_text_content_part(item: &Value) -> Option<TextContentPart> 
 fn parse_tool_call_arguments(value: Option<Value>) -> Option<ToolCallArguments> {
     match value {
         Some(raw) => {
-            if let Ok(arguments) = serde_json::from_value::<ToolCallArguments>(raw.clone()) {
+            if let Ok(arguments) = ToolCallArguments::deserialize(&raw) {
                 return Some(arguments);
             }
 
@@ -554,7 +554,7 @@ fn parse_tool_call_arguments(value: Option<Value>) -> Option<ToolCallArguments> 
 }
 
 fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantContentPart> {
-    let part = serde_json::from_value::<LenientAssistantContentPartCompat>(item.clone()).ok()?;
+    let part = LenientAssistantContentPartCompat::deserialize(item).ok()?;
     parse_lenient_assistant_content_part(part)
 }
 
@@ -615,7 +615,7 @@ fn parse_lenient_assistant_content_part(
 }
 
 fn try_parse_lenient_tool_content_part(item: &Value) -> Option<ToolContentPart> {
-    match serde_json::from_value::<LenientToolContentPartCompat>(item.clone()).ok()? {
+    match LenientToolContentPartCompat::deserialize(item).ok()? {
         LenientToolContentPartCompat::ToolResult {
             tool_call_id,
             tool_name,
