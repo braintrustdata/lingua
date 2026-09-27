@@ -1,0 +1,282 @@
+{
+  "spans": [
+    {
+      "id": "root",
+      "span_id": "root",
+      "root_span_id": "root",
+      "span_parents": [],
+      "span_attributes": {
+        "type": "task",
+        "name": "task"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 1
+      }
+    },
+    {
+      "id": "parent-one",
+      "span_id": "parent-one",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "task"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "metadata": {
+        "turn_id": "one"
+      }
+    },
+    {
+      "id": "call",
+      "span_id": "call",
+      "root_span_id": "root",
+      "span_parents": [
+        "parent-one"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm"
+      },
+      "metrics": {
+        "start": 2,
+        "end": 3
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Progress",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call",
+              "function": {
+                "name": "example_tool",
+                "arguments": "{}"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tool",
+      "span_id": "tool",
+      "root_span_id": "root",
+      "span_parents": [
+        "parent-one"
+      ],
+      "span_attributes": {
+        "type": "tool",
+        "name": "tool"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 4
+      },
+      "input": {},
+      "output": "Result"
+    },
+    {
+      "id": "compact",
+      "span_id": "compact",
+      "root_span_id": "root",
+      "span_parents": [
+        "parent-one"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm"
+      },
+      "metrics": {
+        "start": 4,
+        "end": 5
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request"
+        },
+        {
+          "role": "assistant",
+          "content": "Progress",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call",
+              "function": {
+                "name": "example_tool",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call",
+          "content": "Result"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Context"
+        }
+      ],
+      "metadata": {
+        "compaction": true
+      }
+    },
+    {
+      "id": "final",
+      "span_id": "final",
+      "root_span_id": "root",
+      "span_parents": [
+        "parent-one"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm"
+      },
+      "metrics": {
+        "start": 5,
+        "end": 6
+      },
+      "input": [
+        {
+          "type": "compaction",
+          "id": "compact-state",
+          "encrypted_content": "opaque"
+        },
+        {
+          "role": "user",
+          "content": "Request"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer"
+        }
+      ]
+    },
+    {
+      "id": "parent-two",
+      "span_id": "parent-two",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "task"
+      },
+      "metrics": {
+        "start": 6,
+        "end": 7
+      },
+      "metadata": {
+        "turn_id": "two"
+      }
+    },
+    {
+      "id": "second",
+      "span_id": "second",
+      "root_span_id": "root",
+      "span_parents": [
+        "parent-two"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm"
+      },
+      "metrics": {
+        "start": 7,
+        "end": 8
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request"
+        },
+        {
+          "role": "assistant",
+          "content": "Progress",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call",
+              "function": {
+                "name": "example_tool",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call",
+          "content": "Result"
+        },
+        {
+          "role": "assistant",
+          "content": "Answer"
+        },
+        {
+          "role": "user",
+          "content": "Next request"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Next answer"
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "call",
+      "response_id": "final",
+      "response_text": "Answer",
+      "work_ids": [
+        "call",
+        "tool"
+      ],
+      "user_texts": [
+        "Request"
+      ]
+    },
+    {
+      "request_id": "compact",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "compact"
+      ],
+      "user_texts": []
+    },
+    {
+      "request_id": "second",
+      "response_id": "second",
+      "response_text": "Next answer",
+      "work_ids": [],
+      "user_texts": [
+        "Next request"
+      ]
+    }
+  ]
+}

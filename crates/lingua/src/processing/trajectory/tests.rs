@@ -19,6 +19,137 @@ fn collect(collector: &mut TrajectoryCollector, events: Vec<TrajectoryEvent>) {
     }
 }
 
+#[derive(Deserialize)]
+struct ImportFixture {
+    spans: Vec<SourceSpan>,
+    turns: Vec<ExpectedTurn>,
+    #[serde(default)]
+    worker_responses: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+struct ExpectedTurn {
+    request_id: String,
+    response_id: Option<String>,
+    response_text: String,
+    work_ids: Vec<String>,
+    user_texts: Vec<String>,
+}
+
+fn check_import_fixture(fixture: &str) {
+    let fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
+    for batch_size in [1, 16] {
+        let mut stream = TrajectoryStream::new(fixture.spans.clone(), false).unwrap();
+        let mut collector = TrajectoryCollector::default();
+        loop {
+            let ids = stream.pending_ids(batch_size);
+            if ids.is_empty() {
+                break;
+            }
+            for id in ids.iter().rev() {
+                let span = fixture.spans.iter().find(|span| &span.id == id).unwrap();
+                collect(&mut collector, stream.push(span.clone()).unwrap());
+            }
+        }
+        collect(&mut collector, stream.finish().unwrap());
+        assert!(collector.is_complete());
+        let trajectories = collector.snapshot().unwrap();
+        assert_eq!(trajectories.len(), 1);
+        assert!(!trajectories[0].metadata.contains_key("import_failures"));
+        let turns: Vec<_> = trajectories[0]
+            .turns
+            .iter()
+            .map(|turn| ExpectedTurn {
+                request_id: turn.request_id.clone(),
+                response_id: turn.response_id.clone(),
+                response_text: match turn
+                    .response
+                    .as_ref()
+                    .and_then(|response| response.response.as_ref())
+                {
+                    Some(AssistantContent::String(text)) => text.clone(),
+                    Some(AssistantContent::Array(parts)) => parts
+                        .iter()
+                        .filter_map(|part| match part {
+                            AssistantContentPart::Text(text) => Some(text.text.as_str()),
+                            _ => None,
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                    None => String::new(),
+                },
+                work_ids: turn.work.iter().map(|step| step.id.clone()).collect(),
+                user_texts: turn
+                    .request
+                    .iter()
+                    .flatten()
+                    .filter_map(|message| match message {
+                        Message::User {
+                            content: UserContent::String(text),
+                        } => Some(text.clone()),
+                        Message::User {
+                            content: UserContent::Array(parts),
+                        } => Some(
+                            parts
+                                .iter()
+                                .filter_map(|part| match part {
+                                    UserContentPart::Text(text) => Some(text.text.as_str()),
+                                    _ => None,
+                                })
+                                .collect::<Vec<_>>()
+                                .join("\n"),
+                        ),
+                        _ => None,
+                    })
+                    .collect(),
+            })
+            .collect();
+        assert_eq!(turns, fixture.turns);
+        let worker_responses: Vec<_> = trajectories[0]
+            .turns
+            .iter()
+            .flat_map(|turn| &turn.work)
+            .filter_map(|step| step.sub_agent.as_ref())
+            .flat_map(|worker| &worker.turns)
+            .filter_map(|turn| turn.response_id.clone())
+            .collect();
+        assert_eq!(worker_responses, fixture.worker_responses);
+    }
+}
+
+macro_rules! import_fixture {
+    ($test:ident, $file:literal) => {
+        #[test]
+        fn $test() {
+            check_import_fixture(include_str!($file));
+        }
+    };
+}
+
+import_fixture!(responses_tool_cycle, "fixtures/responses-tool-cycle.json");
+import_fixture!(
+    responses_parent_turns,
+    "fixtures/responses-parent-turns.json"
+);
+import_fixture!(chat_tool_cycle, "fixtures/chat-tool-cycle.json");
+import_fixture!(
+    anthropic_tool_results_are_not_user_turns,
+    "fixtures/anthropic-tool-results-are-not-user-turns.json"
+);
+import_fixture!(
+    nested_worker_and_embedding,
+    "fixtures/nested-worker-and-embedding.json"
+);
+import_fixture!(
+    compaction_and_resumed_parent,
+    "fixtures/compaction-and-resumed-parent.json"
+);
+import_fixture!(task_only_trace, "fixtures/task-only-trace.json");
+import_fixture!(
+    opaque_history_tool_continuation,
+    "fixtures/opaque-history-tool-continuation.json"
+);
+
 #[test]
 fn reviewer_calls_do_not_split_turns_or_replace_the_final_response() {
     let sources: Vec<SourceSpan> =

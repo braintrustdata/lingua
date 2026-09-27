@@ -48,7 +48,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     }
 
     if is_role_message_array(data) {
-        return try_parse_mixed_role_messages_for_import(data).unwrap_or_default();
+        return try_parse_mixed_messages_for_import(data).unwrap_or_default();
     }
 
     if let Some(messages) = try_choices_array_parsing(data) {
@@ -106,6 +106,10 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
             }
         }
         return Vec::new();
+    }
+
+    if let Some(messages) = try_parse_mixed_messages_for_import(data) {
+        return messages;
     }
 
     // If data is a single message object (not an array), wrap it in an array for parsing
@@ -192,7 +196,7 @@ fn provider_parsers_for_import() -> Vec<MessageParser> {
     ]
 }
 
-fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_mixed_messages_for_import(data: &Value) -> Option<Vec<Message>> {
     let items = data.as_array()?;
     let provider_parsers = provider_parsers_for_import();
     let mut messages = Vec::new();

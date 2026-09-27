@@ -720,7 +720,10 @@ impl TrajectoryStream {
             });
         }
         let id = state.id.as_deref().unwrap();
-        if matches!(span.kind(), "llm" | "task") && !span.analysis {
+        if matches!(span.kind(), "llm" | "task")
+            && !span.analysis
+            && (!span.input_keys.is_empty() || !span.output.is_empty())
+        {
             if let Some((previous, position)) = state.candidate.take() {
                 events.extend(self.work(&scope, id, previous, position)?);
             }
