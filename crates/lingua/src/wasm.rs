@@ -482,6 +482,82 @@ pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValu
 }
 
 #[wasm_bindgen]
+pub struct TrajectoryStream {
+    inner: crate::processing::trajectory::TrajectoryStream,
+}
+
+#[wasm_bindgen]
+impl TrajectoryStream {
+    #[wasm_bindgen(constructor)]
+    pub fn new(headers: JsValue, exclude_system: bool) -> Result<TrajectoryStream, JsValue> {
+        let headers = serde_wasm_bindgen::from_value(headers)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        Ok(Self {
+            inner: crate::processing::trajectory::TrajectoryStream::new(headers, exclude_system)
+                .map_err(|error| JsValue::from_str(&error))?,
+        })
+    }
+
+    #[wasm_bindgen(js_name = pendingIds)]
+    pub fn pending_ids(&self, limit: usize) -> Vec<String> {
+        self.inner.pending_ids(limit)
+    }
+
+    pub fn push(&mut self, span: JsValue) -> Result<JsValue, JsValue> {
+        let span = serde_wasm_bindgen::from_value(span)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        let events = self
+            .inner
+            .push(span)
+            .map_err(|error| JsValue::from_str(&error))?;
+        serialize_to_js(&events, "trajectory events")
+    }
+
+    pub fn finish(&mut self) -> Result<JsValue, JsValue> {
+        let events = self
+            .inner
+            .finish()
+            .map_err(|error| JsValue::from_str(&error))?;
+        serialize_to_js(&events, "trajectory events")
+    }
+}
+
+#[wasm_bindgen]
+#[derive(Default)]
+pub struct TrajectoryCollector {
+    inner: crate::processing::trajectory::TrajectoryCollector,
+}
+
+#[wasm_bindgen]
+impl TrajectoryCollector {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn push(&mut self, event: JsValue) -> Result<(), JsValue> {
+        let event = serde_wasm_bindgen::from_value(event)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        self.inner
+            .push(event)
+            .map_err(|error| JsValue::from_str(&error))
+    }
+
+    #[wasm_bindgen(js_name = isComplete)]
+    pub fn is_complete(&self) -> bool {
+        self.inner.is_complete()
+    }
+
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        let trajectories = self
+            .inner
+            .snapshot()
+            .map_err(|error| JsValue::from_str(&error))?;
+        serialize_to_js(&trajectories, "trajectories")
+    }
+}
+
+#[wasm_bindgen]
 pub struct TransformStreamSession {
     inner: crate::processing::stream::StreamTransformSession,
 }

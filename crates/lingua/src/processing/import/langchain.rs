@@ -596,7 +596,7 @@ fn try_parse_messages(messages: Vec<LangChainMessageCompat>) -> Option<Vec<Messa
 }
 
 fn try_parse_input_shape(data: &Value) -> Option<Vec<Message>> {
-    let input = serde_json::from_value::<LangChainInputCompat>(data.clone()).ok()?;
+    let input = LangChainInputCompat::deserialize(data).ok()?;
     match input {
         LangChainInputCompat::NestedMessages(nested) => {
             let first = nested.into_iter().next()?;
@@ -609,7 +609,7 @@ fn try_parse_input_shape(data: &Value) -> Option<Vec<Message>> {
 }
 
 fn try_parse_output_shape(data: &Value) -> Option<Vec<Message>> {
-    let output = serde_json::from_value::<LangChainOutputCompat>(data.clone()).ok()?;
+    let output = LangChainOutputCompat::deserialize(data).ok()?;
     match output {
         LangChainOutputCompat::LlmResult(result) => {
             let first_batch = result.generations.into_iter().next()?;

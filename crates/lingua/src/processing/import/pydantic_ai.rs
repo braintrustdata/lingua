@@ -153,9 +153,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                         provider_options: None,
                     })),
                     other => {
-                        if let Ok(binary) =
-                            serde_json::from_value::<PydanticAIBinaryContentCompat>(other.clone())
-                        {
+                        if let Ok(binary) = PydanticAIBinaryContentCompat::deserialize(&other) {
                             if binary.item_type == "binary" {
                                 let attachment_value = serde_json::json!({
                                     "content_type": binary.attachment.content_type,
@@ -341,7 +339,7 @@ fn try_parse_wrapper_input(data: &Value) -> Option<Vec<Message>> {
         return None;
     }
 
-    let wrapper = serde_json::from_value::<PydanticAIWrapperCompat>(data.clone()).ok()?;
+    let wrapper = PydanticAIWrapperCompat::deserialize(data).ok()?;
     if wrapper.user_prompt.is_none()
         && wrapper.system_prompt.is_none()
         && wrapper.message_history.is_empty()
@@ -376,15 +374,14 @@ fn try_parse_wrapper_input(data: &Value) -> Option<Vec<Message>> {
 }
 
 fn has_pydantic_message_shape(data: &Value) -> bool {
-    serde_json::from_value::<PydanticAIMessageMarkerCompat>(data.clone()).is_ok()
+    PydanticAIMessageMarkerCompat::deserialize(data).is_ok()
 }
 
 fn try_parse_internal_input(data: &Value) -> Option<Vec<Message>> {
     if matches!(data, Value::Object(obj) if obj.contains_key("messages"))
-        && serde_json::from_value::<PydanticAIMessagesWrapperCompat>(data.clone()).is_ok()
+        && PydanticAIMessagesWrapperCompat::deserialize(data).is_ok()
     {
-        let wrapper =
-            serde_json::from_value::<PydanticAIMessagesWrapperCompat>(data.clone()).ok()?;
+        let wrapper = PydanticAIMessagesWrapperCompat::deserialize(data).ok()?;
         return try_parse_message_sequence(wrapper.messages);
     }
 
@@ -396,7 +393,7 @@ fn try_parse_internal_input(data: &Value) -> Option<Vec<Message>> {
         return None;
     }
 
-    let messages = serde_json::from_value::<Vec<PydanticAIMessageLikeCompat>>(data.clone()).ok()?;
+    let messages = Vec::<PydanticAIMessageLikeCompat>::deserialize(data).ok()?;
     try_parse_message_sequence(messages)
 }
 
@@ -434,7 +431,7 @@ fn try_parse_output(data: &Value) -> Option<Vec<Message>> {
         if !has_pydantic_message_shape(response) {
             return None;
         }
-        let wrapper = serde_json::from_value::<PydanticAIOutputWrapperCompat>(data.clone()).ok()?;
+        let wrapper = PydanticAIOutputWrapperCompat::deserialize(data).ok()?;
         return convert_message_parts(
             PydanticAIMessageKindCompat::Response,
             wrapper.response.instructions,
@@ -446,7 +443,7 @@ fn try_parse_output(data: &Value) -> Option<Vec<Message>> {
         return None;
     }
 
-    let direct = serde_json::from_value::<PydanticAIOutputMessageCompat>(data.clone()).ok()?;
+    let direct = PydanticAIOutputMessageCompat::deserialize(data).ok()?;
     convert_message_parts(
         PydanticAIMessageKindCompat::Response,
         direct.instructions,
