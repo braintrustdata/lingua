@@ -140,4 +140,11 @@ prompt_cache_key: string | null,
  *
  * **Providers:** OpenAI, Anthropic
  */
-stream: boolean | null, };
+stream: boolean | null, 
+/**
+ * Provider-specific parameters without canonical mappings.
+ *
+ * Keyed by source `ProviderFormat` - only restored when converting back to
+ * the same provider (no cross-provider contamination).
+ */
+extras?: Partial<Record<import("./ProviderFormat").ProviderFormat, Record<string, unknown>>>, };

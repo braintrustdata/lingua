@@ -20,6 +20,35 @@ fn collect(collector: &mut TrajectoryCollector, events: Vec<TrajectoryEvent>) {
 }
 
 #[test]
+fn reviewer_calls_do_not_split_turns_or_replace_the_final_response() {
+    let sources: Vec<SourceSpan> =
+        serde_json::from_str(include_str!("fixtures/reviewer-continuation.json")).unwrap();
+    let mut stream = TrajectoryStream::new(sources.clone(), false).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first() {
+        let source = sources.iter().find(|source| &source.id == id).unwrap();
+        collect(&mut collector, stream.push(source.clone()).unwrap());
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let result = collector.snapshot().unwrap();
+    assert_eq!(result[0].turns.len(), 2);
+    let first = &result[0].turns[0];
+    assert_eq!(first.request_id, "agent-call");
+    assert_eq!(first.response_id.as_deref(), Some("agent-final"));
+    assert!(serde_json::to_string(&first.response)
+        .unwrap()
+        .contains("First answer"));
+    for id in ["review", "trailing-review"] {
+        let step = first.work.iter().find(|step| step.id == id).unwrap();
+        assert!(matches!(step.work, Work::LLMAnalysis(_)));
+    }
+    assert_eq!(
+        result[0].turns[1].response_id.as_deref(),
+        Some("second-final")
+    );
+}
+
+#[test]
 fn emits_request_before_next_payload_and_defers_final_response() {
     let question = json!({"role": "user", "content": "Find the answer"});
     let answer = json!({"role": "assistant", "content": "The answer is 42"});

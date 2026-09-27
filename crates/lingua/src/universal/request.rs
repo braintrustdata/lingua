@@ -216,8 +216,10 @@ pub struct UniversalParams {
     ///
     /// Keyed by source `ProviderFormat` - only restored when converting back to
     /// the same provider (no cross-provider contamination).
-    #[serde(skip)]
-    #[ts(skip)]
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    #[ts(
+        type = r#"Partial<Record<import("./ProviderFormat").ProviderFormat, Record<string, unknown>>>"#
+    )]
     pub extras: HashMap<ProviderFormat, Map<String, Value>>,
 }
 

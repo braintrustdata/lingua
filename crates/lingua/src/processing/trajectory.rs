@@ -109,6 +109,8 @@ struct Metadata {
     #[serde(default)]
     trajectory_role: MetadataHint<String>,
     #[serde(default)]
+    request_kind: MetadataHint<String>,
+    #[serde(default)]
     compaction: MetadataHint<CompactionMetadata>,
     #[serde(default)]
     tool_call_id: MetadataHint<String>,
@@ -245,6 +247,9 @@ impl TrajectorySpan {
         let trajectory_role = metadata
             .trajectory_role
             .read("trajectory_role", &mut errors);
+        let request_kind = metadata.request_kind.read("request_kind", &mut errors);
+        let analysis = trajectory_role.as_deref() == Some("analysis")
+            || request_kind.as_deref() == Some("reviewer");
         let compaction = metadata.compaction.read("compaction", &mut errors);
         let tool_call_id = metadata.tool_call_id.read("tool_call_id", &mut errors);
         let start = source
@@ -280,11 +285,7 @@ impl TrajectorySpan {
             let output = source.output.take();
             if source.normalized {
                 Some(ToolResult {
-                    input: input
-                        .as_ref()
-                        .map(serde_json::to_value)
-                        .transpose()
-                        .map_err(|err| format!("Invalid tool input: {err}"))?,
+                    input,
                     content: Some(
                         output
                             .into_iter()
@@ -315,9 +316,8 @@ impl TrajectorySpan {
         };
         let input = import(source.input.take(), None);
         let output = import(None, source.output.take());
-        let analysis_messages = (source.normalized
-            && trajectory_role.as_deref() == Some("analysis"))
-        .then(|| input.iter().chain(&output).cloned().collect());
+        let analysis_messages =
+            (source.normalized && analysis).then(|| input.iter().chain(&output).cloned().collect());
         let input_keys = message_keys(&input);
         let input = current_input(&input).to_vec();
         let turn = metadata
@@ -365,7 +365,7 @@ impl TrajectorySpan {
             start,
             end,
             turn,
-            analysis: trajectory_role.as_deref() == Some("analysis"),
+            analysis,
             compaction,
             tool_result,
             analysis_messages,

@@ -568,13 +568,7 @@ impl TrajectoryStream {
                 id: span.source.id.clone(),
                 span_type: span.kind().to_string(),
                 name: span.source.span_attributes.name.clone(),
-                error: span
-                    .source
-                    .error
-                    .as_ref()
-                    .map(serde_json::to_value)
-                    .transpose()
-                    .map_err(|error| error.to_string())?,
+                error: span.source.error.clone(),
                 start_time: span.start,
                 end_time: span.end,
                 work,
@@ -875,11 +869,11 @@ impl TrajectoryCollector {
                 let failures = trajectory
                     .metadata
                     .entry("import_failures")
-                    .or_insert_with(|| serde_json::json!([]));
+                    .or_insert_with(|| json::json!([]));
                 let failures = failures
                     .as_array_mut()
                     .ok_or("Invalid trajectory failure collection")?;
-                failures.push(serde_json::json!({ "span_id": span_id, "message": message }));
+                failures.push(json::json!({ "span_id": span_id, "message": message }));
             }
             TrajectoryEvent::Done => self.complete = true,
         }

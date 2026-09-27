@@ -116,7 +116,7 @@ pub fn assemble(
             if !root_failures.is_empty() {
                 trajectory.metadata.insert(
                     "import_failures".to_string(),
-                    serde_json::to_value(root_failures)
+                    json::to_value(root_failures)
                         .map_err(|err| format!("Failed to serialize trajectory failures: {err}"))?,
                 );
             }
@@ -265,13 +265,7 @@ fn build_trajectory(
                     id: span.source.id.clone(),
                     span_type: span.kind().to_string(),
                     name: span.source.span_attributes.name.clone(),
-                    error: span
-                        .source
-                        .error
-                        .as_ref()
-                        .map(serde_json::to_value)
-                        .transpose()
-                        .map_err(|err| format!("Invalid trajectory error: {err}"))?,
+                    error: span.source.error.clone(),
                     start_time: span.start,
                     end_time: span.end,
                     work: work_content,
