@@ -121,6 +121,7 @@ pub struct TrajectoryStream {
 }
 
 impl TrajectoryStream {
+    #[cfg(test)]
     pub(super) fn from_normalized(
         spans: Vec<TrajectorySpan>,
         failures: Vec<ImportFailure>,
@@ -546,13 +547,13 @@ impl TrajectoryStream {
             return Ok(None);
         }
         let work = if span.kind() == "tool" {
-            Work::ToolResult(Box::new(span.tool_result.clone().unwrap_or(ToolResult {
+            Work::ToolResult(Box::new(ToolResult {
                 input: None,
                 content: None,
-            })))
+            }))
         } else if span.analysis {
             Work::LLMAnalysis(Box::new(LLMAnalysis {
-                work: span.analysis_messages.clone(),
+                work: None,
                 model: span.source.model.clone(),
                 params: None,
                 usage: span.usage(),

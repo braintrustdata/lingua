@@ -1,5 +1,3 @@
-#[cfg(test)]
-mod legacy;
 mod stream;
 #[cfg(test)]
 mod tests;
@@ -12,13 +10,11 @@ use crate::universal::trajectory::{
     WorkStep,
 };
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, ToolContentPart, ToolResultContentPart,
-    UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, UserContent, UserContentPart,
 };
 use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 type Result<T> = std::result::Result<T, String>;
@@ -76,8 +72,6 @@ pub struct SourceSpan {
     tags: Vec<String>,
     #[serde(skip)]
     skipped: bool,
-    #[serde(skip)]
-    normalized: bool,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -112,8 +106,6 @@ struct Metadata {
     request_kind: MetadataHint<String>,
     #[serde(default)]
     compaction: MetadataHint<CompactionMetadata>,
-    #[serde(default)]
-    tool_call_id: MetadataHint<String>,
 }
 
 struct MetadataHint<T>(std::result::Result<Option<T>, String>);
@@ -156,17 +148,6 @@ enum CompactionMetadata {
     },
 }
 
-#[derive(Deserialize)]
-struct NormalizedSpan {
-    id: String,
-    root_span_id: String,
-    input: Option<json::Value>,
-    output: Option<json::Value>,
-    error: Option<json::Value>,
-    metadata: Option<json::Value>,
-    span_attributes: Option<Attributes>,
-}
-
 impl SourceSpan {
     pub fn id(&self) -> &str {
         &self.id
@@ -175,34 +156,6 @@ impl SourceSpan {
     pub fn parse<'de, D: serde::Deserializer<'de>>(value: D) -> Result<Self> {
         Self::deserialize(value)
             .map_err(|err| format!("Invalid trajectory source span: {err}").into())
-    }
-
-    pub fn normalize(mut self, value: Value) -> Result<Self> {
-        if value.is_null() {
-            self.input = None;
-            self.output = None;
-            self.skipped = true;
-            return Ok(self);
-        }
-        let normalized: NormalizedSpan = serde_json::from_value(value).map_err(|err| {
-            format!("Trajectory preprocessors must return a span record or null: {err}")
-        })?;
-        if normalized.id != self.id || normalized.root_span_id != self.root_span_id {
-            return Err(
-                format!("Trajectory preprocessors must preserve id and root_span_id").into(),
-            );
-        }
-        self.input = normalized.input;
-        self.output = normalized.output;
-        self.error = normalized.error;
-        self.metadata = normalized.metadata;
-        self.normalized = true;
-        if let Some(attributes) = normalized.span_attributes {
-            self.span_attributes.kind = attributes.kind.or(self.span_attributes.kind);
-            self.span_attributes.name = attributes.name.or(self.span_attributes.name);
-            self.span_attributes.purpose = attributes.purpose.or(self.span_attributes.purpose);
-        }
-        Ok(self)
     }
 }
 
@@ -217,8 +170,6 @@ pub struct TrajectorySpan {
     turn: Option<String>,
     analysis: bool,
     compaction: Option<Compaction>,
-    tool_result: Option<ToolResult>,
-    analysis_messages: Option<Vec<Message>>,
     failure: Option<ImportFailure>,
 }
 
@@ -251,7 +202,6 @@ impl TrajectorySpan {
         let analysis = trajectory_role.as_deref() == Some("analysis")
             || request_kind.as_deref() == Some("reviewer");
         let compaction = metadata.compaction.read("compaction", &mut errors);
-        let tool_call_id = metadata.tool_call_id.read("tool_call_id", &mut errors);
         let start = source
             .metrics
             .start
@@ -280,44 +230,12 @@ impl TrajectorySpan {
                 other: json::Map::new(),
             }])
         };
-        let tool_result = if source.span_attributes.kind.as_deref() == Some("tool") {
-            let input = source.input.take();
-            let output = source.output.take();
-            if source.normalized {
-                Some(ToolResult {
-                    input,
-                    content: Some(
-                        output
-                            .into_iter()
-                            .map(|output| {
-                                ToolContentPart::ToolResult(ToolResultContentPart {
-                                    tool_call_id: tool_call_id
-                                        .clone()
-                                        .unwrap_or_else(|| source.id.clone()),
-                                    tool_name: source
-                                        .span_attributes
-                                        .name
-                                        .clone()
-                                        .unwrap_or_else(|| source.id.clone()),
-                                    output,
-                                    custom_tool_call: None,
-                                    caller: None,
-                                    provider_options: None,
-                                })
-                            })
-                            .collect(),
-                    ),
-                })
-            } else {
-                None
-            }
-        } else {
-            None
-        };
+        if source.span_attributes.kind.as_deref() == Some("tool") {
+            source.input = None;
+            source.output = None;
+        }
         let input = import(source.input.take(), None);
         let output = import(None, source.output.take());
-        let analysis_messages =
-            (source.normalized && analysis).then(|| input.iter().chain(&output).cloned().collect());
         let input_keys = message_keys(&input);
         let input = current_input(&input).to_vec();
         let turn = metadata
@@ -367,8 +285,6 @@ impl TrajectorySpan {
             turn,
             analysis,
             compaction,
-            tool_result,
-            analysis_messages,
             failure,
         })
     }
@@ -562,7 +478,8 @@ fn ownership(
     Ok(result)
 }
 
-pub fn assemble(
+#[cfg(test)]
+fn assemble(
     spans: &[TrajectorySpan],
     failures: &[ImportFailure],
     exclude_system: bool,

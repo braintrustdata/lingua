@@ -1,5 +1,6 @@
 use super::*;
 use serde_json::json;
+use serde_json::Value;
 
 fn span(id: &str, start: i64, input: Value, output: Value) -> SourceSpan {
     SourceSpan::parse(json!({
@@ -192,17 +193,6 @@ fn emits_request_before_next_payload_and_defers_final_response() {
             json!([{ "role":"assistant", "content":"Because." }]),
         ),
     ];
-    let expected = legacy::assemble(
-        &sources
-            .iter()
-            .cloned()
-            .map(TrajectorySpan::new)
-            .collect::<Result<Vec<_>>>()
-            .unwrap(),
-        &[],
-        false,
-    )
-    .unwrap();
     let mut stream = TrajectoryStream::new(sources.clone(), false).unwrap();
     let mut collector = TrajectoryCollector::default();
     collect(&mut collector, stream.push(sources[0].clone()).unwrap());
@@ -221,10 +211,11 @@ fn emits_request_before_next_payload_and_defers_final_response() {
     );
     collect(&mut collector, stream.finish().unwrap());
     assert!(collector.is_complete());
-    assert_eq!(
-        serde_json::to_value(collector.snapshot().unwrap()).unwrap(),
-        serde_json::to_value(expected).unwrap()
-    );
+    let completed = collector.snapshot().unwrap();
+    assert_eq!(completed[0].turns.len(), 2);
+    assert_eq!(completed[0].turns[1].request_id, "second");
+    assert_eq!(completed[0].turns[1].response_id.as_deref(), Some("second"));
+    assert!(completed[0].turns.iter().all(|turn| turn.work.is_empty()));
     assert!(stream.finish().is_err());
     assert!(collector.push(TrajectoryEvent::Done).is_err());
 }
@@ -435,4 +426,311 @@ fn resumed_parent_turn_keeps_reformatted_replay_out_of_the_request() {
         serde_json::to_value(&result[0].turns[1].request).unwrap(),
         json!([second])
     );
+}
+
+fn trajectory_row(id: &str, start: i64, input: Value, output: Value) -> Value {
+    serde_json::json!({
+        "id": id, "span_id": id, "root_span_id": "root", "span_parents": ["root"],
+        "metrics": { "start": start, "end": start + 1 },
+        "span_attributes": { "type": "llm", "name": id },
+        "input": input, "output": output,
+    })
+}
+
+fn import_rows(rows: &[Value]) -> Value {
+    let mut spans = Vec::new();
+    let mut failures = Vec::new();
+    for row in rows {
+        match SourceSpan::parse(row).and_then(TrajectorySpan::new) {
+            Ok(span) => spans.push(span),
+            Err(error) => failures.push(ImportFailure::from_row(row, error).unwrap()),
+        }
+    }
+    serde_json::to_value(assemble(&spans, &failures, false).unwrap()).unwrap()
+}
+
+#[test]
+fn trajectory_preserves_interruption_markers_without_matching_user_quotes() {
+    use serde_json::json;
+    let user = json!({ "role": "user", "content": "Search" });
+    let reply = json!({ "role": "assistant", "content": "Working" });
+    for role in ["system", "developer", "user"] {
+        let rows = [
+            trajectory_row("first", 1, json!([user]), json!([reply])),
+            trajectory_row(
+                "second",
+                3,
+                json!([user, reply, {
+                "role": role, "content": "<turn_aborted>Previous turn interrupted</turn_aborted>"
+            }, { "role": "user", "content": "Try again" }]),
+                json!(null),
+            ),
+        ];
+        let result = import_rows(&rows);
+        assert_eq!(
+            result[0]["turns"][0]["interrupted"],
+            if role == "user" {
+                json!(null)
+            } else {
+                json!(true)
+            }
+        );
+    }
+}
+
+#[test]
+fn trajectory_direct_messages_override_inherited_session_turn_ids() {
+    use serde_json::json;
+    let first = json!({ "role": "user", "content": "Hello" });
+    let second = json!({ "role": "user", "content": "Search" });
+    let reply = json!({ "role": "assistant", "content": "Hello back" });
+    let mut direct = trajectory_row("user", 1, json!([first]), json!(null));
+    direct["span_attributes"]["type"] = json!("task");
+    direct["metadata"] = json!({ "turn_id": "user" });
+    let mut next = trajectory_row("next", 9, json!([second]), json!(null));
+    next["span_attributes"]["type"] = json!("task");
+    next["metadata"] = json!({ "turn_id": "next" });
+    let mut greeting = trajectory_row("greeting", 3, json!([first]), json!([reply]));
+    greeting["metrics"]["end"] = json!(10);
+    let mut call = trajectory_row("call", 12, json!([first, reply, second]), json!([]));
+    call["metadata"] = json!({ "turn_id": "session" });
+    let rows = [
+        json!({ "id": "root", "span_id": "root", "root_span_id": "root", "metrics": { "start": 0, "end": 30 }, "span_attributes": { "type": "task" }, "metadata": { "turn_id": "session" } }),
+        direct,
+        greeting,
+        next,
+        call,
+    ];
+    let result = import_rows(&rows);
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert_eq!(turns.len(), 2);
+    assert_eq!(turns[0]["request_id"], "user");
+    assert_eq!(turns[0]["response_id"], "greeting");
+    assert_eq!(turns[1]["request_id"], "next");
+    assert_eq!(turns[1]["work"][0]["id"], "call", "{result}");
+}
+
+#[test]
+fn trajectory_does_not_promote_an_acknowledgement_before_a_tool_call() {
+    use serde_json::json;
+    let user = json!({ "role": "user", "content": "Search" });
+    let reply = json!({ "role": "assistant", "content": "I'll check" });
+    let rows = [
+        trajectory_row("ack", 1, json!([user]), json!([reply])),
+        trajectory_row(
+            "call",
+            3,
+            json!([user, reply]),
+            json!([{
+                "role": "assistant", "tool_calls": [{ "id": "call", "type": "function", "function": { "name": "search", "arguments": "{}" } }]
+            }]),
+        ),
+    ];
+    let result = import_rows(&rows);
+    assert!(result[0]["turns"][0].get("response_id").is_none());
+    assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
+}
+
+#[test]
+fn trajectory_promotes_responses_api_final_output() {
+    use serde_json::json;
+    let messages = json!([{
+        "type": "message", "role": "assistant", "status": "completed",
+        "content": [{ "type": "output_text", "text": "Final answer", "annotations": [] }]
+    }]);
+    for output in [messages.clone(), json!({ "output": messages })] {
+        let row = trajectory_row(
+            "final",
+            1,
+            json!([{ "role": "user", "content": "Question" }]),
+            output,
+        );
+        let result = import_rows(&[row]);
+        assert_eq!(result[0]["turns"][0]["response_id"], "final");
+        assert_eq!(
+            result[0]["turns"][0]["response"]["response"][0]["text"],
+            "Final answer"
+        );
+    }
+}
+
+#[test]
+fn trajectory_keeps_payloads_and_valid_hints_when_metadata_is_malformed() {
+    use serde_json::json;
+    for metadata in [
+        json!(true),
+        json!({ "model": 7, "compaction": "invalid", "turn_id": "turn", "trajectory_role": "agent" }),
+    ] {
+        let mut row = trajectory_row(
+            "valid",
+            1,
+            json!([{ "role": "user", "content": "Hello" }]),
+            json!([{ "role": "assistant", "content": "Answer" }]),
+        );
+        row["metadata"] = metadata;
+        let result = import_rows(&[row]);
+        assert_eq!(result[0]["turns"][0]["response_id"], "valid");
+        assert_eq!(
+            result[0]["turns"][0]["response"]["response"][0]["text"],
+            "Answer"
+        );
+        assert_eq!(
+            result[0]["metadata"]["import_failures"][0]["span_id"],
+            "valid"
+        );
+    }
+    let mut wrapper = trajectory_row("wrapper", 1, json!(null), json!(null));
+    wrapper["span_attributes"]["type"] = json!("task");
+    wrapper["metadata"] = json!({ "model": {}, "compaction": true });
+    let mut child = trajectory_row(
+        "child",
+        2,
+        json!([]),
+        json!([{ "role": "assistant", "content": "Summary" }]),
+    );
+    child["span_parents"] = json!(["wrapper"]);
+    let result = import_rows(&[wrapper, child]);
+    assert_eq!(result[0]["turns"][0]["compaction"]["id"], "wrapper");
+    assert!(result[0]["turns"][0]["response_id"].is_null());
+}
+
+#[test]
+fn trajectory_uses_created_when_start_is_missing_or_out_of_range() {
+    use serde_json::json;
+    for start in [Value::Null, json!(1e100)] {
+        let mut row = trajectory_row(
+            "valid",
+            1,
+            json!([{ "role": "user", "content": "Hello" }]),
+            json!([]),
+        );
+        row["metrics"]["start"] = start;
+        row["created"] = json!("2026-09-26T00:00:00Z");
+        let result = import_rows(&[row]);
+        assert_eq!(result[0]["turns"][0]["start_time"], "2026-09-26T00:00:00Z");
+        assert!(result[0]["turns"][0]["end_time"].is_null());
+        assert!(result[0]["metadata"]["import_failures"].is_null());
+    }
+}
+
+#[test]
+fn trajectory_isolates_parent_cycles() {
+    use serde_json::json;
+    let mut first = trajectory_row("first", 1, json!([]), json!([]));
+    first["span_parents"] = json!(["second"]);
+    let mut second = trajectory_row("second", 2, json!([]), json!([]));
+    second["span_parents"] = json!(["first"]);
+    let healthy = trajectory_row(
+        "healthy",
+        3,
+        json!([{ "role": "user", "content": "Hello" }]),
+        json!([]),
+    );
+    let result = import_rows(&[first, second, healthy]);
+    assert_eq!(result[0]["turns"][0]["request_id"], "healthy");
+    assert_eq!(
+        result[0]["metadata"]["import_failures"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+}
+
+#[test]
+fn trajectory_accepts_boolean_and_structured_compaction_metadata() {
+    use serde_json::json;
+    for (compaction, expected) in [
+        (json!(true), json!({ "id": "wrapper" })),
+        (json!(false), Value::Null),
+        (json!({}), json!({ "id": "wrapper" })),
+        (
+            json!({ "replaced_message_count": 12 }),
+            json!({ "id": "wrapper", "replaced_message_count": 12 }),
+        ),
+        (Value::Null, Value::Null),
+    ] {
+        let mut child = trajectory_row(
+            "child",
+            2,
+            json!([{ "role": "user", "content": "Summarize" }]),
+            json!([{ "role": "assistant", "content": "Summary" }]),
+        );
+        child["span_parents"] = json!(["wrapper"]);
+        let rows = [
+            json!({ "id": "wrapper", "span_id": "wrapper", "root_span_id": "root", "metrics": { "start": 1, "end": 3 }, "span_attributes": { "type": "task", "name": "Context update" }, "metadata": { "compaction": compaction } }),
+            child,
+        ];
+        let result = import_rows(&rows);
+        let turns = result[0]["turns"].as_array().unwrap();
+        assert_eq!(turns.len(), 1);
+        assert_eq!(turns[0]["compaction"], expected);
+        assert_eq!(turns[0]["response_id"].is_null(), !expected.is_null());
+    }
+}
+
+#[test]
+fn trajectory_separates_compaction_and_excludes_scorer_descendants() {
+    use serde_json::json;
+    let mut compact = trajectory_row(
+        "compact",
+        3,
+        json!([{ "role": "user", "content": "Summarize" }]),
+        json!([]),
+    );
+    compact["span_parents"] = json!(["compaction"]);
+    let mut score = compact.clone();
+    score["id"] = json!("score-child");
+    score["span_id"] = json!("score-child");
+    score["span_parents"] = json!(["score"]);
+    let rows = [
+        trajectory_row(
+            "first",
+            1,
+            json!([{ "role": "user", "content": "Request" }]),
+            json!([]),
+        ),
+        json!({ "id": "compaction", "span_id": "compaction", "root_span_id": "root", "span_parents": ["first"], "metrics": { "start": 2, "end": 4 }, "span_attributes": { "type": "task", "name": "compaction" } }),
+        compact,
+        json!({ "id": "score", "span_id": "score", "root_span_id": "root", "metrics": { "start": 2, "end": 4 }, "span_attributes": { "type": "score" } }),
+        score,
+    ];
+    let result = import_rows(&rows);
+    assert_eq!(result[0]["turns"].as_array().unwrap().len(), 2);
+    assert_eq!(result[0]["turns"][1]["compaction"]["id"], "compaction");
+    assert!(!serde_json::to_string(&result)
+        .unwrap()
+        .contains("score-child"));
+}
+
+#[test]
+fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
+    use serde_json::json;
+    let user = json!({ "role": "user", "content": "Look it up" });
+    let call = json!({ "role": "assistant", "content": "Working", "tool_calls": [{
+        "id": "call", "type": "function", "function": { "name": "lookup", "arguments": "{}" }
+    }] });
+    let rows = [
+        trajectory_row("first", 1, json!([user]), json!([call])),
+        trajectory_row(
+            "retry",
+            3,
+            json!([user, {
+                "role": "user", "content": "<external_braintrust.runtime>Updated context</external_braintrust.runtime>"
+            }]),
+            json!([call]),
+        ),
+        trajectory_row(
+            "done",
+            5,
+            json!([user, call, {
+                "role": "tool", "tool_call_id": "call", "content": "Found it"
+            }]),
+            json!([{ "role": "assistant", "content": "Here it is" }]),
+        ),
+    ];
+    let result = import_rows(&rows);
+    assert_eq!(result[0]["turns"].as_array().unwrap().len(), 1);
+    assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
+    assert_eq!(result[0]["turns"][0]["response_id"], "done");
 }
