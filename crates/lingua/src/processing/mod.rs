@@ -3,8 +3,8 @@ pub mod dedup;
 pub mod import;
 mod json_repair;
 pub mod stream;
-pub mod transform;
 pub mod trajectory;
+pub mod transform;
 
 pub use adapters::{
     adapter_for_format, adapters, collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64,
