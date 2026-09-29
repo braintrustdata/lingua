@@ -181,6 +181,152 @@ fn reviewer_calls_do_not_split_turns_or_replace_the_final_response() {
 }
 
 #[test]
+fn streaming_accepts_tool_bodies_after_headers() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/responses-tool-cycle.json")).unwrap();
+    let tool = fixture
+        .spans
+        .iter()
+        .find(|source| source.id == "tool")
+        .unwrap();
+    let mut stream = TrajectoryStream::new(fixture.spans.clone(), false).unwrap();
+    let events = stream.push(tool.clone());
+    assert!(events.is_ok(), "Tool body was rejected: {events:?}");
+}
+
+#[test]
+fn normalized_tool_spans_preserve_input_and_result() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/responses-tool-cycle.json")).unwrap();
+    let spans = fixture
+        .spans
+        .into_iter()
+        .map(TrajectorySpan::new)
+        .collect::<Result<Vec<_>>>()
+        .unwrap();
+    let trajectories = assemble(&spans, &[], false).unwrap();
+    let turn = &trajectories[0].turns[0];
+    assert_eq!(turn.response_id.as_deref(), Some("final"));
+    let step = turn.work.iter().find(|step| step.id == "tool").unwrap();
+    let Work::ToolResult(tool) = &step.work else {
+        panic!("Expected a tool result, got {:?}", step.work);
+    };
+    let outputs: Vec<_> = tool
+        .content
+        .iter()
+        .flatten()
+        .filter_map(|part| match part {
+            crate::universal::ToolContentPart::ToolResult(result) => {
+                Some(serde_json::to_value(&result.output).unwrap())
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        (serde_json::to_value(&tool.input).unwrap(), outputs),
+        (json!({}), vec![json!("Result")]),
+    );
+}
+
+#[test]
+fn reviewer_work_preserves_request_and_response_messages() {
+    let sources: Vec<SourceSpan> =
+        serde_json::from_str(include_str!("fixtures/reviewer-continuation.json")).unwrap();
+    let spans = sources
+        .into_iter()
+        .map(TrajectorySpan::new)
+        .collect::<Result<Vec<_>>>()
+        .unwrap();
+    let trajectories = assemble(&spans, &[], false).unwrap();
+    let turn = &trajectories[0].turns[0];
+    assert_eq!(turn.response_id.as_deref(), Some("agent-final"));
+    for (id, request, response) in [
+        ("review", "Review request", "Review result"),
+        (
+            "trailing-review",
+            "Another review request",
+            "Another review result",
+        ),
+    ] {
+        let step = turn.work.iter().find(|step| step.id == id).unwrap();
+        let Work::LLMAnalysis(analysis) = &step.work else {
+            panic!("Expected analysis for {id}, got {:?}", step.work);
+        };
+        let messages = analysis.work.as_ref().expect("Missing reviewer messages");
+        assert!(matches!(
+            messages.first(),
+            Some(Message::User { content: UserContent::String(text) }) if text == request
+        ));
+        assert!(matches!(
+            messages.last(),
+            Some(Message::Assistant { content: AssistantContent::Array(parts), .. })
+                if matches!(parts.as_slice(), [AssistantContentPart::Text(text)] if text.text == response)
+        ));
+    }
+}
+
+#[test]
+fn trajectory_preserves_reasoning_usage_in_work_and_final_response() {
+    let rows: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/reasoning-token-usage.json")).unwrap();
+    let result = import_rows(&rows);
+    let turn = &result[0]["turns"][0];
+    assert_eq!(turn["response_id"], "final");
+    assert_eq!(
+        (
+            &turn["work"][0]["work"]["usage"],
+            &turn["response"]["usage"],
+        ),
+        (
+            &json!({
+                "prompt_tokens": 100, "completion_tokens": 20, "total_tokens": 120,
+                "prompt_cached_tokens": 80, "completion_reasoning_tokens": 15,
+            }),
+            &json!({
+                "prompt_tokens": 120, "completion_tokens": 10, "total_tokens": 130,
+                "prompt_cached_tokens": 100, "completion_reasoning_tokens": 6,
+            }),
+        ),
+    );
+}
+
+#[test]
+fn trajectory_preserves_cache_write_usage_by_ttl() {
+    let rows: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/cache-write-token-usage.json")).unwrap();
+    let result = import_rows(&rows);
+    assert_eq!(
+        result[0]["turns"][0]["response"]["usage"],
+        json!({
+            "prompt_tokens": 100, "completion_tokens": 10, "total_tokens": 110,
+            "prompt_cached_tokens": 20, "prompt_cache_creation_tokens": 70,
+            "prompt_cache_creation_5m_tokens": 30, "prompt_cache_creation_1h_tokens": 40,
+        }),
+    );
+}
+
+#[test]
+fn unsupported_mixed_input_reports_failure_without_losing_healthy_spans() {
+    let rows: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/unsupported-mixed-input.json")).unwrap();
+    let result = import_rows(&rows);
+    assert!(result[0]["turns"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|turn| turn["response_id"] == "healthy"));
+    let failures = result[0]["metadata"]["import_failures"]
+        .as_array()
+        .expect("Unsupported input was silently treated as a successful import");
+    assert!(failures.iter().any(|failure| {
+        failure["span_id"] == "unsupported"
+            && failure["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("agent_message"))
+    }));
+}
+
+#[test]
 fn emits_request_before_next_payload_and_defers_final_response() {
     let question = json!({"role": "user", "content": "Find the answer"});
     let answer = json!({"role": "assistant", "content": "The answer is 42"});
