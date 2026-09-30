@@ -253,32 +253,27 @@ fn preserves_compaction_payloads_as_opaque_data() {
 }
 
 #[test]
-fn imports_kind_content_messages() {
+fn preserves_custom_content_without_inventing_messages() {
     let source: Span =
         serde_json::from_str(include_str!("fixtures/custom-content-payload.json")).unwrap();
-    for preserve_unsupported in [false, true] {
-        let imported = import_span_with_options(
-            source.clone(),
-            ImportOptions {
-                preserve_unsupported,
-            },
-        )
-        .unwrap();
-        assert!(imported.errors.is_empty(), "{:?}", imported.errors);
-        assert_eq!(imported.input.len(), 3);
-        assert_eq!(imported.output.len(), 1);
-        assert!(imported.opaque_input.is_empty());
-        assert!(imported.opaque_output.is_empty());
-        let value = serde_json::to_value(&imported).unwrap();
-        assert_eq!(
-            value["input"][1]["content"][0]["arguments"]["value"],
-            json!({"id":"item"})
-        );
-        assert_eq!(
-            value["input"][2]["content"][0]["output"],
-            json!({"observation":{"kind":"text","text":"Result"},"isError":false})
-        );
+    let original_input = source.input.clone().unwrap();
+    let original_output = source.output.clone().unwrap();
+    let imported = import_span_with_options(
+        source,
+        ImportOptions {
+            preserve_unsupported: true,
+        },
+    )
+    .unwrap();
+    assert!(imported.input.is_empty());
+    assert!(imported.output.is_empty());
+    assert!(!imported.errors.is_empty());
+    assert_eq!(imported.opaque_input.len(), 3);
+    for (index, item) in imported.opaque_input.iter().enumerate() {
+        assert_eq!(item.index, Some(index));
+        assert_eq!(item.value, original_input["messages"][index]);
     }
+    assert_eq!(imported.opaque_output[0].value, original_output);
 }
 
 macro_rules! import_fixture {
