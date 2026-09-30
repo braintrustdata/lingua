@@ -41,7 +41,9 @@
       },
       "metadata": {
         "compaction": {
-          "replaced_message_count": 22
+          "replaced_message_count": 22,
+          "trigger": "automatic",
+          "window_id": "window"
         }
       },
       "output": "Context summary"

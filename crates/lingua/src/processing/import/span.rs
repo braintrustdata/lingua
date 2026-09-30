@@ -139,9 +139,7 @@ fn metadata_field<T: serde::de::DeserializeOwned>(
 #[serde(untagged)]
 enum CompactionHint {
     Flag(bool),
-    Details {
-        replaced_message_count: Option<usize>,
-    },
+    Details { replaced_message_count: usize },
 }
 
 pub fn import_span(span: Span) -> Result<ImportedSpan> {
@@ -256,7 +254,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             replaced_message_count: match compaction {
                 Some(CompactionHint::Details {
                     replaced_message_count,
-                }) => replaced_message_count,
+                }) => Some(replaced_message_count),
                 _ => None,
             },
         });

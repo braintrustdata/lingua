@@ -679,10 +679,10 @@ impl TrajectoryStream {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
         }
-        let mut events = self.drain()?;
-        if !self.initialized || self.cursor < self.order.len() {
+        if self.order.iter().any(|index| !self.ready[*index]) {
             return Err("Trajectory stream has unresolved spans".to_string());
         }
+        let mut events = self.drain()?;
         for (key, mut state) in std::mem::take(&mut self.states) {
             self.end_turn(&key, &mut state, &mut events)?;
         }

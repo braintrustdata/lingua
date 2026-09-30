@@ -311,6 +311,10 @@ import_fixture!(
 import_fixture!(replayed_abort_marker, "fixtures/replayed-abort-marker.json");
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
+import_fixture!(
+    invalid_compaction_hints,
+    "fixtures/invalid-compaction-hints.json"
+);
 import_fixture!(completed_retry, "fixtures/completed-retry.json");
 import_fixture!(
     unsupported_only_payloads,
@@ -547,6 +551,38 @@ fn tool_output_without_a_call_id_stays_unpaired() {
     assert_eq!(tool["work"]["input"], json!({}));
     assert_eq!(tool["work"]["output"], json!("Result"));
     assert!(tool["work"]["content"].is_null());
+}
+
+#[test]
+fn premature_finish_preserves_pending_events() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/responses-tool-cycle.json")).unwrap();
+    let spans: Vec<_> = fixture
+        .spans
+        .into_iter()
+        .map(|span| import_span(span).unwrap())
+        .collect();
+    let mut stream =
+        TrajectoryStream::new(spans.iter().map(ImportedSpan::header_only).collect(), false)
+            .unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first() {
+        assert_eq!(
+            stream.finish().unwrap_err(),
+            "Trajectory stream has unresolved spans"
+        );
+        let span = spans
+            .iter()
+            .find(|span| span.header.id.as_ref() == Some(id))
+            .unwrap();
+        collect(&mut collector, stream.push(span.clone()).unwrap());
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    assert!(collector.is_complete());
+    assert_eq!(
+        serde_json::to_value(collector.snapshot().unwrap()).unwrap(),
+        serde_json::to_value(assemble(&spans, &[], false).unwrap()).unwrap(),
+    );
 }
 
 #[test]
@@ -1068,7 +1104,7 @@ fn trajectory_accepts_boolean_and_structured_compaction_metadata() {
     for (compaction, expected) in [
         (json!(true), json!({ "id": "wrapper" })),
         (json!(false), Value::Null),
-        (json!({}), json!({ "id": "wrapper" })),
+        (json!({}), Value::Null),
         (
             json!({ "replaced_message_count": 12 }),
             json!({ "id": "wrapper", "replaced_message_count": 12 }),
