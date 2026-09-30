@@ -278,5 +278,11 @@
         "Next request"
       ]
     }
+  ],
+  "import_failures": [
+    {
+      "span_id": "final",
+      "message": "Unsupported message item at index 0"
+    }
   ]
 }

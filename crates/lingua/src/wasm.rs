@@ -482,6 +482,21 @@ pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValu
 }
 
 #[wasm_bindgen]
+pub struct ImportedSpan {
+    inner: crate::processing::import::ImportedSpan,
+}
+
+#[wasm_bindgen]
+pub fn import_span(span: JsValue) -> Result<ImportedSpan, JsValue> {
+    let span = serde_wasm_bindgen::from_value(span)
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    Ok(ImportedSpan {
+        inner: crate::processing::import::import_span(span)
+            .map_err(|error| JsValue::from_str(&error))?,
+    })
+}
+
+#[wasm_bindgen]
 pub struct TrajectoryStream {
     inner: crate::processing::trajectory::TrajectoryStream,
 }
@@ -489,12 +504,17 @@ pub struct TrajectoryStream {
 #[wasm_bindgen]
 impl TrajectoryStream {
     #[wasm_bindgen(constructor)]
-    pub fn new(headers: JsValue, exclude_system: bool) -> Result<TrajectoryStream, JsValue> {
-        let headers = serde_wasm_bindgen::from_value(headers)
-            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    pub fn new(
+        headers: Vec<ImportedSpan>,
+        exclude_system: bool,
+    ) -> Result<TrajectoryStream, JsValue> {
         Ok(Self {
-            inner: crate::processing::trajectory::TrajectoryStream::new(headers, exclude_system)
-                .map_err(|error| JsValue::from_str(&error))?,
+            inner: crate::processing::trajectory::TrajectoryStream::with_failures(
+                headers.into_iter().map(|span| span.inner.header).collect(),
+                Vec::new(),
+                exclude_system,
+            )
+            .map_err(|error| JsValue::from_str(&error))?,
         })
     }
 
@@ -503,12 +523,10 @@ impl TrajectoryStream {
         self.inner.pending_ids(limit)
     }
 
-    pub fn push(&mut self, span: JsValue) -> Result<JsValue, JsValue> {
-        let span = serde_wasm_bindgen::from_value(span)
-            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    pub fn push(&mut self, span: ImportedSpan) -> Result<JsValue, JsValue> {
         let events = self
             .inner
-            .push(span)
+            .push(span.inner)
             .map_err(|error| JsValue::from_str(&error))?;
         serialize_to_js(&events, "trajectory events")
     }

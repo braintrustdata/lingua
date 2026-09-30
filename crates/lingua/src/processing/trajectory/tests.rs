@@ -1,14 +1,28 @@
 use super::*;
+use crate::processing::import::{import_span, Span};
+use crate::universal::{UserContent, UserContentPart};
 use serde_json::json;
 use serde_json::Value;
 
-fn span(id: &str, start: i64, input: Value, output: Value) -> SourceSpan {
-    SourceSpan::parse(json!({
+fn span(id: &str, start: i64, input: Value, output: Value) -> Span {
+    Span::deserialize(json!({
         "id": id, "span_id": id, "root_span_id": "root", "span_parents": ["root"],
         "span_attributes": {"type": "llm"}, "metrics": {"start": start, "end": start + 1},
         "input": input, "output": output,
     }))
     .unwrap()
+}
+
+fn stream_from_sources(sources: Vec<Span>) -> Result<TrajectoryStream> {
+    let headers = sources
+        .into_iter()
+        .map(|mut source| {
+            source.input = None;
+            source.output = None;
+            import_span(source).map(|span| span.header)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    TrajectoryStream::new(headers, false)
 }
 
 fn collect(collector: &mut TrajectoryCollector, events: Vec<TrajectoryEvent>) {
@@ -22,10 +36,12 @@ fn collect(collector: &mut TrajectoryCollector, events: Vec<TrajectoryEvent>) {
 
 #[derive(Deserialize)]
 struct ImportFixture {
-    spans: Vec<SourceSpan>,
+    spans: Vec<Span>,
     turns: Vec<ExpectedTurn>,
     #[serde(default)]
     worker_responses: Vec<String>,
+    #[serde(default)]
+    import_failures: Vec<crate::serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -40,7 +56,7 @@ struct ExpectedTurn {
 fn check_import_fixture(fixture: &str) {
     let fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
     for batch_size in [1, 16] {
-        let mut stream = TrajectoryStream::new(fixture.spans.clone(), false).unwrap();
+        let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
         let mut collector = TrajectoryCollector::default();
         loop {
             let ids = stream.pending_ids(batch_size);
@@ -48,15 +64,29 @@ fn check_import_fixture(fixture: &str) {
                 break;
             }
             for id in ids.iter().rev() {
-                let span = fixture.spans.iter().find(|span| &span.id == id).unwrap();
-                collect(&mut collector, stream.push(span.clone()).unwrap());
+                let span = fixture
+                    .spans
+                    .iter()
+                    .find(|span| span.other["id"].as_str() == Some(id.as_str()))
+                    .unwrap();
+                collect(
+                    &mut collector,
+                    stream.push(import_span(span.clone()).unwrap()).unwrap(),
+                );
             }
         }
         collect(&mut collector, stream.finish().unwrap());
         assert!(collector.is_complete());
         let trajectories = collector.snapshot().unwrap();
         assert_eq!(trajectories.len(), 1);
-        assert!(!trajectories[0].metadata.contains_key("import_failures"));
+        assert_eq!(
+            trajectories[0]
+                .metadata
+                .get("import_failures")
+                .cloned()
+                .unwrap_or(crate::serde_json::json!([])),
+            crate::serde_json::json!(fixture.import_failures),
+        );
         let turns: Vec<_> = trajectories[0]
             .turns
             .iter()
@@ -153,13 +183,19 @@ import_fixture!(
 
 #[test]
 fn reviewer_calls_do_not_split_turns_or_replace_the_final_response() {
-    let sources: Vec<SourceSpan> =
+    let sources: Vec<Span> =
         serde_json::from_str(include_str!("fixtures/reviewer-continuation.json")).unwrap();
-    let mut stream = TrajectoryStream::new(sources.clone(), false).unwrap();
+    let mut stream = stream_from_sources(sources.clone()).unwrap();
     let mut collector = TrajectoryCollector::default();
     while let Some(id) = stream.pending_ids(1).first() {
-        let source = sources.iter().find(|source| &source.id == id).unwrap();
-        collect(&mut collector, stream.push(source.clone()).unwrap());
+        let source = sources
+            .iter()
+            .find(|source| source.other["id"].as_str() == Some(id.as_str()))
+            .unwrap();
+        collect(
+            &mut collector,
+            stream.push(import_span(source.clone()).unwrap()).unwrap(),
+        );
     }
     collect(&mut collector, stream.finish().unwrap());
     let result = collector.snapshot().unwrap();
@@ -187,10 +223,10 @@ fn streaming_accepts_tool_bodies_after_headers() {
     let tool = fixture
         .spans
         .iter()
-        .find(|source| source.id == "tool")
+        .find(|source| source.other["id"] == "tool")
         .unwrap();
-    let mut stream = TrajectoryStream::new(fixture.spans.clone(), false).unwrap();
-    let events = stream.push(tool.clone());
+    let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
+    let events = stream.push(import_span(tool.clone()).unwrap());
     assert!(events.is_ok(), "Tool body was rejected: {events:?}");
 }
 
@@ -201,7 +237,7 @@ fn normalized_tool_spans_preserve_input_and_result() {
     let spans = fixture
         .spans
         .into_iter()
-        .map(TrajectorySpan::new)
+        .map(import_span)
         .collect::<Result<Vec<_>>>()
         .unwrap();
     let trajectories = assemble(&spans, &[], false).unwrap();
@@ -230,11 +266,11 @@ fn normalized_tool_spans_preserve_input_and_result() {
 
 #[test]
 fn reviewer_work_preserves_request_and_response_messages() {
-    let sources: Vec<SourceSpan> =
+    let sources: Vec<Span> =
         serde_json::from_str(include_str!("fixtures/reviewer-continuation.json")).unwrap();
     let spans = sources
         .into_iter()
-        .map(TrajectorySpan::new)
+        .map(import_span)
         .collect::<Result<Vec<_>>>()
         .unwrap();
     let trajectories = assemble(&spans, &[], false).unwrap();
@@ -322,7 +358,7 @@ fn unsupported_mixed_input_reports_failure_without_losing_healthy_spans() {
         failure["span_id"] == "unsupported"
             && failure["message"]
                 .as_str()
-                .is_some_and(|message| message.contains("agent_message"))
+                .is_some_and(|message| message == "Unsupported message item at index 0")
     }));
 }
 
@@ -339,16 +375,26 @@ fn emits_request_before_next_payload_and_defers_final_response() {
             json!([{ "role":"assistant", "content":"Because." }]),
         ),
     ];
-    let mut stream = TrajectoryStream::new(sources.clone(), false).unwrap();
+    let mut stream = stream_from_sources(sources.clone()).unwrap();
     let mut collector = TrajectoryCollector::default();
-    collect(&mut collector, stream.push(sources[0].clone()).unwrap());
+    collect(
+        &mut collector,
+        stream
+            .push(import_span(sources[0].clone()).unwrap())
+            .unwrap(),
+    );
     let partial = collector.snapshot().unwrap();
     assert_eq!(partial[0].turns.len(), 1);
     assert_eq!(partial[0].turns[0].request_id, "first");
     assert!(partial[0].turns[0].response.is_none());
     assert!(!collector.is_complete());
     assert!(stream.finish().is_err());
-    collect(&mut collector, stream.push(sources[1].clone()).unwrap());
+    collect(
+        &mut collector,
+        stream
+            .push(import_span(sources[1].clone()).unwrap())
+            .unwrap(),
+    );
     assert_eq!(
         collector.snapshot().unwrap()[0].turns[0]
             .response_id
@@ -382,13 +428,25 @@ fn out_of_order_payloads_do_not_reorder_turns() {
             json!([]),
         ),
     ];
-    let mut stream = TrajectoryStream::new(sources.clone(), false).unwrap();
+    let mut stream = stream_from_sources(sources.clone()).unwrap();
     let mut collector = TrajectoryCollector::default();
-    collect(&mut collector, stream.push(sources[1].clone()).unwrap());
+    collect(
+        &mut collector,
+        stream
+            .push(import_span(sources[1].clone()).unwrap())
+            .unwrap(),
+    );
     assert!(collector.snapshot().unwrap()[0].turns.is_empty());
-    collect(&mut collector, stream.push(sources[0].clone()).unwrap());
+    collect(
+        &mut collector,
+        stream
+            .push(import_span(sources[0].clone()).unwrap())
+            .unwrap(),
+    );
     assert_eq!(collector.snapshot().unwrap()[0].turns.len(), 2);
-    assert!(stream.push(sources[0].clone()).is_err());
+    assert!(stream
+        .push(import_span(sources[0].clone()).unwrap())
+        .is_err());
     collect(&mut collector, stream.finish().unwrap());
 }
 
@@ -401,11 +459,18 @@ fn malformed_timing_preserves_healthy_turns_and_reports_failure() {
         json!([]),
     );
     let mut broken = healthy.clone();
-    broken.id = "broken".to_string();
-    broken.metrics.start = None;
-    let mut stream = TrajectoryStream::new(vec![healthy.clone(), broken], false).unwrap();
+    broken
+        .other
+        .insert("id".into(), crate::serde_json::json!("broken"));
+    broken
+        .other
+        .insert("metrics".into(), crate::serde_json::json!({}));
+    let mut stream = stream_from_sources(vec![healthy.clone(), broken]).unwrap();
     let mut collector = TrajectoryCollector::default();
-    collect(&mut collector, stream.push(healthy).unwrap());
+    collect(
+        &mut collector,
+        stream.push(import_span(healthy).unwrap()).unwrap(),
+    );
     collect(&mut collector, stream.finish().unwrap());
     let result = collector.snapshot().unwrap();
     assert_eq!(result[0].turns.len(), 1);
@@ -419,20 +484,32 @@ fn malformed_timing_preserves_healthy_turns_and_reports_failure() {
 fn interruption_in_later_request_marks_the_previous_turn() {
     let question = json!({"role": "user", "content": "Again"});
     let mut first = span("first", 1, json!([question]), json!([]));
-    first.metadata = Some(crate::serde_json::json!({"turn_id": "one"}));
+    first.other.insert(
+        "metadata".into(),
+        crate::serde_json::json!({"turn_id": "one"}),
+    );
     let mut tool = span("tool", 3, json!([]), json!([]));
-    tool.span_attributes.kind = Some("tool".to_string());
-    tool.metadata = Some(crate::serde_json::json!({"turn_id": "two"}));
+    tool.other.insert(
+        "span_attributes".into(),
+        crate::serde_json::json!({"type": "tool"}),
+    );
+    tool.other.insert(
+        "metadata".into(),
+        crate::serde_json::json!({"turn_id": "two"}),
+    );
     let mut request = span(
         "request",
         5,
         json!([{"role": "system", "content": "<turn_aborted>Interrupted</turn_aborted>"}, question]),
         json!([]),
     );
-    request.metadata = Some(crate::serde_json::json!({"turn_id": "two"}));
+    request.other.insert(
+        "metadata".into(),
+        crate::serde_json::json!({"turn_id": "two"}),
+    );
     let spans = vec![first, tool, request]
         .into_iter()
-        .map(TrajectorySpan::new)
+        .map(import_span)
         .collect::<Result<Vec<_>>>()
         .unwrap();
     let expected = assemble(&spans, &[], false).unwrap();
@@ -455,7 +532,7 @@ fn compacted_history_does_not_reintroduce_old_user_requests() {
     ];
     let spans = sources
         .into_iter()
-        .map(TrajectorySpan::new)
+        .map(import_span)
         .collect::<Result<Vec<_>>>()
         .unwrap();
     let result = assemble(&spans, &[], false).unwrap();
@@ -485,7 +562,7 @@ fn repeated_requests_after_compaction_are_distinct_occurrences() {
     ];
     let spans = sources
         .into_iter()
-        .map(TrajectorySpan::new)
+        .map(import_span)
         .collect::<Result<Vec<_>>>()
         .unwrap();
     let result = assemble(&spans, &[], false).unwrap();
@@ -503,7 +580,7 @@ fn resumed_call_does_not_pull_later_requests_before_their_work() {
     let third = json!({"role": "user", "content": "Third task"});
     let reply = json!([{"role": "assistant", "content": "Done"}]);
     let mut resumed = span("resumed", 3, json!([first, second, third]), json!([]));
-    resumed.metrics.end = Some(10.0);
+    resumed.other["metrics"]["end"] = crate::serde_json::json!(10.0);
     let sources = vec![
         span("first", 1, json!([first]), reply.clone()),
         resumed,
@@ -512,7 +589,7 @@ fn resumed_call_does_not_pull_later_requests_before_their_work() {
     ];
     let spans = sources
         .into_iter()
-        .map(TrajectorySpan::new)
+        .map(import_span)
         .collect::<Result<Vec<_>>>()
         .unwrap();
     let result = assemble(&spans, &[], false).unwrap();
@@ -536,7 +613,7 @@ fn replayed_history_before_a_known_message_is_not_a_new_request() {
     ];
     let spans = sources
         .into_iter()
-        .map(TrajectorySpan::new)
+        .map(import_span)
         .collect::<Result<Vec<_>>>()
         .unwrap();
     let result = assemble(&spans, &[], false).unwrap();
@@ -554,15 +631,23 @@ fn resumed_parent_turn_keeps_reformatted_replay_out_of_the_request() {
     let second = json!({"role": "user", "content": "Second with image"});
     let replay = json!({"role": "user", "content": "Second with image omitted"});
     let mut first = span("first", 1, json!([question]), json!([]));
-    first.metadata = Some(crate::serde_json::json!({"turn_id": "one"}));
+    first.other.insert(
+        "metadata".into(),
+        crate::serde_json::json!({"turn_id": "one"}),
+    );
     let mut resumed = span("resumed", 3, json!([question, replay]), json!([]));
-    resumed.metadata = first.metadata.clone();
-    resumed.metrics.end = Some(10.0);
+    resumed
+        .other
+        .insert("metadata".into(), first.other["metadata"].clone());
+    resumed.other["metrics"]["end"] = crate::serde_json::json!(10.0);
     let mut next = span("second", 5, json!([second]), json!([]));
-    next.metadata = Some(crate::serde_json::json!({"turn_id": "two"}));
+    next.other.insert(
+        "metadata".into(),
+        crate::serde_json::json!({"turn_id": "two"}),
+    );
     let spans = vec![first, resumed, next]
         .into_iter()
-        .map(TrajectorySpan::new)
+        .map(import_span)
         .collect::<Result<Vec<_>>>()
         .unwrap();
     let result = assemble(&spans, &[], false).unwrap();
@@ -587,9 +672,16 @@ fn import_rows(rows: &[Value]) -> Value {
     let mut spans = Vec::new();
     let mut failures = Vec::new();
     for row in rows {
-        match SourceSpan::parse(row).and_then(TrajectorySpan::new) {
+        match Span::deserialize(row)
+            .map_err(|error| error.to_string())
+            .and_then(import_span)
+        {
             Ok(span) => spans.push(span),
-            Err(error) => failures.push(ImportFailure::from_row(row, error).unwrap()),
+            Err(error) => failures.push(ImportFailure {
+                root_span_id: row["root_span_id"].as_str().unwrap().into(),
+                span_id: row["id"].as_str().unwrap().into(),
+                message: error,
+            }),
         }
     }
     serde_json::to_value(assemble(&spans, &failures, false).unwrap()).unwrap()

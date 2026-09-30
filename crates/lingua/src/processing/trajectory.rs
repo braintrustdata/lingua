@@ -3,322 +3,154 @@ mod stream;
 mod tests;
 pub use stream::{TrajectoryCollector, TrajectoryEvent, TrajectoryStream};
 
-use crate::processing::{import_messages_from_spans, message_dedup_hash, Span};
+use crate::processing::import::{ImportedSpan, SpanContext};
+use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    Agent, AgentResponse, Compaction, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work,
-    WorkStep,
+    Agent, AgentResponse, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work, WorkStep,
 };
-use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, UserContent, UserContentPart,
-};
+use crate::universal::{AssistantContent, AssistantContentPart, Message};
 use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 type Result<T> = std::result::Result<T, String>;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportFailure {
-    #[serde(skip)]
-    root_span_id: String,
-    span_id: String,
-    message: String,
+    pub root_span_id: String,
+    pub span_id: String,
+    pub message: String,
 }
 
 impl ImportFailure {
-    pub fn from_row<'de, D: serde::Deserializer<'de>>(row: D, message: String) -> Result<Self> {
-        #[derive(Deserialize)]
-        struct Identity {
-            id: String,
-            root_span_id: String,
-        }
-        let identity = Identity::deserialize(row)
-            .map_err(|_| format!("Cannot identify failed trajectory span: {message}"))?;
+    fn from_context(context: &SpanContext, message: String) -> Result<Self> {
         Ok(Self {
-            root_span_id: identity.root_span_id,
-            span_id: identity.id,
+            root_span_id: context
+                .root_span_id
+                .clone()
+                .ok_or_else(|| format!("Cannot identify failed span: {message}"))?,
+            span_id: context
+                .id
+                .clone()
+                .ok_or_else(|| format!("Cannot identify failed span: {message}"))?,
             message,
         })
     }
 }
 
-fn null_default<'de, T: Deserialize<'de> + Default, D: serde::Deserializer<'de>>(
-    deserializer: D,
-) -> std::result::Result<T, D::Error> {
-    Ok(Option::<T>::deserialize(deserializer)?.unwrap_or_default())
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct SourceSpan {
+#[derive(Debug, Clone)]
+pub struct PreparedSpan {
     id: String,
     root_span_id: String,
-    #[serde(default)]
-    span_id: Option<String>,
-    #[serde(default, alias = "span__parents", deserialize_with = "null_default")]
-    span_parents: Vec<String>,
-    created: Option<DateTime<Utc>>,
-    #[serde(default, deserialize_with = "null_default")]
-    metrics: Metrics,
-    #[serde(default, deserialize_with = "null_default")]
-    span_attributes: Attributes,
-    metadata: Option<json::Value>,
-    input: Option<json::Value>,
-    output: Option<json::Value>,
-    error: Option<json::Value>,
-    model: Option<String>,
-    #[serde(default, deserialize_with = "null_default")]
-    tags: Vec<String>,
-    #[serde(skip)]
-    skipped: bool,
-}
-
-#[derive(Debug, Clone, Default, Deserialize)]
-struct Metrics {
-    start: Option<f64>,
-    end: Option<f64>,
-    prompt_tokens: Option<i64>,
-    completion_tokens: Option<i64>,
-    tokens: Option<i64>,
-    prompt_cached_tokens: Option<i64>,
-    prompt_cache_creation_tokens: Option<i64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize)]
-struct Attributes {
-    #[serde(rename = "type")]
-    kind: Option<String>,
-    name: Option<String>,
-    purpose: Option<String>,
-    #[serde(default)]
-    exec_counter: i64,
-}
-
-#[derive(Default, Deserialize)]
-struct Metadata {
-    turn_id: Option<json::Value>,
-    #[serde(default)]
-    model: MetadataHint<String>,
-    #[serde(default)]
-    trajectory_role: MetadataHint<String>,
-    #[serde(default)]
-    request_kind: MetadataHint<String>,
-    #[serde(default)]
-    compaction: MetadataHint<CompactionMetadata>,
-}
-
-struct MetadataHint<T>(std::result::Result<Option<T>, String>);
-
-impl<T> Default for MetadataHint<T> {
-    fn default() -> Self {
-        Self(Ok(None))
-    }
-}
-
-impl<'de, T: DeserializeOwned> Deserialize<'de> for MetadataHint<T> {
-    fn deserialize<D: serde::Deserializer<'de>>(
-        deserializer: D,
-    ) -> std::result::Result<Self, D::Error> {
-        let value = json::Value::deserialize(deserializer)?;
-        Ok(Self(
-            Option::<T>::deserialize(value).map_err(|err| err.to_string()),
-        ))
-    }
-}
-
-impl<T> MetadataHint<T> {
-    fn read(self, field: &str, errors: &mut Vec<String>) -> Option<T> {
-        match self.0 {
-            Ok(value) => value,
-            Err(error) => {
-                errors.push(format!("Invalid metadata.{field}: {error}"));
-                None
-            }
-        }
-    }
-}
-
-#[derive(Deserialize)]
-#[serde(untagged)]
-enum CompactionMetadata {
-    Flag(bool),
-    Details {
-        replaced_message_count: Option<usize>,
-    },
-}
-
-impl SourceSpan {
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    pub fn parse<'de, D: serde::Deserializer<'de>>(value: D) -> Result<Self> {
-        Self::deserialize(value)
-            .map_err(|err| format!("Invalid trajectory source span: {err}").into())
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TrajectorySpan {
-    source: SourceSpan,
+    span_id: String,
+    start: DateTime<Utc>,
+    source: SpanContext,
     input: Vec<Message>,
     input_keys: Vec<u64>,
     output: Vec<Message>,
-    start: DateTime<Utc>,
-    end: Option<DateTime<Utc>>,
-    turn: Option<String>,
-    analysis: bool,
-    compaction: Option<Compaction>,
+    context_messages: HashSet<usize>,
+    interrupts_previous_turn: bool,
+    usage: Option<UniversalUsage>,
+    tool_result: Option<ToolResult>,
     failure: Option<ImportFailure>,
 }
 
-fn timestamp(value: f64) -> Option<DateTime<Utc>> {
-    if !value.is_finite() {
-        return None;
-    }
-    DateTime::from_timestamp_micros((value * 1_000_000.0) as i64)
-}
-
-impl TrajectorySpan {
-    pub fn new(mut source: SourceSpan) -> Result<Self> {
-        let mut errors = Vec::new();
-        let metadata: Metadata = source
-            .metadata
-            .as_ref()
-            .map_or_else(
-                || Ok(Metadata::default()),
-                |value| Metadata::deserialize(value),
-            )
-            .unwrap_or_else(|err| {
-                errors.push(format!("Invalid trajectory metadata: {err}"));
-                Metadata::default()
-            });
-        let model = metadata.model.read("model", &mut errors);
-        let trajectory_role = metadata
-            .trajectory_role
-            .read("trajectory_role", &mut errors);
-        let request_kind = metadata.request_kind.read("request_kind", &mut errors);
-        let analysis = trajectory_role.as_deref() == Some("analysis")
-            || request_kind.as_deref() == Some("reviewer");
-        let compaction = metadata.compaction.read("compaction", &mut errors);
+impl PreparedSpan {
+    pub fn new(mut span: ImportedSpan) -> Result<Self> {
+        let mut source = span.header;
+        let id = source.id.take().ok_or("Missing trajectory span id")?;
+        let root_span_id = source
+            .root_span_id
+            .take()
+            .ok_or("Missing trajectory root span id")?;
+        let span_id = source.span_id.take().unwrap_or_else(|| id.clone());
         let start = source
-            .metrics
             .start
-            .and_then(timestamp)
-            .or(source.created)
-            .ok_or_else(|| {
-                format!(
-                    "Missing or invalid timestamp for trajectory span {}",
-                    source.id
-                )
-            })?;
-        let end = source
-            .metrics
-            .end
-            .and_then(timestamp)
-            .filter(|end| *end >= start);
-        let import = |input: Option<json::Value>, output: Option<json::Value>| {
-            let nonempty = |value: &json::Value| match value {
-                json::Value::Array(items) => !items.is_empty(),
-                json::Value::Object(fields) => !fields.is_empty(),
-                _ => true,
-            };
-            import_messages_from_spans(vec![Span {
-                input: input.filter(nonempty),
-                output: output.filter(nonempty),
-                other: json::Map::new(),
-            }])
-        };
-        if source.span_attributes.kind.as_deref() == Some("tool") {
-            source.input = None;
-            source.output = None;
+            .take()
+            .ok_or_else(|| format!("Missing or invalid timestamp for trajectory span {id}"))?;
+        let mut context_messages: HashSet<_> = span.context_messages.into_iter().collect();
+        let input_keys = span
+            .input
+            .iter()
+            .enumerate()
+            .filter(|(index, message)| !context_messages.contains(index) && !is_context(message))
+            .map(|(_, message)| message_dedup_hash(message))
+            .collect();
+        if !source.analysis {
+            let start = span
+                .input
+                .iter()
+                .rposition(|message| {
+                    matches!(message, Message::Assistant { .. } | Message::Tool { .. })
+                })
+                .map_or(0, |index| index + 1);
+            span.input.drain(..start);
+            context_messages = context_messages
+                .into_iter()
+                .filter_map(|index| index.checked_sub(start))
+                .collect();
         }
-        let input = import(source.input.take(), None);
-        let output = import(None, source.output.take());
-        let input_keys = message_keys(&input);
-        let input = current_input(&input).to_vec();
-        let turn = metadata
-            .turn_id
-            .and_then(|value| match value {
-                json::Value::String(value) if !value.is_empty() => Some(value),
-                _ => None,
-            })
-            .or_else(|| {
-                (source.span_attributes.kind.as_deref() == Some("task")
-                    && source
-                        .span_attributes
-                        .name
-                        .as_deref()
-                        .is_some_and(|name| name.starts_with("turn: ")))
-                .then(|| source.id.clone())
-            });
-        let is_compaction = matches!(
-            compaction,
-            Some(CompactionMetadata::Flag(true) | CompactionMetadata::Details { .. })
-        ) || source.tags.iter().any(|tag| tag == "compaction")
-            || (source.span_attributes.kind.as_deref() == Some("task")
-                && source.span_attributes.name.as_deref() == Some("compaction"));
-        let compaction = is_compaction.then(|| Compaction {
-            id: source.id.clone(),
-            replaced_message_count: match compaction {
-                Some(CompactionMetadata::Details {
-                    replaced_message_count,
-                }) => replaced_message_count,
-                _ => None,
-            },
-        });
-        source.model = model.or(source.model);
-        source.metadata = None;
-        let failure = (!errors.is_empty()).then(|| ImportFailure {
-            root_span_id: source.root_span_id.clone(),
-            span_id: source.id.clone(),
-            message: errors.join("; "),
+        let failure = (!span.errors.is_empty()).then(|| ImportFailure {
+            root_span_id: root_span_id.clone(),
+            span_id: id.clone(),
+            message: span.errors.join("; "),
         });
         Ok(Self {
-            source,
-            input,
-            input_keys,
-            output,
+            id,
+            root_span_id,
+            span_id,
             start,
-            end,
-            turn,
-            analysis,
-            compaction,
+            source,
+            input: span.input,
+            output: span.output,
+            input_keys,
+            context_messages,
+            interrupts_previous_turn: span.interrupts_previous_turn,
+            usage: span.usage,
+            tool_result: span.tool_result,
             failure,
         })
     }
 
-    fn kind(&self) -> &str {
-        self.source
-            .span_attributes
-            .kind
-            .as_deref()
-            .unwrap_or("task")
-    }
-
-    fn is_scorer(&self) -> bool {
-        self.kind() == "score" || self.source.span_attributes.purpose.as_deref() == Some("scorer")
-    }
-
-    fn usage(&self) -> Option<UniversalUsage> {
-        let metrics = &self.source.metrics;
-        if metrics.prompt_tokens.is_none()
-            && metrics.completion_tokens.is_none()
-            && metrics.tokens.is_none()
-        {
-            return None;
-        }
-        Some(UniversalUsage {
-            prompt_tokens: metrics.prompt_tokens,
-            completion_tokens: metrics.completion_tokens,
-            total_tokens: metrics.tokens,
-            prompt_cached_tokens: metrics.prompt_cached_tokens,
-            prompt_cache_creation_tokens: metrics.prompt_cache_creation_tokens,
-            ..Default::default()
+    fn from_header(header: SpanContext) -> Result<Self> {
+        Self::new(ImportedSpan {
+            header,
+            input: Vec::new(),
+            output: Vec::new(),
+            usage: None,
+            tool_result: None,
+            context_messages: Vec::new(),
+            interrupts_previous_turn: false,
+            errors: Vec::new(),
         })
     }
 
+    fn current_input(&self) -> impl Iterator<Item = (usize, &Message)> {
+        let start = self
+            .input
+            .iter()
+            .rposition(|message| {
+                matches!(message, Message::Assistant { .. } | Message::Tool { .. })
+            })
+            .map_or(0, |index| index + 1);
+        self.input.iter().enumerate().skip(start)
+    }
+
+    fn is_context(&self, index: usize, message: &Message) -> bool {
+        self.context_messages.contains(&index) || is_context(message)
+    }
+
+    fn kind(&self) -> &str {
+        &self.source.kind
+    }
+    fn is_scorer(&self) -> bool {
+        self.kind() == "score" || self.source.scorer
+    }
+    fn usage(&self) -> Option<UniversalUsage> {
+        self.usage.clone()
+    }
     fn response(&self) -> AgentResponse {
         let mut parts = Vec::new();
         for message in &self.output {
@@ -340,12 +172,12 @@ impl TrajectorySpan {
             response: Some(AssistantContent::Array(parts)),
             usage: self.usage(),
             start_time: Some(self.start),
-            end_time: self.end,
+            end_time: self.source.end,
         }
     }
 
     fn can_finish_turn(&self) -> bool {
-        matches!(self.kind(), "llm" | "task") && !self.analysis && self.end.is_some() && self.source.error.is_none()
+        matches!(self.kind(), "llm" | "task") && !self.source.analysis && self.source.end.is_some() && self.source.error.is_none()
             && self.output.iter().any(|message| match message {
                 Message::Assistant { content: AssistantContent::String(text), .. } => !text.trim().is_empty(),
                 Message::Assistant { content: AssistantContent::Array(parts), .. } => !parts.is_empty(),
@@ -358,67 +190,11 @@ impl TrajectorySpan {
     }
 }
 
-fn user_text(content: &UserContent) -> Option<String> {
-    match content {
-        UserContent::String(text) => Some(text.clone()),
-        UserContent::Array(parts) => {
-            let mut text = String::new();
-            for part in parts {
-                let UserContentPart::Text(part) = part else {
-                    return None;
-                };
-                text.push_str(&part.text);
-            }
-            Some(text)
-        }
-    }
-}
-
 fn is_context(message: &Message) -> bool {
-    match message {
-        Message::System { .. } | Message::Developer { .. } | Message::AdditionalTools { .. } => {
-            true
-        }
-        Message::User { content } => {
-            let Some(text) = user_text(content) else {
-                return false;
-            };
-            let text = text.trim();
-            let Some((tag, _)) = text.strip_prefix('<').and_then(|text| text.split_once('>'))
-            else {
-                return false;
-            };
-            let is_context_tag = matches!(tag, "environment_context" | "braintrust.runtime")
-                || tag.starts_with("external_braintrust.")
-                    && tag
-                        .chars()
-                        .all(|c| c.is_alphanumeric() || c == '_' || c == '.');
-            is_context_tag && text.ends_with(&format!("</{tag}>"))
-        }
-        _ => false,
-    }
-}
-
-fn current_input(input: &[Message]) -> &[Message] {
-    let start = input
-        .iter()
-        .rposition(|message| matches!(message, Message::Assistant { .. } | Message::Tool { .. }))
-        .map_or(0, |index| index + 1);
-    &input[start..]
-}
-
-fn interrupts_previous_turn(input: &[Message]) -> bool {
-    input.iter().any(|message| {
-        let (Message::System { content } | Message::Developer { content }) = message else {
-            return false;
-        };
-        user_text(content).is_some_and(|text| {
-            text.trim()
-                .strip_prefix("<turn_aborted>")
-                .and_then(|text| text.strip_suffix("</turn_aborted>"))
-                .is_some_and(|text| !text.is_empty())
-        })
-    })
+    matches!(
+        message,
+        Message::System { .. } | Message::Developer { .. } | Message::AdditionalTools { .. }
+    )
 }
 
 fn message_keys(messages: &[Message]) -> Vec<u64> {
@@ -439,7 +215,7 @@ struct Ownership {
 
 fn ownership(
     index: usize,
-    spans: &[TrajectorySpan],
+    spans: &[PreparedSpan],
     by_span_id: &HashMap<(&str, &str), usize>,
     resolved: &mut HashMap<usize, Ownership>,
     visiting: &mut HashSet<usize>,
@@ -448,28 +224,25 @@ fn ownership(
         return Ok(value.clone());
     }
     if !visiting.insert(index) {
-        return Err(format!(
-            "Cycle in trajectory span parents at {}",
-            spans[index].source.id
-        )
-        .into());
+        return Err(format!("Cycle in trajectory span parents at {}", spans[index].id).into());
     }
     let span = &spans[index];
     let mut result = Ownership::default();
-    if let Some(parent) =
-        span.source.span_parents.first().and_then(|parent| {
-            by_span_id.get(&(span.source.root_span_id.as_str(), parent.as_str()))
-        })
+    if let Some(parent) = span
+        .source
+        .span_parents
+        .first()
+        .and_then(|parent| by_span_id.get(&(span.root_span_id.as_str(), parent.as_str())))
     {
         result = ownership(*parent, spans, by_span_id, resolved, visiting)?;
-        if spans[*parent].kind() == "tool" && !spans[*parent].source.skipped {
+        if spans[*parent].kind() == "tool" {
             result.tool = Some(*parent);
         }
     }
-    if span.turn.is_some() {
-        result.turn.clone_from(&span.turn);
+    if span.source.turn.is_some() {
+        result.turn.clone_from(&span.source.turn);
     }
-    if span.compaction.is_some() && !span.source.skipped {
+    if span.source.compaction.is_some() {
         result.compaction = Some(index);
     }
     result.skipped |= span.is_scorer();
@@ -480,13 +253,25 @@ fn ownership(
 
 #[cfg(test)]
 fn assemble(
-    spans: &[TrajectorySpan],
+    spans: &[ImportedSpan],
     failures: &[ImportFailure],
     exclude_system: bool,
 ) -> Result<Vec<Trajectory>> {
-    let mut stream =
-        TrajectoryStream::from_normalized(spans.to_vec(), failures.to_vec(), exclude_system)?;
+    let mut stream = TrajectoryStream::with_failures(
+        spans.iter().map(|span| span.header.clone()).collect(),
+        failures.to_vec(),
+        exclude_system,
+    )?;
     let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first() {
+        let span = spans
+            .iter()
+            .find(|span| span.header.id.as_ref() == Some(id))
+            .unwrap();
+        for event in stream.push(span.clone())? {
+            collector.push(event)?;
+        }
+    }
     for event in stream.finish()? {
         collector.push(event)?;
     }

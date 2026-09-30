@@ -104,7 +104,7 @@ fn merge_history(history: &[u64], input: &[u64], output: &[u64]) -> (Vec<u64>, V
 type ScopeKey = (String, Option<usize>, Option<usize>);
 
 pub struct TrajectoryStream {
-    spans: Vec<TrajectorySpan>,
+    spans: Vec<PreparedSpan>,
     ready: Vec<bool>,
     by_id: HashMap<String, usize>,
     owners: HashMap<usize, Ownership>,
@@ -121,51 +121,27 @@ pub struct TrajectoryStream {
 }
 
 impl TrajectoryStream {
-    #[cfg(test)]
-    pub(super) fn from_normalized(
-        spans: Vec<TrajectorySpan>,
-        failures: Vec<ImportFailure>,
-        exclude_system: bool,
-    ) -> Result<Self> {
-        let mut stream = Self::with_failures(Vec::new(), failures, exclude_system)?;
-        for (index, span) in spans.iter().enumerate() {
-            if stream.by_id.insert(span.source.id.clone(), index).is_some() {
-                return Err(format!("Duplicate trajectory span {}", span.source.id));
-            }
-        }
-        stream.ready = vec![true; spans.len()];
-        stream.spans = spans;
-        Ok(stream)
-    }
-
-    pub fn new(headers: Vec<SourceSpan>, exclude_system: bool) -> Result<Self> {
+    pub fn new(headers: Vec<SpanContext>, exclude_system: bool) -> Result<Self> {
         Self::with_failures(headers, Vec::new(), exclude_system)
     }
 
     pub fn with_failures(
-        headers: Vec<SourceSpan>,
-        mut failures: Vec<ImportFailure>,
+        headers: Vec<SpanContext>,
+        failures: Vec<ImportFailure>,
         exclude_system: bool,
     ) -> Result<Self> {
+        let mut failures = failures;
         let mut spans = Vec::with_capacity(headers.len());
-        for mut header in headers {
-            header.input = None;
-            header.output = None;
-            let id = header.id.clone();
-            let root_span_id = header.root_span_id.clone();
-            match TrajectorySpan::new(header) {
+        for header in headers {
+            match PreparedSpan::from_header(header.clone()) {
                 Ok(span) => spans.push(span),
-                Err(message) => failures.push(ImportFailure {
-                    root_span_id,
-                    span_id: id,
-                    message,
-                }),
+                Err(error) => failures.push(ImportFailure::from_context(&header, error)?),
             }
         }
         let mut by_id = HashMap::new();
         for (index, span) in spans.iter().enumerate() {
-            if by_id.insert(span.source.id.clone(), index).is_some() {
-                return Err(format!("Duplicate trajectory span {}", span.source.id));
+            if by_id.insert(span.id.clone(), index).is_some() {
+                return Err(format!("Duplicate trajectory span {}", span.id));
             }
         }
         let mut order: Vec<_> = (0..spans.len()).collect();
@@ -175,13 +151,8 @@ impl TrajectoryStream {
             (left.kind() != "task")
                 .cmp(&(right.kind() != "task"))
                 .then(left.start.cmp(&right.start))
-                .then(
-                    left.source
-                        .span_attributes
-                        .exec_counter
-                        .cmp(&right.source.span_attributes.exec_counter),
-                )
-                .then(left.source.id.cmp(&right.source.id))
+                .then(left.source.exec_counter.cmp(&right.source.exec_counter))
+                .then(left.id.cmp(&right.id))
         });
         let parents: HashSet<_> = spans
             .iter()
@@ -189,25 +160,22 @@ impl TrajectoryStream {
                 span.source
                     .span_parents
                     .iter()
-                    .map(|parent| (span.source.root_span_id.as_str(), parent.as_str()))
+                    .map(|parent| (span.root_span_id.as_str(), parent.as_str()))
             })
             .collect();
         let roots_with_llms: HashSet<_> = spans
             .iter()
             .filter(|span| span.kind() == "llm")
-            .map(|span| span.source.root_span_id.as_str())
+            .map(|span| span.root_span_id.as_str())
             .collect();
         let ready = spans
             .iter()
             .map(|span| {
                 let message_task = span.kind() == "task"
-                    && !parents.contains(&(
-                        span.source.root_span_id.as_str(),
-                        span.source.span_id.as_deref().unwrap_or(&span.source.id),
-                    ))
-                    && (span.turn.is_some()
-                        || !roots_with_llms.contains(span.source.root_span_id.as_str()));
-                span.kind() != "llm" && !message_task
+                    && !parents.contains(&(span.root_span_id.as_str(), span.span_id.as_str()))
+                    && (span.source.turn.is_some()
+                        || !roots_with_llms.contains(span.root_span_id.as_str()));
+                !matches!(span.kind(), "llm" | "tool") && !message_task
             })
             .collect();
         Ok(Self {
@@ -233,76 +201,39 @@ impl TrajectoryStream {
             .iter()
             .filter(|index| !self.ready[**index])
             .take(limit)
-            .map(|index| self.spans[*index].source.id.clone())
+            .map(|index| self.spans[*index].id.clone())
             .collect()
     }
 
-    pub fn push(&mut self, source: SourceSpan) -> Result<Vec<TrajectoryEvent>> {
-        if self.finished {
-            return Err("Trajectory stream has finished".to_string());
-        }
-        let index = *self
-            .by_id
-            .get(&source.id)
-            .ok_or_else(|| format!("Unknown trajectory span {}", source.id))?;
-        if self.ready[index] {
-            return Err(format!("Trajectory span {} was already loaded", source.id));
-        }
-        let header = &self.spans[index].source;
-        if source.root_span_id != header.root_span_id || source.span_parents != header.span_parents
-        {
-            return Err(format!(
-                "Trajectory structure changed for span {}",
-                source.id
-            ));
-        }
-        match TrajectorySpan::new(source) {
-            Ok(span) => return self.push_normalized(span),
-            Err(message) => {
-                self.failures.push(ImportFailure {
-                    root_span_id: header.root_span_id.clone(),
-                    span_id: header.id.clone(),
-                    message,
-                });
-                self.spans[index].source.skipped = true;
-            }
-        }
-        self.ready[index] = true;
-        self.drain()
+    pub fn push(&mut self, span: ImportedSpan) -> Result<Vec<TrajectoryEvent>> {
+        self.push_prepared(PreparedSpan::new(span)?)
     }
 
-    pub fn push_normalized(&mut self, span: TrajectorySpan) -> Result<Vec<TrajectoryEvent>> {
+    pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
         }
         let index = *self
             .by_id
-            .get(&span.source.id)
-            .ok_or_else(|| format!("Unknown trajectory span {}", span.source.id))?;
+            .get(&span.id)
+            .ok_or_else(|| format!("Unknown trajectory span {}", span.id))?;
         if self.ready[index] {
-            return Err(format!(
-                "Trajectory span {} was already loaded",
-                span.source.id
-            ));
+            return Err(format!("Trajectory span {} was already loaded", span.id));
         }
         let header = &self.spans[index];
-        if span.source.root_span_id != header.source.root_span_id
+        if span.root_span_id != header.root_span_id
             || span.source.span_parents != header.source.span_parents
-            || span.source.span_id != header.source.span_id
-            || span.source.span_attributes.exec_counter
-                != header.source.span_attributes.exec_counter
+            || span.span_id != header.span_id
+            || span.source.exec_counter != header.source.exec_counter
             || span.kind() != header.kind()
             || span.start != header.start
-            || span.turn != header.turn
-            || span.analysis != header.analysis
+            || span.source.turn != header.source.turn
+            || span.source.analysis != header.source.analysis
             || span.is_scorer() != header.is_scorer()
-            || span.compaction.as_ref().map(|value| &value.id)
-                != header.compaction.as_ref().map(|value| &value.id)
+            || span.source.compaction.as_ref().map(|value| &value.id)
+                != header.source.compaction.as_ref().map(|value| &value.id)
         {
-            return Err(format!(
-                "Trajectory structure changed for span {}",
-                span.source.id
-            ));
+            return Err(format!("Trajectory structure changed for span {}", span.id));
         }
         self.spans[index] = span;
         self.ready[index] = true;
@@ -312,7 +243,7 @@ impl TrajectoryStream {
     fn scope(&self, key: &ScopeKey) -> TrajectoryScope {
         TrajectoryScope {
             root_span_id: key.0.clone(),
-            owner_span_id: key.1.map(|index| self.spans[index].source.id.clone()),
+            owner_span_id: key.1.map(|index| self.spans[index].id.clone()),
         }
     }
 
@@ -321,15 +252,7 @@ impl TrajectoryStream {
             .spans
             .iter()
             .enumerate()
-            .map(|(index, span)| {
-                (
-                    (
-                        span.source.root_span_id.as_str(),
-                        span.source.span_id.as_deref().unwrap_or(&span.source.id),
-                    ),
-                    index,
-                )
-            })
+            .map(|(index, span)| ((span.root_span_id.as_str(), span.span_id.as_str()), index))
             .collect();
         for index in 0..self.spans.len() {
             let mut visiting = HashSet::new();
@@ -349,8 +272,8 @@ impl TrajectoryStream {
                         },
                     );
                     self.failures.push(ImportFailure {
-                        root_span_id: self.spans[index].source.root_span_id.clone(),
-                        span_id: self.spans[index].source.id.clone(),
+                        root_span_id: self.spans[index].root_span_id.clone(),
+                        span_id: self.spans[index].id.clone(),
                         message: message.clone(),
                     });
                 }
@@ -363,39 +286,32 @@ impl TrajectoryStream {
                 span.source
                     .span_parents
                     .iter()
-                    .map(|parent| (span.source.root_span_id.as_str(), parent.as_str()))
+                    .map(|parent| (span.root_span_id.as_str(), parent.as_str()))
             })
             .collect();
         let roots_with_llms: HashSet<_> = self
             .spans
             .iter()
             .filter(|span| span.kind() == "llm")
-            .map(|span| span.source.root_span_id.as_str())
+            .map(|span| span.root_span_id.as_str())
             .collect();
         for (index, span) in self.spans.iter().enumerate() {
             let owner = &self.owners[&index];
-            if owner.skipped || span.source.skipped {
+            if owner.skipped {
                 continue;
             }
             let is_message = span.kind() == "task"
-                && !parents.contains(&(
-                    span.source.root_span_id.as_str(),
-                    span.source.span_id.as_deref().unwrap_or(&span.source.id),
-                ))
-                && (span.output.is_empty() && span.turn.is_some()
-                    || !roots_with_llms.contains(span.source.root_span_id.as_str()))
-                && current_input(&span.input)
-                    .iter()
-                    .any(|message| matches!(message, Message::User { .. }) && !is_context(message));
+                && !parents.contains(&(span.root_span_id.as_str(), span.span_id.as_str()))
+                && (span.output.is_empty() && span.source.turn.is_some()
+                    || !roots_with_llms.contains(span.root_span_id.as_str()))
+                && span.current_input().any(|(index, message)| {
+                    matches!(message, Message::User { .. }) && !span.is_context(index, message)
+                });
             if span.kind() != "llm" && span.kind() != "tool" && !is_message {
                 continue;
             }
-            let key = (
-                span.source.root_span_id.clone(),
-                owner.tool,
-                owner.compaction,
-            );
-            if is_message && span.turn.is_some() && span.output.is_empty() {
+            let key = (span.root_span_id.clone(), owner.tool, owner.compaction);
+            if is_message && span.source.turn.is_some() && span.output.is_empty() {
                 self.task_boundaries.insert(key.clone());
             }
             self.scopes.entry(key).or_default().push(index);
@@ -411,7 +327,7 @@ impl TrajectoryStream {
             let mut earliest_end: Option<DateTime<Utc>> = None;
             for index in llms {
                 let span = &self.spans[index];
-                if let Some(end) = span.end {
+                if let Some(end) = span.source.end {
                     if earliest_end.is_some_and(|other| other < end) {
                         order_times.insert(index, end);
                         self.resumed.insert(index);
@@ -429,17 +345,16 @@ impl TrajectoryStream {
                 .then(
                     self.spans[*a]
                         .source
-                        .span_attributes
                         .exec_counter
-                        .cmp(&self.spans[*b].source.span_attributes.exec_counter),
+                        .cmp(&self.spans[*b].source.exec_counter),
                 )
-                .then(self.spans[*a].source.id.cmp(&self.spans[*b].source.id))
+                .then(self.spans[*a].id.cmp(&self.spans[*b].id))
         });
         let mut scopes: BTreeMap<TrajectoryScope, Option<String>> = BTreeMap::new();
         for span in &self.spans {
             scopes.insert(
                 TrajectoryScope {
-                    root_span_id: span.source.root_span_id.clone(),
+                    root_span_id: span.root_span_id.clone(),
                     owner_span_id: None,
                 },
                 None,
@@ -458,7 +373,7 @@ impl TrajectoryStream {
             scopes.insert(
                 self.scope(key),
                 key.1
-                    .and_then(|index| self.spans[index].source.span_attributes.name.clone()),
+                    .and_then(|index| self.spans[index].source.name.clone()),
             );
         }
         for (scope, name) in scopes {
@@ -506,20 +421,17 @@ impl TrajectoryStream {
             if !self.ready[index] {
                 break;
             }
-            if !self.spans[index].source.skipped {
-                self.advance(index, &mut events)?;
-            }
+            self.advance(index, &mut events)?;
             self.cursor += 1;
         }
         Ok(events)
     }
 
-    fn request(&self, span: &TrajectorySpan, fresh: Option<&[bool]>) -> Vec<Message> {
+    fn request(&self, span: &PreparedSpan, fresh: Option<&[bool]>) -> Vec<Message> {
         let mut position = 0;
-        current_input(&span.input)
-            .iter()
-            .filter(|message| {
-                if !is_context(message) {
+        span.current_input()
+            .filter(|(index, message)| {
+                if !span.is_context(*index, message) {
                     let include = fresh.is_none_or(|fresh| fresh[position]);
                     position += 1;
                     if !include {
@@ -531,7 +443,7 @@ impl TrajectoryStream {
                     Message::User { .. } | Message::System { .. } | Message::Developer { .. }
                 ) && (!self.exclude_system || !matches!(message, Message::System { .. }))
             })
-            .cloned()
+            .map(|(_, message)| message.clone())
             .collect()
     }
 
@@ -547,13 +459,12 @@ impl TrajectoryStream {
             return Ok(None);
         }
         let work = if span.kind() == "tool" {
-            Work::ToolResult(Box::new(ToolResult {
-                input: None,
-                content: None,
-            }))
-        } else if span.analysis {
+            Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
+                format!("Missing imported tool result for {}", span.id)
+            })?))
+        } else if span.source.analysis {
             Work::LLMAnalysis(Box::new(LLMAnalysis {
-                work: None,
+                work: Some(span.input.iter().chain(&span.output).cloned().collect()),
                 model: span.source.model.clone(),
                 params: None,
                 usage: span.usage(),
@@ -566,12 +477,12 @@ impl TrajectoryStream {
             id: id.to_string(),
             position,
             step: WorkStep {
-                id: span.source.id.clone(),
+                id: span.id.clone(),
                 span_type: span.kind().to_string(),
-                name: span.source.span_attributes.name.clone(),
+                name: span.source.name.clone(),
                 error: span.source.error.clone(),
                 start_time: span.start,
-                end_time: span.end,
+                end_time: span.source.end,
                 work,
                 sub_agent: None,
             },
@@ -600,8 +511,8 @@ impl TrajectoryStream {
         events.push(TrajectoryEvent::Response {
             scope,
             id: id.clone(),
-            response_id: final_span.map(|span| span.source.id.clone()),
-            response: final_span.map(TrajectorySpan::response),
+            response_id: final_span.map(|span| span.id.clone()),
+            response: final_span.map(PreparedSpan::response),
             end_time: if state.unfinished {
                 None
             } else {
@@ -618,16 +529,12 @@ impl TrajectoryStream {
     fn advance(&mut self, index: usize, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
         let span = &self.spans[index];
         let owner = &self.owners[&index];
-        let key = (
-            span.source.root_span_id.clone(),
-            owner.tool,
-            owner.compaction,
-        );
+        let key = (span.root_span_id.clone(), owner.tool, owner.compaction);
         let scope = self.scope(&key);
         let mut state = self.states.remove(&key).unwrap_or_default();
         let explicit = if self.task_boundaries.contains(&key) {
             if span.kind() == "task" {
-                span.turn.as_deref()
+                span.source.turn.as_deref()
             } else {
                 None
             }
@@ -638,15 +545,16 @@ impl TrajectoryStream {
             && explicit.is_some_and(|value| {
                 state.explicit.as_deref() != Some(value) && state.seen_explicit.contains(value)
             });
-        let candidate = !span.analysis
+        let candidate = !span.source.analysis
             && !returning
-            && current_input(&span.input)
-                .iter()
-                .any(|message| matches!(message, Message::User { .. }) && !is_context(message));
-        let current_start = span
-            .input_keys
-            .len()
-            .saturating_sub(message_keys(&span.input).len());
+            && span.current_input().any(|(index, message)| {
+                matches!(message, Message::User { .. }) && !span.is_context(index, message)
+            });
+        let current_start = span.input_keys.len().saturating_sub(
+            span.current_input()
+                .filter(|(index, message)| !span.is_context(*index, message))
+                .count(),
+        );
         let (history, fresh) = merge_history(
             &state.history,
             &span.input_keys,
@@ -654,9 +562,11 @@ impl TrajectoryStream {
         );
         let fresh_request = &fresh[current_start..];
         let has_new_input = fresh_request.iter().any(|fresh| *fresh);
-        let user_count = current_input(&span.input)
-            .iter()
-            .filter(|message| matches!(message, Message::User { .. }) && !is_context(message))
+        let user_count = span
+            .current_input()
+            .filter(|(index, message)| {
+                matches!(message, Message::User { .. }) && !span.is_context(*index, message)
+            })
             .count();
         let new_turn = key.2.is_none()
             && (explicit.is_some()
@@ -669,7 +579,7 @@ impl TrajectoryStream {
         if state.id.is_none() || new_turn {
             self.end_turn(&key, &mut state, events)?;
             state.previous_id = state.id.take();
-            if key.2.is_none() && interrupts_previous_turn(&span.input) {
+            if key.2.is_none() && span.interrupts_previous_turn {
                 if let Some(id) = &state.previous_id {
                     events.push(TrajectoryEvent::Interrupted {
                         scope: scope.clone(),
@@ -677,7 +587,7 @@ impl TrajectoryStream {
                     });
                 }
             }
-            state.id = Some(span.source.id.clone());
+            state.id = Some(span.id.clone());
             state.request_found = candidate;
             state.request_model = span.source.model.clone();
             state.candidate_model = None;
@@ -687,9 +597,9 @@ impl TrajectoryStream {
             state.unfinished = false;
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
-                id: span.source.id.clone(),
+                id: span.id.clone(),
                 turn: Turn {
-                    request_id: span.source.id.clone(),
+                    request_id: span.id.clone(),
                     request: Some(self.request(span, request_filter)),
                     response_id: None,
                     response: None,
@@ -699,11 +609,13 @@ impl TrajectoryStream {
                     start_time: span.start,
                     end_time: None,
                     interrupted: None,
-                    compaction: key.2.and_then(|index| self.spans[index].compaction.clone()),
+                    compaction: key
+                        .2
+                        .and_then(|index| self.spans[index].source.compaction.clone()),
                 },
             });
         } else if candidate && !state.request_found {
-            if key.2.is_none() && interrupts_previous_turn(&span.input) {
+            if key.2.is_none() && span.interrupts_previous_turn {
                 if let Some(id) = &state.previous_id {
                     events.push(TrajectoryEvent::Interrupted {
                         scope: scope.clone(),
@@ -716,13 +628,13 @@ impl TrajectoryStream {
             events.push(TrajectoryEvent::Request {
                 scope: scope.clone(),
                 id: state.id.clone().unwrap(),
-                request_id: span.source.id.clone(),
+                request_id: span.id.clone(),
                 request: self.request(span, request_filter),
             });
         }
         let id = state.id.as_deref().unwrap();
         if matches!(span.kind(), "llm" | "task")
-            && !span.analysis
+            && !span.source.analysis
             && (!span.input_keys.is_empty() || !span.output.is_empty())
         {
             if let Some((previous, position)) = state.candidate.take() {
@@ -740,9 +652,9 @@ impl TrajectoryStream {
             events.extend(self.work(&scope, id, index, state.position)?);
         }
         state.position += 1;
-        state.unfinished |= span.end.is_none();
-        state.end_time = state.end_time.max(span.end);
-        if !span.analysis && !span.input_keys.is_empty() {
+        state.unfinished |= span.source.end.is_none();
+        state.end_time = state.end_time.max(span.source.end);
+        if !span.source.analysis && !span.input_keys.is_empty() {
             state.history = history;
         }
         if let Some(explicit) = explicit.filter(|_| new_turn || state.explicit.is_none()) {
