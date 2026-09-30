@@ -103,39 +103,65 @@ fn merge_history(history: &[u64], input: &[u64], output: &[u64]) -> (Vec<u64>, V
 
 type ScopeKey = (String, Option<usize>, Option<usize>);
 
-fn conversation_llm_scopes<'a>(
-    spans: &'a [PreparedSpan],
-    owners: &HashMap<usize, Ownership>,
-) -> HashSet<(&'a str, Option<usize>, Option<usize>)> {
-    spans
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Participation {
+    Ignored,
+    Conversation,
+    Analysis,
+    Tool,
+    Task { fallback: bool },
+}
+
+impl Participation {
+    fn can_request(self) -> bool {
+        matches!(self, Self::Conversation | Self::Task { .. })
+    }
+}
+
+fn participation(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) -> Vec<Participation> {
+    let mut roles: Vec<_> = spans
+        .iter()
+        .enumerate()
+        .map(|(index, span)| {
+            if owners[&index].skipped {
+                return Participation::Ignored;
+            }
+            match span.kind() {
+                "llm" if span.source.analysis => Participation::Analysis,
+                "llm" => Participation::Conversation,
+                "tool" => Participation::Tool,
+                "task" if !span.source.analysis => Participation::Task { fallback: true },
+                _ => Participation::Ignored,
+            }
+        })
+        .collect();
+    let scopes_with_llms: HashSet<_> = spans
         .iter()
         .enumerate()
         .filter_map(|(index, span)| {
             let owner = &owners[&index];
-            (span.kind() == "llm" && !span.source.analysis && !owner.skipped).then_some((
+            (roles[index] == Participation::Conversation).then_some((
                 span.root_span_id.as_str(),
                 owner.tool,
                 owner.compaction,
             ))
         })
-        .collect()
-}
-
-fn task_parents<'a>(
-    spans: &'a [PreparedSpan],
-    owners: &HashMap<usize, Ownership>,
-) -> HashSet<(&'a str, &'a str)> {
-    spans
-        .iter()
-        .enumerate()
-        .filter(|(index, span)| span.kind() == "task" && !owners[index].skipped)
-        .flat_map(|(_, span)| {
-            span.source
-                .span_parents
-                .iter()
-                .map(|parent| (span.root_span_id.as_str(), parent.as_str()))
-        })
-        .collect()
+        .collect();
+    for (index, role) in roles.iter_mut().enumerate() {
+        if let Participation::Task { fallback } = role {
+            let span = &spans[index];
+            let owner = &owners[&index];
+            *fallback = !scopes_with_llms.contains(&(
+                span.root_span_id.as_str(),
+                owner.tool,
+                owner.compaction,
+            ));
+            if !*fallback && span.source.turn.is_none() {
+                *role = Participation::Ignored;
+            }
+        }
+    }
+    roles
 }
 
 pub struct TrajectoryStream {
@@ -143,6 +169,8 @@ pub struct TrajectoryStream {
     ready: Vec<bool>,
     by_id: HashMap<String, usize>,
     owners: HashMap<usize, Ownership>,
+    parents: Vec<Option<usize>>,
+    participation: Vec<Participation>,
     scopes: BTreeMap<ScopeKey, Vec<usize>>,
     states: BTreeMap<ScopeKey, TurnState>,
     task_boundaries: HashSet<ScopeKey>,
@@ -190,16 +218,25 @@ impl TrajectoryStream {
                 .then(left.source.exec_counter.cmp(&right.source.exec_counter))
                 .then(left.id.cmp(&right.id))
         });
-        let by_span_id = spans
+        let by_span_id: HashMap<_, _> = spans
             .iter()
             .enumerate()
             .map(|(index, span)| ((span.root_span_id.as_str(), span.span_id.as_str()), index))
             .collect();
+        let parents: Vec<_> = spans
+            .iter()
+            .map(|span| {
+                span.source.span_parents.first().and_then(|parent| {
+                    by_span_id
+                        .get(&(span.root_span_id.as_str(), parent.as_str()))
+                        .copied()
+                })
+            })
+            .collect();
         let mut owners = HashMap::new();
         for index in 0..spans.len() {
             let mut visiting = HashSet::new();
-            if let Err(message) = ownership(index, &spans, &by_span_id, &mut owners, &mut visiting)
-            {
+            if let Err(message) = ownership(index, &spans, &parents, &mut owners, &mut visiting) {
                 for index in visiting {
                     owners.insert(
                         index,
@@ -216,23 +253,10 @@ impl TrajectoryStream {
                 }
             }
         }
-        let parents = task_parents(&spans, &owners);
-        let scopes_with_llms = conversation_llm_scopes(&spans, &owners);
-        let ready = spans
+        let participation = participation(&spans, &owners);
+        let ready = participation
             .iter()
-            .enumerate()
-            .map(|(index, span)| {
-                let owner = &owners[&index];
-                let message_task = span.kind() == "task"
-                    && !parents.contains(&(span.root_span_id.as_str(), span.span_id.as_str()))
-                    && (span.source.turn.is_some()
-                        || !scopes_with_llms.contains(&(
-                            span.root_span_id.as_str(),
-                            owner.tool,
-                            owner.compaction,
-                        )));
-                owner.skipped || (!matches!(span.kind(), "llm" | "tool") && !message_task)
-            })
+            .map(|role| *role == Participation::Ignored)
             .collect();
         Ok(Self {
             ready,
@@ -241,6 +265,8 @@ impl TrajectoryStream {
             order,
             failures,
             owners,
+            parents,
+            participation,
             scopes: BTreeMap::new(),
             states: BTreeMap::new(),
             task_boundaries: HashSet::new(),
@@ -304,29 +330,49 @@ impl TrajectoryStream {
     }
 
     fn initialize(&mut self, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
-        let parents = task_parents(&self.spans, &self.owners);
-        let scopes_with_llms = conversation_llm_scopes(&self.spans, &self.owners);
-        for (index, span) in self.spans.iter().enumerate() {
+        let tasks: HashSet<_> = self
+            .participation
+            .iter()
+            .enumerate()
+            .filter_map(|(index, role)| {
+                let Participation::Task { fallback } = role else {
+                    return None;
+                };
+                let span = &self.spans[index];
+                (span.has_request() && (*fallback || span.output.is_empty())).then_some(index)
+            })
+            .collect();
+        let mut wrappers = HashSet::new();
+        for &index in &tasks {
             let owner = &self.owners[&index];
-            if owner.skipped {
+            let mut parent = self.parents[index];
+            while let Some(index) = parent {
+                let ancestor = &self.owners[&index];
+                if owner.tool != ancestor.tool || owner.compaction != ancestor.compaction {
+                    break;
+                }
+                if tasks.contains(&index) {
+                    wrappers.insert(index);
+                }
+                parent = self.parents[index];
+            }
+        }
+        for (index, span) in self.spans.iter().enumerate() {
+            let role = &mut self.participation[index];
+            if matches!(role, Participation::Task { .. })
+                && (!tasks.contains(&index) || wrappers.contains(&index))
+            {
+                *role = Participation::Ignored;
+            }
+            if *role == Participation::Ignored {
                 continue;
             }
-            let is_message = span.kind() == "task"
-                && !parents.contains(&(span.root_span_id.as_str(), span.span_id.as_str()))
-                && (span.output.is_empty() && span.source.turn.is_some()
-                    || !scopes_with_llms.contains(&(
-                        span.root_span_id.as_str(),
-                        owner.tool,
-                        owner.compaction,
-                    )))
-                && span.current_input().any(|(index, message)| {
-                    matches!(message, Message::User { .. }) && !span.is_context(index, message)
-                });
-            if span.kind() != "llm" && span.kind() != "tool" && !is_message {
-                continue;
-            }
+            let owner = &self.owners[&index];
             let key = (span.root_span_id.clone(), owner.tool, owner.compaction);
-            if is_message && span.source.turn.is_some() && span.output.is_empty() {
+            if matches!(role, Participation::Task { .. })
+                && span.source.turn.is_some()
+                && span.output.is_empty()
+            {
                 self.task_boundaries.insert(key.clone());
             }
             self.scopes.entry(key).or_default().push(index);
@@ -336,19 +382,24 @@ impl TrajectoryStream {
             let mut llms: Vec<_> = indices
                 .iter()
                 .copied()
-                .filter(|index| self.spans[*index].kind() == "llm")
+                .filter(|index| self.participation[*index] == Participation::Conversation)
                 .collect();
             llms.sort_by_key(|index| std::cmp::Reverse(self.spans[*index].start));
             let mut earliest_end: Option<DateTime<Utc>> = None;
-            for index in llms {
-                let span = &self.spans[index];
-                if let Some(end) = span.source.end {
-                    if earliest_end.is_some_and(|other| other < end) {
-                        order_times.insert(index, end);
-                        self.resumed.insert(index);
+            for group in llms.chunk_by(|a, b| self.spans[*a].start == self.spans[*b].start) {
+                for &index in group {
+                    if let Some(end) = self.spans[index].source.end {
+                        if earliest_end.is_some_and(|other| other < end) {
+                            order_times.insert(index, end);
+                            self.resumed.insert(index);
+                        }
                     }
-                    earliest_end = Some(earliest_end.map_or(end, |other| other.min(end)));
                 }
+                earliest_end = group
+                    .iter()
+                    .filter_map(|index| self.spans[*index].source.end)
+                    .chain(earliest_end)
+                    .min();
             }
         }
         self.order = self.scopes.values().flatten().copied().collect();
@@ -422,12 +473,10 @@ impl TrajectoryStream {
     fn drain(&mut self) -> Result<Vec<TrajectoryEvent>> {
         let mut events = Vec::new();
         if !self.initialized {
-            if self
-                .spans
-                .iter()
-                .enumerate()
-                .any(|(index, span)| span.kind() == "task" && !self.ready[index])
-            {
+            if self.spans.iter().enumerate().any(|(index, _)| {
+                matches!(self.participation[index], Participation::Task { .. })
+                    && !self.ready[index]
+            }) {
                 return Ok(events);
             }
             self.initialize(&mut events)?;
@@ -470,14 +519,17 @@ impl TrajectoryStream {
         position: usize,
     ) -> Result<Option<TrajectoryEvent>> {
         let span = &self.spans[index];
-        if span.kind() == "task" {
+        if matches!(
+            self.participation[index],
+            Participation::Ignored | Participation::Task { .. }
+        ) {
             return Ok(None);
         }
-        let work = if span.kind() == "tool" {
+        let work = if self.participation[index] == Participation::Tool {
             Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
                 format!("Missing imported tool result for {}", span.id)
             })?))
-        } else if span.source.analysis {
+        } else if self.participation[index] == Participation::Analysis {
             Work::LLMAnalysis(Box::new(LLMAnalysis {
                 work: Some(span.input.iter().chain(&span.output).cloned().collect()),
                 model: span.source.model.clone(),
@@ -504,6 +556,10 @@ impl TrajectoryStream {
         }))
     }
 
+    fn can_finish_turn(&self, index: usize) -> bool {
+        self.participation[index].can_request() && self.spans[index].has_final_response()
+    }
+
     fn end_turn(
         &self,
         key: &ScopeKey,
@@ -516,8 +572,8 @@ impl TrajectoryStream {
         let scope = self.scope(key);
         let final_span = state
             .candidate
-            .map(|(index, _)| &self.spans[index])
-            .filter(|span| key.2.is_none() && span.can_finish_turn());
+            .filter(|(index, _)| key.2.is_none() && self.can_finish_turn(*index))
+            .map(|(index, _)| &self.spans[index]);
         if final_span.is_none() {
             if let Some((index, position)) = state.candidate {
                 events.extend(self.work(&scope, id, index, position)?);
@@ -548,7 +604,7 @@ impl TrajectoryStream {
         let scope = self.scope(&key);
         let mut state = self.states.remove(&key).unwrap_or_default();
         let explicit = if self.task_boundaries.contains(&key) {
-            if span.kind() == "task" {
+            if matches!(self.participation[index], Participation::Task { .. }) {
                 span.source.turn.as_deref()
             } else {
                 None
@@ -560,11 +616,7 @@ impl TrajectoryStream {
             && explicit.is_some_and(|value| {
                 state.explicit.as_deref() != Some(value) && state.seen_explicit.contains(value)
             });
-        let candidate = !span.source.analysis
-            && !returning
-            && span.current_input().any(|(index, message)| {
-                matches!(message, Message::User { .. }) && !span.is_context(index, message)
-            });
+        let candidate = self.participation[index].can_request() && !returning && span.has_request();
         let (history, fresh) = merge_history(
             &state.history,
             &span.input_keys,
@@ -617,7 +669,11 @@ impl TrajectoryStream {
                 id: span.id.clone(),
                 turn: Box::new(Turn {
                     request_id: span.id.clone(),
-                    request: Some(self.request(span, request_filter)),
+                    request: Some(if self.participation[index].can_request() {
+                        self.request(span, request_filter)
+                    } else {
+                        Vec::new()
+                    }),
                     response_id: None,
                     response: None,
                     work: Vec::new(),
@@ -650,8 +706,7 @@ impl TrajectoryStream {
             });
         }
         let id = state.id.as_deref().unwrap();
-        if matches!(span.kind(), "llm" | "task")
-            && !span.source.analysis
+        if self.participation[index].can_request()
             && (!span.input_keys.is_empty() || !span.output.is_empty())
         {
             if let Some((previous, position)) = state.candidate.take() {
@@ -660,7 +715,7 @@ impl TrajectoryStream {
             if state.candidate_model.is_none() {
                 state.candidate_model = span.source.model.clone();
             }
-            if key.2.is_none() && span.can_finish_turn() {
+            if key.2.is_none() && self.can_finish_turn(index) {
                 state.candidate = Some((index, state.position));
             } else {
                 events.extend(self.work(&scope, id, index, state.position)?);
@@ -670,9 +725,9 @@ impl TrajectoryStream {
         }
         state.position += 1;
         state.unfinished =
-            !span.can_finish_turn() && (state.unfinished || span.source.end.is_none());
+            !self.can_finish_turn(index) && (state.unfinished || span.source.end.is_none());
         state.end_time = state.end_time.max(span.source.end);
-        if !span.source.analysis && !span.input_keys.is_empty() {
+        if self.participation[index].can_request() && !span.input_keys.is_empty() {
             state.history = history;
         }
         if let Some(explicit) = explicit.filter(|_| new_turn || state.explicit.is_none()) {

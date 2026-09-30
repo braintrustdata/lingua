@@ -138,6 +138,12 @@ impl PreparedSpan {
             .filter(|(_, message)| !matches!(message, Message::Tool { .. }))
     }
 
+    fn has_request(&self) -> bool {
+        self.current_input().any(|(index, message)| {
+            matches!(message, Message::User { .. }) && !self.is_context(index, message)
+        })
+    }
+
     fn is_context(&self, index: usize, message: &Message) -> bool {
         self.context_messages.contains(&index) || is_context(message)
     }
@@ -176,12 +182,8 @@ impl PreparedSpan {
         }
     }
 
-    fn can_finish_turn(&self) -> bool {
-        if !matches!(self.kind(), "llm" | "task")
-            || self.source.analysis
-            || self.source.end.is_none()
-            || self.source.error.is_some()
-        {
+    fn has_final_response(&self) -> bool {
+        if self.source.end.is_none() || self.source.error.is_some() {
             return false;
         }
         let mut has_response = false;
@@ -206,11 +208,14 @@ impl PreparedSpan {
                                     return false;
                                 }
                             }
-                            AssistantContentPart::ToolResult { .. } => {}
+                            AssistantContentPart::ToolResult { .. }
+                            | AssistantContentPart::Reasoning { .. } => {}
                             AssistantContentPart::Text(text) => {
                                 has_response |= !text.text.trim().is_empty();
                             }
-                            _ => has_response = true,
+                            AssistantContentPart::File { .. }
+                            | AssistantContentPart::Program { .. }
+                            | AssistantContentPart::ProgramOutput { .. } => has_response = true,
                         }
                     }
                 }
@@ -246,7 +251,7 @@ struct Ownership {
 fn ownership(
     index: usize,
     spans: &[PreparedSpan],
-    by_span_id: &HashMap<(&str, &str), usize>,
+    parents: &[Option<usize>],
     resolved: &mut HashMap<usize, Ownership>,
     visiting: &mut HashSet<usize>,
 ) -> Result<Ownership> {
@@ -261,15 +266,10 @@ fn ownership(
     }
     let span = &spans[index];
     let mut result = Ownership::default();
-    if let Some(parent) = span
-        .source
-        .span_parents
-        .first()
-        .and_then(|parent| by_span_id.get(&(span.root_span_id.as_str(), parent.as_str())))
-    {
-        result = ownership(*parent, spans, by_span_id, resolved, visiting)?;
-        if spans[*parent].kind() == "tool" {
-            result.tool = Some(*parent);
+    if let Some(parent) = parents[index] {
+        result = ownership(parent, spans, parents, resolved, visiting)?;
+        if spans[parent].kind() == "tool" {
+            result.tool = Some(parent);
         }
     }
     if span.source.turn.is_some() {

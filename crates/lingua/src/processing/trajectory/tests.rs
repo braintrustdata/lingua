@@ -34,7 +34,7 @@ fn collect(collector: &mut TrajectoryCollector, events: Vec<TrajectoryEvent>) {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct ImportFixture {
     #[serde(default)]
     import_options: ImportOptions,
@@ -42,6 +42,7 @@ struct ImportFixture {
     turns: Vec<ExpectedTurn>,
     #[serde(default)]
     worker_responses: Vec<String>,
+    start_times: Option<Vec<DateTime<Utc>>>,
     end_times: Option<Vec<Option<DateTime<Utc>>>>,
     compactions: Option<Vec<Value>>,
     request_tools: Option<Vec<Vec<crate::universal::UniversalTool>>>,
@@ -50,7 +51,7 @@ struct ImportFixture {
     import_failures: Vec<crate::serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 struct ExpectedTurn {
     request_id: String,
     response_id: Option<String>,
@@ -62,8 +63,13 @@ struct ExpectedTurn {
 
 fn check_import_fixture(fixture: &str) {
     let fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
+    check_fixture(&fixture);
+}
+
+fn check_fixture(fixture: &ImportFixture) {
+    let mut snapshot = None;
     for (batch_size, import_bodies) in [(1, false), (16, false), (1, true), (16, true)] {
-        let headers = fixture
+        let mut headers: Vec<_> = fixture
             .spans
             .iter()
             .cloned()
@@ -77,6 +83,9 @@ fn check_import_fixture(fixture: &str) {
                     .header_only()
             })
             .collect();
+        if batch_size > 1 {
+            headers.reverse();
+        }
         let mut stream = TrajectoryStream::new(headers, false).unwrap();
         let mut collector = TrajectoryCollector::default();
         loop {
@@ -103,6 +112,11 @@ fn check_import_fixture(fixture: &str) {
         collect(&mut collector, stream.finish().unwrap());
         assert!(collector.is_complete());
         let trajectories = collector.snapshot().unwrap();
+        let actual = serde_json::to_value(&trajectories).unwrap();
+        if let Some(expected) = &snapshot {
+            assert_eq!(&actual, expected, "Import result depends on load order");
+        }
+        snapshot = Some(actual);
         assert_eq!(trajectories.len(), 1);
         if let Some(requests) = &fixture.requests {
             let actual: Vec<_> = trajectories[0]
@@ -150,6 +164,16 @@ fn check_import_fixture(fixture: &str) {
                     .map(|compaction| serde_json::to_value(compaction).unwrap())
                     .collect::<Vec<_>>(),
                 *compactions,
+            );
+        }
+        if let Some(start_times) = &fixture.start_times {
+            assert_eq!(
+                &trajectories[0]
+                    .turns
+                    .iter()
+                    .map(|turn| turn.start_time)
+                    .collect::<Vec<_>>(),
+                start_times,
             );
         }
         if let Some(end_times) = &fixture.end_times {
@@ -446,6 +470,96 @@ import_fixture!(
     "fixtures/instructions-across-turns.json"
 );
 import_fixture!(empty_assistant_text, "fixtures/empty-assistant-text.json");
+import_fixture!(
+    analysis_overlapping_conversation,
+    "fixtures/analysis-overlapping-conversation.json"
+);
+import_fixture!(simultaneous_starts, "fixtures/simultaneous-starts.json");
+import_fixture!(task_with_empty_child, "fixtures/task-with-empty-child.json");
+import_fixture!(
+    task_boundary_with_child,
+    "fixtures/task-boundary-with-child.json"
+);
+import_fixture!(
+    analysis_without_conversation,
+    "fixtures/analysis-without-conversation.json"
+);
+import_fixture!(
+    reasoning_without_answer,
+    "fixtures/reasoning-without-answer.json"
+);
+
+#[test]
+fn auxiliary_task_structure_does_not_change_the_conversation() {
+    for fixture in [
+        include_str!("fixtures/task-with-empty-child.json"),
+        include_str!("fixtures/task-boundary-with-child.json"),
+        include_str!("fixtures/task-parent-with-tool.json"),
+        include_str!("fixtures/task-wrapper-with-task.json"),
+    ] {
+        for hint in [false, true] {
+            let mut fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
+            let parent = fixture
+                .spans
+                .iter_mut()
+                .find(|span| span.input.is_some())
+                .unwrap();
+            if hint && parent.other.contains_key("metadata") {
+                continue;
+            }
+            if hint {
+                parent.other.insert(
+                    "metadata".into(),
+                    crate::serde_json::json!({"turn_id": "turn"}),
+                );
+            }
+            let parent_id = parent.other["span_id"].as_str().unwrap().to_string();
+            for (kind, purpose) in [("task", None), ("score", None), ("task", Some("scorer"))] {
+                let mut variant = fixture.clone();
+                variant.spans.push(
+                    Span::deserialize(json!({
+                        "id": "auxiliary", "span_id": "auxiliary", "root_span_id": "root",
+                        "span_parents": [parent_id],
+                        "span_attributes": {"type": kind, "purpose": purpose},
+                        "metrics": {"start": 2, "end": 3}
+                    }))
+                    .unwrap(),
+                );
+                check_fixture(&variant);
+            }
+        }
+    }
+}
+
+#[test]
+fn task_wrappers_preserve_conversations_and_worker_scopes() {
+    for fixture in [
+        include_str!("fixtures/responses-tool-cycle.json"),
+        include_str!("fixtures/task-parent-with-tool.json"),
+        include_str!("fixtures/task-wrapper-with-task.json"),
+        include_str!("fixtures/compaction-and-resumed-parent.json"),
+    ] {
+        let mut fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
+        let mut wrappers = Vec::new();
+        for (index, span) in fixture.spans.iter_mut().enumerate() {
+            let id = format!("wrapper-{index}");
+            let parents = span
+                .other
+                .insert("span_parents".into(), crate::serde_json::json!([id]));
+            wrappers.push(
+                Span::deserialize(json!({
+                    "id": id, "span_id": id, "root_span_id": span.other["root_span_id"],
+                    "span_parents": parents,
+                    "span_attributes": {"type": "task"},
+                    "metrics": span.other["metrics"]
+                }))
+                .unwrap(),
+            );
+        }
+        fixture.spans.extend(wrappers);
+        check_fixture(&fixture);
+    }
+}
 
 #[test]
 fn reviewer_calls_do_not_split_turns_or_replace_the_final_response() {
