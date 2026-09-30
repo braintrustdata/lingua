@@ -46,7 +46,7 @@ pub struct ImportedSpan {
     #[serde(default)]
     pub context_messages: Vec<usize>,
     #[serde(default)]
-    pub interrupts_previous_turn: bool,
+    pub interruption_messages: Vec<usize>,
     #[serde(default)]
     pub errors: Vec<String>,
 }
@@ -172,21 +172,25 @@ pub fn import_span(mut span: Span) -> Result<ImportedSpan> {
     } else {
         None
     };
-    let (input, output, message_errors) =
-        import_span_messages(span.input, span.output, source.metadata.as_ref());
+    let (input, output, message_errors) = import_span_messages(
+        span.input,
+        span.output,
+        source.metadata.as_ref(),
+        source.span_attributes.kind.as_deref() == Some("llm"),
+    );
     errors.extend(message_errors);
     let context_messages = input
         .iter()
         .enumerate()
         .filter_map(|(index, message)| is_context(message).then_some(index))
         .collect();
-    let interrupts_previous_turn = interrupts_previous_turn(&input);
-    let turn = metadata
-        .turn_id
-        .and_then(|value| match value {
-            json::Value::String(value) if !value.is_empty() => Some(value),
-            _ => None,
-        })
+    let interruption_messages = input
+        .iter()
+        .enumerate()
+        .filter_map(|(index, message)| is_interruption(message).then_some(index))
+        .collect();
+    let turn = metadata_field::<String>(metadata.turn_id, "turn_id", &mut errors)
+        .filter(|value| !value.is_empty())
         .or_else(|| {
             (source.span_attributes.kind.as_deref() == Some("task")
                 && source
@@ -241,7 +245,7 @@ pub fn import_span(mut span: Span) -> Result<ImportedSpan> {
         usage: usage.filter(|usage| usage != &UniversalUsage::default()),
         tool_result,
         context_messages,
-        interrupts_previous_turn,
+        interruption_messages,
         errors,
     })
 }
@@ -294,16 +298,14 @@ fn is_context(message: &Message) -> bool {
     }
 }
 
-fn interrupts_previous_turn(input: &[Message]) -> bool {
-    input.iter().any(|message| {
-        let (Message::System { content } | Message::Developer { content }) = message else {
-            return false;
-        };
-        user_text(content).is_some_and(|text| {
-            text.trim()
-                .strip_prefix("<turn_aborted>")
-                .and_then(|text| text.strip_suffix("</turn_aborted>"))
-                .is_some_and(|text| !text.is_empty())
-        })
+fn is_interruption(message: &Message) -> bool {
+    let (Message::System { content } | Message::Developer { content }) = message else {
+        return false;
+    };
+    user_text(content).is_some_and(|text| {
+        text.trim()
+            .strip_prefix("<turn_aborted>")
+            .and_then(|text| text.strip_suffix("</turn_aborted>"))
+            .is_some_and(|text| !text.is_empty())
     })
 }

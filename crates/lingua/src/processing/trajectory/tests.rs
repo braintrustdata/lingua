@@ -40,6 +40,7 @@ struct ImportFixture {
     turns: Vec<ExpectedTurn>,
     #[serde(default)]
     worker_responses: Vec<String>,
+    end_times: Option<Vec<Option<DateTime<Utc>>>>,
     #[serde(default)]
     import_failures: Vec<crate::serde_json::Value>,
 }
@@ -51,6 +52,7 @@ struct ExpectedTurn {
     response_text: String,
     work_ids: Vec<String>,
     user_texts: Vec<String>,
+    interrupted: Option<bool>,
 }
 
 fn check_import_fixture(fixture: &str) {
@@ -87,11 +89,22 @@ fn check_import_fixture(fixture: &str) {
                 .unwrap_or(crate::serde_json::json!([])),
             crate::serde_json::json!(fixture.import_failures),
         );
+        if let Some(end_times) = &fixture.end_times {
+            assert_eq!(
+                &trajectories[0]
+                    .turns
+                    .iter()
+                    .map(|turn| turn.end_time)
+                    .collect::<Vec<_>>(),
+                end_times,
+            );
+        }
         let turns: Vec<_> = trajectories[0]
             .turns
             .iter()
             .map(|turn| ExpectedTurn {
                 request_id: turn.request_id.clone(),
+                interrupted: turn.interrupted,
                 response_id: turn.response_id.clone(),
                 response_text: match turn
                     .response
@@ -156,6 +169,14 @@ macro_rules! import_fixture {
         }
     };
 }
+
+import_fixture!(replayed_abort_marker, "fixtures/replayed-abort-marker.json");
+import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
+import_fixture!(completed_retry, "fixtures/completed-retry.json");
+import_fixture!(
+    unsupported_only_payloads,
+    "fixtures/unsupported-only-payloads.json"
+);
 
 import_fixture!(responses_tool_cycle, "fixtures/responses-tool-cycle.json");
 import_fixture!(

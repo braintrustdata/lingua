@@ -1,0 +1,258 @@
+{
+  "spans": [
+    {
+      "id": "first",
+      "span_id": "first",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Search"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Working"
+        }
+      ]
+    },
+    {
+      "id": "second",
+      "span_id": "second",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 4
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Search"
+        },
+        {
+          "role": "assistant",
+          "content": "Working"
+        },
+        {
+          "role": "developer",
+          "content": "<turn_aborted>Previous turn interrupted</turn_aborted>"
+        },
+        {
+          "role": "user",
+          "content": "Use a different approach"
+        }
+      ],
+      "output": []
+    },
+    {
+      "id": "third",
+      "span_id": "third",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 5,
+        "end": 6
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Search"
+        },
+        {
+          "role": "assistant",
+          "content": "Working"
+        },
+        {
+          "role": "developer",
+          "content": "<turn_aborted>Previous turn interrupted</turn_aborted>"
+        },
+        {
+          "role": "user",
+          "content": "Use a different approach"
+        },
+        {
+          "role": "user",
+          "content": "Next question"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer"
+        }
+      ]
+    },
+    {
+      "id": "fourth",
+      "span_id": "fourth",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 7,
+        "end": 8
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Search"
+        },
+        {
+          "role": "assistant",
+          "content": "Working"
+        },
+        {
+          "role": "developer",
+          "content": "<turn_aborted>Previous turn interrupted</turn_aborted>"
+        },
+        {
+          "role": "user",
+          "content": "Use a different approach"
+        },
+        {
+          "role": "user",
+          "content": "Next question"
+        },
+        {
+          "role": "assistant",
+          "content": "Answer"
+        },
+        {
+          "role": "user",
+          "content": "Another question"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer"
+        }
+      ]
+    },
+    {
+      "id": "fifth",
+      "span_id": "fifth",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 9,
+        "end": 10
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Search"
+        },
+        {
+          "role": "assistant",
+          "content": "Working"
+        },
+        {
+          "role": "developer",
+          "content": "<turn_aborted>Previous turn interrupted</turn_aborted>"
+        },
+        {
+          "role": "user",
+          "content": "Use a different approach"
+        },
+        {
+          "role": "user",
+          "content": "Next question"
+        },
+        {
+          "role": "assistant",
+          "content": "Answer"
+        },
+        {
+          "role": "user",
+          "content": "Another question"
+        },
+        {
+          "role": "assistant",
+          "content": "Answer"
+        },
+        {
+          "role": "developer",
+          "content": "<turn_aborted>Previous turn interrupted</turn_aborted>"
+        },
+        {
+          "role": "user",
+          "content": "Change approach"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer"
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "first",
+      "response_id": "first",
+      "response_text": "Working",
+      "work_ids": [],
+      "user_texts": [
+        "Search"
+      ],
+      "interrupted": true
+    },
+    {
+      "request_id": "second",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "second"
+      ],
+      "user_texts": [
+        "Use a different approach"
+      ]
+    },
+    {
+      "request_id": "third",
+      "response_id": "third",
+      "response_text": "Answer",
+      "work_ids": [],
+      "user_texts": [
+        "Next question"
+      ]
+    },
+    {
+      "request_id": "fourth",
+      "response_id": "fourth",
+      "response_text": "Answer",
+      "work_ids": [],
+      "user_texts": [
+        "Another question"
+      ],
+      "interrupted": true
+    },
+    {
+      "request_id": "fifth",
+      "response_id": "fifth",
+      "response_text": "Answer",
+      "work_ids": [],
+      "user_texts": [
+        "Change approach"
+      ]
+    }
+  ]
+}

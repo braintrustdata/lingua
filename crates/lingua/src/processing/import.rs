@@ -744,18 +744,28 @@ fn import_span_messages(
     input: Option<Value>,
     output: Option<Value>,
     metadata: Option<&Value>,
+    expect_messages: bool,
 ) -> (Vec<Message>, Vec<Message>, Vec<String>) {
     let mut errors = Vec::new();
     let nonempty = |value: &Value| match value {
+        Value::Null => false,
         Value::Array(values) => !values.is_empty(),
         Value::Object(fields) => !fields.is_empty(),
         _ => true,
+    };
+    let mut parse = |value: &Value, field: &str| {
+        let errors_before = errors.len();
+        let messages = try_converting_to_messages(value, &mut errors);
+        if expect_messages && messages.is_empty() && errors.len() == errors_before {
+            errors.push(format!("Unsupported {field} message format"));
+        }
+        messages
     };
     let mut input = match input.filter(nonempty) {
         Some(Value::String(text)) => vec![Message::User {
             content: UserContent::String(text),
         }],
-        Some(input) => try_converting_to_messages(&input, &mut errors),
+        Some(input) => parse(&input, "input"),
         None => Vec::new(),
     };
     let output = match output.filter(nonempty) {
@@ -763,7 +773,8 @@ fn import_span_messages(
             content: AssistantContent::String(text),
             id: None,
         }],
-        Some(output) => try_converting_to_messages(&output, &mut errors),
+        Some(Value::String(_)) => Vec::new(),
+        Some(output) => parse(&output, "output"),
         None => Vec::new(),
     };
     #[cfg(feature = "openai")]
@@ -787,7 +798,7 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
         .into_iter()
         .flat_map(|span| {
             let (input, output, _) =
-                import_span_messages(span.input, span.output, span.other.get("metadata"));
+                import_span_messages(span.input, span.output, span.other.get("metadata"), true);
             input.into_iter().chain(output)
         })
         .collect()

@@ -562,6 +562,11 @@ impl TrajectoryStream {
         );
         let fresh_request = &fresh[current_start..];
         let has_new_input = fresh_request.iter().any(|fresh| *fresh);
+        let interrupts_previous_turn = span.interruption_offsets.iter().any(|offset| {
+            fresh
+                .get(*offset)
+                .is_some_and(|fresh| !has_new_input || *fresh)
+        });
         let user_count = span
             .current_input()
             .filter(|(index, message)| {
@@ -579,7 +584,7 @@ impl TrajectoryStream {
         if state.id.is_none() || new_turn {
             self.end_turn(&key, &mut state, events)?;
             state.previous_id = state.id.take();
-            if key.2.is_none() && span.interrupts_previous_turn {
+            if key.2.is_none() && interrupts_previous_turn {
                 if let Some(id) = &state.previous_id {
                     events.push(TrajectoryEvent::Interrupted {
                         scope: scope.clone(),
@@ -615,7 +620,7 @@ impl TrajectoryStream {
                 },
             });
         } else if candidate && !state.request_found {
-            if key.2.is_none() && span.interrupts_previous_turn {
+            if key.2.is_none() && interrupts_previous_turn {
                 if let Some(id) = &state.previous_id {
                     events.push(TrajectoryEvent::Interrupted {
                         scope: scope.clone(),
@@ -652,7 +657,8 @@ impl TrajectoryStream {
             events.extend(self.work(&scope, id, index, state.position)?);
         }
         state.position += 1;
-        state.unfinished |= span.source.end.is_none();
+        state.unfinished =
+            !span.can_finish_turn() && (state.unfinished || span.source.end.is_none());
         state.end_time = state.end_time.max(span.source.end);
         if !span.source.analysis && !span.input_keys.is_empty() {
             state.history = history;

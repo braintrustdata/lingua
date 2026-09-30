@@ -51,7 +51,7 @@ pub struct PreparedSpan {
     input_keys: Vec<u64>,
     output: Vec<Message>,
     context_messages: HashSet<usize>,
-    interrupts_previous_turn: bool,
+    interruption_offsets: Vec<usize>,
     usage: Option<UniversalUsage>,
     tool_result: Option<ToolResult>,
     failure: Option<ImportFailure>,
@@ -71,25 +71,28 @@ impl PreparedSpan {
             .take()
             .ok_or_else(|| format!("Missing or invalid timestamp for trajectory span {id}"))?;
         let mut context_messages: HashSet<_> = span.context_messages.into_iter().collect();
-        let input_keys = span
+        let current_start = span
             .input
             .iter()
-            .enumerate()
-            .filter(|(index, message)| !context_messages.contains(index) && !is_context(message))
-            .map(|(_, message)| message_dedup_hash(message))
-            .collect();
+            .rposition(|message| {
+                matches!(message, Message::Assistant { .. } | Message::Tool { .. })
+            })
+            .map_or(0, |index| index + 1);
+        let mut input_keys = Vec::new();
+        let mut interruption_offsets = Vec::new();
+        for (index, message) in span.input.iter().enumerate() {
+            if index >= current_start && span.interruption_messages.contains(&index) {
+                interruption_offsets.push(input_keys.len());
+            }
+            if !context_messages.contains(&index) && !is_context(message) {
+                input_keys.push(message_dedup_hash(message));
+            }
+        }
         if !source.analysis {
-            let start = span
-                .input
-                .iter()
-                .rposition(|message| {
-                    matches!(message, Message::Assistant { .. } | Message::Tool { .. })
-                })
-                .map_or(0, |index| index + 1);
-            span.input.drain(..start);
+            span.input.drain(..current_start);
             context_messages = context_messages
                 .into_iter()
-                .filter_map(|index| index.checked_sub(start))
+                .filter_map(|index| index.checked_sub(current_start))
                 .collect();
         }
         let failure = (!span.errors.is_empty()).then(|| ImportFailure {
@@ -107,7 +110,7 @@ impl PreparedSpan {
             output: span.output,
             input_keys,
             context_messages,
-            interrupts_previous_turn: span.interrupts_previous_turn,
+            interruption_offsets,
             usage: span.usage,
             tool_result: span.tool_result,
             failure,
@@ -122,7 +125,7 @@ impl PreparedSpan {
             usage: None,
             tool_result: None,
             context_messages: Vec::new(),
-            interrupts_previous_turn: false,
+            interruption_messages: Vec::new(),
             errors: Vec::new(),
         })
     }

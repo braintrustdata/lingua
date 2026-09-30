@@ -1,0 +1,276 @@
+{
+  "spans": [
+    {
+      "id": "number",
+      "span_id": "number",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request number"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer number"
+        }
+      ],
+      "metadata": {
+        "turn_id": 7
+      }
+    },
+    {
+      "id": "boolean",
+      "span_id": "boolean",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 4
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request boolean"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer boolean"
+        }
+      ],
+      "metadata": {
+        "turn_id": true
+      }
+    },
+    {
+      "id": "object",
+      "span_id": "object",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 5,
+        "end": 6
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request object"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer object"
+        }
+      ],
+      "metadata": {
+        "turn_id": {}
+      }
+    },
+    {
+      "id": "array",
+      "span_id": "array",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 7,
+        "end": 8
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request array"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer array"
+        }
+      ],
+      "metadata": {
+        "turn_id": []
+      }
+    },
+    {
+      "id": "null",
+      "span_id": "null",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 9,
+        "end": 10
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request null"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer null"
+        }
+      ],
+      "metadata": {
+        "turn_id": null
+      }
+    },
+    {
+      "id": "empty",
+      "span_id": "empty",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 11,
+        "end": 12
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request empty"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer empty"
+        }
+      ],
+      "metadata": {
+        "turn_id": ""
+      }
+    },
+    {
+      "id": "valid",
+      "span_id": "valid",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 13,
+        "end": 14
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Request valid"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer valid"
+        }
+      ],
+      "metadata": {
+        "turn_id": "turn"
+      }
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "number",
+      "response_id": "number",
+      "response_text": "Answer number",
+      "work_ids": [],
+      "user_texts": [
+        "Request number"
+      ]
+    },
+    {
+      "request_id": "boolean",
+      "response_id": "boolean",
+      "response_text": "Answer boolean",
+      "work_ids": [],
+      "user_texts": [
+        "Request boolean"
+      ]
+    },
+    {
+      "request_id": "object",
+      "response_id": "object",
+      "response_text": "Answer object",
+      "work_ids": [],
+      "user_texts": [
+        "Request object"
+      ]
+    },
+    {
+      "request_id": "array",
+      "response_id": "array",
+      "response_text": "Answer array",
+      "work_ids": [],
+      "user_texts": [
+        "Request array"
+      ]
+    },
+    {
+      "request_id": "null",
+      "response_id": "null",
+      "response_text": "Answer null",
+      "work_ids": [],
+      "user_texts": [
+        "Request null"
+      ]
+    },
+    {
+      "request_id": "empty",
+      "response_id": "empty",
+      "response_text": "Answer empty",
+      "work_ids": [],
+      "user_texts": [
+        "Request empty"
+      ]
+    },
+    {
+      "request_id": "valid",
+      "response_id": "valid",
+      "response_text": "Answer valid",
+      "work_ids": [],
+      "user_texts": [
+        "Request valid"
+      ]
+    }
+  ],
+  "import_failures": [
+    {
+      "span_id": "array",
+      "message": "Invalid metadata.turn_id: invalid type: sequence, expected a string"
+    },
+    {
+      "span_id": "boolean",
+      "message": "Invalid metadata.turn_id: invalid type: boolean `true`, expected a string"
+    },
+    {
+      "span_id": "number",
+      "message": "Invalid metadata.turn_id: invalid type: number, expected a string"
+    },
+    {
+      "span_id": "object",
+      "message": "Invalid metadata.turn_id: invalid type: map, expected a string"
+    }
+  ]
+}

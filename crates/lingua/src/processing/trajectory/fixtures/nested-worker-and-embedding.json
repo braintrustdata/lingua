@@ -1,5 +1,7 @@
 {
-  "worker_responses": ["worker"],
+  "worker_responses": [
+    "worker"
+  ],
   "spans": [
     {
       "id": "root",
@@ -192,6 +194,12 @@
       "user_texts": [
         "Request"
       ]
+    }
+  ],
+  "import_failures": [
+    {
+      "span_id": "embedding",
+      "message": "Unsupported output message format"
     }
   ]
 }
