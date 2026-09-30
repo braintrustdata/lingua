@@ -309,6 +309,7 @@ impl TrajectoryStream {
             || span.source.exec_counter != header.source.exec_counter
             || span.kind() != header.kind()
             || span.start != header.start
+            || span.source.end != header.source.end
             || span.source.turn != header.source.turn
             || span.source.analysis != header.source.analysis
             || span.is_scorer() != header.is_scorer()
@@ -339,7 +340,7 @@ impl TrajectoryStream {
                     return None;
                 };
                 let span = &self.spans[index];
-                (span.has_request() && (*fallback || span.output.is_empty())).then_some(index)
+                (span.has_request(true) && (*fallback || span.output.is_empty())).then_some(index)
             })
             .collect();
         let mut wrappers = HashSet::new();
@@ -491,8 +492,13 @@ impl TrajectoryStream {
         Ok(events)
     }
 
-    fn request(&self, span: &PreparedSpan, fresh: Option<&[bool]>) -> Vec<Message> {
-        span.current_input()
+    fn request(
+        &self,
+        span: &PreparedSpan,
+        fresh: Option<&[bool]>,
+        initial_request: bool,
+    ) -> Vec<Message> {
+        span.current_input(initial_request)
             .filter(|(index, message)| {
                 if span.input_key_indices[*index]
                     .is_some_and(|position| fresh.is_some_and(|fresh| !fresh[position]))
@@ -521,7 +527,7 @@ impl TrajectoryStream {
         let span = &self.spans[index];
         if matches!(
             self.participation[index],
-            Participation::Ignored | Participation::Task { .. }
+            Participation::Ignored | Participation::Task { fallback: false }
         ) {
             return Ok(None);
         }
@@ -616,13 +622,36 @@ impl TrajectoryStream {
             && explicit.is_some_and(|value| {
                 state.explicit.as_deref() != Some(value) && state.seen_explicit.contains(value)
             });
-        let candidate = self.participation[index].can_request() && !returning && span.has_request();
-        let (history, fresh) = merge_history(
-            &state.history,
-            &span.input_keys,
-            &message_keys(&span.output),
-        );
-        let has_new_input = span.current_input().any(|(index, message)| {
+        let initial_request = !state.request_found;
+        let candidate = self.participation[index].can_request()
+            && !returning
+            && span.has_request(initial_request);
+        let repeated_request = candidate
+            && span.standalone_request
+            && explicit.is_none()
+            && state.explicit.is_none()
+            && state.candidate.is_some_and(|(previous, _)| {
+                self.can_finish_turn(previous)
+                    && self.spans[previous].standalone_request
+                    && self.spans[previous].input_keys == span.input_keys
+                    && self.spans[previous]
+                        .source
+                        .end
+                        .is_some_and(|end| end <= span.start)
+            });
+        let (history, fresh) = if repeated_request {
+            let mut history = state.history.clone();
+            history.extend(&span.input_keys);
+            history.extend(message_keys(&span.output));
+            (history, vec![true; span.input_keys.len()])
+        } else {
+            merge_history(
+                &state.history,
+                &span.input_keys,
+                &message_keys(&span.output),
+            )
+        };
+        let has_new_input = span.current_input(initial_request).any(|(index, message)| {
             matches!(message, Message::User { .. })
                 && span.input_key_indices[index].is_some_and(|position| fresh[position])
         });
@@ -632,7 +661,7 @@ impl TrajectoryStream {
                 .is_some_and(|fresh| !has_new_input || *fresh)
         });
         let user_count = span
-            .current_input()
+            .current_input(initial_request)
             .filter(|(index, message)| {
                 matches!(message, Message::User { .. }) && !span.is_context(*index, message)
             })
@@ -670,7 +699,7 @@ impl TrajectoryStream {
                 turn: Box::new(Turn {
                     request_id: span.id.clone(),
                     request: Some(if self.participation[index].can_request() {
-                        self.request(span, request_filter)
+                        self.request(span, request_filter, initial_request)
                     } else {
                         Vec::new()
                     }),
@@ -702,7 +731,7 @@ impl TrajectoryStream {
                 scope: scope.clone(),
                 id: state.id.clone().unwrap(),
                 request_id: span.id.clone(),
-                request: self.request(span, request_filter),
+                request: self.request(span, request_filter, initial_request),
             });
         }
         let id = state.id.as_deref().unwrap();

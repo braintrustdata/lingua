@@ -423,6 +423,23 @@ import_fixture!(
     "fixtures/compaction-and-resumed-parent.json"
 );
 import_fixture!(task_only_trace, "fixtures/task-only-trace.json");
+import_fixture!(non_final_task_output, "fixtures/non-final-task-output.json");
+import_fixture!(
+    standalone_continuation,
+    "fixtures/standalone-continuation.json"
+);
+import_fixture!(
+    continuation_with_rewritten_history,
+    "fixtures/continuation-with-rewritten-history.json"
+);
+import_fixture!(
+    repeated_standalone_prompts,
+    "fixtures/repeated-standalone-prompts.json"
+);
+import_fixture!(
+    repeated_prompts_in_explicit_task,
+    "fixtures/repeated-prompts-in-explicit-task.json"
+);
 import_fixture!(
     task_conversation_with_scorers,
     "fixtures/task-conversation-with-scorers.json"
@@ -612,6 +629,117 @@ fn streaming_accepts_tool_bodies_after_headers() {
     let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
     let events = stream.push(import_span(tool.clone()).unwrap());
     assert!(events.is_ok(), "Tool body was rejected: {events:?}");
+}
+
+#[test]
+fn changed_end_time_is_rejected_without_consuming_events() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/responses-tool-cycle.json")).unwrap();
+    let call = fixture
+        .spans
+        .iter()
+        .find(|span| span.other["id"] == "call")
+        .unwrap();
+    for end in [None, Some(DateTime::from_timestamp(10, 0).unwrap())] {
+        let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
+        let mut collector = TrajectoryCollector::default();
+        let tool = fixture
+            .spans
+            .iter()
+            .find(|span| span.other["id"] == "tool")
+            .unwrap();
+        collect(
+            &mut collector,
+            stream.push(import_span(tool.clone()).unwrap()).unwrap(),
+        );
+        let mut changed = import_span(call.clone()).unwrap();
+        changed.header.end = end;
+        assert!(stream
+            .push(changed)
+            .unwrap_err()
+            .contains("structure changed"));
+        for span in &fixture.spans {
+            if stream
+                .pending_ids(fixture.spans.len())
+                .contains(&span.other["id"].as_str().unwrap().to_string())
+            {
+                collect(
+                    &mut collector,
+                    stream.push(import_span(span.clone()).unwrap()).unwrap(),
+                );
+            }
+        }
+        collect(&mut collector, stream.finish().unwrap());
+        let imported = fixture
+            .spans
+            .iter()
+            .cloned()
+            .map(import_span)
+            .collect::<Result<Vec<_>>>()
+            .unwrap();
+        assert_eq!(
+            serde_json::to_value(collector.snapshot().unwrap()).unwrap(),
+            serde_json::to_value(assemble(&imported, &[], false).unwrap()).unwrap(),
+        );
+    }
+}
+
+#[test]
+fn non_final_tasks_retain_tool_calls_errors_and_partial_text() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/non-final-task-output.json")).unwrap();
+    let spans = fixture
+        .spans
+        .into_iter()
+        .map(import_span)
+        .collect::<Result<Vec<_>>>()
+        .unwrap();
+    let result = assemble(&spans, &[], false).unwrap();
+    let turns = &result[0].turns;
+    let Work::AgentResponse(response) = &turns[0].work[0].work else {
+        panic!("Expected an agent response");
+    };
+    let Some(AssistantContent::Array(parts)) = &response.response else {
+        panic!("Expected response content");
+    };
+    assert!(
+        matches!(&parts[0], AssistantContentPart::ToolCall { tool_call_id, tool_name, .. }
+        if tool_call_id == "lookup" && tool_name == "search")
+    );
+    assert_eq!(
+        turns[1].work[0].error,
+        Some(crate::serde_json::json!("Source unavailable"))
+    );
+    let Work::AgentResponse(response) = &turns[2].work[0].work else {
+        panic!("Expected an agent response");
+    };
+    let Some(AssistantContent::Array(parts)) = &response.response else {
+        panic!("Expected response content");
+    };
+    assert!(matches!(&parts[0], AssistantContentPart::Text(text) if text.text == "Partial answer"));
+    assert!(turns[2].end_time.is_none());
+}
+
+#[test]
+fn repeated_standalone_prompts_with_an_explicit_turn_stay_together() {
+    let mut fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/repeated-standalone-prompts.json")).unwrap();
+    for span in &mut fixture.spans {
+        span.other.insert(
+            "metadata".into(),
+            crate::serde_json::json!({"turn_id": "turn"}),
+        );
+    }
+    let spans = fixture
+        .spans
+        .into_iter()
+        .map(import_span)
+        .collect::<Result<Vec<_>>>()
+        .unwrap();
+    let result = assemble(&spans, &[], false).unwrap();
+    assert_eq!(result[0].turns.len(), 1);
+    assert_eq!(result[0].turns[0].response_id.as_deref(), Some("second"));
+    assert_eq!(result[0].turns[0].work[0].id, "first");
 }
 
 #[test]

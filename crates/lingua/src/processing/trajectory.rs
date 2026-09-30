@@ -48,8 +48,10 @@ pub struct PreparedSpan {
     start: DateTime<Utc>,
     source: SpanContext,
     input: Vec<Message>,
+    current_input_start: usize,
     input_keys: Vec<u64>,
     input_key_indices: Vec<Option<usize>>,
+    standalone_request: bool,
     output: Vec<Message>,
     context_messages: HashSet<usize>,
     interruption_offsets: Vec<usize>,
@@ -72,13 +74,30 @@ impl PreparedSpan {
             .take()
             .ok_or_else(|| format!("Missing or invalid timestamp for trajectory span {id}"))?;
         let source_context: HashSet<_> = span.context_messages.into_iter().collect();
-        let current_start = span
+        let history_end = span
             .input
             .iter()
             .rposition(|message| matches!(message, Message::Assistant { .. }))
             .map_or(0, |index| index + 1);
+        let last_user = span
+            .input
+            .iter()
+            .enumerate()
+            .rfind(|(index, message)| {
+                matches!(message, Message::User { .. }) && !source_context.contains(index)
+            })
+            .map(|(index, _)| index);
+        let current_start = span.input[..last_user.unwrap_or(span.input.len())]
+            .iter()
+            .rposition(|message| matches!(message, Message::Assistant { .. }))
+            .map_or(0, |index| index + 1);
+        let standalone_request = span
+            .input
+            .iter()
+            .all(|message| matches!(message, Message::User { .. }) || is_context(message));
         let mut input_keys = Vec::new();
         let mut input = Vec::new();
+        let mut current_input_start = 0;
         let mut input_key_indices = Vec::new();
         let mut context_messages = HashSet::new();
         let mut interruption_offsets = Vec::new();
@@ -92,7 +111,8 @@ impl PreparedSpan {
                 input_keys.push(message_dedup_hash(&message));
             }
             if source.analysis
-                || (index >= current_start && !matches!(message, Message::Tool { .. }))
+                || (index >= current_start
+                    && !matches!(message, Message::Tool { .. } | Message::Assistant { .. }))
                 || is_context(&message)
             {
                 if context {
@@ -100,6 +120,9 @@ impl PreparedSpan {
                 }
                 input.push(message);
                 input_key_indices.push(key_index);
+                if index < history_end {
+                    current_input_start = input.len();
+                }
             }
         }
         let failure = (!span.errors.is_empty()).then(|| ImportFailure {
@@ -114,9 +137,11 @@ impl PreparedSpan {
             start,
             source,
             input,
+            current_input_start,
             output: span.output,
             input_keys,
             input_key_indices,
+            standalone_request,
             context_messages,
             interruption_offsets,
             usage: span.usage,
@@ -125,21 +150,20 @@ impl PreparedSpan {
         })
     }
 
-    fn current_input(&self) -> impl Iterator<Item = (usize, &Message)> {
-        let start = self
-            .input
-            .iter()
-            .rposition(|message| matches!(message, Message::Assistant { .. }))
-            .map_or(0, |index| index + 1);
+    fn current_input(&self, initial_request: bool) -> impl Iterator<Item = (usize, &Message)> {
         self.input
             .iter()
             .enumerate()
-            .skip(start)
-            .filter(|(_, message)| !matches!(message, Message::Tool { .. }))
+            .filter(move |(index, message)| {
+                (initial_request
+                    || *index >= self.current_input_start
+                    || self.is_context(*index, message))
+                    && !matches!(message, Message::Tool { .. } | Message::Assistant { .. })
+            })
     }
 
-    fn has_request(&self) -> bool {
-        self.current_input().any(|(index, message)| {
+    fn has_request(&self, initial_request: bool) -> bool {
+        self.current_input(initial_request).any(|(index, message)| {
             matches!(message, Message::User { .. }) && !self.is_context(index, message)
         })
     }
