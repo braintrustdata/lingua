@@ -1,0 +1,161 @@
+[
+  {
+    "id": "custom",
+    "span_id": "custom",
+    "root_span_id": "root",
+    "span_parents": [
+      "root"
+    ],
+    "span_attributes": {
+      "type": "llm"
+    },
+    "metrics": {
+      "start": 1,
+      "end": 2
+    },
+    "input": {
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "kind": "text",
+              "value": "Inspect the item"
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "kind": "toolCall",
+              "toolCallId": "call",
+              "toolName": "inspect",
+              "content": {
+                "id": "item"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": [
+            {
+              "kind": "toolResult",
+              "toolCallId": "call",
+              "toolName": "inspect",
+              "observation": {
+                "kind": "text",
+                "text": "Result"
+              },
+              "isError": false
+            }
+          ]
+        }
+      ]
+    },
+    "output": {
+      "message": {
+        "role": "assistant",
+        "content": [
+          {
+            "kind": "text",
+            "value": "Done"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "input": {
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "kind": "text",
+              "value": "Run the check"
+            }
+          ]
+        }
+      ]
+    },
+    "output": [
+      {
+        "kind": "toolCall",
+        "blockIndex": 0,
+        "toolCallId": "check-call",
+        "toolName": "check",
+        "content": {
+          "command": "test"
+        },
+        "contentMetadata": {
+          "provider": "openai",
+          "id": "item",
+          "status": "completed"
+        }
+      }
+    ]
+  },
+  {
+    "output": [
+      {
+        "kind": "text",
+        "blockIndex": 0,
+        "value": "Check passed",
+        "contentMetadata": {
+          "provider": "openai",
+          "id": "item",
+          "status": "completed",
+          "phase": "final_answer"
+        }
+      }
+    ]
+  },
+  {
+    "output": {
+      "message": {
+        "role": "assistant",
+        "content": [
+          {
+            "kind": "thinkingBlock",
+            "summaries": [
+              {
+                "summary": "Checking the result"
+              }
+            ],
+            "metadata": {
+              "provider": "gemini",
+              "thoughtSignature": "signature"
+            }
+          },
+          {
+            "kind": "text",
+            "value": "Result confirmed"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "output": {
+      "message": {
+        "role": "assistant",
+        "content": [
+          {
+            "kind": "thinkingBlock",
+            "summaries": [],
+            "metadata": {
+              "provider": "gemini",
+              "thoughtSignature": "signature"
+            }
+          },
+          {
+            "kind": "text",
+            "value": "Ready"
+          }
+        ]
+      }
+    }
+  }
+]

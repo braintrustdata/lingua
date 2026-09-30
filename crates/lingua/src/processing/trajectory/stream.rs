@@ -599,7 +599,7 @@ impl TrajectoryStream {
             state.candidate_model = None;
             state.candidate = None;
             state.position = 0;
-            state.end_time = None;
+            state.end_time = key.2.and_then(|index| self.spans[index].source.end);
             state.unfinished = false;
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
@@ -612,7 +612,7 @@ impl TrajectoryStream {
                     work: Vec::new(),
                     model: span.source.model.clone(),
                     params: None,
-                    start_time: span.start,
+                    start_time: key.2.map_or(span.start, |index| self.spans[index].start),
                     end_time: None,
                     interrupted: None,
                     compaction: key

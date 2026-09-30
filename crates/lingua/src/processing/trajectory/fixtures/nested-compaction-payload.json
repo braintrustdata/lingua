@@ -1,0 +1,154 @@
+{
+  "import_options": {
+    "preserve_unsupported": true
+  },
+  "spans": [
+    {
+      "id": "before",
+      "span_id": "before",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "First request"
+        }
+      ],
+      "output": "First answer"
+    },
+    {
+      "id": "compact",
+      "span_id": "compact",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "task"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 8
+      },
+      "metadata": {
+        "compaction": {
+          "replaced_message_count": 22
+        }
+      },
+      "output": "Context summary"
+    },
+    {
+      "id": "compact-call",
+      "span_id": "compact-call",
+      "root_span_id": "root",
+      "span_parents": [
+        "compact"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 4,
+        "end": 5
+      },
+      "metadata": {
+        "compaction": true
+      },
+      "input": {
+        "history": [
+          {
+            "role": "user",
+            "content": "Old request"
+          }
+        ],
+        "messages_before_compaction": 22
+      },
+      "output": {
+        "kept_messages": [
+          {
+            "role": "user",
+            "type": "message",
+            "content": [
+              {
+                "type": "input_text",
+                "text": "Old request"
+              }
+            ]
+          }
+        ],
+        "summary": "Context summary"
+      }
+    },
+    {
+      "id": "after",
+      "span_id": "after",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 9,
+        "end": 10
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Next request"
+        }
+      ],
+      "output": "Next answer"
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "before",
+      "response_id": "before",
+      "response_text": "First answer",
+      "work_ids": [],
+      "user_texts": [
+        "First request"
+      ]
+    },
+    {
+      "request_id": "compact-call",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "compact-call"
+      ],
+      "user_texts": []
+    },
+    {
+      "request_id": "after",
+      "response_id": "after",
+      "response_text": "Next answer",
+      "work_ids": [],
+      "user_texts": [
+        "Next request"
+      ]
+    }
+  ],
+  "compactions": [
+    {
+      "id": "compact",
+      "replaced_message_count": 22
+    }
+  ],
+  "end_times": [
+    "1970-01-01T00:00:02Z",
+    "1970-01-01T00:00:08Z",
+    "1970-01-01T00:00:10Z"
+  ]
+}

@@ -235,7 +235,7 @@ fn ownership(
     if span.source.turn.is_some() {
         result.turn.clone_from(&span.source.turn);
     }
-    if span.source.compaction.is_some() {
+    if result.compaction.is_none() && span.source.compaction.is_some() {
         result.compaction = Some(index);
     }
     result.skipped |= span.is_scorer();

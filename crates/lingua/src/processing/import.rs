@@ -1,5 +1,6 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
 mod ai_sdk;
+mod kind_content;
 mod langchain;
 mod pydantic_ai;
 mod span;
@@ -79,6 +80,10 @@ pub struct Span {
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<Message> {
     if let Some(messages) = try_parse_ai_sdk_for_import(data) {
+        return messages;
+    }
+
+    if let Some(messages) = kind_content::parse_message(data) {
         return messages;
     }
 
@@ -288,6 +293,10 @@ fn try_parse_mixed_messages_for_import(
                 let wrapped_item = Value::Array(vec![item.clone()]);
                 try_parsers_in_order(&wrapped_item, &provider_parsers)
             });
+        }
+
+        if parsed_messages.is_none() {
+            parsed_messages = kind_content::parse_message(item);
         }
 
         if parsed_messages.is_none() {
@@ -855,7 +864,8 @@ fn import_span_messages(
             id: None,
         }],
         Some(Value::String(_)) => Vec::new(),
-        Some(output) => parse(output, "output", &mut import),
+        Some(output) => kind_content::parse_output(&output)
+            .unwrap_or_else(|| parse(output, "output", &mut import)),
         None => Vec::new(),
     };
     #[cfg(feature = "openai")]

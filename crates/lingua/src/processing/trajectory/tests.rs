@@ -43,6 +43,7 @@ struct ImportFixture {
     #[serde(default)]
     worker_responses: Vec<String>,
     end_times: Option<Vec<Option<DateTime<Utc>>>>,
+    compactions: Option<Vec<Value>>,
     #[serde(default)]
     import_failures: Vec<crate::serde_json::Value>,
 }
@@ -95,6 +96,17 @@ fn check_import_fixture(fixture: &str) {
                 .unwrap_or(crate::serde_json::json!([])),
             crate::serde_json::json!(fixture.import_failures),
         );
+        if let Some(compactions) = &fixture.compactions {
+            assert_eq!(
+                trajectories[0]
+                    .turns
+                    .iter()
+                    .filter_map(|turn| turn.compaction.as_ref())
+                    .map(|compaction| serde_json::to_value(compaction).unwrap())
+                    .collect::<Vec<_>>(),
+                *compactions,
+            );
+        }
         if let Some(end_times) = &fixture.end_times {
             assert_eq!(
                 &trajectories[0]
@@ -218,14 +230,15 @@ fn best_effort_import_preserves_unsupported_items_and_diagnostics() {
 }
 
 #[test]
-fn preserves_compaction_outputs_as_opaque_data() {
+fn preserves_compaction_payloads_as_opaque_data() {
     let fixture: ImportFixture =
-        serde_json::from_str(include_str!("fixtures/compaction-and-resumed-parent.json")).unwrap();
+        serde_json::from_str(include_str!("fixtures/nested-compaction-payload.json")).unwrap();
     let source = fixture
         .spans
         .into_iter()
-        .find(|span| span.other["id"] == "compact")
+        .find(|span| span.other["id"] == "compact-call")
         .unwrap();
+    let original_input = source.input.clone().unwrap();
     let original_output = source.output.clone().unwrap();
     let imported = import_span_with_options(source, fixture.import_options).unwrap();
     assert!(imported.output.is_empty());
@@ -233,30 +246,39 @@ fn preserves_compaction_outputs_as_opaque_data() {
     assert_eq!(imported.opaque_output.len(), 1);
     assert_eq!(imported.opaque_output[0].index, None);
     assert_eq!(imported.opaque_output[0].value, original_output);
+    assert!(imported.input.is_empty());
+    assert_eq!(imported.opaque_input.len(), 1);
+    assert_eq!(imported.opaque_input[0].index, None);
+    assert_eq!(imported.opaque_input[0].value, original_input);
 }
 
 #[test]
-fn preserves_custom_content_without_inventing_messages() {
+fn imports_kind_content_messages() {
     let source: Span =
         serde_json::from_str(include_str!("fixtures/custom-content-payload.json")).unwrap();
-    let original_input = source.input.clone().unwrap();
-    let original_output = source.output.clone().unwrap();
-    let imported = import_span_with_options(
-        source,
-        ImportOptions {
-            preserve_unsupported: true,
-        },
-    )
-    .unwrap();
-    assert!(imported.input.is_empty());
-    assert!(imported.output.is_empty());
-    assert!(!imported.errors.is_empty());
-    assert_eq!(imported.opaque_input.len(), 3);
-    for (index, item) in imported.opaque_input.iter().enumerate() {
-        assert_eq!(item.index, Some(index));
-        assert_eq!(item.value, original_input["messages"][index]);
+    for preserve_unsupported in [false, true] {
+        let imported = import_span_with_options(
+            source.clone(),
+            ImportOptions {
+                preserve_unsupported,
+            },
+        )
+        .unwrap();
+        assert!(imported.errors.is_empty(), "{:?}", imported.errors);
+        assert_eq!(imported.input.len(), 3);
+        assert_eq!(imported.output.len(), 1);
+        assert!(imported.opaque_input.is_empty());
+        assert!(imported.opaque_output.is_empty());
+        let value = serde_json::to_value(&imported).unwrap();
+        assert_eq!(
+            value["input"][1]["content"][0]["arguments"]["value"],
+            json!({"id":"item"})
+        );
+        assert_eq!(
+            value["input"][2]["content"][0]["output"],
+            json!({"observation":{"kind":"text","text":"Result"},"isError":false})
+        );
     }
-    assert_eq!(imported.opaque_output[0].value, original_output);
 }
 
 macro_rules! import_fixture {
@@ -268,6 +290,10 @@ macro_rules! import_fixture {
     };
 }
 
+import_fixture!(
+    nested_compaction_payload,
+    "fixtures/nested-compaction-payload.json"
+);
 import_fixture!(replayed_abort_marker, "fixtures/replayed-abort-marker.json");
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");

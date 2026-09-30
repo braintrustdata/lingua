@@ -202,17 +202,15 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
     ) || source.tags.iter().any(|tag| tag == "compaction")
         || (source.span_attributes.kind.as_deref() == Some("task")
             && source.span_attributes.name.as_deref() == Some("compaction"));
-    let compaction_output = if options.preserve_unsupported && is_compaction {
-        span.output
-            .take()
-            .map(|value| OpaqueItem { index: None, value })
+    let (compaction_input, compaction_output) = if options.preserve_unsupported && is_compaction {
+        (span.input.take(), span.output.take())
     } else {
-        None
+        (None, None)
     };
     let super::SpanMessages {
         input,
         output,
-        opaque_input,
+        mut opaque_input,
         mut opaque_output,
         errors: message_errors,
     } = import_span_messages(
@@ -222,7 +220,8 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         source.span_attributes.kind.as_deref() == Some("llm"),
         options,
     );
-    opaque_output.extend(compaction_output);
+    opaque_input.extend(compaction_input.map(|value| OpaqueItem { index: None, value }));
+    opaque_output.extend(compaction_output.map(|value| OpaqueItem { index: None, value }));
     errors.extend(message_errors);
     let context_messages = input
         .iter()
