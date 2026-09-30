@@ -114,7 +114,7 @@ struct Attributes {
 #[derive(Default, Deserialize)]
 struct Metadata {
     turn_id: Option<json::Value>,
-    tool_call_id: Option<String>,
+    tool_call_id: Option<json::Value>,
     model: Option<json::Value>,
     trajectory_role: Option<json::Value>,
     request_kind: Option<json::Value>,
@@ -160,6 +160,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             errors.push(format!("Invalid span metadata: {err}"));
             Metadata::default()
         });
+    let tool_call_id = metadata_field::<String>(metadata.tool_call_id, "tool_call_id", &mut errors);
     let model = metadata_field::<String>(metadata.model, "model", &mut errors);
     let trajectory_role =
         metadata_field::<String>(metadata.trajectory_role, "trajectory_role", &mut errors);
@@ -176,7 +177,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         .filter(|end| start.is_none_or(|start| *end >= start));
     let tool_result = if source.span_attributes.kind.as_deref() == Some("tool") {
         let mut output = span.output.take();
-        let content = metadata.tool_call_id.and_then(|tool_call_id| {
+        let content = tool_call_id.and_then(|tool_call_id| {
             output.take().map(|output| {
                 vec![ToolContentPart::ToolResult(ToolResultContentPart {
                     tool_call_id,

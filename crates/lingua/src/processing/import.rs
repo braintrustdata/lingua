@@ -907,6 +907,33 @@ mod tests {
     use super::*;
 
     #[test]
+    fn invalid_tool_call_metadata_preserves_valid_hints() {
+        let spans: Vec<Span> = serde_json::from_str(include_str!(
+            "import/fixtures/invalid-tool-call-metadata.json"
+        ))
+        .unwrap();
+        let imported: Vec<_> = spans
+            .into_iter()
+            .map(|span| import_span(span).unwrap())
+            .collect();
+        for span in &imported {
+            assert_eq!(span.header.turn.as_deref(), Some("turn"));
+            assert_eq!(span.header.model.as_deref(), Some("example-model"));
+            assert_eq!(span.errors.len(), 1);
+            assert!(span.errors[0].starts_with("Invalid metadata.tool_call_id:"));
+        }
+        let compaction = imported[0].header.compaction.as_ref().unwrap();
+        assert_eq!(compaction.id, "compact");
+        assert_eq!(compaction.replaced_message_count, Some(2));
+        let tool = imported[1].tool_result.as_ref().unwrap();
+        assert!(tool.content.is_none());
+        assert_eq!(
+            tool.output,
+            Some(Value::String("Found a record".to_string()))
+        );
+    }
+
+    #[test]
     fn imported_spans_preserve_history_and_input_output_boundaries() {
         #[derive(Deserialize)]
         struct Fixture {

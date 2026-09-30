@@ -99,7 +99,9 @@ impl PreparedSpan {
             context_messages = context_messages
                 .into_iter()
                 .filter_map(|index| {
-                    index.checked_sub(current_start).map(|index| index + tool_count)
+                    index
+                        .checked_sub(current_start)
+                        .map(|index| index + tool_count)
                 })
                 .collect();
         }

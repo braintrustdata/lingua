@@ -1,0 +1,31 @@
+[
+  {
+    "id": "compact",
+    "span_id": "compact",
+    "root_span_id": "root",
+    "span_attributes": { "type": "llm" },
+    "metrics": { "start": 1, "end": 2 },
+    "metadata": {
+      "tool_call_id": 7,
+      "turn_id": "turn",
+      "model": "example-model",
+      "compaction": { "replaced_message_count": 2 }
+    },
+    "input": [{ "role": "user", "content": "Summarize the context" }],
+    "output": [{ "role": "assistant", "content": "Context summary" }]
+  },
+  {
+    "id": "tool",
+    "span_id": "tool",
+    "root_span_id": "root",
+    "span_attributes": { "type": "tool", "name": "search" },
+    "metrics": { "start": 3, "end": 4 },
+    "metadata": {
+      "tool_call_id": {},
+      "turn_id": "turn",
+      "model": "example-model"
+    },
+    "input": { "query": "record" },
+    "output": "Found a record"
+  }
+]
