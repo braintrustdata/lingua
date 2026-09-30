@@ -169,8 +169,10 @@ fn check_import_fixture(fixture: &str) {
 
 #[test]
 fn preserves_opaque_items_without_weakening_strict_imports() {
-    let fixture: ImportFixture =
-        serde_json::from_str(include_str!("fixtures/responses-compacted-history.json")).unwrap();
+    let fixture: ImportFixture = serde_json::from_str(include_str!(
+        "fixtures/opaque-history-tool-continuation.json"
+    ))
+    .unwrap();
     let source = fixture.spans[0].clone();
     let strict = import_span(source.clone()).unwrap();
     assert!(strict.input.is_empty());
@@ -276,10 +278,6 @@ import_fixture!(
 );
 
 import_fixture!(responses_tool_cycle, "fixtures/responses-tool-cycle.json");
-import_fixture!(
-    responses_compacted_history,
-    "fixtures/responses-compacted-history.json"
-);
 import_fixture!(
     responses_parent_turns,
     "fixtures/responses-parent-turns.json"
