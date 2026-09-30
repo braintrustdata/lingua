@@ -412,6 +412,16 @@ import_fixture!(
     "fixtures/task-conversation-with-root-llm.json"
 );
 import_fixture!(
+    task_parent_with_scorer,
+    "fixtures/task-parent-with-scorer.json"
+);
+import_fixture!(task_parent_with_tool, "fixtures/task-parent-with-tool.json");
+import_fixture!(task_parent_with_llm, "fixtures/task-parent-with-llm.json");
+import_fixture!(
+    task_wrapper_with_task,
+    "fixtures/task-wrapper-with-task.json"
+);
+import_fixture!(
     opaque_history_tool_continuation,
     "fixtures/opaque-history-tool-continuation.json"
 );

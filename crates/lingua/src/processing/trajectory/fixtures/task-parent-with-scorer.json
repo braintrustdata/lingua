@@ -1,0 +1,32 @@
+{
+  "spans": [
+    {
+      "id": "root",
+      "span_id": "root",
+      "root_span_id": "root",
+      "span_attributes": {"type": "task"},
+      "metrics": {"start": 1, "end": 10},
+      "input": [{"role": "user", "content": "Question"}],
+      "output": [{"role": "assistant", "content": "Answer"}]
+    },
+    {
+      "id": "scorer",
+      "span_id": "scorer",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm", "purpose": "scorer"},
+      "metrics": {"start": 9, "end": 10},
+      "span_parents": ["root"],
+      "input": [{"role": "user", "content": "Evaluate"}],
+      "output": [{"role": "assistant", "content": "Score"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "root",
+      "response_id": "root",
+      "response_text": "Answer",
+      "work_ids": [],
+      "user_texts": ["Question"]
+    }
+  ]
+}

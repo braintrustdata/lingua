@@ -121,6 +121,23 @@ fn conversation_llm_scopes<'a>(
         .collect()
 }
 
+fn task_parents<'a>(
+    spans: &'a [PreparedSpan],
+    owners: &HashMap<usize, Ownership>,
+) -> HashSet<(&'a str, &'a str)> {
+    spans
+        .iter()
+        .enumerate()
+        .filter(|(index, span)| span.kind() == "task" && !owners[index].skipped)
+        .flat_map(|(_, span)| {
+            span.source
+                .span_parents
+                .iter()
+                .map(|parent| (span.root_span_id.as_str(), parent.as_str()))
+        })
+        .collect()
+}
+
 pub struct TrajectoryStream {
     spans: Vec<PreparedSpan>,
     ready: Vec<bool>,
@@ -199,15 +216,7 @@ impl TrajectoryStream {
                 }
             }
         }
-        let parents: HashSet<_> = spans
-            .iter()
-            .flat_map(|span| {
-                span.source
-                    .span_parents
-                    .iter()
-                    .map(|parent| (span.root_span_id.as_str(), parent.as_str()))
-            })
-            .collect();
+        let parents = task_parents(&spans, &owners);
         let scopes_with_llms = conversation_llm_scopes(&spans, &owners);
         let ready = spans
             .iter()
@@ -295,16 +304,7 @@ impl TrajectoryStream {
     }
 
     fn initialize(&mut self, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
-        let parents: HashSet<_> = self
-            .spans
-            .iter()
-            .flat_map(|span| {
-                span.source
-                    .span_parents
-                    .iter()
-                    .map(|parent| (span.root_span_id.as_str(), parent.as_str()))
-            })
-            .collect();
+        let parents = task_parents(&self.spans, &self.owners);
         let scopes_with_llms = conversation_llm_scopes(&self.spans, &self.owners);
         for (index, span) in self.spans.iter().enumerate() {
             let owner = &self.owners[&index];
