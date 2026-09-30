@@ -1,0 +1,23 @@
+{
+  "spans": [
+    {
+      "id": "continuation", "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [
+        {"role": "system", "content": "Instructions"},
+        {"role": "user", "content": "Earlier question"},
+        {"role": "assistant", "content": "Earlier answer"},
+        {"role": "user", "content": "Look up the result"},
+        {"role": "user", "content": "Use the latest source"},
+        {"role": "assistant", "content": "Searching"},
+        {"type": "function_call", "call_id": "lookup", "name": "search", "arguments": "{}"},
+        {"type": "function_call_output", "call_id": "lookup", "output": "Result"}
+      ],
+      "output": [{"role": "assistant", "content": "Answer"}]
+    }
+  ],
+  "turns": [
+    {"request_id": "continuation", "response_id": "continuation", "response_text": "Answer", "work_ids": [], "user_texts": ["Look up the result", "Use the latest source"]}
+  ]
+}
