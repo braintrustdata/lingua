@@ -345,6 +345,22 @@ import_fixture!(
 );
 import_fixture!(task_only_trace, "fixtures/task-only-trace.json");
 import_fixture!(
+    task_conversation_with_scorers,
+    "fixtures/task-conversation-with-scorers.json"
+);
+import_fixture!(
+    task_conversation_with_analysis,
+    "fixtures/task-conversation-with-analysis.json"
+);
+import_fixture!(
+    task_conversation_with_worker,
+    "fixtures/task-conversation-with-worker.json"
+);
+import_fixture!(
+    task_conversation_with_root_llm,
+    "fixtures/task-conversation-with-root-llm.json"
+);
+import_fixture!(
     opaque_history_tool_continuation,
     "fixtures/opaque-history-tool-continuation.json"
 );

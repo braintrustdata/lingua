@@ -103,6 +103,24 @@ fn merge_history(history: &[u64], input: &[u64], output: &[u64]) -> (Vec<u64>, V
 
 type ScopeKey = (String, Option<usize>, Option<usize>);
 
+fn conversation_llm_scopes<'a>(
+    spans: &'a [PreparedSpan],
+    owners: &HashMap<usize, Ownership>,
+) -> HashSet<(&'a str, Option<usize>, Option<usize>)> {
+    spans
+        .iter()
+        .enumerate()
+        .filter_map(|(index, span)| {
+            let owner = &owners[&index];
+            (span.kind() == "llm" && !span.source.analysis && !owner.skipped).then_some((
+                span.root_span_id.as_str(),
+                owner.tool,
+                owner.compaction,
+            ))
+        })
+        .collect()
+}
+
 pub struct TrajectoryStream {
     spans: Vec<PreparedSpan>,
     ready: Vec<bool>,
@@ -155,6 +173,32 @@ impl TrajectoryStream {
                 .then(left.source.exec_counter.cmp(&right.source.exec_counter))
                 .then(left.id.cmp(&right.id))
         });
+        let by_span_id = spans
+            .iter()
+            .enumerate()
+            .map(|(index, span)| ((span.root_span_id.as_str(), span.span_id.as_str()), index))
+            .collect();
+        let mut owners = HashMap::new();
+        for index in 0..spans.len() {
+            let mut visiting = HashSet::new();
+            if let Err(message) = ownership(index, &spans, &by_span_id, &mut owners, &mut visiting)
+            {
+                for index in visiting {
+                    owners.insert(
+                        index,
+                        Ownership {
+                            skipped: true,
+                            ..Default::default()
+                        },
+                    );
+                    failures.push(ImportFailure {
+                        root_span_id: spans[index].root_span_id.clone(),
+                        span_id: spans[index].id.clone(),
+                        message: message.clone(),
+                    });
+                }
+            }
+        }
         let parents: HashSet<_> = spans
             .iter()
             .flat_map(|span| {
@@ -164,18 +208,20 @@ impl TrajectoryStream {
                     .map(|parent| (span.root_span_id.as_str(), parent.as_str()))
             })
             .collect();
-        let roots_with_llms: HashSet<_> = spans
-            .iter()
-            .filter(|span| span.kind() == "llm")
-            .map(|span| span.root_span_id.as_str())
-            .collect();
+        let scopes_with_llms = conversation_llm_scopes(&spans, &owners);
         let ready = spans
             .iter()
-            .map(|span| {
+            .enumerate()
+            .map(|(index, span)| {
+                let owner = &owners[&index];
                 let message_task = span.kind() == "task"
                     && !parents.contains(&(span.root_span_id.as_str(), span.span_id.as_str()))
                     && (span.source.turn.is_some()
-                        || !roots_with_llms.contains(span.root_span_id.as_str()));
+                        || !scopes_with_llms.contains(&(
+                            span.root_span_id.as_str(),
+                            owner.tool,
+                            owner.compaction,
+                        )));
                 !matches!(span.kind(), "llm" | "tool") && !message_task
             })
             .collect();
@@ -185,7 +231,7 @@ impl TrajectoryStream {
             by_id,
             order,
             failures,
-            owners: HashMap::new(),
+            owners,
             scopes: BTreeMap::new(),
             states: BTreeMap::new(),
             task_boundaries: HashSet::new(),
@@ -249,37 +295,6 @@ impl TrajectoryStream {
     }
 
     fn initialize(&mut self, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
-        let by_span_id = self
-            .spans
-            .iter()
-            .enumerate()
-            .map(|(index, span)| ((span.root_span_id.as_str(), span.span_id.as_str()), index))
-            .collect();
-        for index in 0..self.spans.len() {
-            let mut visiting = HashSet::new();
-            if let Err(message) = ownership(
-                index,
-                &self.spans,
-                &by_span_id,
-                &mut self.owners,
-                &mut visiting,
-            ) {
-                for index in visiting {
-                    self.owners.insert(
-                        index,
-                        Ownership {
-                            skipped: true,
-                            ..Default::default()
-                        },
-                    );
-                    self.failures.push(ImportFailure {
-                        root_span_id: self.spans[index].root_span_id.clone(),
-                        span_id: self.spans[index].id.clone(),
-                        message: message.clone(),
-                    });
-                }
-            }
-        }
         let parents: HashSet<_> = self
             .spans
             .iter()
@@ -290,12 +305,7 @@ impl TrajectoryStream {
                     .map(|parent| (span.root_span_id.as_str(), parent.as_str()))
             })
             .collect();
-        let roots_with_llms: HashSet<_> = self
-            .spans
-            .iter()
-            .filter(|span| span.kind() == "llm")
-            .map(|span| span.root_span_id.as_str())
-            .collect();
+        let scopes_with_llms = conversation_llm_scopes(&self.spans, &self.owners);
         for (index, span) in self.spans.iter().enumerate() {
             let owner = &self.owners[&index];
             if owner.skipped {
@@ -304,7 +314,11 @@ impl TrajectoryStream {
             let is_message = span.kind() == "task"
                 && !parents.contains(&(span.root_span_id.as_str(), span.span_id.as_str()))
                 && (span.output.is_empty() && span.source.turn.is_some()
-                    || !roots_with_llms.contains(span.root_span_id.as_str()))
+                    || !scopes_with_llms.contains(&(
+                        span.root_span_id.as_str(),
+                        owner.tool,
+                        owner.compaction,
+                    )))
                 && span.current_input().any(|(index, message)| {
                     matches!(message, Message::User { .. }) && !span.is_context(index, message)
                 });
