@@ -222,7 +222,7 @@ impl TrajectoryStream {
                             owner.tool,
                             owner.compaction,
                         )));
-                !matches!(span.kind(), "llm" | "tool") && !message_task
+                owner.skipped || (!matches!(span.kind(), "llm" | "tool") && !message_task)
             })
             .collect();
         Ok(Self {
@@ -443,15 +443,12 @@ impl TrajectoryStream {
     }
 
     fn request(&self, span: &PreparedSpan, fresh: Option<&[bool]>) -> Vec<Message> {
-        let mut position = 0;
         span.current_input()
             .filter(|(index, message)| {
-                if !span.is_context(*index, message) {
-                    let include = fresh.is_none_or(|fresh| fresh[position]);
-                    position += 1;
-                    if !include {
-                        return false;
-                    }
+                if span.input_key_indices[*index]
+                    .is_some_and(|position| fresh.is_some_and(|fresh| !fresh[position]))
+                {
+                    return false;
                 }
                 matches!(
                     message,
@@ -568,18 +565,15 @@ impl TrajectoryStream {
             && span.current_input().any(|(index, message)| {
                 matches!(message, Message::User { .. }) && !span.is_context(index, message)
             });
-        let current_start = span.input_keys.len().saturating_sub(
-            span.current_input()
-                .filter(|(index, message)| !span.is_context(*index, message))
-                .count(),
-        );
         let (history, fresh) = merge_history(
             &state.history,
             &span.input_keys,
             &message_keys(&span.output),
         );
-        let fresh_request = &fresh[current_start..];
-        let has_new_input = fresh_request.iter().any(|fresh| *fresh);
+        let has_new_input = span.current_input().any(|(index, message)| {
+            matches!(message, Message::User { .. })
+                && span.input_key_indices[index].is_some_and(|position| fresh[position])
+        });
         let interrupts_previous_turn = span.interruption_offsets.iter().any(|offset| {
             fresh
                 .get(*offset)
@@ -598,7 +592,7 @@ impl TrajectoryStream {
                 && candidate
                 && (user_count <= 1 || has_new_input)
                 || candidate && has_new_input);
-        let request_filter = has_new_input.then_some(fresh_request);
+        let request_filter = has_new_input.then_some(fresh.as_slice());
         if state.id.is_none() || new_turn {
             self.end_turn(&key, &mut state, events)?;
             state.previous_id = state.id.take();
@@ -701,7 +695,13 @@ impl TrajectoryStream {
             self.end_turn(&key, &mut state, &mut events)?;
         }
         let mut failures = std::mem::take(&mut self.failures);
-        failures.extend(self.spans.iter().filter_map(|span| span.failure.clone()));
+        failures.extend(
+            self.spans
+                .iter()
+                .enumerate()
+                .filter(|(index, _)| !self.owners[index].skipped)
+                .filter_map(|(_, span)| span.failure.clone()),
+        );
         failures.sort_by(|a, b| a.span_id.cmp(&b.span_id).then(a.message.cmp(&b.message)));
         failures.dedup_by(|a, b| {
             a.root_span_id == b.root_span_id && a.span_id == b.span_id && a.message == b.message
@@ -721,7 +721,11 @@ impl TrajectoryStream {
     }
 }
 
-type CollectedTurn = (Turn, BTreeMap<usize, WorkStep>);
+struct CollectedTurn {
+    turn: Turn,
+    work: BTreeMap<usize, WorkStep>,
+    order: usize,
+}
 type CollectedTrajectory = (Trajectory, BTreeMap<String, CollectedTurn>);
 
 #[derive(Default)]
@@ -754,7 +758,15 @@ impl TrajectoryCollector {
                 if turns.contains_key(&id) {
                     return Err("Duplicate trajectory turn".to_string());
                 }
-                turns.insert(id, (*turn, BTreeMap::new()));
+                let order = turns.len();
+                turns.insert(
+                    id,
+                    CollectedTurn {
+                        turn: *turn,
+                        work: BTreeMap::new(),
+                        order,
+                    },
+                );
             }
             TrajectoryEvent::Request {
                 scope,
@@ -762,7 +774,7 @@ impl TrajectoryCollector {
                 request_id,
                 request,
             } => {
-                let (turn, _) = self.turn(&scope, &id)?;
+                let turn = &mut self.turn(&scope, &id)?.turn;
                 turn.request_id = request_id;
                 turn.request = Some(request);
             }
@@ -772,7 +784,7 @@ impl TrajectoryCollector {
                 position,
                 step,
             } => {
-                self.turn(&scope, &id)?.1.insert(position, step);
+                self.turn(&scope, &id)?.work.insert(position, step);
             }
             TrajectoryEvent::Response {
                 scope,
@@ -782,14 +794,14 @@ impl TrajectoryCollector {
                 end_time,
                 model,
             } => {
-                let (turn, _) = self.turn(&scope, &id)?;
+                let turn = &mut self.turn(&scope, &id)?.turn;
                 turn.response_id = response_id;
                 turn.response = response.map(|response| *response);
                 turn.end_time = end_time;
                 turn.model = model;
             }
             TrajectoryEvent::Interrupted { scope, id } => {
-                self.turn(&scope, &id)?.0.interrupted = Some(true)
+                self.turn(&scope, &id)?.turn.interrupted = Some(true)
             }
             TrajectoryEvent::Failure {
                 root_span_id,
@@ -834,9 +846,12 @@ impl TrajectoryCollector {
         }
         let (header, turns) = self.scopes.get(scope).ok_or("Unknown trajectory scope")?;
         let mut trajectory = header.clone();
-        for (turn, work) in turns.values() {
-            let mut turn = turn.clone();
-            turn.work = work
+        let mut turns: Vec<_> = turns.values().collect();
+        turns.sort_by_key(|collected| (collected.turn.start_time, collected.order));
+        for collected in turns {
+            let mut turn = collected.turn.clone();
+            turn.work = collected
+                .work
                 .values()
                 .map(|step| {
                     let mut step = step.clone();
@@ -852,11 +867,6 @@ impl TrajectoryCollector {
                 .collect::<Result<Vec<_>>>()?;
             trajectory.turns.push(turn);
         }
-        trajectory.turns.sort_by(|a, b| {
-            a.start_time
-                .cmp(&b.start_time)
-                .then(a.request_id.cmp(&b.request_id))
-        });
         visiting.remove(scope);
         Ok(trajectory)
     }

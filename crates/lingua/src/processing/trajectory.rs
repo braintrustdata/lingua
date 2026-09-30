@@ -49,6 +49,7 @@ pub struct PreparedSpan {
     source: SpanContext,
     input: Vec<Message>,
     input_keys: Vec<u64>,
+    input_key_indices: Vec<Option<usize>>,
     output: Vec<Message>,
     context_messages: HashSet<usize>,
     interruption_offsets: Vec<usize>,
@@ -58,7 +59,7 @@ pub struct PreparedSpan {
 }
 
 impl PreparedSpan {
-    pub fn new(mut span: ImportedSpan) -> Result<Self> {
+    pub fn new(span: ImportedSpan) -> Result<Self> {
         let mut source = span.header;
         let id = source.id.take().ok_or("Missing trajectory span id")?;
         let root_span_id = source
@@ -70,40 +71,36 @@ impl PreparedSpan {
             .start
             .take()
             .ok_or_else(|| format!("Missing or invalid timestamp for trajectory span {id}"))?;
-        let mut context_messages: HashSet<_> = span.context_messages.into_iter().collect();
+        let source_context: HashSet<_> = span.context_messages.into_iter().collect();
         let current_start = span
             .input
             .iter()
-            .rposition(|message| {
-                matches!(message, Message::Assistant { .. } | Message::Tool { .. })
-            })
+            .rposition(|message| matches!(message, Message::Assistant { .. }))
             .map_or(0, |index| index + 1);
         let mut input_keys = Vec::new();
+        let mut input = Vec::new();
+        let mut input_key_indices = Vec::new();
+        let mut context_messages = HashSet::new();
         let mut interruption_offsets = Vec::new();
-        for (index, message) in span.input.iter().enumerate() {
+        for (index, message) in span.input.into_iter().enumerate() {
             if index >= current_start && span.interruption_messages.contains(&index) {
                 interruption_offsets.push(input_keys.len());
             }
-            if !context_messages.contains(&index) && !is_context(message) {
-                input_keys.push(message_dedup_hash(message));
+            let context = source_context.contains(&index) || is_context(&message);
+            let key_index = (!context).then_some(input_keys.len());
+            if !context {
+                input_keys.push(message_dedup_hash(&message));
             }
-        }
-        if !source.analysis {
-            let tools: Vec<_> = span
-                .input
-                .drain(..current_start)
-                .filter(|message| matches!(message, Message::AdditionalTools { .. }))
-                .collect();
-            let tool_count = tools.len();
-            span.input.splice(..0, tools);
-            context_messages = context_messages
-                .into_iter()
-                .filter_map(|index| {
-                    index
-                        .checked_sub(current_start)
-                        .map(|index| index + tool_count)
-                })
-                .collect();
+            if source.analysis
+                || (index >= current_start && !matches!(message, Message::Tool { .. }))
+                || matches!(message, Message::AdditionalTools { .. })
+            {
+                if context {
+                    context_messages.insert(input.len());
+                }
+                input.push(message);
+                input_key_indices.push(key_index);
+            }
         }
         let failure = (!span.errors.is_empty()).then(|| ImportFailure {
             root_span_id: root_span_id.clone(),
@@ -116,9 +113,10 @@ impl PreparedSpan {
             span_id,
             start,
             source,
-            input: span.input,
+            input,
             output: span.output,
             input_keys,
+            input_key_indices,
             context_messages,
             interruption_offsets,
             usage: span.usage,
@@ -131,11 +129,13 @@ impl PreparedSpan {
         let start = self
             .input
             .iter()
-            .rposition(|message| {
-                matches!(message, Message::Assistant { .. } | Message::Tool { .. })
-            })
+            .rposition(|message| matches!(message, Message::Assistant { .. }))
             .map_or(0, |index| index + 1);
-        self.input.iter().enumerate().skip(start)
+        self.input
+            .iter()
+            .enumerate()
+            .skip(start)
+            .filter(|(_, message)| !matches!(message, Message::Tool { .. }))
     }
 
     fn is_context(&self, index: usize, message: &Message) -> bool {
@@ -177,16 +177,43 @@ impl PreparedSpan {
     }
 
     fn can_finish_turn(&self) -> bool {
-        matches!(self.kind(), "llm" | "task") && !self.source.analysis && self.source.end.is_some() && self.source.error.is_none()
-            && self.output.iter().any(|message| match message {
-                Message::Assistant { content: AssistantContent::String(text), .. } => !text.trim().is_empty(),
-                Message::Assistant { content: AssistantContent::Array(parts), .. } => !parts.is_empty(),
-                _ => false,
-            })
-            && !self.output.iter().any(|message| matches!(message,
-                Message::Assistant { content: AssistantContent::Array(parts), .. }
-                    if parts.iter().any(|part| matches!(part,
-                        AssistantContentPart::ToolCall { .. } | AssistantContentPart::ToolDiscoveryCall { .. }))))
+        if !matches!(self.kind(), "llm" | "task")
+            || self.source.analysis
+            || self.source.end.is_none()
+            || self.source.error.is_some()
+        {
+            return false;
+        }
+        let mut has_response = false;
+        for message in &self.output {
+            let Message::Assistant { content, .. } = message else {
+                continue;
+            };
+            match content {
+                AssistantContent::String(text) => has_response |= !text.trim().is_empty(),
+                AssistantContent::Array(parts) => {
+                    for part in parts {
+                        match part {
+                            AssistantContentPart::ToolCall {
+                                provider_executed, ..
+                            } => {
+                                if *provider_executed != Some(true) {
+                                    return false;
+                                }
+                            }
+                            AssistantContentPart::ToolDiscoveryCall { execution, .. } => {
+                                if execution.as_deref() != Some("server") {
+                                    return false;
+                                }
+                            }
+                            AssistantContentPart::ToolResult { .. } => {}
+                            _ => has_response = true,
+                        }
+                    }
+                }
+            }
+        }
+        has_response
     }
 }
 

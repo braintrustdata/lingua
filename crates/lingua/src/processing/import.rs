@@ -880,6 +880,8 @@ fn import_span_messages(
 ///
 /// This function processes spans and extracts messages from their input/output fields,
 /// attempting to convert them from various provider formats to the lingua format.
+/// Recognized messages are retained even when adjacent items are unsupported. Use
+/// `import_span_with_options` to also retain unsupported data and diagnostics.
 pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
     spans
         .into_iter()
@@ -889,7 +891,9 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
                 span.output,
                 span.other.get("metadata"),
                 true,
-                ImportOptions::default(),
+                ImportOptions {
+                    preserve_unsupported: true,
+                },
             );
             messages.input.into_iter().chain(messages.output)
         })

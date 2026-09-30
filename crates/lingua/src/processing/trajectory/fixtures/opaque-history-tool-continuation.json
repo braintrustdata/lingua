@@ -92,13 +92,22 @@
   "turns": [
     {
       "request_id": "call",
-      "response_id": "final",
-      "response_text": "Answer",
+      "response_id": null,
+      "response_text": "",
       "work_ids": [
         "call"
       ],
       "user_texts": [
         "Request"
+      ]
+    },
+    {
+      "request_id": "final",
+      "response_id": "final",
+      "response_text": "Answer",
+      "work_ids": [],
+      "user_texts": [
+        "Updated context"
       ]
     }
   ],

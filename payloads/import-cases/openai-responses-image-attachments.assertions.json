@@ -1,7 +1,8 @@
 {
-  "expectedMessageCount": 1,
+  "expectedMessageCount": 2,
   "expectedRolesInOrder": [
-    "user"
+    "user",
+    "assistant"
   ],
   "mustContainText": []
 }

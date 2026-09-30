@@ -61,8 +61,22 @@ struct ExpectedTurn {
 
 fn check_import_fixture(fixture: &str) {
     let fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
-    for batch_size in [1, 16] {
-        let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
+    for (batch_size, import_bodies) in [(1, false), (16, false), (1, true), (16, true)] {
+        let headers = fixture
+            .spans
+            .iter()
+            .cloned()
+            .map(|mut source| {
+                if !import_bodies {
+                    source.input = None;
+                    source.output = None;
+                }
+                import_span_with_options(source, fixture.import_options)
+                    .unwrap()
+                    .header_only()
+            })
+            .collect();
+        let mut stream = TrajectoryStream::new(headers, false).unwrap();
         let mut collector = TrajectoryCollector::default();
         loop {
             let ids = stream.pending_ids(batch_size);
@@ -249,6 +263,31 @@ fn best_effort_import_preserves_unsupported_items_and_diagnostics() {
 }
 
 #[test]
+fn message_only_imports_preserve_readable_messages() {
+    let spans: Vec<Span> =
+        serde_json::from_str(include_str!("fixtures/unsupported-mixed-input.json")).unwrap();
+    let expected = crate::processing::import::import_messages_from_spans(vec![Span {
+        input: Some(
+            crate::serde_json::json!([{ "role": "user", "content": "Acknowledge the report" }]),
+        ),
+        output: Some(
+            crate::serde_json::json!([{ "role": "assistant", "content": "Partial reply" }]),
+        ),
+        other: Default::default(),
+    }]);
+    assert_eq!(expected.len(), 2);
+    for import in [
+        crate::processing::import::import_messages_from_spans,
+        crate::processing::import::import_and_deduplicate_messages,
+    ] {
+        assert_eq!(
+            serde_json::to_value(import(vec![spans[0].clone()])).unwrap(),
+            serde_json::to_value(&expected).unwrap(),
+        );
+    }
+}
+
+#[test]
 fn preserves_compaction_payloads_as_opaque_data() {
     let fixture: ImportFixture =
         serde_json::from_str(include_str!("fixtures/nested-compaction-payload.json")).unwrap();
@@ -363,6 +402,22 @@ import_fixture!(
 import_fixture!(
     opaque_history_tool_continuation,
     "fixtures/opaque-history-tool-continuation.json"
+);
+import_fixture!(
+    provider_tools_and_final_answer,
+    "fixtures/provider-tools-and-final-answer.json"
+);
+import_fixture!(
+    turns_with_tied_starts,
+    "fixtures/turns-with-tied-starts.json"
+);
+import_fixture!(
+    excluded_scorer_import_failures,
+    "fixtures/excluded-scorer-import-failures.json"
+);
+import_fixture!(
+    steering_before_tool_result,
+    "fixtures/steering-before-tool-result.json"
 );
 
 #[test]
