@@ -176,6 +176,8 @@ pub struct AgentResponse {
 pub struct ToolResult {
     #[ts(optional, type = "unknown")]
     pub input: Option<Value>,
+    #[ts(optional, type = "unknown")]
+    pub output: Option<Value>,
     #[ts(optional)]
     pub content: Option<ToolContent>,
 }

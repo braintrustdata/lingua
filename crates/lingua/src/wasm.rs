@@ -510,7 +510,10 @@ impl TrajectoryStream {
     ) -> Result<TrajectoryStream, JsValue> {
         Ok(Self {
             inner: crate::processing::trajectory::TrajectoryStream::with_failures(
-                headers.into_iter().map(|span| span.inner.header).collect(),
+                headers
+                    .into_iter()
+                    .map(|span| span.inner.header_only())
+                    .collect(),
                 Vec::new(),
                 exclude_system,
             )

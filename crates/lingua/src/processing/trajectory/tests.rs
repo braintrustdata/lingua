@@ -19,7 +19,7 @@ fn stream_from_sources(sources: Vec<Span>) -> Result<TrajectoryStream> {
         .map(|mut source| {
             source.input = None;
             source.output = None;
-            import_span(source).map(|span| span.header)
+            import_span(source)
         })
         .collect::<Result<Vec<_>>>()?;
     TrajectoryStream::new(headers, false)
@@ -172,6 +172,7 @@ macro_rules! import_fixture {
 
 import_fixture!(replayed_abort_marker, "fixtures/replayed-abort-marker.json");
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
+import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
 import_fixture!(completed_retry, "fixtures/completed-retry.json");
 import_fixture!(
     unsupported_only_payloads,
@@ -366,6 +367,9 @@ fn trajectory_preserves_cache_write_usage_by_ttl() {
 fn unsupported_mixed_input_reports_failure_without_losing_healthy_spans() {
     let rows: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/unsupported-mixed-input.json")).unwrap();
+    let imported = import_span(Span::deserialize(&rows[0]).unwrap()).unwrap();
+    assert!(imported.input.is_empty());
+    assert!(imported.output.is_empty());
     let result = import_rows(&rows);
     assert!(result[0]["turns"]
         .as_array()
@@ -376,11 +380,31 @@ fn unsupported_mixed_input_reports_failure_without_losing_healthy_spans() {
         .as_array()
         .expect("Unsupported input was silently treated as a successful import");
     assert!(failures.iter().any(|failure| {
-        failure["span_id"] == "unsupported"
-            && failure["message"]
-                .as_str()
-                .is_some_and(|message| message == "Unsupported message item at index 0")
+        failure["span_id"] == "unsupported" && failure["message"].as_str().is_some_and(|message| {
+            message == "Unsupported message item at index 0; Unsupported message item at index 1"
+        })
     }));
+}
+
+#[test]
+fn tool_output_without_a_call_id_stays_unpaired() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/chat-tool-cycle.json")).unwrap();
+    let rows: Vec<Value> = fixture
+        .spans
+        .iter()
+        .map(|span| serde_json::to_value(span).unwrap())
+        .collect();
+    let result = import_rows(&rows);
+    let tool = result[0]["turns"][0]["work"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|step| step["id"] == "tool")
+        .unwrap();
+    assert_eq!(tool["work"]["input"], json!({}));
+    assert_eq!(tool["work"]["output"], json!("Result"));
+    assert!(tool["work"]["content"].is_null());
 }
 
 #[test]

@@ -18,7 +18,7 @@ pub enum TrajectoryEvent {
     Turn {
         scope: TrajectoryScope,
         id: String,
-        turn: Turn,
+        turn: Box<Turn>,
     },
     Request {
         scope: TrajectoryScope,
@@ -36,7 +36,7 @@ pub enum TrajectoryEvent {
         scope: TrajectoryScope,
         id: String,
         response_id: Option<String>,
-        response: Option<AgentResponse>,
+        response: Option<Box<AgentResponse>>,
         end_time: Option<DateTime<Utc>>,
         model: Option<String>,
     },
@@ -121,21 +121,22 @@ pub struct TrajectoryStream {
 }
 
 impl TrajectoryStream {
-    pub fn new(headers: Vec<SpanContext>, exclude_system: bool) -> Result<Self> {
+    pub fn new(headers: Vec<ImportedSpan>, exclude_system: bool) -> Result<Self> {
         Self::with_failures(headers, Vec::new(), exclude_system)
     }
 
     pub fn with_failures(
-        headers: Vec<SpanContext>,
+        headers: Vec<ImportedSpan>,
         failures: Vec<ImportFailure>,
         exclude_system: bool,
     ) -> Result<Self> {
         let mut failures = failures;
         let mut spans = Vec::with_capacity(headers.len());
         for header in headers {
-            match PreparedSpan::from_header(header.clone()) {
+            let context = header.header.clone();
+            match PreparedSpan::new(header) {
                 Ok(span) => spans.push(span),
-                Err(error) => failures.push(ImportFailure::from_context(&header, error)?),
+                Err(error) => failures.push(ImportFailure::from_context(&context, error)?),
             }
         }
         let mut by_id = HashMap::new();
@@ -512,7 +513,7 @@ impl TrajectoryStream {
             scope,
             id: id.clone(),
             response_id: final_span.map(|span| span.id.clone()),
-            response: final_span.map(PreparedSpan::response),
+            response: final_span.map(|span| Box::new(span.response())),
             end_time: if state.unfinished {
                 None
             } else {
@@ -603,7 +604,7 @@ impl TrajectoryStream {
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
                 id: span.id.clone(),
-                turn: Turn {
+                turn: Box::new(Turn {
                     request_id: span.id.clone(),
                     request: Some(self.request(span, request_filter)),
                     response_id: None,
@@ -617,7 +618,7 @@ impl TrajectoryStream {
                     compaction: key
                         .2
                         .and_then(|index| self.spans[index].source.compaction.clone()),
-                },
+                }),
             });
         } else if candidate && !state.request_found {
             if key.2.is_none() && interrupts_previous_turn {
@@ -703,15 +704,12 @@ impl TrajectoryStream {
     }
 }
 
+type CollectedTurn = (Turn, BTreeMap<usize, WorkStep>);
+type CollectedTrajectory = (Trajectory, BTreeMap<String, CollectedTurn>);
+
 #[derive(Default)]
 pub struct TrajectoryCollector {
-    scopes: BTreeMap<
-        TrajectoryScope,
-        (
-            Trajectory,
-            BTreeMap<String, (Turn, BTreeMap<usize, WorkStep>)>,
-        ),
-    >,
+    scopes: BTreeMap<TrajectoryScope, CollectedTrajectory>,
     complete: bool,
 }
 
@@ -739,7 +737,7 @@ impl TrajectoryCollector {
                 if turns.contains_key(&id) {
                     return Err("Duplicate trajectory turn".to_string());
                 }
-                turns.insert(id, (turn, BTreeMap::new()));
+                turns.insert(id, (*turn, BTreeMap::new()));
             }
             TrajectoryEvent::Request {
                 scope,
@@ -769,7 +767,7 @@ impl TrajectoryCollector {
             } => {
                 let (turn, _) = self.turn(&scope, &id)?;
                 turn.response_id = response_id;
-                turn.response = response;
+                turn.response = response.map(|response| *response);
                 turn.end_time = end_time;
                 turn.model = model;
             }
@@ -802,11 +800,7 @@ impl TrajectoryCollector {
         Ok(())
     }
 
-    fn turn(
-        &mut self,
-        scope: &TrajectoryScope,
-        id: &str,
-    ) -> Result<&mut (Turn, BTreeMap<usize, WorkStep>)> {
+    fn turn(&mut self, scope: &TrajectoryScope, id: &str) -> Result<&mut CollectedTurn> {
         self.scopes
             .get_mut(scope)
             .and_then(|(_, turns)| turns.get_mut(id))

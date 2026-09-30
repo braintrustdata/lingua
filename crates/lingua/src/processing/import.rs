@@ -205,6 +205,7 @@ fn try_parse_mixed_messages_for_import(
     let items = data.as_array()?;
     let provider_parsers = provider_parsers_for_import();
     let mut messages = Vec::new();
+    let errors_before = errors.len();
 
     for (index, item) in items.iter().enumerate() {
         // Native Anthropic thinking blocks must use the canonical parser so adjacent text
@@ -255,7 +256,9 @@ fn try_parse_mixed_messages_for_import(
         messages.append(&mut parsed_messages);
     }
 
-    if messages.is_empty() {
+    if errors.len() != errors_before {
+        Some(Vec::new())
+    } else if messages.is_empty() {
         None
     } else {
         Some(messages)

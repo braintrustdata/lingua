@@ -117,19 +117,6 @@ impl PreparedSpan {
         })
     }
 
-    fn from_header(header: SpanContext) -> Result<Self> {
-        Self::new(ImportedSpan {
-            header,
-            input: Vec::new(),
-            output: Vec::new(),
-            usage: None,
-            tool_result: None,
-            context_messages: Vec::new(),
-            interruption_messages: Vec::new(),
-            errors: Vec::new(),
-        })
-    }
-
     fn current_input(&self) -> impl Iterator<Item = (usize, &Message)> {
         let start = self
             .input
@@ -227,7 +214,10 @@ fn ownership(
         return Ok(value.clone());
     }
     if !visiting.insert(index) {
-        return Err(format!("Cycle in trajectory span parents at {}", spans[index].id).into());
+        return Err(format!(
+            "Cycle in trajectory span parents at {}",
+            spans[index].id
+        ));
     }
     let span = &spans[index];
     let mut result = Ownership::default();
@@ -261,7 +251,7 @@ fn assemble(
     exclude_system: bool,
 ) -> Result<Vec<Trajectory>> {
     let mut stream = TrajectoryStream::with_failures(
-        spans.iter().map(|span| span.header.clone()).collect(),
+        spans.iter().map(ImportedSpan::header_only).collect(),
         failures.to_vec(),
         exclude_system,
     )?;

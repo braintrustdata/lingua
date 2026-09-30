@@ -1,0 +1,92 @@
+{
+  "spans": [
+    {
+      "id": "root",
+      "span_id": "root",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "task"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 4
+      },
+      "metadata": {
+        "turn_id": {}
+      }
+    },
+    {
+      "id": "parent",
+      "span_id": "parent",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "task"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 4
+      },
+      "metadata": {
+        "model": {}
+      }
+    },
+    {
+      "id": "llm",
+      "span_id": "llm",
+      "root_span_id": "root",
+      "span_parents": [
+        "parent"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 2,
+        "end": 3
+      },
+      "metadata": {
+        "turn_id": {}
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Question"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer"
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "llm",
+      "response_id": "llm",
+      "response_text": "Answer",
+      "work_ids": [],
+      "user_texts": [
+        "Question"
+      ]
+    }
+  ],
+  "import_failures": [
+    {
+      "span_id": "llm",
+      "message": "Invalid metadata.turn_id: invalid type: map, expected a string"
+    },
+    {
+      "span_id": "parent",
+      "message": "Invalid metadata.model: invalid type: map, expected a string"
+    },
+    {
+      "span_id": "root",
+      "message": "Invalid metadata.turn_id: invalid type: map, expected a string"
+    }
+  ]
+}

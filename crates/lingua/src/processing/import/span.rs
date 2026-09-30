@@ -51,6 +51,21 @@ pub struct ImportedSpan {
     pub errors: Vec<String>,
 }
 
+impl ImportedSpan {
+    pub fn header_only(&self) -> Self {
+        Self {
+            header: self.header.clone(),
+            input: Vec::new(),
+            output: Vec::new(),
+            usage: None,
+            tool_result: None,
+            context_messages: Vec::new(),
+            interruption_messages: Vec::new(),
+            errors: self.errors.clone(),
+        }
+    }
+}
+
 fn null_default<'de, T: Deserialize<'de> + Default, D: serde::Deserializer<'de>>(
     deserializer: D,
 ) -> std::result::Result<T, D::Error> {
@@ -130,10 +145,7 @@ pub fn import_span(mut span: Span) -> Result<ImportedSpan> {
     let metadata: Metadata = source
         .metadata
         .as_ref()
-        .map_or_else(
-            || Ok(Metadata::default()),
-            |value| Metadata::deserialize(value),
-        )
+        .map_or_else(|| Ok(Metadata::default()), Metadata::deserialize)
         .unwrap_or_else(|err| {
             errors.push(format!("Invalid span metadata: {err}"));
             Metadata::default()
@@ -153,21 +165,23 @@ pub fn import_span(mut span: Span) -> Result<ImportedSpan> {
         .and_then(timestamp)
         .filter(|end| start.is_none_or(|start| *end >= start));
     let tool_result = if source.span_attributes.kind.as_deref() == Some("tool") {
-        Some(ToolResult {
-            input: span.input.take(),
-            content: span.output.take().map(|output| {
+        let mut output = span.output.take();
+        let content = metadata.tool_call_id.and_then(|tool_call_id| {
+            output.take().map(|output| {
                 vec![ToolContentPart::ToolResult(ToolResultContentPart {
-                    tool_call_id: metadata
-                        .tool_call_id
-                        .or_else(|| source.header.id.clone())
-                        .unwrap_or_default(),
+                    tool_call_id,
                     tool_name: source.span_attributes.name.clone().unwrap_or_default(),
                     output,
                     custom_tool_call: None,
                     caller: None,
                     provider_options: None,
                 })]
-            }),
+            })
+        });
+        Some(ToolResult {
+            input: span.input.take(),
+            output,
+            content,
         })
     } else {
         None

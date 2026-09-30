@@ -15,7 +15,15 @@
       },
       { "role": "user", "content": "Acknowledge the report" }
     ],
-    "output": []
+    "output": [
+      { "role": "assistant", "content": "Partial reply" },
+      {
+        "type": "agent_message",
+        "author": "/worker",
+        "recipient": "/root",
+        "content": [{ "type": "input_text", "text": "Check complete" }]
+      }
+    ]
   },
   {
     "id": "healthy",
