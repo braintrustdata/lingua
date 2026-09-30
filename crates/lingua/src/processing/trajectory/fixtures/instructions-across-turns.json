@@ -1,0 +1,140 @@
+{
+  "spans": [
+    {
+      "id": "first",
+      "span_id": "first",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [
+        {"role": "system", "content": "Use the primary catalog"},
+        {"role": "developer", "content": "Keep replies brief"},
+        {"role": "user", "content": "Find a record"}
+      ],
+      "output": [{"role": "assistant", "content": "Found it"}]
+    },
+    {
+      "id": "second",
+      "span_id": "second",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 3, "end": 4},
+      "input": [
+        {"role": "system", "content": "Use the backup catalog"},
+        {"role": "developer", "content": "Include record identifiers"},
+        {"role": "user", "content": "Find a record"},
+        {"role": "assistant", "content": "Found it"},
+        {"role": "user", "content": "Inspect it"}
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": null,
+          "tool_calls": [
+            {
+              "id": "lookup-call",
+              "type": "function",
+              "function": {"name": "lookup", "arguments": "{}"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "second-final",
+      "span_id": "second-final",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 5, "end": 6},
+      "input": [
+        {"role": "system", "content": "Use the backup catalog"},
+        {"role": "developer", "content": "Include record identifiers"},
+        {"role": "user", "content": "Find a record"},
+        {"role": "assistant", "content": "Found it"},
+        {"role": "user", "content": "Inspect it"},
+        {
+          "role": "assistant",
+          "content": null,
+          "tool_calls": [
+            {
+              "id": "lookup-call",
+              "type": "function",
+              "function": {"name": "lookup", "arguments": "{}"}
+            }
+          ]
+        },
+        {"role": "tool", "tool_call_id": "lookup-call", "content": "Record details"}
+      ],
+      "output": [{"role": "assistant", "content": "Checked it"}]
+    },
+    {
+      "id": "third",
+      "span_id": "third",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 7, "end": 8},
+      "input": [
+        {"role": "system", "content": "Use the backup catalog"},
+        {"role": "developer", "content": "Include record identifiers"},
+        {"role": "user", "content": "Find a record"},
+        {"role": "assistant", "content": "Found it"},
+        {"role": "user", "content": "Inspect it"},
+        {
+          "role": "assistant",
+          "content": null,
+          "tool_calls": [
+            {
+              "id": "lookup-call",
+              "type": "function",
+              "function": {"name": "lookup", "arguments": "{}"}
+            }
+          ]
+        },
+        {"role": "tool", "tool_call_id": "lookup-call", "content": "Record details"},
+        {"role": "assistant", "content": "Checked it"},
+        {"role": "user", "content": "Inspect another record"}
+      ],
+      "output": [{"role": "assistant", "content": "Checked the next record"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "first",
+      "response_id": "first",
+      "response_text": "Found it",
+      "work_ids": [],
+      "user_texts": ["Find a record"]
+    },
+    {
+      "request_id": "second",
+      "response_id": "second-final",
+      "response_text": "Checked it",
+      "work_ids": ["second"],
+      "user_texts": ["Inspect it"]
+    },
+    {
+      "request_id": "third",
+      "response_id": "third",
+      "response_text": "Checked the next record",
+      "work_ids": [],
+      "user_texts": ["Inspect another record"]
+    }
+  ],
+  "requests": [
+    [
+      {"role": "system", "content": "Use the primary catalog"},
+      {"role": "developer", "content": "Keep replies brief"},
+      {"role": "user", "content": "Find a record"}
+    ],
+    [
+      {"role": "system", "content": "Use the backup catalog"},
+      {"role": "developer", "content": "Include record identifiers"},
+      {"role": "user", "content": "Inspect it"}
+    ],
+    [
+      {"role": "system", "content": "Use the backup catalog"},
+      {"role": "developer", "content": "Include record identifiers"},
+      {"role": "user", "content": "Inspect another record"}
+    ]
+  ]
+}

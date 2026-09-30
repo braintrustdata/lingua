@@ -45,6 +45,7 @@ struct ImportFixture {
     end_times: Option<Vec<Option<DateTime<Utc>>>>,
     compactions: Option<Vec<Value>>,
     request_tools: Option<Vec<Vec<crate::universal::UniversalTool>>>,
+    requests: Option<Vec<Vec<Message>>>,
     #[serde(default)]
     import_failures: Vec<crate::serde_json::Value>,
 }
@@ -103,6 +104,17 @@ fn check_import_fixture(fixture: &str) {
         assert!(collector.is_complete());
         let trajectories = collector.snapshot().unwrap();
         assert_eq!(trajectories.len(), 1);
+        if let Some(requests) = &fixture.requests {
+            let actual: Vec<_> = trajectories[0]
+                .turns
+                .iter()
+                .map(|turn| turn.request.as_ref().unwrap())
+                .collect();
+            assert_eq!(
+                serde_json::to_value(actual).unwrap(),
+                serde_json::to_value(requests).unwrap(),
+            );
+        }
         if let Some(request_tools) = &fixture.request_tools {
             let actual: Vec<Vec<_>> = trajectories[0]
                 .turns
@@ -419,6 +431,11 @@ import_fixture!(
     steering_before_tool_result,
     "fixtures/steering-before-tool-result.json"
 );
+import_fixture!(
+    instructions_across_turns,
+    "fixtures/instructions-across-turns.json"
+);
+import_fixture!(empty_assistant_text, "fixtures/empty-assistant-text.json");
 
 #[test]
 fn reviewer_calls_do_not_split_turns_or_replace_the_final_response() {

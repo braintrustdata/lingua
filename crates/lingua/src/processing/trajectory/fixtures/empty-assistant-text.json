@@ -1,0 +1,113 @@
+{
+  "spans": [
+    {
+      "id": "empty-string",
+      "span_id": "empty-string",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [{"role": "user", "content": "Request 1"}],
+      "output": [{"role": "assistant", "content": ""}]
+    },
+    {
+      "id": "blank-string",
+      "span_id": "blank-string",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 3, "end": 4},
+      "input": [{"role": "user", "content": "Request 2"}],
+      "output": [{"role": "assistant", "content": " \n\t"}]
+    },
+    {
+      "id": "empty-array",
+      "span_id": "empty-array",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 5, "end": 6},
+      "input": [{"role": "user", "content": "Request 3"}],
+      "output": [{"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": ""}]}]
+    },
+    {
+      "id": "blank-array",
+      "span_id": "blank-array",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 7, "end": 8},
+      "input": [{"role": "user", "content": "Request 4"}],
+      "output": [{"role": "assistant", "content": [{"type": "text", "text": " \n\t"}]}]
+    },
+    {
+      "id": "blank-responses",
+      "span_id": "blank-responses",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 9, "end": 10},
+      "input": [{"role": "user", "content": "Request 5"}],
+      "output": [
+        {
+          "type": "message",
+          "role": "assistant",
+          "content": [{"type": "output_text", "text": " \n\t"}]
+        }
+      ]
+    },
+    {
+      "id": "nonempty-array",
+      "span_id": "nonempty-array",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 11, "end": 12},
+      "input": [{"role": "user", "content": "Request 6"}],
+      "output": [
+        {
+          "role": "assistant",
+          "content": [{"type": "text", "text": ""}, {"type": "text", "text": "Answer"}]
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "empty-string",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": ["empty-string"],
+      "user_texts": ["Request 1"]
+    },
+    {
+      "request_id": "blank-string",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": ["blank-string"],
+      "user_texts": ["Request 2"]
+    },
+    {
+      "request_id": "empty-array",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": ["empty-array"],
+      "user_texts": ["Request 3"]
+    },
+    {
+      "request_id": "blank-array",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": ["blank-array"],
+      "user_texts": ["Request 4"]
+    },
+    {
+      "request_id": "blank-responses",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": ["blank-responses"],
+      "user_texts": ["Request 5"]
+    },
+    {
+      "request_id": "nonempty-array",
+      "response_id": "nonempty-array",
+      "response_text": "\nAnswer",
+      "work_ids": [],
+      "user_texts": ["Request 6"]
+    }
+  ]
+}

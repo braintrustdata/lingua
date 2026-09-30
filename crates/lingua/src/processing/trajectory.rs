@@ -93,7 +93,7 @@ impl PreparedSpan {
             }
             if source.analysis
                 || (index >= current_start && !matches!(message, Message::Tool { .. }))
-                || matches!(message, Message::AdditionalTools { .. })
+                || is_context(&message)
             {
                 if context {
                     context_messages.insert(input.len());
@@ -207,6 +207,9 @@ impl PreparedSpan {
                                 }
                             }
                             AssistantContentPart::ToolResult { .. } => {}
+                            AssistantContentPart::Text(text) => {
+                                has_response |= !text.text.trim().is_empty();
+                            }
                             _ => has_response = true,
                         }
                     }
