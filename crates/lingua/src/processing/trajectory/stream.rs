@@ -441,7 +441,10 @@ impl TrajectoryStream {
                 }
                 matches!(
                     message,
-                    Message::User { .. } | Message::System { .. } | Message::Developer { .. }
+                    Message::User { .. }
+                        | Message::System { .. }
+                        | Message::Developer { .. }
+                        | Message::AdditionalTools { .. }
                 ) && (!self.exclude_system || !matches!(message, Message::System { .. }))
             })
             .map(|(_, message)| message.clone())

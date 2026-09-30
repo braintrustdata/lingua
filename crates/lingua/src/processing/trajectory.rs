@@ -89,10 +89,18 @@ impl PreparedSpan {
             }
         }
         if !source.analysis {
-            span.input.drain(..current_start);
+            let tools: Vec<_> = span
+                .input
+                .drain(..current_start)
+                .filter(|message| matches!(message, Message::AdditionalTools { .. }))
+                .collect();
+            let tool_count = tools.len();
+            span.input.splice(..0, tools);
             context_messages = context_messages
                 .into_iter()
-                .filter_map(|index| index.checked_sub(current_start))
+                .filter_map(|index| {
+                    index.checked_sub(current_start).map(|index| index + tool_count)
+                })
                 .collect();
         }
         let failure = (!span.errors.is_empty()).then(|| ImportFailure {

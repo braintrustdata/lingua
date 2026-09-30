@@ -44,6 +44,7 @@ struct ImportFixture {
     worker_responses: Vec<String>,
     end_times: Option<Vec<Option<DateTime<Utc>>>>,
     compactions: Option<Vec<Value>>,
+    request_tools: Option<Vec<Vec<crate::universal::UniversalTool>>>,
     #[serde(default)]
     import_failures: Vec<crate::serde_json::Value>,
 }
@@ -88,6 +89,24 @@ fn check_import_fixture(fixture: &str) {
         assert!(collector.is_complete());
         let trajectories = collector.snapshot().unwrap();
         assert_eq!(trajectories.len(), 1);
+        if let Some(request_tools) = &fixture.request_tools {
+            let actual: Vec<Vec<_>> = trajectories[0]
+                .turns
+                .iter()
+                .map(|turn| {
+                    turn.request
+                        .iter()
+                        .flatten()
+                        .filter_map(|message| match message {
+                            Message::AdditionalTools { tools, .. } => Some(tools.clone()),
+                            _ => None,
+                        })
+                        .flatten()
+                        .collect()
+                })
+                .collect();
+            assert_eq!(&actual, request_tools);
+        }
         assert_eq!(
             trajectories[0]
                 .metadata
@@ -299,6 +318,10 @@ import_fixture!(
 );
 
 import_fixture!(responses_tool_cycle, "fixtures/responses-tool-cycle.json");
+import_fixture!(
+    tool_definitions_across_turns,
+    "fixtures/tool-definitions-across-turns.json"
+);
 import_fixture!(
     responses_parent_turns,
     "fixtures/responses-parent-turns.json"
