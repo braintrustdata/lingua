@@ -179,6 +179,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             output.take().map(|output| {
                 vec![ToolContentPart::ToolResult(ToolResultContentPart {
                     tool_call_id,
+                    // Match provider imports: an empty name means unknown; the call ID still pairs the result.
                     tool_name: source.span_attributes.name.clone().unwrap_or_default(),
                     output,
                     custom_tool_call: None,
