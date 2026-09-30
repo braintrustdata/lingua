@@ -398,6 +398,10 @@ import_fixture!(
 
 import_fixture!(responses_tool_cycle, "fixtures/responses-tool-cycle.json");
 import_fixture!(
+    responses_attachment_history,
+    "fixtures/responses-attachment-history.json"
+);
+import_fixture!(
     tool_definitions_across_turns,
     "fixtures/tool-definitions-across-turns.json"
 );

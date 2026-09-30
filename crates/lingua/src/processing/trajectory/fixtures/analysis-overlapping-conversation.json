@@ -1,0 +1,27 @@
+{
+  "spans": [
+    {
+      "id": "conversation", "span_id": "conversation", "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 5},
+      "input": [{"role": "user", "content": "Question"}],
+      "output": [{"role": "assistant", "content": "Answer"}]
+    },
+    {
+      "id": "analysis", "span_id": "analysis", "root_span_id": "root",
+      "span_parents": ["conversation"],
+      "span_attributes": {"type": "llm"},
+      "metadata": {"trajectory_role": "analysis"},
+      "metrics": {"start": 2, "end": 3},
+      "input": [{"role": "user", "content": "Review"}],
+      "output": [{"role": "assistant", "content": "Assessment"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "conversation", "response_id": "conversation",
+      "response_text": "Answer", "work_ids": ["analysis"], "user_texts": ["Question"]
+    }
+  ],
+  "start_times": ["1970-01-01T00:00:01Z"]
+}

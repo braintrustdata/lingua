@@ -402,6 +402,51 @@ enum LenientTextContentPartCompat {
     Text { text: String },
 }
 
+#[cfg(feature = "openai")]
+#[derive(Deserialize)]
+struct AttachmentImageCompat {
+    #[serde(alias = "image")]
+    image_url: ImageAttachment,
+    #[serde(flatten)]
+    part: openai::InputContent,
+}
+
+#[cfg(feature = "openai")]
+#[derive(Deserialize, Serialize)]
+#[serde(tag = "type")]
+enum ImageAttachment {
+    #[serde(rename = "braintrust_attachment")]
+    Braintrust {
+        key: String,
+        filename: String,
+        content_type: String,
+    },
+}
+
+#[cfg(feature = "openai")]
+fn try_parse_attachment_image(item: &Value) -> Option<UserContentPart> {
+    let AttachmentImageCompat { image_url, part } =
+        AttachmentImageCompat::deserialize(item).ok()?;
+    if part.input_content_type != openai::InputItemContentListType::InputImage
+        || part.prompt_cache_breakpoint.is_some()
+    {
+        return None;
+    }
+    let ImageAttachment::Braintrust { content_type, .. } = &image_url;
+    let provider_options = part
+        .detail
+        .map(|detail| crate::universal::message::ProviderOptions {
+            options: [("detail".to_string(), serde_json::json!(detail))]
+                .into_iter()
+                .collect(),
+        });
+    Some(UserContentPart::Image {
+        image: serde_json::to_value(&image_url).ok()?,
+        media_type: Some(content_type.clone()),
+        provider_options,
+    })
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 enum LenientAssistantContentPartCompat {
@@ -703,11 +748,29 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
     match value {
         Value::String(s) => Some(UserContent::String(s.clone())),
         Value::Array(arr) => {
-            let parts: Vec<UserContentPart> = arr
-                .iter()
-                .filter_map(try_parse_lenient_text_content_part)
-                .map(UserContentPart::Text)
-                .collect();
+            let parts: Vec<UserContentPart> =
+                arr.iter()
+                    .map(|item| {
+                        #[cfg(feature = "openai")]
+                        {
+                            if let Some(image) = try_parse_attachment_image(item) {
+                                return Some(image);
+                            }
+                            if let Some(part) = openai::InputContent::deserialize(item)
+                                .ok()
+                                .and_then(|part| {
+                                    <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(
+                                        part,
+                                    )
+                                    .ok()
+                                })
+                            {
+                                return Some(part);
+                            }
+                        }
+                        try_parse_lenient_text_content_part(item).map(UserContentPart::Text)
+                    })
+                    .collect::<Option<_>>()?;
             if parts.is_empty() {
                 None
             } else {
