@@ -487,12 +487,20 @@ pub struct ImportedSpan {
 }
 
 #[wasm_bindgen]
-pub fn import_span(span: JsValue) -> Result<ImportedSpan, JsValue> {
+pub fn import_span(
+    span: JsValue,
+    preserve_unsupported: Option<bool>,
+) -> Result<ImportedSpan, JsValue> {
     let span = serde_wasm_bindgen::from_value(span)
         .map_err(|error| JsValue::from_str(&error.to_string()))?;
     Ok(ImportedSpan {
-        inner: crate::processing::import::import_span(span)
-            .map_err(|error| JsValue::from_str(&error))?,
+        inner: crate::processing::import::import_span_with_options(
+            span,
+            crate::processing::import::ImportOptions {
+                preserve_unsupported: preserve_unsupported.unwrap_or_default(),
+            },
+        )
+        .map_err(|error| JsValue::from_str(&error))?,
     })
 }
 

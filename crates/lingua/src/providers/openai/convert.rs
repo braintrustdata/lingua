@@ -1293,6 +1293,14 @@ pub(crate) fn try_parse_responses_items_for_import(
     try_from_responses_items_candidate(&normalized)
 }
 
+pub(crate) fn is_opaque_item_for_import(data: &serde_json::Value) -> bool {
+    openai::InputItem::deserialize(data).is_ok_and(|item| {
+        item.input_item_type == Some(openai::InputItemType::Compaction)
+            && item.id.is_some()
+            && item.encrypted_content.is_some()
+    })
+}
+
 fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<Vec<Message>> {
     match input {
         openai::Instructions::InputItemArray(items) => {

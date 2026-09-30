@@ -129,12 +129,15 @@
           "content": "Result"
         }
       ],
-      "output": [
-        {
-          "role": "assistant",
-          "content": "Context"
-        }
-      ],
+      "output": {
+        "summary": "Context",
+        "kept_messages": [
+          {
+            "role": "user",
+            "content": "Request"
+          }
+        ]
+      },
       "metadata": {
         "compaction": true
       }
@@ -279,10 +282,7 @@
       ]
     }
   ],
-  "import_failures": [
-    {
-      "span_id": "final",
-      "message": "Unsupported message item at index 0"
-    }
-  ]
+  "import_options": {
+    "preserve_unsupported": true
+  }
 }

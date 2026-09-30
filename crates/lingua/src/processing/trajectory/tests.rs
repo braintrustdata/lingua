@@ -1,5 +1,5 @@
 use super::*;
-use crate::processing::import::{import_span, Span};
+use crate::processing::import::{import_span, import_span_with_options, ImportOptions, Span};
 use crate::universal::{UserContent, UserContentPart};
 use serde_json::json;
 use serde_json::Value;
@@ -36,6 +36,8 @@ fn collect(collector: &mut TrajectoryCollector, events: Vec<TrajectoryEvent>) {
 
 #[derive(Deserialize)]
 struct ImportFixture {
+    #[serde(default)]
+    import_options: ImportOptions,
     spans: Vec<Span>,
     turns: Vec<ExpectedTurn>,
     #[serde(default)]
@@ -73,7 +75,11 @@ fn check_import_fixture(fixture: &str) {
                     .unwrap();
                 collect(
                     &mut collector,
-                    stream.push(import_span(span.clone()).unwrap()).unwrap(),
+                    stream
+                        .push(
+                            import_span_with_options(span.clone(), fixture.import_options).unwrap(),
+                        )
+                        .unwrap(),
                 );
             }
         }
@@ -161,6 +167,96 @@ fn check_import_fixture(fixture: &str) {
     }
 }
 
+#[test]
+fn preserves_opaque_items_without_weakening_strict_imports() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/responses-compacted-history.json")).unwrap();
+    let source = fixture.spans[0].clone();
+    let strict = import_span(source.clone()).unwrap();
+    assert!(strict.input.is_empty());
+    assert!(!strict.errors.is_empty());
+    let imported = import_span_with_options(source.clone(), fixture.import_options).unwrap();
+    assert!(imported.errors.is_empty());
+    assert!(matches!(imported.input.as_slice(), [Message::User { .. }]));
+    assert_eq!(imported.opaque_input.len(), 1);
+    assert_eq!(imported.opaque_input[0].index, Some(0));
+    assert_eq!(imported.opaque_input[0].value, source.input.unwrap()[0]);
+    assert_eq!(imported.opaque_output[0].value, source.output.unwrap()[0]);
+    assert!(imported.header_only().opaque_input.is_empty());
+    let item = crate::providers::openai::generated::InputItem::deserialize(
+        &imported.opaque_input[0].value,
+    )
+    .unwrap();
+    assert!(<Vec<Message> as crate::universal::convert::TryFromLLM<
+        Vec<crate::providers::openai::generated::InputItem>,
+    >>::try_from(vec![item])
+    .is_err());
+}
+
+#[test]
+fn best_effort_import_preserves_unsupported_items_and_diagnostics() {
+    let spans: Vec<Span> =
+        serde_json::from_str(include_str!("fixtures/unsupported-mixed-input.json")).unwrap();
+    let source = spans[0].clone();
+    let strict = import_span(source.clone()).unwrap();
+    assert!(strict.input.is_empty());
+    assert!(strict.output.is_empty());
+    let imported = import_span_with_options(
+        source,
+        ImportOptions {
+            preserve_unsupported: true,
+        },
+    )
+    .unwrap();
+    assert!(!imported.input.is_empty());
+    assert!(!imported.output.is_empty());
+    assert_eq!(imported.errors, strict.errors);
+    assert_eq!(imported.opaque_input.len(), 1);
+    assert_eq!(imported.opaque_output.len(), 1);
+}
+
+#[test]
+fn preserves_compaction_outputs_as_opaque_data() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/compaction-and-resumed-parent.json")).unwrap();
+    let source = fixture
+        .spans
+        .into_iter()
+        .find(|span| span.other["id"] == "compact")
+        .unwrap();
+    let original_output = source.output.clone().unwrap();
+    let imported = import_span_with_options(source, fixture.import_options).unwrap();
+    assert!(imported.output.is_empty());
+    assert!(imported.errors.is_empty());
+    assert_eq!(imported.opaque_output.len(), 1);
+    assert_eq!(imported.opaque_output[0].index, None);
+    assert_eq!(imported.opaque_output[0].value, original_output);
+}
+
+#[test]
+fn preserves_custom_content_without_inventing_messages() {
+    let source: Span =
+        serde_json::from_str(include_str!("fixtures/custom-content-payload.json")).unwrap();
+    let original_input = source.input.clone().unwrap();
+    let original_output = source.output.clone().unwrap();
+    let imported = import_span_with_options(
+        source,
+        ImportOptions {
+            preserve_unsupported: true,
+        },
+    )
+    .unwrap();
+    assert!(imported.input.is_empty());
+    assert!(imported.output.is_empty());
+    assert!(!imported.errors.is_empty());
+    assert_eq!(imported.opaque_input.len(), 3);
+    for (index, item) in imported.opaque_input.iter().enumerate() {
+        assert_eq!(item.index, Some(index));
+        assert_eq!(item.value, original_input["messages"][index]);
+    }
+    assert_eq!(imported.opaque_output[0].value, original_output);
+}
+
 macro_rules! import_fixture {
     ($test:ident, $file:literal) => {
         #[test]
@@ -180,6 +276,10 @@ import_fixture!(
 );
 
 import_fixture!(responses_tool_cycle, "fixtures/responses-tool-cycle.json");
+import_fixture!(
+    responses_compacted_history,
+    "fixtures/responses-compacted-history.json"
+);
 import_fixture!(
     responses_parent_turns,
     "fixtures/responses-parent-turns.json"

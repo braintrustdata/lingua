@@ -1,4 +1,4 @@
-use super::{import_span_messages, Span};
+use super::{import_span_messages, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
 use crate::universal::{
@@ -41,6 +41,10 @@ pub struct ImportedSpan {
     pub input: Vec<Message>,
     #[serde(default)]
     pub output: Vec<Message>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub opaque_input: Vec<OpaqueItem>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub opaque_output: Vec<OpaqueItem>,
     pub usage: Option<UniversalUsage>,
     pub tool_result: Option<ToolResult>,
     #[serde(default)]
@@ -57,6 +61,8 @@ impl ImportedSpan {
             header: self.header.clone(),
             input: Vec::new(),
             output: Vec::new(),
+            opaque_input: Vec::new(),
+            opaque_output: Vec::new(),
             usage: None,
             tool_result: None,
             context_messages: Vec::new(),
@@ -138,7 +144,11 @@ enum CompactionHint {
     },
 }
 
-pub fn import_span(mut span: Span) -> Result<ImportedSpan> {
+pub fn import_span(span: Span) -> Result<ImportedSpan> {
+    import_span_with_options(span, ImportOptions::default())
+}
+
+pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Result<ImportedSpan> {
     let mut source = SpanFields::deserialize(&json::Value::Object(std::mem::take(&mut span.other)))
         .map_err(|error| format!("Invalid span fields: {error}"))?;
     let mut errors = Vec::new();
@@ -186,12 +196,33 @@ pub fn import_span(mut span: Span) -> Result<ImportedSpan> {
     } else {
         None
     };
-    let (input, output, message_errors) = import_span_messages(
+    let is_compaction = matches!(
+        compaction,
+        Some(CompactionHint::Flag(true) | CompactionHint::Details { .. })
+    ) || source.tags.iter().any(|tag| tag == "compaction")
+        || (source.span_attributes.kind.as_deref() == Some("task")
+            && source.span_attributes.name.as_deref() == Some("compaction"));
+    let compaction_output = if options.preserve_unsupported && is_compaction {
+        span.output
+            .take()
+            .map(|value| OpaqueItem { index: None, value })
+    } else {
+        None
+    };
+    let super::SpanMessages {
+        input,
+        output,
+        opaque_input,
+        mut opaque_output,
+        errors: message_errors,
+    } = import_span_messages(
         span.input,
         span.output,
         source.metadata.as_ref(),
         source.span_attributes.kind.as_deref() == Some("llm"),
+        options,
     );
+    opaque_output.extend(compaction_output);
     errors.extend(message_errors);
     let context_messages = input
         .iter()
@@ -215,12 +246,6 @@ pub fn import_span(mut span: Span) -> Result<ImportedSpan> {
             .then(|| source.header.id.clone())
             .flatten()
         });
-    let is_compaction = matches!(
-        compaction,
-        Some(CompactionHint::Flag(true) | CompactionHint::Details { .. })
-    ) || source.tags.iter().any(|tag| tag == "compaction")
-        || (source.span_attributes.kind.as_deref() == Some("task")
-            && source.span_attributes.name.as_deref() == Some("compaction"));
     let compaction = source
         .header
         .id
@@ -256,6 +281,8 @@ pub fn import_span(mut span: Span) -> Result<ImportedSpan> {
         header: source.header,
         input,
         output,
+        opaque_input,
+        opaque_output,
         usage: usage.filter(|usage| usage != &UniversalUsage::default()),
         tool_result,
         context_messages,

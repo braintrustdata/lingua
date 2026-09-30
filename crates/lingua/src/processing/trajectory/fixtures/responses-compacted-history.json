@@ -19,6 +19,11 @@
       },
       "input": [
         {
+          "type": "compaction",
+          "id": "previous-state",
+          "encrypted_content": "opaque-previous"
+        },
+        {
           "role": "user",
           "content": "Request"
         }

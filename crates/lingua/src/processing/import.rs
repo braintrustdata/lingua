@@ -30,7 +30,40 @@ use crate::universal::{
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use serde::{Deserialize, Serialize};
-pub use span::{import_span, ImportedSpan, SpanContext};
+pub use span::{import_span, import_span_with_options, ImportedSpan, SpanContext};
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+pub struct ImportOptions {
+    #[serde(default)]
+    pub preserve_unsupported: bool,
+}
+
+/// Source data retained without interpreting it as a conversational message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpaqueItem {
+    /// Position in the source array, or None when the payload itself is opaque.
+    pub index: Option<usize>,
+    pub value: Value,
+}
+
+#[derive(Default)]
+struct MessageImport {
+    options: ImportOptions,
+    errors: Vec<String>,
+    opaque: Vec<OpaqueItem>,
+}
+
+fn is_opaque_item(data: &Value) -> bool {
+    #[cfg(feature = "openai")]
+    {
+        crate::providers::openai::convert::is_opaque_item_for_import(data)
+    }
+    #[cfg(not(feature = "openai"))]
+    {
+        let _ = data;
+        false
+    }
+}
 
 /// Represents a minimal span structure with input/output fields
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,16 +77,21 @@ pub struct Span {
 }
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
-fn try_converting_to_messages(data: &Value, errors: &mut Vec<String>) -> Vec<Message> {
+fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<Message> {
     if let Some(messages) = try_parse_ai_sdk_for_import(data) {
         return messages;
     }
 
-    if is_role_message_array(data) {
-        return try_parse_mixed_messages_for_import(data, errors).unwrap_or_default();
+    if is_role_message_array(data)
+        || (import.options.preserve_unsupported
+            && data
+                .as_array()
+                .is_some_and(|items| items.iter().any(is_opaque_item)))
+    {
+        return try_parse_mixed_messages_for_import(data, import).unwrap_or_default();
     }
 
-    if let Some(messages) = try_choices_array_parsing(data, errors) {
+    if let Some(messages) = try_choices_array_parsing(data, import) {
         return messages;
     }
 
@@ -100,7 +138,7 @@ fn try_converting_to_messages(data: &Value, errors: &mut Vec<String>) -> Vec<Mes
                 "messages", "prompt", "input", "output", "choices", "result", "response",
             ] {
                 if let Some(nested) = obj.get(key) {
-                    let nested_messages = try_converting_to_messages(nested, errors);
+                    let nested_messages = try_converting_to_messages(nested, import);
                     if !nested_messages.is_empty() {
                         return nested_messages;
                     }
@@ -110,7 +148,7 @@ fn try_converting_to_messages(data: &Value, errors: &mut Vec<String>) -> Vec<Mes
         return Vec::new();
     }
 
-    if let Some(messages) = try_parse_mixed_messages_for_import(data, errors) {
+    if let Some(messages) = try_parse_mixed_messages_for_import(data, import) {
         return messages;
     }
 
@@ -164,7 +202,7 @@ fn try_converting_to_messages(data: &Value, errors: &mut Vec<String>) -> Vec<Mes
 
     // Try parsing as choices array (Chat Completions response format)
     // This handles [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
-    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse, errors) {
+    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse, import) {
         if !choices_messages.is_empty() {
             return choices_messages;
         }
@@ -200,14 +238,21 @@ fn provider_parsers_for_import() -> Vec<MessageParser> {
 
 fn try_parse_mixed_messages_for_import(
     data: &Value,
-    errors: &mut Vec<String>,
+    import: &mut MessageImport,
 ) -> Option<Vec<Message>> {
     let items = data.as_array()?;
     let provider_parsers = provider_parsers_for_import();
     let mut messages = Vec::new();
-    let errors_before = errors.len();
+    let errors_before = import.errors.len();
 
     for (index, item) in items.iter().enumerate() {
+        if import.options.preserve_unsupported && is_opaque_item(item) {
+            import.opaque.push(OpaqueItem {
+                index: Some(index),
+                value: item.clone(),
+            });
+            continue;
+        }
         // Native Anthropic thinking blocks must use the canonical parser so adjacent text
         // metadata survives. Keep the existing parser order for every other role message.
         #[cfg(feature = "anthropic")]
@@ -250,13 +295,21 @@ fn try_parse_mixed_messages_for_import(
         }
 
         let Some(mut parsed_messages) = parsed_messages else {
-            errors.push(format!("Unsupported message item at index {index}"));
+            import
+                .errors
+                .push(format!("Unsupported message item at index {index}"));
+            if import.options.preserve_unsupported {
+                import.opaque.push(OpaqueItem {
+                    index: Some(index),
+                    value: item.clone(),
+                });
+            }
             continue;
         };
         messages.append(&mut parsed_messages);
     }
 
-    if errors.len() != errors_before {
+    if import.errors.len() != errors_before && !import.options.preserve_unsupported {
         Some(Vec::new())
     } else if messages.is_empty() {
         None
@@ -705,7 +758,7 @@ fn parse_tool_content(value: &Value) -> Option<ToolContent> {
 ///
 /// This handles the output format: [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
 /// Extracts messages from the "message" field of each choice object.
-fn try_choices_array_parsing(data: &Value, errors: &mut Vec<String>) -> Option<Vec<Message>> {
+fn try_choices_array_parsing(data: &Value, import: &mut MessageImport) -> Option<Vec<Message>> {
     let arr = data.as_array()?;
     let mut messages = Vec::new();
 
@@ -722,7 +775,7 @@ fn try_choices_array_parsing(data: &Value, errors: &mut Vec<String>) -> Option<V
         if let Some(message_value) = obj.get("message") {
             // The message is a single object, wrap in array for try_converting_to_messages
             let wrapped = Value::Array(vec![message_value.clone()]);
-            let nested_messages = try_converting_to_messages(&wrapped, errors);
+            let nested_messages = try_converting_to_messages(&wrapped, import);
             if nested_messages.is_empty() {
                 // If element has "message" but we couldn't parse it, this is malformed
                 return None;
@@ -739,28 +792,52 @@ fn try_choices_array_parsing(data: &Value, errors: &mut Vec<String>) -> Option<V
     }
 }
 
+struct SpanMessages {
+    input: Vec<Message>,
+    output: Vec<Message>,
+    opaque_input: Vec<OpaqueItem>,
+    opaque_output: Vec<OpaqueItem>,
+    errors: Vec<String>,
+}
+
 /// Import a span's input and output messages, preserving their boundary and parse errors.
 ///
 /// Both structured span imports and message-only imports use this conversion path to
-/// convert provider messages into the Lingua format.
+/// convert provider messages into the Lingua format. Best-effort imports also retain
+/// unsupported items separately, without treating them as conversational messages.
 fn import_span_messages(
     input: Option<Value>,
     output: Option<Value>,
     metadata: Option<&Value>,
     expect_messages: bool,
-) -> (Vec<Message>, Vec<Message>, Vec<String>) {
-    let mut errors = Vec::new();
+    options: ImportOptions,
+) -> SpanMessages {
+    let mut import = MessageImport {
+        options,
+        ..Default::default()
+    };
     let nonempty = |value: &Value| match value {
         Value::Null => false,
         Value::Array(values) => !values.is_empty(),
         Value::Object(fields) => !fields.is_empty(),
         _ => true,
     };
-    let mut parse = |value: &Value, field: &str| {
-        let errors_before = errors.len();
-        let messages = try_converting_to_messages(value, &mut errors);
-        if expect_messages && messages.is_empty() && errors.len() == errors_before {
-            errors.push(format!("Unsupported {field} message format"));
+    let parse = |value: Value, field: &str, import: &mut MessageImport| {
+        if options.preserve_unsupported && is_opaque_item(&value) {
+            import.opaque.push(OpaqueItem { index: None, value });
+            return Vec::new();
+        }
+        let errors_before = import.errors.len();
+        let messages = try_converting_to_messages(&value, import);
+        if messages.is_empty() && import.opaque.is_empty() {
+            if expect_messages && import.errors.len() == errors_before {
+                import
+                    .errors
+                    .push(format!("Unsupported {field} message format"));
+            }
+            if options.preserve_unsupported {
+                import.opaque.push(OpaqueItem { index: None, value });
+            }
         }
         messages
     };
@@ -768,16 +845,17 @@ fn import_span_messages(
         Some(Value::String(text)) => vec![Message::User {
             content: UserContent::String(text),
         }],
-        Some(input) => parse(&input, "input"),
+        Some(input) => parse(input, "input", &mut import),
         None => Vec::new(),
     };
+    let opaque_input = std::mem::take(&mut import.opaque);
     let output = match output.filter(nonempty) {
         Some(Value::String(text)) if !text.is_empty() => vec![Message::Assistant {
             content: AssistantContent::String(text),
             id: None,
         }],
         Some(Value::String(_)) => Vec::new(),
-        Some(output) => parse(&output, "output"),
+        Some(output) => parse(output, "output", &mut import),
         None => Vec::new(),
     };
     #[cfg(feature = "openai")]
@@ -789,7 +867,13 @@ fn import_span_messages(
             input.insert(0, message);
         }
     }
-    (input, output, errors)
+    SpanMessages {
+        input,
+        output,
+        opaque_input,
+        opaque_output: import.opaque,
+        errors: import.errors,
+    }
 }
 
 /// Import messages from a list of spans
@@ -800,9 +884,14 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
     spans
         .into_iter()
         .flat_map(|span| {
-            let (input, output, _) =
-                import_span_messages(span.input, span.output, span.other.get("metadata"), true);
-            input.into_iter().chain(output)
+            let messages = import_span_messages(
+                span.input,
+                span.output,
+                span.other.get("metadata"),
+                true,
+                ImportOptions::default(),
+            );
+            messages.input.into_iter().chain(messages.output)
         })
         .collect()
 }
@@ -855,7 +944,7 @@ mod tests {
     }
 
     fn import_assistant_parts(input: Value) -> Vec<AssistantContentPart> {
-        let messages = try_converting_to_messages(&input, &mut Vec::new());
+        let messages = try_converting_to_messages(&input, &mut MessageImport::default());
         assert_eq!(messages.len(), 1);
 
         let Message::Assistant {
