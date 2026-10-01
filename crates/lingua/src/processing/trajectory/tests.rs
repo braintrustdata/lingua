@@ -1,6 +1,7 @@
 use super::*;
 use crate::processing::import::{import_span, import_span_with_options, ImportOptions, Span};
 use crate::universal::{UserContent, UserContentPart};
+use proptest::prelude::*;
 use serde_json::json;
 use serde_json::Value;
 
@@ -64,54 +65,13 @@ struct ExpectedTurn {
 fn check_import_fixture(fixture: &str) {
     let fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
     check_fixture(&fixture);
+    check_fixture_variants(&fixture);
 }
 
 fn check_fixture(fixture: &ImportFixture) {
     let mut snapshot = None;
     for (batch_size, import_bodies) in [(1, false), (16, false), (1, true), (16, true)] {
-        let mut headers: Vec<_> = fixture
-            .spans
-            .iter()
-            .cloned()
-            .map(|mut source| {
-                if !import_bodies {
-                    source.input = None;
-                    source.output = None;
-                }
-                import_span_with_options(source, fixture.import_options)
-                    .unwrap()
-                    .header_only()
-            })
-            .collect();
-        if batch_size > 1 {
-            headers.reverse();
-        }
-        let mut stream = TrajectoryStream::new(headers, false).unwrap();
-        let mut collector = TrajectoryCollector::default();
-        loop {
-            let ids = stream.pending_ids(batch_size);
-            if ids.is_empty() {
-                break;
-            }
-            for id in ids.iter().rev() {
-                let span = fixture
-                    .spans
-                    .iter()
-                    .find(|span| span.other["id"].as_str() == Some(id.as_str()))
-                    .unwrap();
-                collect(
-                    &mut collector,
-                    stream
-                        .push(
-                            import_span_with_options(span.clone(), fixture.import_options).unwrap(),
-                        )
-                        .unwrap(),
-                );
-            }
-        }
-        collect(&mut collector, stream.finish().unwrap());
-        assert!(collector.is_complete());
-        let trajectories = collector.snapshot().unwrap();
+        let trajectories = run_fixture(fixture, batch_size, import_bodies, &[]);
         let actual = serde_json::to_value(&trajectories).unwrap();
         if let Some(expected) = &snapshot {
             assert_eq!(&actual, expected, "Import result depends on load order");
@@ -245,6 +205,597 @@ fn check_fixture(fixture: &ImportFixture) {
             .filter_map(|turn| turn.response_id.clone())
             .collect();
         assert_eq!(worker_responses, fixture.worker_responses);
+    }
+}
+
+fn run_fixture(
+    fixture: &ImportFixture,
+    batch_size: usize,
+    import_bodies: bool,
+    priorities: &[u64],
+) -> Vec<Trajectory> {
+    let mut spans: Vec<_> = fixture.spans.iter().cloned().enumerate().collect();
+    if priorities.is_empty() {
+        if batch_size > 1 {
+            spans.reverse();
+        }
+    } else {
+        spans.sort_by_key(|(index, _)| priorities[*index]);
+    }
+    let headers: Vec<_> = spans
+        .iter()
+        .map(|(_, source)| {
+            let mut source = source.clone();
+            if !import_bodies {
+                source.input = None;
+                source.output = None;
+            }
+            import_span_with_options(source, fixture.import_options)
+                .unwrap()
+                .header_only()
+        })
+        .collect();
+    let source_headers: Vec<_> = headers.iter().map(|span| span.header.clone()).collect();
+    let mut stream = TrajectoryStream::new(headers, false).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    let mut events = Vec::new();
+    let snapshot_stride = fixture.spans.len().div_ceil(16).max(1);
+    let mut event_count = 0;
+    loop {
+        let mut ids = stream.pending_ids(usize::MAX);
+        if ids.is_empty() {
+            break;
+        }
+        if !priorities.is_empty() {
+            ids.sort_by_key(|id| {
+                spans
+                    .iter()
+                    .position(|(_, source)| source.other["id"].as_str() == Some(id.as_str()))
+                    .unwrap()
+            });
+        }
+        ids.truncate(batch_size);
+        for id in ids.iter().rev() {
+            let source = fixture
+                .spans
+                .iter()
+                .find(|source| source.other["id"].as_str() == Some(id.as_str()))
+                .unwrap();
+            let batch = stream
+                .push(import_span_with_options(source.clone(), fixture.import_options).unwrap())
+                .unwrap();
+            for event in &batch {
+                collector.push(event.clone()).unwrap();
+                event_count += 1;
+                if event_count % snapshot_stride == 0 {
+                    collector.snapshot().unwrap();
+                }
+            }
+            events.extend(batch);
+        }
+    }
+    let final_events = stream.finish().unwrap();
+    for event in &final_events {
+        collector.push(event.clone()).unwrap();
+    }
+    events.extend(final_events);
+    let mut deferred = TrajectoryCollector::default();
+    collect(&mut deferred, events);
+    assert!(collector.is_complete());
+    let result = collector.snapshot().unwrap();
+    assert_eq!(
+        serde_json::to_value(&result).unwrap(),
+        serde_json::to_value(deferred.snapshot().unwrap()).unwrap()
+    );
+    check_span_coverage(fixture, &source_headers, &result);
+    result
+}
+
+fn check_span_coverage(
+    fixture: &ImportFixture,
+    headers: &[SpanContext],
+    trajectories: &[Trajectory],
+) {
+    fn visit<'a>(trajectory: &'a Trajectory, owners: &mut HashMap<&'a str, &'a Trajectory>) {
+        for turn in &trajectory.turns {
+            let mut ids = HashSet::from([turn.request_id.as_str()]);
+            if let Some(id) = &turn.response_id {
+                ids.insert(id);
+            }
+            let mut work_ids = HashSet::new();
+            for step in &turn.work {
+                assert!(work_ids.insert(&step.id), "Duplicate work span {}", step.id);
+                assert_ne!(
+                    turn.response_id.as_ref(),
+                    Some(&step.id),
+                    "Final response duplicated as work"
+                );
+                ids.insert(&step.id);
+                if let Some(worker) = &step.sub_agent {
+                    visit(worker, owners);
+                }
+            }
+            for id in ids {
+                assert!(
+                    owners.insert(id, trajectory).is_none(),
+                    "Span {id} belongs to multiple turns"
+                );
+            }
+        }
+    }
+    let roots: HashSet<_> = trajectories
+        .iter()
+        .map(|trajectory| match &trajectory.scope[0] {
+            Scope::Trace { trace_id } => trace_id,
+            _ => panic!("Expected a root trajectory"),
+        })
+        .collect();
+    assert_eq!(
+        roots,
+        headers
+            .iter()
+            .filter_map(|header| header.root_span_id.as_ref())
+            .collect()
+    );
+    for trajectory in trajectories {
+        let Scope::Trace { trace_id } = &trajectory.scope[0] else {
+            panic!("Expected a root trajectory");
+        };
+        let mut owners = HashMap::new();
+        visit(trajectory, &mut owners);
+        let scoped: HashMap<_, _> = headers
+            .iter()
+            .filter(|header| header.root_span_id.as_ref() == Some(trace_id))
+            .map(|header| {
+                (
+                    header.span_id.as_ref().or(header.id.as_ref()).unwrap(),
+                    header,
+                )
+            })
+            .collect();
+        for header in scoped.values() {
+            if !matches!(header.kind.as_str(), "llm" | "tool") || header.start.is_none() {
+                continue;
+            }
+            let mut ancestor = Some(*header);
+            let mut visited = HashSet::new();
+            let mut excluded = false;
+            while let Some(current) = ancestor {
+                if current.scorer || current.kind == "score" {
+                    excluded = true;
+                    break;
+                }
+                if !visited.insert(&current.id) {
+                    excluded = true;
+                    break;
+                }
+                ancestor = current
+                    .span_parents
+                    .first()
+                    .and_then(|id| scoped.get(id).copied());
+            }
+            if !excluded {
+                let id = header.id.as_ref().unwrap();
+                assert!(owners.contains_key(id.as_str()), "Lost span {id}");
+            }
+        }
+        for source in &fixture.spans {
+            let Some(owner) = source.other["id"].as_str().and_then(|id| owners.get(id)) else {
+                continue;
+            };
+            let imported =
+                import_span_with_options(source.clone(), fixture.import_options).unwrap();
+            if imported.header.analysis || !matches!(imported.header.kind.as_str(), "llm" | "task")
+            {
+                continue;
+            }
+            let requests: HashSet<_> = owner
+                .turns
+                .iter()
+                .flat_map(|turn| turn.request.iter().flatten())
+                .filter(|message| matches!(message, Message::User { .. }))
+                .map(message_dedup_hash)
+                .collect();
+            for (index, message) in imported
+                .input
+                .iter()
+                .enumerate()
+                .rev()
+                .take_while(|(_, message)| !matches!(message, Message::Assistant { .. }))
+            {
+                if matches!(message, Message::User { .. })
+                    && !imported.context_messages.contains(&index)
+                {
+                    assert!(
+                        requests.contains(&message_dedup_hash(message)),
+                        "Lost current user message from {}",
+                        imported.header.id.as_ref().unwrap()
+                    );
+                }
+            }
+        }
+    }
+}
+
+fn check_fixture_variants(fixture: &ImportFixture) {
+    let baseline = serde_json::to_value(run_fixture(fixture, 1, false, &[])).unwrap();
+    let strategy = (
+        proptest::collection::vec(any::<u64>(), fixture.spans.len()),
+        1..=fixture.spans.len().max(1),
+        any::<bool>(),
+    );
+    let mut runner = proptest::test_runner::TestRunner::new(proptest::test_runner::Config {
+        cases: 8,
+        failure_persistence: None,
+        ..Default::default()
+    });
+    runner
+        .run(&strategy, |(order, batch_size, full)| {
+            prop_assert_eq!(
+                serde_json::to_value(run_fixture(fixture, batch_size, full, &order)).unwrap(),
+                baseline.clone()
+            );
+            Ok(())
+        })
+        .unwrap();
+    for (kind, purpose) in [("task", None), ("score", None), ("llm", Some("scorer"))] {
+        let mut variant = fixture.clone();
+        let first = &variant.spans[0];
+        variant.spans.push(
+            Span::deserialize(json!({
+                "id": "fixture-auxiliary", "span_id": "fixture-auxiliary",
+                "root_span_id": first.other["root_span_id"],
+                "span_parents": [first.other.get("span_id").unwrap_or(&first.other["id"])],
+                "span_attributes": {"type": kind, "purpose": purpose}, "metrics": {"start": 0, "end": 1},
+                "input": (kind != "task").then(|| json!([{"role": "user", "content": "Score the answer"}])),
+                "output": (kind != "task").then(|| json!([{"role": "assistant", "content": "Pass"}]))
+            }))
+            .unwrap(),
+        );
+        assert_eq!(
+            serde_json::to_value(run_fixture(&variant, 16, false, &[])).unwrap(),
+            baseline
+        );
+    }
+    check_content_bearing_auxiliaries(fixture);
+}
+
+fn check_content_bearing_auxiliaries(fixture: &ImportFixture) {
+    let mut baseline = run_fixture(fixture, 1, false, &[]);
+    let mut wrapped = fixture.clone();
+    let mut wrappers = Vec::new();
+    for source in &mut wrapped.spans {
+        let imported = import_span_with_options(source.clone(), fixture.import_options).unwrap();
+        if !fixture
+            .turns
+            .iter()
+            .any(|turn| Some(&turn.request_id) == imported.header.id.as_ref())
+            || imported.header.analysis
+            || !imported.errors.is_empty()
+            || !imported.input.iter().enumerate().any(|(index, message)| {
+                matches!(message, Message::User { .. })
+                    && !imported.context_messages.contains(&index)
+            })
+        {
+            continue;
+        }
+        let id = format!("fixture-wrapper-{}", imported.header.id.as_ref().unwrap());
+        let parents = source
+            .other
+            .insert("span_parents".into(), crate::serde_json::json!([id]));
+        wrappers.push(
+            Span::deserialize(json!({
+                "id": id, "span_id": id, "root_span_id": imported.header.root_span_id,
+                "span_parents": parents, "span_attributes": {"type": "task"},
+                "metrics": source.other.get("metrics"), "created": source.other.get("created"),
+                "input": source.input,
+            }))
+            .unwrap(),
+        );
+    }
+    if !wrappers.is_empty() {
+        wrapped.spans.extend(wrappers);
+        assert_eq!(
+            serde_json::to_value(run_fixture(&wrapped, 16, false, &[])).unwrap(),
+            serde_json::to_value(&baseline).unwrap(),
+            "A wrapper carrying the conversation changed it"
+        );
+    }
+
+    let parent = fixture
+        .turns
+        .iter()
+        .filter_map(|turn| turn.response_id.as_ref())
+        .find_map(|id| {
+            let source = fixture
+                .spans
+                .iter()
+                .find(|source| source.other["id"].as_str() == Some(id))?;
+            let header = import_span_with_options(source.clone(), fixture.import_options)
+                .unwrap()
+                .header;
+            let start = header.start?;
+            let end = header.end?;
+            (end > start && header.compaction.is_none()).then_some((header, start, end))
+        });
+    let Some((parent, start, end)) = parent else {
+        return;
+    };
+    let mut variant = fixture.clone();
+    variant.spans.push(Span::deserialize(json!({
+        "id": "fixture-analysis", "span_id": "fixture-analysis", "root_span_id": parent.root_span_id,
+        "span_parents": [parent.span_id.or(parent.id)],
+        "span_attributes": {"type": "llm"}, "metadata": {"trajectory_role": "analysis"},
+        "metrics": {"start": (start + (end - start) / 2).timestamp_micros() as f64 / 1e6,
+                    "end": end.timestamp_micros() as f64 / 1e6},
+        "input": [{"role": "user", "content": "Check the answer"}],
+        "output": [{"role": "assistant", "content": "The answer is consistent"}],
+    })).unwrap());
+    let mut result = run_fixture(&variant, 16, false, &[]);
+    let mut found = 0;
+    assert_eq!(result[0].turns.len(), baseline[0].turns.len());
+    for (turn, expected) in result[0].turns.iter_mut().zip(&mut baseline[0].turns) {
+        turn.work.retain(|step| {
+            if step.id != "fixture-analysis" {
+                return true;
+            }
+            assert!(matches!(step.work, Work::LLMAnalysis(_)));
+            if expected.end_time.is_some() {
+                expected.end_time = expected.end_time.max(step.end_time);
+            }
+            found += 1;
+            false
+        });
+    }
+    assert_eq!(found, 1);
+    assert_eq!(
+        serde_json::to_value(result).unwrap(),
+        serde_json::to_value(baseline).unwrap(),
+        "An analysis child changed the conversation"
+    );
+}
+
+#[derive(Clone, Copy, Debug)]
+enum TurnIds {
+    Inferred,
+    SharedAcrossSteering,
+    Distinct,
+}
+
+impl TurnIds {
+    fn value(self, turn: usize) -> Option<String> {
+        match self {
+            Self::Inferred => None,
+            Self::SharedAcrossSteering => Some("shared".into()),
+            Self::Distinct => Some(format!("turn-{turn}")),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum ConversationVariation {
+    Plain,
+    TiedStarts,
+    Resumed,
+    Compaction,
+    Interrupted,
+    Context,
+    Worker,
+}
+
+fn generated_conversation(
+    turns: &[(u8, usize, bool)],
+    ids: TurnIds,
+    variation: ConversationVariation,
+) -> ImportFixture {
+    let mut spans = Vec::new();
+    let mut expected: Vec<ExpectedTurn> = Vec::new();
+    let mut worker_responses = Vec::new();
+    let mut history = vec![json!({"role": "system", "content": "Initial instructions"})];
+    for (turn, &(prompt, tools, retry)) in turns.iter().enumerate() {
+        history[0] = json!({"role": "system", "content": format!("Instructions {turn}")});
+        if variation == ConversationVariation::Compaction && turn == 1 {
+            let mut compact = span("compact", spans.len() as i64 * 2 + 1, json!([]), json!([]));
+            compact.other.insert(
+                "metadata".into(),
+                crate::serde_json::json!({"compaction": true}),
+            );
+            spans.push(compact);
+            expected.push(ExpectedTurn {
+                request_id: "compact".into(),
+                response_id: None,
+                response_text: String::new(),
+                user_texts: Vec::new(),
+                work_ids: vec!["compact".into()],
+                interrupted: None,
+            });
+            history.drain(1..history.len() - 1);
+        }
+        if variation == ConversationVariation::Interrupted && turn == 1 {
+            history.push(json!({"role": "developer", "content": "<turn_aborted>Previous turn interrupted</turn_aborted>"}));
+            expected[0].interrupted = Some(true);
+        }
+        let request = format!("Request {prompt}");
+        history.push(json!({"role": "user", "content": request}));
+        let mut user_texts = vec![request];
+        if variation == ConversationVariation::Context {
+            let context = format!("<environment_context>Environment {turn}</environment_context>");
+            history.push(json!({"role": "user", "content": context}));
+            user_texts.push(context);
+        }
+        let first = spans.len();
+        let mut work_ids = Vec::new();
+        if retry {
+            let id = format!("retry-{turn}");
+            spans.push(span(
+                &id,
+                spans.len() as i64 * 2 + 1,
+                json!(history),
+                json!([]),
+            ));
+            work_ids.push(id);
+        }
+        let tools = if variation == ConversationVariation::Worker && turn == 0 {
+            tools.max(1)
+        } else {
+            tools
+        };
+        for tool in 0..tools {
+            let id = format!("call-{turn}-{tool}");
+            let call = json!({"role": "assistant", "content": null, "tool_calls": [{
+                "type": "function", "id": id,
+                "function": {"name": "example_tool", "arguments": "{}"}
+            }]});
+            spans.push(span(
+                &id,
+                spans.len() as i64 * 2 + 1,
+                json!(history),
+                json!([call]),
+            ));
+            work_ids.push(id.clone());
+            history.push(call);
+            let tool_id = format!("tool-{turn}-{tool}");
+            let start = spans.len() as i64 * 2 + 1;
+            let mut result = span(&tool_id, start, json!({}), json!("Result"));
+            result.other.insert(
+                "span_attributes".into(),
+                crate::serde_json::json!({"type": "tool", "name": "example_tool"}),
+            );
+            result.other.insert(
+                "metadata".into(),
+                crate::serde_json::json!({"tool_call_id": id}),
+            );
+            spans.push(result);
+            if variation == ConversationVariation::Worker && turn == 0 && tool == 0 {
+                let mut worker = span(
+                    "worker",
+                    start,
+                    json!([
+                        {"role": "user", "content": "Worker request"}
+                    ]),
+                    json!([{"role": "assistant", "content": "Worker answer"}]),
+                );
+                worker
+                    .other
+                    .insert("span_parents".into(), crate::serde_json::json!([tool_id]));
+                spans.push(worker);
+                worker_responses.push("worker".into());
+            }
+            work_ids.push(tool_id);
+            history.push(json!({"role": "tool", "tool_call_id": id, "content": "Result"}));
+        }
+        let final_id = format!("final-{turn}");
+        let response_text = format!("Answer {turn}");
+        let answer = json!({"role": "assistant", "content": response_text});
+        spans.push(span(
+            &final_id,
+            spans.len() as i64 * 2 + 1,
+            json!(history),
+            json!([answer]),
+        ));
+        history.push(answer);
+        if let Some(turn_id) = ids.value(turn) {
+            for source in &mut spans[first..] {
+                source
+                    .other
+                    .entry("metadata")
+                    .or_insert_with(|| crate::serde_json::json!({}))["turn_id"] =
+                    crate::serde_json::json!(turn_id);
+            }
+        }
+        expected.push(ExpectedTurn {
+            request_id: spans[first].other["id"].as_str().unwrap().to_owned(),
+            response_id: Some(final_id),
+            response_text,
+            user_texts,
+            work_ids,
+            interrupted: None,
+        });
+    }
+    if variation == ConversationVariation::TiedStarts {
+        for (index, source) in spans.iter_mut().enumerate() {
+            source.other.insert(
+                "metrics".into(),
+                crate::serde_json::json!({"start": 1, "end": 2}),
+            );
+            source.other["span_attributes"]["exec_counter"] = crate::serde_json::json!(index);
+        }
+    }
+    if variation == ConversationVariation::Resumed {
+        let first = spans
+            .iter()
+            .find(|source| source.other["id"] == "final-0")
+            .unwrap();
+        let mut resumed = span("resumed", 0, json!([]), json!([]));
+        resumed.input = first.input.clone();
+        resumed.other.insert(
+            "metrics".into(),
+            crate::serde_json::json!({
+                "start": 0.5, "end": spans.len() * 2 + 1,
+            }),
+        );
+        if let Some(turn_id) = ids.value(0) {
+            resumed.other.insert(
+                "metadata".into(),
+                crate::serde_json::json!({"turn_id": turn_id}),
+            );
+        }
+        spans.push(resumed);
+        let target = if matches!(ids, TurnIds::Distinct) {
+            &mut expected[0]
+        } else {
+            expected.last_mut().unwrap()
+        };
+        target.work_ids.push("resumed".into());
+    }
+    ImportFixture {
+        spans,
+        turns: expected,
+        import_options: ImportOptions::default(),
+        worker_responses,
+        import_failures: Vec::new(),
+        start_times: None,
+        end_times: None,
+        compactions: None,
+        request_tools: None,
+        requests: None,
+    }
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(64))]
+
+    #[test]
+    fn generated_conversations_roundtrip(
+        turns in proptest::collection::vec((0u8..3, 0usize..4, any::<bool>()), 2..7),
+        ids in prop::sample::select(vec![TurnIds::Inferred, TurnIds::SharedAcrossSteering, TurnIds::Distinct]),
+        priorities in proptest::collection::vec(any::<u64>(), 128),
+        batch_size in 1usize..20,
+    ) {
+        use ConversationVariation::*;
+        for variation in [Plain, TiedStarts, Resumed, Compaction, Interrupted, Context, Worker] {
+            let fixture = generated_conversation(&turns, ids, variation);
+            check_fixture(&fixture);
+            let baseline = run_fixture(&fixture, 1, false, &[]);
+            let shuffled = run_fixture(&fixture, batch_size, false, &priorities);
+            prop_assert_eq!(serde_json::to_value(&baseline).unwrap(), serde_json::to_value(shuffled).unwrap());
+            for (index, turn) in baseline[0].turns.iter().filter(|turn| turn.compaction.is_none()).enumerate() {
+                let Some(Message::System { content: UserContent::String(instructions) }) =
+                    turn.request.as_ref().unwrap().first() else { panic!("Missing system instructions") };
+                prop_assert_eq!(instructions, &format!("Instructions {index}"));
+            }
+            if variation == Worker {
+                let worker = baseline[0].turns.iter().flat_map(|turn| &turn.work)
+                    .find_map(|step| step.sub_agent.as_ref()).unwrap();
+                prop_assert_eq!(worker.turns.len(), 1);
+                prop_assert_eq!(serde_json::to_value(&worker.turns[0].request).unwrap(), json!([
+                    {"role": "user", "content": "Worker request"}
+                ]));
+            }
+            if variation == Plain {
+                check_content_bearing_auxiliaries(&fixture);
+            }
+        }
     }
 }
 
@@ -1140,30 +1691,96 @@ fn repeated_requests_after_compaction_are_distinct_occurrences() {
     );
 }
 
+import_fixture!(
+    resumed_call_does_not_pull_later_requests_before_their_work,
+    "fixtures/overlapping-resumed-call.json"
+);
+
 #[test]
-fn resumed_call_does_not_pull_later_requests_before_their_work() {
-    let first = json!({"role": "user", "content": "First task"});
-    let second = json!({"role": "user", "content": "Second task"});
-    let third = json!({"role": "user", "content": "Third task"});
-    let reply = json!([{"role": "assistant", "content": "Done"}]);
-    let mut resumed = span("resumed", 3, json!([first, second, third]), json!([]));
-    resumed.other["metrics"]["end"] = crate::serde_json::json!(10.0);
-    let sources = vec![
-        span("first", 1, json!([first]), reply.clone()),
-        resumed,
-        span("second", 5, json!([second]), reply.clone()),
-        span("third", 7, json!([third]), reply),
-    ];
-    let spans = sources
-        .into_iter()
-        .map(import_span)
-        .collect::<Result<Vec<_>>>()
-        .unwrap();
-    let result = assemble(&spans, &[], false).unwrap();
-    assert_eq!(result[0].turns.len(), 3);
-    assert_eq!(result[0].turns[1].request_id, "second");
-    assert_eq!(result[0].turns[2].request_id, "third");
-    assert_eq!(result[0].turns[2].work.last().unwrap().id, "resumed");
+fn overlapping_calls_preserve_the_later_answer_unless_they_continue_it() {
+    for explicit in [false, true] {
+        for output in [
+            json!([]),
+            json!([{"role": "assistant", "content": "Older answer"}]),
+        ] {
+            let mut fixture: ImportFixture =
+                serde_json::from_str(include_str!("fixtures/overlapping-resumed-call.json"))
+                    .unwrap();
+            fixture.spans[1].output = Some(crate::serde_json::Value::deserialize(output).unwrap());
+            if explicit {
+                for (span, turn) in fixture
+                    .spans
+                    .iter_mut()
+                    .zip(["first", "first", "second", "third"])
+                {
+                    span.other.insert(
+                        "metadata".into(),
+                        crate::serde_json::json!({"turn_id": turn}),
+                    );
+                }
+                fixture.turns[0].work_ids.push("resumed".into());
+                fixture.turns[2].work_ids.clear();
+                fixture.end_times = Some(
+                    vec![10, 6, 8]
+                        .into_iter()
+                        .map(|time| DateTime::from_timestamp(time, 0))
+                        .collect(),
+                );
+            }
+            check_fixture(&fixture);
+        }
+    }
+    let mut fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/overlapping-resumed-call.json")).unwrap();
+    fixture.spans[1].input = Some(crate::serde_json::json!([
+        {"role": "user", "content": "Third task"},
+        {"role": "assistant", "content": "Done"}
+    ]));
+    fixture.spans[1].output =
+        Some(crate::serde_json::json!([{"role": "assistant", "content": "Follow-up"}]));
+    fixture.turns[2].work_ids = vec!["third".into()];
+    fixture.turns[2].response_id = Some("resumed".into());
+    fixture.turns[2].response_text = "Follow-up".into();
+    check_fixture(&fixture);
+}
+
+import_fixture!(
+    resumed_explicit_turn_owns_late_work,
+    "fixtures/resumed-explicit-turn.json"
+);
+
+#[test]
+fn resumed_calls_use_their_parent_tasks_turn_ids() {
+    let mut fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/resumed-explicit-turn.json")).unwrap();
+    let mut parents = Vec::new();
+    for source in &mut fixture.spans {
+        let id = source.other["id"].as_str().unwrap();
+        let parent_id = match id {
+            "resumed" | "resumed-again" => "parent-first".to_string(),
+            "resumed-after-steering" => "parent-second".to_string(),
+            _ => format!("parent-{id}"),
+        };
+        if let Some(turn) = fixture.turns.iter_mut().find(|turn| turn.request_id == id) {
+            parents.push(
+                Span::deserialize(json!({
+                    "id": parent_id, "span_id": parent_id, "root_span_id": "root",
+                    "span_attributes": {"type": "task"}, "metrics": source.other["metrics"],
+                    "metadata": source.other["metadata"], "input": source.input,
+                }))
+                .unwrap(),
+            );
+            turn.request_id = parent_id.clone();
+            let start = source.other["metrics"]["start"].as_f64().unwrap();
+            source.other["metrics"]["start"] = crate::serde_json::json!(start + 0.1);
+        }
+        source.other.remove("metadata");
+        source
+            .other
+            .insert("span_parents".into(), crate::serde_json::json!([parent_id]));
+    }
+    fixture.spans.extend(parents);
+    check_fixture(&fixture);
 }
 
 #[test]
@@ -1219,7 +1836,22 @@ fn resumed_parent_turn_keeps_reformatted_replay_out_of_the_request() {
         .unwrap();
     let result = assemble(&spans, &[], false).unwrap();
     assert_eq!(result[0].turns.len(), 2);
-    assert_eq!(result[0].turns[1].work.len(), 2);
+    assert_eq!(
+        result[0].turns[0]
+            .work
+            .iter()
+            .map(|step| step.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["first", "resumed"]
+    );
+    assert_eq!(
+        result[0].turns[1]
+            .work
+            .iter()
+            .map(|step| step.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["second"]
+    );
     assert_eq!(
         serde_json::to_value(&result[0].turns[1].request).unwrap(),
         json!([second])

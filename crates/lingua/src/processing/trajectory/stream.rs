@@ -1,5 +1,8 @@
 use super::*;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, ts_rs::TS)]
 #[ts(export)]
 pub struct TrajectoryScope {
@@ -58,7 +61,7 @@ struct TurnState {
     previous_id: Option<String>,
     history: Vec<u64>,
     explicit: Option<String>,
-    seen_explicit: HashSet<String>,
+    completed: HashMap<String, Vec<CompletedTurn>>,
     request_found: bool,
     request_model: Option<String>,
     candidate_model: Option<String>,
@@ -68,6 +71,52 @@ struct TurnState {
     unfinished: bool,
 }
 
+impl TurnState {
+    fn returning_turn(
+        &mut self,
+        explicit: Option<&str>,
+        start: DateTime<Utc>,
+    ) -> Option<&mut CompletedTurn> {
+        let explicit = explicit?;
+        if self.explicit.as_deref() == Some(explicit) {
+            return None;
+        }
+        let turns = self.completed.get_mut(explicit)?;
+        let position = turns
+            .iter()
+            .rposition(|turn| turn.start <= start)
+            .unwrap_or(0);
+        Some(&mut turns[position])
+    }
+}
+
+struct CompletedTurn {
+    id: String,
+    start: DateTime<Utc>,
+    position: usize,
+    response: Option<usize>,
+    end_time: Option<DateTime<Utc>>,
+    unfinished: bool,
+    model: Option<String>,
+}
+
+impl CompletedTurn {
+    fn response_event(&self, spans: &[PreparedSpan], scope: TrajectoryScope) -> TrajectoryEvent {
+        let response = self.response.map(|index| &spans[index]);
+        TrajectoryEvent::Response {
+            scope,
+            id: self.id.clone(),
+            response_id: response.map(|span| span.id.clone()),
+            response: response.map(|span| Box::new(span.response())),
+            end_time: if self.unfinished { None } else { self.end_time },
+            model: self.model.clone(),
+        }
+    }
+}
+
+/// Aligns message hashes greedily in occurrence order, preserving omitted history.
+/// Input through the last replayed match is context; only unmatched suffix occurrences
+/// are fresh. A repeated standalone request must be identified before this alignment.
 fn merge_history(history: &[u64], input: &[u64], output: &[u64]) -> (Vec<u64>, Vec<bool>) {
     let mut merged = Vec::with_capacity(history.len() + output.len());
     let mut pending = Vec::new();
@@ -101,10 +150,25 @@ fn merge_history(history: &[u64], input: &[u64], output: &[u64]) -> (Vec<u64>, V
     (merged, fresh)
 }
 
-type ScopeKey = (String, Option<usize>, Option<usize>);
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct ScopeKey {
+    root_span_id: String,
+    tool: Option<usize>,
+    compaction: Option<usize>,
+}
+
+impl ScopeKey {
+    fn new(span: &PreparedSpan, owner: &Ownership) -> Self {
+        Self {
+            root_span_id: span.root_span_id.clone(),
+            tool: owner.tool,
+            compaction: owner.compaction,
+        }
+    }
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Participation {
+enum Role {
     Ignored,
     Conversation,
     Analysis,
@@ -112,26 +176,26 @@ enum Participation {
     Task { fallback: bool },
 }
 
-impl Participation {
+impl Role {
     fn can_request(self) -> bool {
         matches!(self, Self::Conversation | Self::Task { .. })
     }
 }
 
-fn participation(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) -> Vec<Participation> {
+fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) -> Vec<Role> {
     let mut roles: Vec<_> = spans
         .iter()
         .enumerate()
         .map(|(index, span)| {
             if owners[&index].skipped {
-                return Participation::Ignored;
+                return Role::Ignored;
             }
             match span.kind() {
-                "llm" if span.source.analysis => Participation::Analysis,
-                "llm" => Participation::Conversation,
-                "tool" => Participation::Tool,
-                "task" if !span.source.analysis => Participation::Task { fallback: true },
-                _ => Participation::Ignored,
+                "llm" if span.source.analysis => Role::Analysis,
+                "llm" => Role::Conversation,
+                "tool" => Role::Tool,
+                "task" if !span.source.analysis => Role::Task { fallback: true },
+                _ => Role::Ignored,
             }
         })
         .collect();
@@ -140,28 +204,231 @@ fn participation(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) -> 
         .enumerate()
         .filter_map(|(index, span)| {
             let owner = &owners[&index];
-            (roles[index] == Participation::Conversation).then_some((
-                span.root_span_id.as_str(),
-                owner.tool,
-                owner.compaction,
-            ))
+            (roles[index] == Role::Conversation).then(|| ScopeKey::new(span, owner))
         })
         .collect();
     for (index, role) in roles.iter_mut().enumerate() {
-        if let Participation::Task { fallback } = role {
+        if let Role::Task { fallback } = role {
             let span = &spans[index];
             let owner = &owners[&index];
-            *fallback = !scopes_with_llms.contains(&(
-                span.root_span_id.as_str(),
-                owner.tool,
-                owner.compaction,
-            ));
+            *fallback = !scopes_with_llms.contains(&ScopeKey::new(span, owner));
             if !*fallback && span.source.turn.is_none() {
-                *role = Participation::Ignored;
+                *role = Role::Ignored;
             }
         }
     }
     roles
+}
+
+fn resolve_task_roles(
+    spans: &[PreparedSpan],
+    owners: &HashMap<usize, Ownership>,
+    parents: &[Option<usize>],
+    roles: &mut [Role],
+) {
+    let tasks: HashSet<_> = roles
+        .iter()
+        .enumerate()
+        .filter_map(|(index, role)| {
+            let Role::Task { fallback } = role else {
+                return None;
+            };
+            let span = &spans[index];
+            (span.has_request(true) && (*fallback || span.output.is_empty())).then_some(index)
+        })
+        .collect();
+    let mut wrappers = HashSet::new();
+    for &index in &tasks {
+        let owner = &owners[&index];
+        let mut parent = parents[index];
+        while let Some(index) = parent {
+            let ancestor = &owners[&index];
+            if owner.tool != ancestor.tool || owner.compaction != ancestor.compaction {
+                break;
+            }
+            if tasks.contains(&index) {
+                wrappers.insert(index);
+            }
+            parent = parents[index];
+        }
+    }
+    for (index, role) in roles.iter_mut().enumerate() {
+        if matches!(role, Role::Task { .. })
+            && (!tasks.contains(&index) || wrappers.contains(&index))
+        {
+            *role = Role::Ignored;
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TurnRelation {
+    Unchanged,
+    Changed,
+}
+
+struct SpanEvidence<'a> {
+    span: &'a PreparedSpan,
+    role: Role,
+    explicit: Option<&'a str>,
+    compaction: bool,
+    resumed: bool,
+}
+
+struct Observation {
+    conversation: ConversationObservation,
+    initial_request: bool,
+    interrupts: bool,
+    history: Vec<u64>,
+    request_filter: Option<Vec<bool>>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RequestEvidence {
+    Absent,
+    Replayed,
+    New,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ConversationObservation {
+    Current(RequestEvidence),
+    Compaction { has_request: bool },
+}
+
+impl ConversationObservation {
+    fn has_request(self) -> bool {
+        match self {
+            Self::Current(request) => request != RequestEvidence::Absent,
+            Self::Compaction { has_request } => has_request,
+        }
+    }
+}
+
+fn observe(
+    evidence: &SpanEvidence<'_>,
+    state: &TurnState,
+    previous: Option<&PreparedSpan>,
+) -> Observation {
+    let span = evidence.span;
+    let relation = match (evidence.explicit, state.explicit.as_deref()) {
+        (None, _) => TurnRelation::Unchanged,
+        (Some(next), Some(current)) if next == current => TurnRelation::Unchanged,
+        (Some(_), None) => TurnRelation::Unchanged,
+        (Some(_), Some(_)) => TurnRelation::Changed,
+    };
+    let initial_request = !state.request_found;
+    let request_candidate = evidence.role.can_request() && span.has_request(initial_request);
+    let repeated_request = request_candidate
+        && span.standalone_request
+        && evidence.explicit.is_none()
+        && state.explicit.is_none()
+        && previous.is_some_and(|previous| {
+            previous.standalone_request
+                && previous.input_keys == span.input_keys
+                && previous.source.end.is_some_and(|end| end <= span.start)
+        });
+    let (history, fresh) = if repeated_request {
+        let mut history = state.history.clone();
+        history.extend(&span.input_keys);
+        history.extend(message_keys(&span.output));
+        (history, vec![true; span.input_keys.len()])
+    } else {
+        merge_history(
+            &state.history,
+            &span.input_keys,
+            &message_keys(&span.output),
+        )
+    };
+    let mut user_count = 0;
+    let mut fresh_user_count = 0;
+    for input in span.current_input(initial_request) {
+        if matches!(input.message, Message::User { .. }) && !input.context {
+            user_count += 1;
+            if input.history_index.is_some_and(|position| fresh[position]) {
+                fresh_user_count += 1;
+            }
+        }
+    }
+    let interrupts = span.interruption_offsets.iter().any(|offset| {
+        fresh
+            .get(*offset)
+            .is_some_and(|fresh| fresh_user_count == 0 || *fresh)
+    });
+    let request = match (request_candidate, fresh_user_count, user_count, relation) {
+        (false, _, _, _) => RequestEvidence::Absent,
+        (true, 0, 1, TurnRelation::Changed) => RequestEvidence::New,
+        (true, 0, _, _) => RequestEvidence::Replayed,
+        (true, _, _, _) => RequestEvidence::New,
+    };
+    let conversation = if evidence.compaction {
+        ConversationObservation::Compaction {
+            has_request: request != RequestEvidence::Absent,
+        }
+    } else {
+        ConversationObservation::Current(request)
+    };
+    Observation {
+        conversation,
+        initial_request,
+        interrupts,
+        history,
+        request_filter: (fresh_user_count > 0).then_some(fresh),
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BoundaryAction {
+    NewTurn,
+    AttachRequest,
+    Continue,
+}
+
+fn decide(state: &TurnState, observation: &Observation) -> BoundaryAction {
+    match (&state.id, observation.conversation) {
+        (None, _) | (_, ConversationObservation::Current(RequestEvidence::New)) => {
+            BoundaryAction::NewTurn
+        }
+        (_, conversation) if !state.request_found && conversation.has_request() => {
+            BoundaryAction::AttachRequest
+        }
+        _ => BoundaryAction::Continue,
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ResponseRule {
+    IndependentWork,
+    OverlappingWork,
+    ContinuedConversation,
+}
+
+fn decide_response(
+    evidence: &SpanEvidence<'_>,
+    boundary: BoundaryAction,
+    previous: Option<&PreparedSpan>,
+) -> ResponseRule {
+    let span = evidence.span;
+    if !evidence.role.can_request() || (span.input_keys.is_empty() && span.output.is_empty()) {
+        return ResponseRule::IndependentWork;
+    }
+    if boundary == BoundaryAction::NewTurn {
+        return ResponseRule::ContinuedConversation;
+    }
+    if evidence.resumed {
+        if let Some(previous) = previous.filter(|previous| previous.start > span.start) {
+            let reply = message_keys(&previous.output);
+            let replays_reply = !reply.is_empty()
+                && span
+                    .input_keys
+                    .windows(reply.len())
+                    .any(|window| window == reply);
+            if !replays_reply {
+                return ResponseRule::OverlappingWork;
+            }
+        }
+    }
+    ResponseRule::ContinuedConversation
 }
 
 pub struct TrajectoryStream {
@@ -170,7 +437,7 @@ pub struct TrajectoryStream {
     by_id: HashMap<String, usize>,
     owners: HashMap<usize, Ownership>,
     parents: Vec<Option<usize>>,
-    participation: Vec<Participation>,
+    roles: Vec<Role>,
     scopes: BTreeMap<ScopeKey, Vec<usize>>,
     states: BTreeMap<ScopeKey, TurnState>,
     task_boundaries: HashSet<ScopeKey>,
@@ -253,11 +520,8 @@ impl TrajectoryStream {
                 }
             }
         }
-        let participation = participation(&spans, &owners);
-        let ready = participation
-            .iter()
-            .map(|role| *role == Participation::Ignored)
-            .collect();
+        let roles = classify_headers(&spans, &owners);
+        let ready = roles.iter().map(|role| *role == Role::Ignored).collect();
         Ok(Self {
             ready,
             spans,
@@ -266,7 +530,7 @@ impl TrajectoryStream {
             failures,
             owners,
             parents,
-            participation,
+            roles,
             scopes: BTreeMap::new(),
             states: BTreeMap::new(),
             task_boundaries: HashSet::new(),
@@ -303,17 +567,35 @@ impl TrajectoryStream {
             return Err(format!("Trajectory span {} was already loaded", span.id));
         }
         let header = &self.spans[index];
-        if span.root_span_id != header.root_span_id
-            || span.source.span_parents != header.source.span_parents
+        let SpanContext {
+            id: _,
+            root_span_id: _,
+            span_id: _,
+            start: _,
+            name: _,
+            model: _,
+            error: _,
+            span_parents,
+            kind,
+            exec_counter,
+            scorer,
+            end,
+            turn,
+            analysis,
+            compaction,
+        } = &span.source;
+        if span.id != header.id
+            || span.root_span_id != header.root_span_id
             || span.span_id != header.span_id
-            || span.source.exec_counter != header.source.exec_counter
-            || span.kind() != header.kind()
             || span.start != header.start
-            || span.source.end != header.source.end
-            || span.source.turn != header.source.turn
-            || span.source.analysis != header.source.analysis
-            || span.is_scorer() != header.is_scorer()
-            || span.source.compaction.as_ref().map(|value| &value.id)
+            || span_parents != &header.source.span_parents
+            || kind != &header.source.kind
+            || exec_counter != &header.source.exec_counter
+            || scorer != &header.source.scorer
+            || end != &header.source.end
+            || turn != &header.source.turn
+            || analysis != &header.source.analysis
+            || compaction.as_ref().map(|value| &value.id)
                 != header.source.compaction.as_ref().map(|value| &value.id)
         {
             return Err(format!("Trajectory structure changed for span {}", span.id));
@@ -325,52 +607,21 @@ impl TrajectoryStream {
 
     fn scope(&self, key: &ScopeKey) -> TrajectoryScope {
         TrajectoryScope {
-            root_span_id: key.0.clone(),
-            owner_span_id: key.1.map(|index| self.spans[index].id.clone()),
+            root_span_id: key.root_span_id.clone(),
+            owner_span_id: key.tool.map(|index| self.spans[index].id.clone()),
         }
     }
 
     fn initialize(&mut self, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
-        let tasks: HashSet<_> = self
-            .participation
-            .iter()
-            .enumerate()
-            .filter_map(|(index, role)| {
-                let Participation::Task { fallback } = role else {
-                    return None;
-                };
-                let span = &self.spans[index];
-                (span.has_request(true) && (*fallback || span.output.is_empty())).then_some(index)
-            })
-            .collect();
-        let mut wrappers = HashSet::new();
-        for &index in &tasks {
-            let owner = &self.owners[&index];
-            let mut parent = self.parents[index];
-            while let Some(index) = parent {
-                let ancestor = &self.owners[&index];
-                if owner.tool != ancestor.tool || owner.compaction != ancestor.compaction {
-                    break;
-                }
-                if tasks.contains(&index) {
-                    wrappers.insert(index);
-                }
-                parent = self.parents[index];
-            }
-        }
+        resolve_task_roles(&self.spans, &self.owners, &self.parents, &mut self.roles);
         for (index, span) in self.spans.iter().enumerate() {
-            let role = &mut self.participation[index];
-            if matches!(role, Participation::Task { .. })
-                && (!tasks.contains(&index) || wrappers.contains(&index))
-            {
-                *role = Participation::Ignored;
-            }
-            if *role == Participation::Ignored {
+            let role = self.roles[index];
+            if role == Role::Ignored {
                 continue;
             }
             let owner = &self.owners[&index];
-            let key = (span.root_span_id.clone(), owner.tool, owner.compaction);
-            if matches!(role, Participation::Task { .. })
+            let key = ScopeKey::new(span, owner);
+            if matches!(role, Role::Task { .. })
                 && span.source.turn.is_some()
                 && span.output.is_empty()
             {
@@ -383,7 +634,7 @@ impl TrajectoryStream {
             let mut llms: Vec<_> = indices
                 .iter()
                 .copied()
-                .filter(|index| self.participation[*index] == Participation::Conversation)
+                .filter(|index| self.roles[*index] == Role::Conversation)
                 .collect();
             llms.sort_by_key(|index| std::cmp::Reverse(self.spans[*index].start));
             let mut earliest_end: Option<DateTime<Utc>> = None;
@@ -439,7 +690,7 @@ impl TrajectoryStream {
         for key in self.scopes.keys() {
             scopes.insert(
                 self.scope(key),
-                key.1
+                key.tool
                     .and_then(|index| self.spans[index].source.name.clone()),
             );
         }
@@ -475,8 +726,7 @@ impl TrajectoryStream {
         let mut events = Vec::new();
         if !self.initialized {
             if self.spans.iter().enumerate().any(|(index, _)| {
-                matches!(self.participation[index], Participation::Task { .. })
-                    && !self.ready[index]
+                matches!(self.roles[index], Role::Task { .. }) && !self.ready[index]
             }) {
                 return Ok(events);
             }
@@ -499,21 +749,22 @@ impl TrajectoryStream {
         initial_request: bool,
     ) -> Vec<Message> {
         span.current_input(initial_request)
-            .filter(|(index, message)| {
-                if span.input_key_indices[*index]
+            .filter(|input| {
+                if input
+                    .history_index
                     .is_some_and(|position| fresh.is_some_and(|fresh| !fresh[position]))
                 {
                     return false;
                 }
                 matches!(
-                    message,
+                    input.message,
                     Message::User { .. }
                         | Message::System { .. }
                         | Message::Developer { .. }
                         | Message::AdditionalTools { .. }
-                ) && (!self.exclude_system || !matches!(message, Message::System { .. }))
+                ) && (!self.exclude_system || !matches!(input.message, Message::System { .. }))
             })
-            .map(|(_, message)| message.clone())
+            .map(|input| input.message.clone())
             .collect()
     }
 
@@ -526,18 +777,25 @@ impl TrajectoryStream {
     ) -> Result<Option<TrajectoryEvent>> {
         let span = &self.spans[index];
         if matches!(
-            self.participation[index],
-            Participation::Ignored | Participation::Task { fallback: false }
+            self.roles[index],
+            Role::Ignored | Role::Task { fallback: false }
         ) {
             return Ok(None);
         }
-        let work = if self.participation[index] == Participation::Tool {
+        let work = if self.roles[index] == Role::Tool {
             Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
                 format!("Missing imported tool result for {}", span.id)
             })?))
-        } else if self.participation[index] == Participation::Analysis {
+        } else if self.roles[index] == Role::Analysis {
             Work::LLMAnalysis(Box::new(LLMAnalysis {
-                work: Some(span.input.iter().chain(&span.output).cloned().collect()),
+                work: Some(
+                    span.input
+                        .iter()
+                        .map(|input| &input.message)
+                        .chain(&span.output)
+                        .cloned()
+                        .collect(),
+                ),
                 model: span.source.model.clone(),
                 params: None,
                 usage: span.usage(),
@@ -563,7 +821,7 @@ impl TrajectoryStream {
     }
 
     fn can_finish_turn(&self, index: usize) -> bool {
-        self.participation[index].can_request() && self.spans[index].has_final_response()
+        self.roles[index].can_request() && self.spans[index].has_final_response()
     }
 
     fn end_turn(
@@ -576,41 +834,65 @@ impl TrajectoryStream {
             return Ok(());
         };
         let scope = self.scope(key);
-        let final_span = state
+        let response = state
             .candidate
-            .filter(|(index, _)| key.2.is_none() && self.can_finish_turn(*index))
-            .map(|(index, _)| &self.spans[index]);
-        if final_span.is_none() {
+            .filter(|(index, _)| key.compaction.is_none() && self.can_finish_turn(*index))
+            .map(|(index, _)| index);
+        if response.is_none() {
             if let Some((index, position)) = state.candidate {
                 events.extend(self.work(&scope, id, index, position)?);
             }
         }
-        events.push(TrajectoryEvent::Response {
-            scope,
+        let completed = CompletedTurn {
             id: id.clone(),
-            response_id: final_span.map(|span| span.id.clone()),
-            response: final_span.map(|span| Box::new(span.response())),
-            end_time: if state.unfinished {
-                None
-            } else {
-                state.end_time
-            },
+            start: self.spans[self.by_id[id]].start,
+            position: state.position,
+            response,
+            end_time: state.end_time,
+            unfinished: state.unfinished,
             model: state
                 .request_model
                 .clone()
                 .or_else(|| state.candidate_model.clone()),
-        });
+        };
+        events.push(completed.response_event(&self.spans, scope));
+        if let Some(explicit) = &state.explicit {
+            state
+                .completed
+                .entry(explicit.clone())
+                .or_default()
+                .push(completed);
+        }
         Ok(())
     }
 
     fn advance(&mut self, index: usize, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
         let span = &self.spans[index];
         let owner = &self.owners[&index];
-        let key = (span.root_span_id.clone(), owner.tool, owner.compaction);
+        let key = ScopeKey::new(span, owner);
         let scope = self.scope(&key);
         let mut state = self.states.remove(&key).unwrap_or_default();
+        if self.resumed.contains(&index) {
+            if let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start) {
+                events.extend(self.work(&scope, &target.id, index, target.position)?);
+                target.position += 1;
+                target.end_time = target.end_time.max(span.source.end);
+                target.unfinished |= span.source.end.is_none();
+                events.push(target.response_event(&self.spans, scope));
+                if !span.input_keys.is_empty() {
+                    state.history = merge_history(
+                        &state.history,
+                        &span.input_keys,
+                        &message_keys(&span.output),
+                    )
+                    .0;
+                }
+                self.states.insert(key, state);
+                return Ok(());
+            }
+        }
         let explicit = if self.task_boundaries.contains(&key) {
-            if matches!(self.participation[index], Participation::Task { .. }) {
+            if matches!(self.roles[index], Role::Task { .. }) {
                 span.source.turn.as_deref()
             } else {
                 None
@@ -618,66 +900,24 @@ impl TrajectoryStream {
         } else {
             owner.turn.as_deref()
         };
-        let returning = self.resumed.contains(&index)
-            && explicit.is_some_and(|value| {
-                state.explicit.as_deref() != Some(value) && state.seen_explicit.contains(value)
-            });
-        let initial_request = !state.request_found;
-        let candidate = self.participation[index].can_request()
-            && !returning
-            && span.has_request(initial_request);
-        let repeated_request = candidate
-            && span.standalone_request
-            && explicit.is_none()
-            && state.explicit.is_none()
-            && state.candidate.is_some_and(|(previous, _)| {
-                self.can_finish_turn(previous)
-                    && self.spans[previous].standalone_request
-                    && self.spans[previous].input_keys == span.input_keys
-                    && self.spans[previous]
-                        .source
-                        .end
-                        .is_some_and(|end| end <= span.start)
-            });
-        let (history, fresh) = if repeated_request {
-            let mut history = state.history.clone();
-            history.extend(&span.input_keys);
-            history.extend(message_keys(&span.output));
-            (history, vec![true; span.input_keys.len()])
-        } else {
-            merge_history(
-                &state.history,
-                &span.input_keys,
-                &message_keys(&span.output),
-            )
+        let evidence = SpanEvidence {
+            span,
+            role: self.roles[index],
+            explicit,
+            compaction: key.compaction.is_some(),
+            resumed: self.resumed.contains(&index),
         };
-        let has_new_input = span.current_input(initial_request).any(|(index, message)| {
-            matches!(message, Message::User { .. })
-                && span.input_key_indices[index].is_some_and(|position| fresh[position])
-        });
-        let interrupts_previous_turn = span.interruption_offsets.iter().any(|offset| {
-            fresh
-                .get(*offset)
-                .is_some_and(|fresh| !has_new_input || *fresh)
-        });
-        let user_count = span
-            .current_input(initial_request)
-            .filter(|(index, message)| {
-                matches!(message, Message::User { .. }) && !span.is_context(*index, message)
-            })
-            .count();
-        let new_turn = key.2.is_none()
-            && (explicit.is_some()
-                && state.explicit.is_some()
-                && explicit != state.explicit.as_deref()
-                && candidate
-                && (user_count <= 1 || has_new_input)
-                || candidate && has_new_input);
-        let request_filter = has_new_input.then_some(fresh.as_slice());
-        if state.id.is_none() || new_turn {
+        let previous = state.candidate.map(|(index, _)| &self.spans[index]);
+        let observation = observe(&evidence, &state, previous);
+        let boundary = decide(&state, &observation);
+        let response_rule = decide_response(&evidence, boundary, previous);
+        let new_turn = boundary == BoundaryAction::NewTurn;
+        let initial_request = observation.initial_request;
+        let request_filter = observation.request_filter.as_deref();
+        if new_turn {
             self.end_turn(&key, &mut state, events)?;
             state.previous_id = state.id.take();
-            if key.2.is_none() && interrupts_previous_turn {
+            if key.compaction.is_none() && observation.interrupts {
                 if let Some(id) = &state.previous_id {
                     events.push(TrajectoryEvent::Interrupted {
                         scope: scope.clone(),
@@ -686,19 +926,21 @@ impl TrajectoryStream {
                 }
             }
             state.id = Some(span.id.clone());
-            state.request_found = candidate;
+            state.request_found = observation.conversation.has_request();
             state.request_model = span.source.model.clone();
             state.candidate_model = None;
             state.candidate = None;
             state.position = 0;
-            state.end_time = key.2.and_then(|index| self.spans[index].source.end);
+            state.end_time = key
+                .compaction
+                .and_then(|index| self.spans[index].source.end);
             state.unfinished = false;
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
                 id: span.id.clone(),
                 turn: Box::new(Turn {
                     request_id: span.id.clone(),
-                    request: Some(if self.participation[index].can_request() {
+                    request: Some(if self.roles[index].can_request() {
                         self.request(span, request_filter, initial_request)
                     } else {
                         Vec::new()
@@ -708,16 +950,18 @@ impl TrajectoryStream {
                     work: Vec::new(),
                     model: span.source.model.clone(),
                     params: None,
-                    start_time: key.2.map_or(span.start, |index| self.spans[index].start),
+                    start_time: key
+                        .compaction
+                        .map_or(span.start, |index| self.spans[index].start),
                     end_time: None,
                     interrupted: None,
                     compaction: key
-                        .2
+                        .compaction
                         .and_then(|index| self.spans[index].source.compaction.clone()),
                 }),
             });
-        } else if candidate && !state.request_found {
-            if key.2.is_none() && interrupts_previous_turn {
+        } else if boundary == BoundaryAction::AttachRequest {
+            if key.compaction.is_none() && observation.interrupts {
                 if let Some(id) = &state.previous_id {
                     events.push(TrajectoryEvent::Interrupted {
                         scope: scope.clone(),
@@ -735,16 +979,14 @@ impl TrajectoryStream {
             });
         }
         let id = state.id.as_deref().unwrap();
-        if self.participation[index].can_request()
-            && (!span.input_keys.is_empty() || !span.output.is_empty())
-        {
+        if response_rule == ResponseRule::ContinuedConversation {
             if let Some((previous, position)) = state.candidate.take() {
                 events.extend(self.work(&scope, id, previous, position)?);
             }
             if state.candidate_model.is_none() {
                 state.candidate_model = span.source.model.clone();
             }
-            if key.2.is_none() && self.can_finish_turn(index) {
+            if key.compaction.is_none() && self.can_finish_turn(index) {
                 state.candidate = Some((index, state.position));
             } else {
                 events.extend(self.work(&scope, id, index, state.position)?);
@@ -756,12 +998,11 @@ impl TrajectoryStream {
         state.unfinished =
             !self.can_finish_turn(index) && (state.unfinished || span.source.end.is_none());
         state.end_time = state.end_time.max(span.source.end);
-        if self.participation[index].can_request() && !span.input_keys.is_empty() {
-            state.history = history;
+        if self.roles[index].can_request() && !span.input_keys.is_empty() {
+            state.history = observation.history;
         }
         if let Some(explicit) = explicit.filter(|_| new_turn || state.explicit.is_none()) {
             state.explicit = Some(explicit.to_string());
-            state.seen_explicit.insert(explicit.to_string());
         }
         self.states.insert(key, state);
         Ok(())

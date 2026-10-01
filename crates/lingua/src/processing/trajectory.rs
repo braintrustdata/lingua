@@ -3,7 +3,7 @@ mod stream;
 mod tests;
 pub use stream::{TrajectoryCollector, TrajectoryEvent, TrajectoryStream};
 
-use crate::processing::import::{ImportedSpan, SpanContext};
+use crate::processing::import::{is_instruction, ImportedSpan, SpanContext};
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
@@ -47,17 +47,22 @@ pub struct PreparedSpan {
     span_id: String,
     start: DateTime<Utc>,
     source: SpanContext,
-    input: Vec<Message>,
-    current_input_start: usize,
+    input: Vec<RequestMessage>,
     input_keys: Vec<u64>,
-    input_key_indices: Vec<Option<usize>>,
     standalone_request: bool,
     output: Vec<Message>,
-    context_messages: HashSet<usize>,
     interruption_offsets: Vec<usize>,
     usage: Option<UniversalUsage>,
     tool_result: Option<ToolResult>,
     failure: Option<ImportFailure>,
+}
+
+#[derive(Debug, Clone)]
+struct RequestMessage {
+    message: Message,
+    history_index: Option<usize>,
+    context: bool,
+    current: bool,
 }
 
 impl PreparedSpan {
@@ -94,18 +99,15 @@ impl PreparedSpan {
         let standalone_request = span
             .input
             .iter()
-            .all(|message| matches!(message, Message::User { .. }) || is_context(message));
+            .all(|message| matches!(message, Message::User { .. }) || is_instruction(message));
         let mut input_keys = Vec::new();
         let mut input = Vec::new();
-        let mut current_input_start = 0;
-        let mut input_key_indices = Vec::new();
-        let mut context_messages = HashSet::new();
         let mut interruption_offsets = Vec::new();
         for (index, message) in span.input.into_iter().enumerate() {
             if index >= current_start && span.interruption_messages.contains(&index) {
                 interruption_offsets.push(input_keys.len());
             }
-            let context = source_context.contains(&index) || is_context(&message);
+            let context = source_context.contains(&index) || is_instruction(&message);
             let key_index = (!context).then_some(input_keys.len());
             if !context {
                 input_keys.push(message_dedup_hash(&message));
@@ -113,16 +115,14 @@ impl PreparedSpan {
             if source.analysis
                 || (index >= current_start
                     && !matches!(message, Message::Tool { .. } | Message::Assistant { .. }))
-                || is_context(&message)
+                || is_instruction(&message)
             {
-                if context {
-                    context_messages.insert(input.len());
-                }
-                input.push(message);
-                input_key_indices.push(key_index);
-                if index < history_end {
-                    current_input_start = input.len();
-                }
+                input.push(RequestMessage {
+                    message,
+                    history_index: key_index,
+                    context,
+                    current: index >= history_end,
+                });
             }
         }
         let failure = (!span.errors.is_empty()).then(|| ImportFailure {
@@ -137,12 +137,9 @@ impl PreparedSpan {
             start,
             source,
             input,
-            current_input_start,
             output: span.output,
             input_keys,
-            input_key_indices,
             standalone_request,
-            context_messages,
             interruption_offsets,
             usage: span.usage,
             tool_result: span.tool_result,
@@ -150,26 +147,19 @@ impl PreparedSpan {
         })
     }
 
-    fn current_input(&self, initial_request: bool) -> impl Iterator<Item = (usize, &Message)> {
-        self.input
-            .iter()
-            .enumerate()
-            .filter(move |(index, message)| {
-                (initial_request
-                    || *index >= self.current_input_start
-                    || self.is_context(*index, message))
-                    && !matches!(message, Message::Tool { .. } | Message::Assistant { .. })
-            })
-    }
-
-    fn has_request(&self, initial_request: bool) -> bool {
-        self.current_input(initial_request).any(|(index, message)| {
-            matches!(message, Message::User { .. }) && !self.is_context(index, message)
+    fn current_input(&self, initial_request: bool) -> impl Iterator<Item = &RequestMessage> {
+        self.input.iter().filter(move |input| {
+            (initial_request || input.current || input.context)
+                && !matches!(
+                    input.message,
+                    Message::Tool { .. } | Message::Assistant { .. }
+                )
         })
     }
 
-    fn is_context(&self, index: usize, message: &Message) -> bool {
-        self.context_messages.contains(&index) || is_context(message)
+    fn has_request(&self, initial_request: bool) -> bool {
+        self.current_input(initial_request)
+            .any(|input| matches!(input.message, Message::User { .. }) && !input.context)
     }
 
     fn kind(&self) -> &str {
@@ -249,17 +239,10 @@ impl PreparedSpan {
     }
 }
 
-fn is_context(message: &Message) -> bool {
-    matches!(
-        message,
-        Message::System { .. } | Message::Developer { .. } | Message::AdditionalTools { .. }
-    )
-}
-
 fn message_keys(messages: &[Message]) -> Vec<u64> {
     messages
         .iter()
-        .filter(|message| !is_context(message))
+        .filter(|message| !is_instruction(message))
         .map(message_dedup_hash)
         .collect()
 }

@@ -1,0 +1,267 @@
+{
+  "spans": [
+    {
+      "id": "first",
+      "span_id": "first",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "First task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Done"
+        }
+      ],
+      "metadata": {
+        "turn_id": "one"
+      }
+    },
+    {
+      "id": "resumed",
+      "span_id": "resumed",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 10
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "First task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Late result"
+        }
+      ],
+      "metadata": {
+        "turn_id": "one"
+      }
+    },
+    {
+      "id": "second",
+      "span_id": "second",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 5,
+        "end": 6
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Second task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Done"
+        }
+      ],
+      "metadata": {
+        "turn_id": "one"
+      }
+    },
+    {
+      "id": "third",
+      "span_id": "third",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 7,
+        "end": 8
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Third task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Done"
+        }
+      ],
+      "metadata": {
+        "turn_id": "three"
+      }
+    },
+    {
+      "id": "resumed-again",
+      "span_id": "resumed-again",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 4,
+        "end": 12
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "First task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Late result"
+        }
+      ],
+      "metadata": {
+        "turn_id": "one"
+      }
+    },
+    {
+      "id": "resumed-after-steering",
+      "span_id": "resumed-after-steering",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 6,
+        "end": 13
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Second task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Late result"
+        }
+      ],
+      "metadata": {
+        "turn_id": "one"
+      }
+    },
+    {
+      "id": "followup",
+      "span_id": "followup",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 14,
+        "end": 15
+      },
+      "metadata": {
+        "turn_id": "three"
+      },
+      "input": [
+        {
+          "role": "assistant",
+          "content": "Late result"
+        },
+        {
+          "role": "user",
+          "content": "First task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Follow-up answer"
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "first",
+      "response_id": "first",
+      "response_text": "Done",
+      "work_ids": [
+        "resumed",
+        "resumed-again"
+      ],
+      "user_texts": [
+        "First task"
+      ]
+    },
+    {
+      "request_id": "second",
+      "response_id": "second",
+      "response_text": "Done",
+      "work_ids": [
+        "resumed-after-steering"
+      ],
+      "user_texts": [
+        "Second task"
+      ]
+    },
+    {
+      "request_id": "third",
+      "response_id": "third",
+      "response_text": "Done",
+      "work_ids": [],
+      "user_texts": [
+        "Third task"
+      ]
+    },
+    {
+      "request_id": "followup",
+      "response_id": "followup",
+      "response_text": "Follow-up answer",
+      "work_ids": [],
+      "user_texts": [
+        "First task"
+      ]
+    }
+  ],
+  "end_times": [
+    "1970-01-01T00:00:12Z",
+    "1970-01-01T00:00:13Z",
+    "1970-01-01T00:00:08Z",
+    "1970-01-01T00:00:15Z"
+  ]
+}

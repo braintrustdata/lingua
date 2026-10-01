@@ -1,4 +1,4 @@
-use super::{import_span_messages, ImportOptions, OpaqueItem, Span};
+use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
 use crate::universal::{
@@ -7,6 +7,7 @@ use crate::universal::{
 use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -297,16 +298,20 @@ fn timestamp(value: f64) -> Option<DateTime<Utc>> {
     DateTime::from_timestamp_micros((value * 1_000_000.0) as i64)
 }
 
-fn user_text(content: &UserContent) -> Option<String> {
+fn user_text(content: &UserContent) -> Option<Cow<'_, str>> {
     match content {
-        UserContent::String(text) => Some(text.clone()),
+        UserContent::String(text) => Some(Cow::Borrowed(text)),
         UserContent::Array(parts) => {
-            let mut text = String::new();
+            let mut text = Cow::Borrowed("");
             for part in parts {
                 let UserContentPart::Text(part) = part else {
                     return None;
                 };
-                text.push_str(&part.text);
+                if text.is_empty() {
+                    text = Cow::Borrowed(part.text.as_str());
+                } else {
+                    text.to_mut().push_str(&part.text);
+                }
             }
             Some(text)
         }
@@ -315,9 +320,6 @@ fn user_text(content: &UserContent) -> Option<String> {
 
 fn is_context(message: &Message) -> bool {
     match message {
-        Message::System { .. } | Message::Developer { .. } | Message::AdditionalTools { .. } => {
-            true
-        }
         Message::User { content } => {
             let Some(text) = user_text(content) else {
                 return false;
@@ -334,7 +336,7 @@ fn is_context(message: &Message) -> bool {
                         .all(|c| c.is_alphanumeric() || c == '_' || c == '.');
             is_context_tag && text.ends_with(&format!("</{tag}>"))
         }
-        _ => false,
+        _ => is_instruction(message),
     }
 }
 

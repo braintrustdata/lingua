@@ -1,0 +1,146 @@
+{
+  "spans": [
+    {
+      "id": "first",
+      "span_id": "first",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "First task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Done"
+        }
+      ]
+    },
+    {
+      "id": "resumed",
+      "span_id": "resumed",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 10
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "First task"
+        },
+        {
+          "role": "user",
+          "content": "Second task"
+        },
+        {
+          "role": "user",
+          "content": "Third task"
+        }
+      ],
+      "output": []
+    },
+    {
+      "id": "second",
+      "span_id": "second",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 5,
+        "end": 6
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Second task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Done"
+        }
+      ]
+    },
+    {
+      "id": "third",
+      "span_id": "third",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 7,
+        "end": 8
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Third task"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Done"
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "first",
+      "response_id": "first",
+      "response_text": "Done",
+      "work_ids": [],
+      "user_texts": [
+        "First task"
+      ]
+    },
+    {
+      "request_id": "second",
+      "response_id": "second",
+      "response_text": "Done",
+      "work_ids": [],
+      "user_texts": [
+        "Second task"
+      ]
+    },
+    {
+      "request_id": "third",
+      "response_id": "third",
+      "response_text": "Done",
+      "work_ids": [
+        "resumed"
+      ],
+      "user_texts": [
+        "Third task"
+      ]
+    }
+  ]
+}
