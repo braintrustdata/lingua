@@ -677,3 +677,12 @@ pub fn stream_done_marker(target_format: &str) -> Result<Option<String>, JsValue
         .transpose()
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
+
+#[wasm_bindgen]
+pub fn import_voice_call(rows: JsValue) -> Result<JsValue, JsValue> {
+    let rows: Vec<crate::processing::voice::VoiceSpan> = serde_wasm_bindgen::from_value(rows)
+        .map_err(|error| JsValue::from_str(&format!("Invalid voice spans: {error}")))?;
+    let call = crate::processing::voice::import_voice_call(&rows)
+        .map_err(|error| JsValue::from_str(&error))?;
+    serialize_to_js(&call, "voice call")
+}

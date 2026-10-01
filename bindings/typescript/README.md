@@ -289,3 +289,15 @@ The generated types are designed to be compatible with popular LLM SDKs:
 ## License
 
 MIT
+
+## Voice calls
+
+`importVoiceCall(rows)` reads the full rows of one LiveKit trace and returns
+`{ recordings, utterances, messages }`. Import it from `@braintrust/lingua`
+or `@braintrust/lingua/browser` (initialize browser WASM first).
+
+Times are Unix epoch milliseconds. An utterance's `range` is relative to the
+recording start, and is present only when there is one bounded recording.
+Missing text, audio, times, and interruptions stay absent. Unrecognized traces
+return empty arrays; malformed recognized fields throw. `messages` contains
+only utterances with text, using Lingua user and assistant roles.

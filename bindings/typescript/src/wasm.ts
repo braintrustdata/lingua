@@ -52,3 +52,5 @@ export type {
   TransformStreamSessionHandle,
   ValidationResult,
 } from "./converters";
+
+export { importVoiceCall } from "./voice";

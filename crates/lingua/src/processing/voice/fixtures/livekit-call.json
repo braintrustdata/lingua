@@ -1,0 +1,336 @@
+[
+  {
+    "span_id": "0321ae9f5b1e4b6f",
+    "span_parents": [],
+    "span_attributes": {
+      "name": "job_entrypoint"
+    },
+    "metrics": {
+      "start": 1790194061.068,
+      "end": 1790194063.7379072
+    }
+  },
+  {
+    "span_id": "51d595e371a33f39",
+    "span_parents": ["0321ae9f5b1e4b6f"],
+    "span_attributes": {
+      "name": "agent_session"
+    },
+    "metrics": {
+      "start": 1790194063.701,
+      "end": 1790194116.9762447
+    }
+  },
+  {
+    "span_id": "call-recording",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "call_recording"
+    },
+    "metrics": {
+      "start": 1790194066.5,
+      "end": 1790194116.0
+    },
+    "output": {
+      "content_type": "audio/ogg",
+      "filename": "call.ogg",
+      "key": "fixture",
+      "type": "braintrust_attachment"
+    }
+  },
+  {
+    "span_id": "0e5a73355cf13e8d",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "agent_turn"
+    },
+    "metrics": {
+      "start": 1790194066.218,
+      "end": 1790194077.278783
+    },
+    "output": [
+      {
+        "content": "Thanks for calling Braintrust support. This call may be recorded. I can help with anything about using Braintrust, from tracing and evals to billing and self-hosting. Hi, what are you working on?",
+        "role": "assistant"
+      }
+    ],
+    "metadata": {
+      "lk.pii.response.text": "Thanks for calling Braintrust support. This call may be recorded. I can help with anything about using Braintrust, from tracing and evals to billing and self-hosting. Hi, what are you working on?"
+    }
+  },
+  {
+    "span_id": "a0777f4c58716668",
+    "span_parents": ["0e5a73355cf13e8d"],
+    "span_attributes": {
+      "name": "agent_speaking"
+    },
+    "metrics": {
+      "start": 1790194066.2259998,
+      "end": 1790194077.278
+    },
+    "output": {
+      "audio": {
+        "type": "braintrust_attachment",
+        "filename": "agent_speaking_24000hz_1ch.wav",
+        "content_type": "audio/wav",
+        "key": "fixture"
+      }
+    }
+  },
+  {
+    "span_id": "0316a7f63399acd1",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "user_turn"
+    },
+    "metrics": {
+      "start": 1790194066.725,
+      "end": 1790194067.404
+    },
+    "metadata": {
+      "lk.pii.user_transcript": ""
+    }
+  },
+  {
+    "span_id": "c06b7fe166eb172a",
+    "span_parents": ["0316a7f63399acd1"],
+    "span_attributes": {
+      "name": "user_speaking"
+    },
+    "metrics": {
+      "start": 1790194066.726,
+      "end": 1790194066.823
+    }
+  },
+  {
+    "span_id": "f981ecbec5d024b5",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "user_turn"
+    },
+    "metrics": {
+      "start": 1790194073.071,
+      "end": 1790194074.064
+    },
+    "metadata": {
+      "lk.pii.user_transcript": ""
+    }
+  },
+  {
+    "span_id": "e053d1b8d6c5b7e6",
+    "span_parents": ["f981ecbec5d024b5"],
+    "span_attributes": {
+      "name": "user_speaking"
+    },
+    "metrics": {
+      "start": 1790194073.072,
+      "end": 1790194073.484
+    }
+  },
+  {
+    "span_id": "6acb5bcc4a068f50",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "user_turn"
+    },
+    "metrics": {
+      "start": 1790194078.725,
+      "end": 1790194080.392
+    },
+    "metadata": {
+      "lk.pii.user_transcript": ""
+    }
+  },
+  {
+    "span_id": "986a03710d1117be",
+    "span_parents": ["6acb5bcc4a068f50"],
+    "span_attributes": {
+      "name": "user_speaking"
+    },
+    "metrics": {
+      "start": 1790194078.725,
+      "end": 1790194079.814
+    }
+  },
+  {
+    "span_id": "768215c7cb422f61",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "agent_turn"
+    },
+    "metrics": {
+      "start": 1790194081.178,
+      "end": 1790194084.7965784
+    },
+    "output": [
+      {
+        "content": "Sure, let's take a look. Hm.",
+        "role": "assistant"
+      }
+    ],
+    "metadata": {
+      "lk.pii.response.text": " Sure, let's take a look. Hm."
+    }
+  },
+  {
+    "span_id": "2a4c0fd0863e5c69",
+    "span_parents": ["768215c7cb422f61"],
+    "span_attributes": {
+      "name": "agent_speaking"
+    },
+    "metrics": {
+      "start": 1790194081.179,
+      "end": 1790194084.783
+    }
+  },
+  {
+    "span_id": "d9a8c05e87abaa84",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "agent_turn"
+    },
+    "metrics": {
+      "start": 1790194086.1590002,
+      "end": 1790194086.1733837
+    }
+  },
+  {
+    "span_id": "7c9cba53ea39c17e",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "agent_turn"
+    },
+    "metrics": {
+      "start": 1790194090.6950002,
+      "end": 1790194098.8858578
+    },
+    "output": [
+      {
+        "content": "Right, so the usual flow is, you make a dataset with inputs and expected answers, define a task that calls your model, Yeah,",
+        "role": "assistant"
+      }
+    ],
+    "metadata": {
+      "lk.pii.response.text": " Right, so the usual flow is, you make a dataset with inputs and expected answers, define a task that calls your model, Yeah,",
+      "lk.interrupted": true
+    }
+  },
+  {
+    "span_id": "1fbfe51bb8c23efa",
+    "span_parents": ["7c9cba53ea39c17e"],
+    "span_attributes": {
+      "name": "agent_speaking"
+    },
+    "metrics": {
+      "start": 1790194090.699,
+      "end": 1790194098.885
+    }
+  },
+  {
+    "span_id": "0a9ae35b4baa13f3",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "user_turn"
+    },
+    "metrics": {
+      "start": 1790194096.196,
+      "end": 1790194097.676
+    },
+    "metadata": {
+      "lk.pii.user_transcript": ""
+    }
+  },
+  {
+    "span_id": "117266a0b0337bd5",
+    "span_parents": ["0a9ae35b4baa13f3"],
+    "span_attributes": {
+      "name": "user_speaking"
+    },
+    "metrics": {
+      "start": 1790194096.196,
+      "end": 1790194097.095
+    }
+  },
+  {
+    "span_id": "ddea1f9de975569c",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "agent_turn"
+    },
+    "metrics": {
+      "start": 1790194099.232,
+      "end": 1790194100.83483
+    },
+    "output": [
+      {
+        "content": "go on.",
+        "role": "assistant"
+      }
+    ],
+    "metadata": {
+      "lk.pii.response.text": " go on."
+    }
+  },
+  {
+    "span_id": "08af132161b15c90",
+    "span_parents": ["ddea1f9de975569c"],
+    "span_attributes": {
+      "name": "agent_speaking"
+    },
+    "metrics": {
+      "start": 1790194099.236,
+      "end": 1790194100.832
+    }
+  },
+  {
+    "span_id": "a1e893918604e88c",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "agent_turn"
+    },
+    "metrics": {
+      "start": 1790194110.185,
+      "end": 1790194114.9642687
+    },
+    "output": [
+      {
+        "content": "Alright, take care. And if you need anything later, just give us a call.",
+        "role": "assistant"
+      }
+    ],
+    "metadata": {
+      "lk.pii.response.text": " Alright, take care. And if you need anything later, just give us a call."
+    }
+  },
+  {
+    "span_id": "4b8b7d69ff858484",
+    "span_parents": ["a1e893918604e88c"],
+    "span_attributes": {
+      "name": "agent_speaking"
+    },
+    "metrics": {
+      "start": 1790194110.188,
+      "end": 1790194114.963
+    }
+  },
+  {
+    "span_id": "2d5a914e88245e79",
+    "span_parents": ["51d595e371a33f39"],
+    "span_attributes": {
+      "name": "user_turn"
+    },
+    "metrics": {
+      "start": 1790194116.686,
+      "end": 1790194116.975
+    },
+    "input": [
+      {
+        "content": "Goodbye",
+        "role": "user"
+      }
+    ],
+    "metadata": {
+      "lk.pii.user_transcript": ""
+    }
+  }
+]

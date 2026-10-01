@@ -1,0 +1,335 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`browser reads the original LiveKit fixture 1`] = `
+{
+  "messages": [
+    {
+      "content": "Thanks for calling Braintrust support. This call may be recorded. I can help with anything about using Braintrust, from tracing and evals to billing and self-hosting. Hi, what are you working on?",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "Sure, let's take a look. Hm.",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "Right, so the usual flow is, you make a dataset with inputs and expected answers, define a task that calls your model, Yeah,",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "go on.",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "Alright, take care. And if you need anything later, just give us a call.",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "Goodbye",
+      "role": "user",
+    },
+  ],
+  "recordings": [
+    {
+      "attachment": {
+        "content_type": "audio/ogg",
+        "filename": "call.ogg",
+        "key": "fixture",
+        "type": "braintrust_attachment",
+      },
+      "end_ms": 1790194116000,
+      "span_id": "call-recording",
+      "start_ms": 1790194066500,
+    },
+  ],
+  "utterances": [
+    {
+      "clip": {
+        "content_type": "audio/wav",
+        "filename": "agent_speaking_24000hz_1ch.wav",
+        "key": "fixture",
+        "type": "braintrust_attachment",
+      },
+      "end_ms": 1790194077278,
+      "range": {
+        "end_ms": 10778,
+        "recording_span_id": "call-recording",
+        "start_ms": 0,
+      },
+      "span_id": "a0777f4c58716668",
+      "speaker": "agent",
+      "start_ms": 1790194066225.9998,
+      "text": "Thanks for calling Braintrust support. This call may be recorded. I can help with anything about using Braintrust, from tracing and evals to billing and self-hosting. Hi, what are you working on?",
+    },
+    {
+      "end_ms": 1790194066823,
+      "range": {
+        "end_ms": 323,
+        "recording_span_id": "call-recording",
+        "start_ms": 226,
+      },
+      "span_id": "c06b7fe166eb172a",
+      "speaker": "user",
+      "start_ms": 1790194066726,
+    },
+    {
+      "end_ms": 1790194073484,
+      "range": {
+        "end_ms": 6984,
+        "recording_span_id": "call-recording",
+        "start_ms": 6572,
+      },
+      "span_id": "e053d1b8d6c5b7e6",
+      "speaker": "user",
+      "start_ms": 1790194073072,
+    },
+    {
+      "end_ms": 1790194079814,
+      "range": {
+        "end_ms": 13314,
+        "recording_span_id": "call-recording",
+        "start_ms": 12225,
+      },
+      "span_id": "986a03710d1117be",
+      "speaker": "user",
+      "start_ms": 1790194078725,
+    },
+    {
+      "end_ms": 1790194084783,
+      "range": {
+        "end_ms": 18283,
+        "recording_span_id": "call-recording",
+        "start_ms": 14679,
+      },
+      "span_id": "2a4c0fd0863e5c69",
+      "speaker": "agent",
+      "start_ms": 1790194081179,
+      "text": "Sure, let's take a look. Hm.",
+    },
+    {
+      "end_ms": 1790194098885,
+      "interrupted": true,
+      "range": {
+        "end_ms": 32385,
+        "recording_span_id": "call-recording",
+        "start_ms": 24199,
+      },
+      "span_id": "1fbfe51bb8c23efa",
+      "speaker": "agent",
+      "start_ms": 1790194090699,
+      "text": "Right, so the usual flow is, you make a dataset with inputs and expected answers, define a task that calls your model, Yeah,",
+    },
+    {
+      "end_ms": 1790194097095,
+      "range": {
+        "end_ms": 30595,
+        "recording_span_id": "call-recording",
+        "start_ms": 29696,
+      },
+      "span_id": "117266a0b0337bd5",
+      "speaker": "user",
+      "start_ms": 1790194096196,
+    },
+    {
+      "end_ms": 1790194100832,
+      "range": {
+        "end_ms": 34332,
+        "recording_span_id": "call-recording",
+        "start_ms": 32736,
+      },
+      "span_id": "08af132161b15c90",
+      "speaker": "agent",
+      "start_ms": 1790194099236,
+      "text": "go on.",
+    },
+    {
+      "end_ms": 1790194114963,
+      "range": {
+        "end_ms": 48463,
+        "recording_span_id": "call-recording",
+        "start_ms": 43688,
+      },
+      "span_id": "4b8b7d69ff858484",
+      "speaker": "agent",
+      "start_ms": 1790194110188,
+      "text": "Alright, take care. And if you need anything later, just give us a call.",
+    },
+    {
+      "span_id": "2d5a914e88245e79",
+      "speaker": "user",
+      "text": "Goodbye",
+    },
+  ],
+}
+`;
+
+exports[`node reads the original LiveKit fixture 1`] = `
+{
+  "messages": [
+    {
+      "content": "Thanks for calling Braintrust support. This call may be recorded. I can help with anything about using Braintrust, from tracing and evals to billing and self-hosting. Hi, what are you working on?",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "Sure, let's take a look. Hm.",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "Right, so the usual flow is, you make a dataset with inputs and expected answers, define a task that calls your model, Yeah,",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "go on.",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "Alright, take care. And if you need anything later, just give us a call.",
+      "id": null,
+      "role": "assistant",
+    },
+    {
+      "content": "Goodbye",
+      "role": "user",
+    },
+  ],
+  "recordings": [
+    {
+      "attachment": {
+        "content_type": "audio/ogg",
+        "filename": "call.ogg",
+        "key": "fixture",
+        "type": "braintrust_attachment",
+      },
+      "end_ms": 1790194116000,
+      "span_id": "call-recording",
+      "start_ms": 1790194066500,
+    },
+  ],
+  "utterances": [
+    {
+      "clip": {
+        "content_type": "audio/wav",
+        "filename": "agent_speaking_24000hz_1ch.wav",
+        "key": "fixture",
+        "type": "braintrust_attachment",
+      },
+      "end_ms": 1790194077278,
+      "range": {
+        "end_ms": 10778,
+        "recording_span_id": "call-recording",
+        "start_ms": 0,
+      },
+      "span_id": "a0777f4c58716668",
+      "speaker": "agent",
+      "start_ms": 1790194066225.9998,
+      "text": "Thanks for calling Braintrust support. This call may be recorded. I can help with anything about using Braintrust, from tracing and evals to billing and self-hosting. Hi, what are you working on?",
+    },
+    {
+      "end_ms": 1790194066823,
+      "range": {
+        "end_ms": 323,
+        "recording_span_id": "call-recording",
+        "start_ms": 226,
+      },
+      "span_id": "c06b7fe166eb172a",
+      "speaker": "user",
+      "start_ms": 1790194066726,
+    },
+    {
+      "end_ms": 1790194073484,
+      "range": {
+        "end_ms": 6984,
+        "recording_span_id": "call-recording",
+        "start_ms": 6572,
+      },
+      "span_id": "e053d1b8d6c5b7e6",
+      "speaker": "user",
+      "start_ms": 1790194073072,
+    },
+    {
+      "end_ms": 1790194079814,
+      "range": {
+        "end_ms": 13314,
+        "recording_span_id": "call-recording",
+        "start_ms": 12225,
+      },
+      "span_id": "986a03710d1117be",
+      "speaker": "user",
+      "start_ms": 1790194078725,
+    },
+    {
+      "end_ms": 1790194084783,
+      "range": {
+        "end_ms": 18283,
+        "recording_span_id": "call-recording",
+        "start_ms": 14679,
+      },
+      "span_id": "2a4c0fd0863e5c69",
+      "speaker": "agent",
+      "start_ms": 1790194081179,
+      "text": "Sure, let's take a look. Hm.",
+    },
+    {
+      "end_ms": 1790194098885,
+      "interrupted": true,
+      "range": {
+        "end_ms": 32385,
+        "recording_span_id": "call-recording",
+        "start_ms": 24199,
+      },
+      "span_id": "1fbfe51bb8c23efa",
+      "speaker": "agent",
+      "start_ms": 1790194090699,
+      "text": "Right, so the usual flow is, you make a dataset with inputs and expected answers, define a task that calls your model, Yeah,",
+    },
+    {
+      "end_ms": 1790194097095,
+      "range": {
+        "end_ms": 30595,
+        "recording_span_id": "call-recording",
+        "start_ms": 29696,
+      },
+      "span_id": "117266a0b0337bd5",
+      "speaker": "user",
+      "start_ms": 1790194096196,
+    },
+    {
+      "end_ms": 1790194100832,
+      "range": {
+        "end_ms": 34332,
+        "recording_span_id": "call-recording",
+        "start_ms": 32736,
+      },
+      "span_id": "08af132161b15c90",
+      "speaker": "agent",
+      "start_ms": 1790194099236,
+      "text": "go on.",
+    },
+    {
+      "end_ms": 1790194114963,
+      "range": {
+        "end_ms": 48463,
+        "recording_span_id": "call-recording",
+        "start_ms": 43688,
+      },
+      "span_id": "4b8b7d69ff858484",
+      "speaker": "agent",
+      "start_ms": 1790194110188,
+      "text": "Alright, take care. And if you need anything later, just give us a call.",
+    },
+    {
+      "span_id": "2d5a914e88245e79",
+      "speaker": "user",
+      "text": "Goodbye",
+    },
+  ],
+}
+`;
