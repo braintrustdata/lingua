@@ -52,6 +52,11 @@ pub enum TrajectoryEvent {
         span_id: String,
         message: String,
     },
+    Warning {
+        root_span_id: String,
+        span_id: String,
+        message: String,
+    },
     Done,
 }
 
@@ -1040,6 +1045,15 @@ impl TrajectoryStream {
                     message: failure.message,
                 }),
         );
+        for (index, span) in self.spans.iter().enumerate() {
+            if !self.owners[&index].skipped && !span.warnings.is_empty() {
+                events.push(TrajectoryEvent::Warning {
+                    root_span_id: span.root_span_id.clone(),
+                    span_id: span.id.clone(),
+                    message: span.warnings.join("; "),
+                });
+            }
+        }
         events.push(TrajectoryEvent::Done);
         self.finished = true;
         Ok(events)
@@ -1132,25 +1146,38 @@ impl TrajectoryCollector {
                 root_span_id,
                 span_id,
                 message,
-            } => {
-                let (trajectory, _) = self
-                    .scopes
-                    .get_mut(&TrajectoryScope {
-                        root_span_id,
-                        owner_span_id: None,
-                    })
-                    .ok_or("Unknown trajectory scope")?;
-                let failures = trajectory
-                    .metadata
-                    .entry("import_failures")
-                    .or_insert_with(|| json::json!([]));
-                let failures = failures
-                    .as_array_mut()
-                    .ok_or("Invalid trajectory failure collection")?;
-                failures.push(json::json!({ "span_id": span_id, "message": message }));
-            }
+            } => self.import_diagnostic("import_failures", root_span_id, span_id, message)?,
+            TrajectoryEvent::Warning {
+                root_span_id,
+                span_id,
+                message,
+            } => self.import_diagnostic("import_warnings", root_span_id, span_id, message)?,
             TrajectoryEvent::Done => self.complete = true,
         }
+        Ok(())
+    }
+
+    fn import_diagnostic(
+        &mut self,
+        field: &str,
+        root_span_id: String,
+        span_id: String,
+        message: String,
+    ) -> Result<()> {
+        let (trajectory, _) = self
+            .scopes
+            .get_mut(&TrajectoryScope {
+                root_span_id,
+                owner_span_id: None,
+            })
+            .ok_or("Unknown trajectory scope")?;
+        let diagnostics = trajectory
+            .metadata
+            .entry(field)
+            .or_insert_with(|| json::json!([]))
+            .as_array_mut()
+            .ok_or("Invalid trajectory diagnostic collection")?;
+        diagnostics.push(json::json!({ "span_id": span_id, "message": message }));
         Ok(())
     }
 

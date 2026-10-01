@@ -36,6 +36,12 @@
       "output": [{ "role": "assistant", "content": "Hello" }]
     }
   ],
+  "import_warnings": [
+    {
+      "span_id": "call",
+      "message": "input: Message item 0: Unsupported additional_tools definitions omitted from imported messages"
+    }
+  ],
   "turns": [
     {
       "request_id": "call",
