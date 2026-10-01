@@ -301,3 +301,10 @@ recording start, and is present only when there is one bounded recording.
 Missing text, audio, times, and interruptions stay absent. Unrecognized traces
 return empty arrays; malformed recognized fields throw. `messages` contains
 only utterances with text, using Lingua user and assistant roles.
+
+Shared voice types and adapter selection live in
+`crates/lingua/src/processing/voice/mod.rs`. Each SDK implements `Adapter`
+(`matches`, `recordings`, `utterances`) in `voice/adapters/<sdk>.rs`.
+LiveKit is the only adapter currently. To add an SDK, add a fixture, implement
+the interface, and add its branch to `adapter_for`. Message projection stays
+shared in `import_voice_call`.
