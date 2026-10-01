@@ -2,6 +2,7 @@ use crate::import_parse::{try_parsers_in_order, MessageParser};
 mod ai_sdk;
 mod langchain;
 mod pydantic_ai;
+mod span;
 use crate::processing::import::ai_sdk::try_parse_ai_sdk_for_import;
 use crate::processing::import::langchain::try_parse_langchain_for_import;
 use crate::processing::import::pydantic_ai::try_parse_pydantic_ai_for_import;
@@ -29,6 +30,47 @@ use crate::universal::{
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use serde::{Deserialize, Serialize};
+pub use span::{import_span, import_span_with_options, ImportedSpan, SpanContext};
+
+pub(crate) fn is_instruction(message: &Message) -> bool {
+    matches!(
+        message,
+        Message::System { .. } | Message::Developer { .. } | Message::AdditionalTools { .. }
+    )
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+pub struct ImportOptions {
+    #[serde(default)]
+    pub preserve_unsupported: bool,
+}
+
+/// Source data retained without interpreting it as a conversational message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpaqueItem {
+    /// Position in the source array, or None when the payload itself is opaque.
+    pub index: Option<usize>,
+    pub value: Value,
+}
+
+#[derive(Default)]
+struct MessageImport {
+    options: ImportOptions,
+    errors: Vec<String>,
+    opaque: Vec<OpaqueItem>,
+}
+
+fn is_opaque_item(data: &Value) -> bool {
+    #[cfg(feature = "openai")]
+    {
+        crate::providers::openai::convert::is_opaque_item_for_import(data)
+    }
+    #[cfg(not(feature = "openai"))]
+    {
+        let _ = data;
+        false
+    }
+}
 
 /// Represents a minimal span structure with input/output fields
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,16 +84,21 @@ pub struct Span {
 }
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
-fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<Message> {
     if let Some(messages) = try_parse_ai_sdk_for_import(data) {
         return messages;
     }
 
-    if is_role_message_array(data) {
-        return try_parse_mixed_role_messages_for_import(data).unwrap_or_default();
+    if is_role_message_array(data)
+        || (import.options.preserve_unsupported
+            && data
+                .as_array()
+                .is_some_and(|items| items.iter().any(is_opaque_item)))
+    {
+        return try_parse_mixed_messages_for_import(data, import).unwrap_or_default();
     }
 
-    if let Some(messages) = try_choices_array_parsing(data) {
+    if let Some(messages) = try_choices_array_parsing(data, import) {
         return messages;
     }
 
@@ -98,7 +145,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
                 "messages", "prompt", "input", "output", "choices", "result", "response",
             ] {
                 if let Some(nested) = obj.get(key) {
-                    let nested_messages = try_converting_to_messages(nested);
+                    let nested_messages = try_converting_to_messages(nested, import);
                     if !nested_messages.is_empty() {
                         return nested_messages;
                     }
@@ -106,6 +153,10 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
             }
         }
         return Vec::new();
+    }
+
+    if let Some(messages) = try_parse_mixed_messages_for_import(data, import) {
+        return messages;
     }
 
     // If data is a single message object (not an array), wrap it in an array for parsing
@@ -158,7 +209,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
 
     // Try parsing as choices array (Chat Completions response format)
     // This handles [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
-    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse) {
+    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse, import) {
         if !choices_messages.is_empty() {
             return choices_messages;
         }
@@ -192,12 +243,23 @@ fn provider_parsers_for_import() -> Vec<MessageParser> {
     ]
 }
 
-fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_mixed_messages_for_import(
+    data: &Value,
+    import: &mut MessageImport,
+) -> Option<Vec<Message>> {
     let items = data.as_array()?;
     let provider_parsers = provider_parsers_for_import();
     let mut messages = Vec::new();
+    let errors_before = import.errors.len();
 
-    for item in items {
+    for (index, item) in items.iter().enumerate() {
+        if import.options.preserve_unsupported && is_opaque_item(item) {
+            import.opaque.push(OpaqueItem {
+                index: Some(index),
+                value: item.clone(),
+            });
+            continue;
+        }
         // Native Anthropic thinking blocks must use the canonical parser so adjacent text
         // metadata survives. Keep the existing parser order for every other role message.
         #[cfg(feature = "anthropic")]
@@ -239,12 +301,24 @@ fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>
             parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
         }
 
-        if let Some(mut parsed_messages) = parsed_messages {
-            messages.append(&mut parsed_messages);
-        }
+        let Some(mut parsed_messages) = parsed_messages else {
+            import
+                .errors
+                .push(format!("Unsupported message item at index {index}"));
+            if import.options.preserve_unsupported {
+                import.opaque.push(OpaqueItem {
+                    index: Some(index),
+                    value: item.clone(),
+                });
+            }
+            continue;
+        };
+        messages.append(&mut parsed_messages);
     }
 
-    if messages.is_empty() {
+    if import.errors.len() != errors_before && !import.options.preserve_unsupported {
+        Some(Vec::new())
+    } else if messages.is_empty() {
         None
     } else {
         Some(messages)
@@ -333,6 +407,51 @@ struct LenientToolMessageCompat {
 enum LenientTextContentPartCompat {
     #[serde(rename = "text", alias = "input_text", alias = "output_text")]
     Text { text: String },
+}
+
+#[cfg(feature = "openai")]
+#[derive(Deserialize)]
+struct AttachmentImageCompat {
+    #[serde(alias = "image")]
+    image_url: ImageAttachment,
+    #[serde(flatten)]
+    part: openai::InputContent,
+}
+
+#[cfg(feature = "openai")]
+#[derive(Deserialize, Serialize)]
+#[serde(tag = "type")]
+enum ImageAttachment {
+    #[serde(rename = "braintrust_attachment")]
+    Braintrust {
+        key: String,
+        filename: String,
+        content_type: String,
+    },
+}
+
+#[cfg(feature = "openai")]
+fn try_parse_attachment_image(item: &Value) -> Option<UserContentPart> {
+    let AttachmentImageCompat { image_url, part } =
+        AttachmentImageCompat::deserialize(item).ok()?;
+    if part.input_content_type != openai::InputItemContentListType::InputImage
+        || part.prompt_cache_breakpoint.is_some()
+    {
+        return None;
+    }
+    let ImageAttachment::Braintrust { content_type, .. } = &image_url;
+    let provider_options = part
+        .detail
+        .map(|detail| crate::universal::message::ProviderOptions {
+            options: [("detail".to_string(), serde_json::json!(detail))]
+                .into_iter()
+                .collect(),
+        });
+    Some(UserContentPart::Image {
+        image: serde_json::to_value(&image_url).ok()?,
+        media_type: Some(content_type.clone()),
+        provider_options,
+    })
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -636,11 +755,29 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
     match value {
         Value::String(s) => Some(UserContent::String(s.clone())),
         Value::Array(arr) => {
-            let parts: Vec<UserContentPart> = arr
-                .iter()
-                .filter_map(try_parse_lenient_text_content_part)
-                .map(UserContentPart::Text)
-                .collect();
+            let parts: Vec<UserContentPart> =
+                arr.iter()
+                    .map(|item| {
+                        #[cfg(feature = "openai")]
+                        {
+                            if let Some(image) = try_parse_attachment_image(item) {
+                                return Some(image);
+                            }
+                            if let Some(part) = openai::InputContent::deserialize(item)
+                                .ok()
+                                .and_then(|part| {
+                                    <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(
+                                        part,
+                                    )
+                                    .ok()
+                                })
+                            {
+                                return Some(part);
+                            }
+                        }
+                        try_parse_lenient_text_content_part(item).map(UserContentPart::Text)
+                    })
+                    .collect::<Option<_>>()?;
             if parts.is_empty() {
                 None
             } else {
@@ -691,7 +828,7 @@ fn parse_tool_content(value: &Value) -> Option<ToolContent> {
 ///
 /// This handles the output format: [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
 /// Extracts messages from the "message" field of each choice object.
-fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
+fn try_choices_array_parsing(data: &Value, import: &mut MessageImport) -> Option<Vec<Message>> {
     let arr = data.as_array()?;
     let mut messages = Vec::new();
 
@@ -708,7 +845,7 @@ fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
         if let Some(message_value) = obj.get("message") {
             // The message is a single object, wrap in array for try_converting_to_messages
             let wrapped = Value::Array(vec![message_value.clone()]);
-            let nested_messages = try_converting_to_messages(&wrapped);
+            let nested_messages = try_converting_to_messages(&wrapped, import);
             if nested_messages.is_empty() {
                 // If element has "message" but we couldn't parse it, this is malformed
                 return None;
@@ -725,57 +862,112 @@ fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
     }
 }
 
+struct SpanMessages {
+    input: Vec<Message>,
+    output: Vec<Message>,
+    opaque_input: Vec<OpaqueItem>,
+    opaque_output: Vec<OpaqueItem>,
+    errors: Vec<String>,
+}
+
+/// Import a span's input and output messages, preserving their boundary and parse errors.
+///
+/// Both structured span imports and message-only imports use this conversion path to
+/// convert provider messages into the Lingua format. Best-effort imports also retain
+/// unsupported items separately, without treating them as conversational messages.
+fn import_span_messages(
+    input: Option<Value>,
+    output: Option<Value>,
+    metadata: Option<&Value>,
+    expect_messages: bool,
+    options: ImportOptions,
+) -> SpanMessages {
+    let mut import = MessageImport {
+        options,
+        ..Default::default()
+    };
+    let nonempty = |value: &Value| match value {
+        Value::Null => false,
+        Value::Array(values) => !values.is_empty(),
+        Value::Object(fields) => !fields.is_empty(),
+        _ => true,
+    };
+    let parse = |value: Value, field: &str, import: &mut MessageImport| {
+        if options.preserve_unsupported && is_opaque_item(&value) {
+            import.opaque.push(OpaqueItem { index: None, value });
+            return Vec::new();
+        }
+        let errors_before = import.errors.len();
+        let messages = try_converting_to_messages(&value, import);
+        if messages.is_empty() && import.opaque.is_empty() {
+            if expect_messages && import.errors.len() == errors_before {
+                import
+                    .errors
+                    .push(format!("Unsupported {field} message format"));
+            }
+            if options.preserve_unsupported {
+                import.opaque.push(OpaqueItem { index: None, value });
+            }
+        }
+        messages
+    };
+    let mut input = match input.filter(nonempty) {
+        Some(Value::String(text)) => vec![Message::User {
+            content: UserContent::String(text),
+        }],
+        Some(input) => parse(input, "input", &mut import),
+        None => Vec::new(),
+    };
+    let opaque_input = std::mem::take(&mut import.opaque);
+    let output = match output.filter(nonempty) {
+        Some(Value::String(text)) if !text.is_empty() => vec![Message::Assistant {
+            content: AssistantContent::String(text),
+            id: None,
+        }],
+        Some(Value::String(_)) => Vec::new(),
+        Some(output) => parse(output, "output", &mut import),
+        None => Vec::new(),
+    };
+    #[cfg(feature = "openai")]
+    if let Some(message) = metadata.and_then(try_system_message_from_openai_metadata) {
+        if !input
+            .iter()
+            .any(|message| matches!(message, Message::System { .. }))
+        {
+            input.insert(0, message);
+        }
+    }
+    SpanMessages {
+        input,
+        output,
+        opaque_input,
+        opaque_output: import.opaque,
+        errors: import.errors,
+    }
+}
+
 /// Import messages from a list of spans
 ///
 /// This function processes spans and extracts messages from their input/output fields,
 /// attempting to convert them from various provider formats to the lingua format.
+/// Recognized messages are retained even when adjacent items are unsupported. Use
+/// `import_span_with_options` to also retain unsupported data and diagnostics.
 pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
-    let mut messages = Vec::new();
-
-    for mut span in spans {
-        let mut span_messages = Vec::new();
-
-        match span.input.take() {
-            Some(Value::String(input_text)) => {
-                span_messages.push(Message::User {
-                    content: UserContent::String(input_text),
-                });
-            }
-            Some(input) => {
-                span_messages.extend(try_converting_to_messages(&input));
-            }
-            None => {}
-        }
-
-        #[cfg(feature = "openai")]
-        if let Some(metadata) = span.other.get("metadata") {
-            if let Some(system_message) = try_system_message_from_openai_metadata(metadata) {
-                let has_system_message = span_messages
-                    .iter()
-                    .any(|message| matches!(message, Message::System { .. }));
-                if !has_system_message {
-                    span_messages.insert(0, system_message);
-                }
-            }
-        }
-
-        messages.extend(span_messages);
-
-        match span.output.take() {
-            Some(Value::String(output_text)) if !output_text.is_empty() => {
-                messages.push(Message::Assistant {
-                    content: AssistantContent::String(output_text),
-                    id: None,
-                });
-            }
-            Some(output) => {
-                messages.extend(try_converting_to_messages(&output));
-            }
-            None => {}
-        }
-    }
-
-    messages
+    spans
+        .into_iter()
+        .flat_map(|span| {
+            let messages = import_span_messages(
+                span.input,
+                span.output,
+                span.other.get("metadata"),
+                true,
+                ImportOptions {
+                    preserve_unsupported: true,
+                },
+            );
+            messages.input.into_iter().chain(messages.output)
+        })
+        .collect()
 }
 
 /// Import and deduplicate messages from spans in a single operation
@@ -788,8 +980,72 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn invalid_tool_call_metadata_preserves_valid_hints() {
+        let spans: Vec<Span> = serde_json::from_str(include_str!(
+            "import/fixtures/invalid-tool-call-metadata.json"
+        ))
+        .unwrap();
+        let imported: Vec<_> = spans
+            .into_iter()
+            .map(|span| import_span(span).unwrap())
+            .collect();
+        for span in &imported {
+            assert_eq!(span.header.turn.as_deref(), Some("turn"));
+            assert_eq!(span.header.model.as_deref(), Some("example-model"));
+            assert_eq!(span.errors.len(), 1);
+            assert!(span.errors[0].starts_with("Invalid metadata.tool_call_id:"));
+        }
+        let compaction = imported[0].header.compaction.as_ref().unwrap();
+        assert_eq!(compaction.id, "compact");
+        assert_eq!(compaction.replaced_message_count, Some(2));
+        let tool = imported[1].tool_result.as_ref().unwrap();
+        assert!(tool.content.is_none());
+        assert_eq!(
+            tool.output,
+            Some(Value::String("Found a record".to_string()))
+        );
+    }
+
+    #[test]
+    fn imported_spans_preserve_history_and_input_output_boundaries() {
+        #[derive(Deserialize)]
+        struct Fixture {
+            spans: Vec<Span>,
+        }
+        let fixture: Fixture = serde_json::from_str(include_str!(
+            "trajectory/fixtures/responses-tool-cycle.json"
+        ))
+        .unwrap();
+        let imported = fixture
+            .spans
+            .into_iter()
+            .map(import_span)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        let final_span = imported
+            .iter()
+            .find(|span| span.header.id.as_deref() == Some("final"))
+            .unwrap();
+        assert!(matches!(
+            final_span.input.as_slice(),
+            [
+                Message::AdditionalTools { .. },
+                Message::Developer { .. },
+                Message::User { .. },
+                Message::Assistant { .. },
+                Message::Tool { .. }
+            ]
+        ));
+        assert!(matches!(
+            final_span.output.as_slice(),
+            [Message::Assistant { .. }]
+        ));
+        assert!(final_span.errors.is_empty());
+    }
+
     fn import_assistant_parts(input: Value) -> Vec<AssistantContentPart> {
-        let messages = try_converting_to_messages(&input);
+        let messages = try_converting_to_messages(&input, &mut MessageImport::default());
         assert_eq!(messages.len(), 1);
 
         let Message::Assistant {

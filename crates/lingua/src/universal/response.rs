@@ -144,7 +144,7 @@ pub struct OutputTokenDetails {
 
 /// Token usage statistics.
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct UniversalUsage {
     /// Tokens in the prompt/input, including provider-generated tool prompts when reported.
     #[ts(optional, type = "number")]

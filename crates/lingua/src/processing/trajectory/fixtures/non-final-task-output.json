@@ -1,0 +1,30 @@
+{
+  "spans": [
+    {
+      "id": "calling", "root_span_id": "root",
+      "span_attributes": {"type": "task"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [{"role": "user", "content": "Search"}],
+      "output": [{"type": "function_call", "call_id": "lookup", "name": "search", "arguments": "{}"}]
+    },
+    {
+      "id": "failed", "root_span_id": "root",
+      "span_attributes": {"type": "task"},
+      "metrics": {"start": 3, "end": 4},
+      "input": [{"role": "user", "content": "Try another source"}],
+      "error": "Source unavailable"
+    },
+    {
+      "id": "unfinished", "root_span_id": "root",
+      "span_attributes": {"type": "task"},
+      "metrics": {"start": 5},
+      "input": [{"role": "user", "content": "Continue"}],
+      "output": [{"role": "assistant", "content": "Partial answer"}]
+    }
+  ],
+  "turns": [
+    {"request_id": "calling", "response_id": null, "response_text": "", "work_ids": ["calling"], "user_texts": ["Search"]},
+    {"request_id": "failed", "response_id": null, "response_text": "", "work_ids": ["failed"], "user_texts": ["Try another source"]},
+    {"request_id": "unfinished", "response_id": null, "response_text": "", "work_ids": ["unfinished"], "user_texts": ["Continue"]}
+  ]
+}

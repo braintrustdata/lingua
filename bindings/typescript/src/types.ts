@@ -64,3 +64,5 @@ export type { OutputTokenDetails } from "./generated/OutputTokenDetails";
 export type { ModalityTokenCount } from "./generated/ModalityTokenCount";
 export type { TokenBreakdown } from "./generated/TokenBreakdown";
 export type { TokenModality } from "./generated/TokenModality";
+export type { TrajectoryEvent } from "./generated/TrajectoryEvent";
+export type { TrajectoryScope } from "./generated/TrajectoryScope";

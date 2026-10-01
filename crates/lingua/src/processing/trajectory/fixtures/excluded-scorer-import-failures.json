@@ -1,0 +1,51 @@
+{
+  "spans": [
+    {
+      "id": "main",
+      "span_id": "main",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [{"role": "user", "content": "Question"}],
+      "output": [{"role": "assistant", "content": "Answer"}]
+    },
+    {
+      "id": "scorer",
+      "span_id": "scorer",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm", "purpose": "scorer"},
+      "metrics": {"start": 3, "end": 4},
+      "input": [{"role": "custom", "content": "Scoring data"}],
+      "output": {"unsupported": true}
+    },
+    {
+      "id": "score",
+      "span_id": "score",
+      "root_span_id": "root",
+      "span_attributes": {"type": "score"},
+      "metrics": {"start": 5, "end": 8}
+    },
+    {
+      "id": "score-child",
+      "span_id": "score-child",
+      "root_span_id": "root",
+      "span_parents": ["score"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 6, "end": 7},
+      "input": [{"role": "custom", "content": "Scoring data"}],
+      "output": {"unsupported": true}
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "main",
+      "response_id": "main",
+      "response_text": "Answer",
+      "work_ids": [],
+      "user_texts": ["Question"]
+    }
+  ],
+  "import_options": {"preserve_unsupported": true}
+}

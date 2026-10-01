@@ -1,0 +1,41 @@
+[
+  {
+    "id": "working",
+    "span_id": "working",
+    "root_span_id": "root",
+    "span_parents": ["root"],
+    "span_attributes": { "type": "llm", "name": "working" },
+    "metrics": {
+      "start": 1,
+      "end": 2,
+      "prompt_tokens": 100,
+      "completion_tokens": 20,
+      "tokens": 120,
+      "prompt_cached_tokens": 80,
+      "completion_reasoning_tokens": 15
+    },
+    "input": [{ "role": "user", "content": "Check the result" }],
+    "output": [{ "role": "assistant", "content": "Checking" }]
+  },
+  {
+    "id": "final",
+    "span_id": "final",
+    "root_span_id": "root",
+    "span_parents": ["root"],
+    "span_attributes": { "type": "llm", "name": "final" },
+    "metrics": {
+      "start": 3,
+      "end": 4,
+      "prompt_tokens": 120,
+      "completion_tokens": 10,
+      "tokens": 130,
+      "prompt_cached_tokens": 100,
+      "completion_reasoning_tokens": 6
+    },
+    "input": [
+      { "role": "user", "content": "Check the result" },
+      { "role": "assistant", "content": "Checking" }
+    ],
+    "output": [{ "role": "assistant", "content": "Done" }]
+  }
+]

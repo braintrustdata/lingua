@@ -1,0 +1,285 @@
+{
+  "spans": [
+    {
+      "id": "root",
+      "span_id": "root",
+      "root_span_id": "root",
+      "span_parents": [],
+      "span_attributes": {
+        "type": "task",
+        "name": "task"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 1
+      }
+    },
+    {
+      "id": "call",
+      "span_id": "call",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "input": [
+        {
+          "type": "additional_tools",
+          "role": "developer",
+          "tools": []
+        },
+        {
+          "type": "message",
+          "role": "developer",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "Instructions"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "Request"
+            },
+            {
+              "type": "input_image",
+              "image_url": "https://example.com/other.png"
+            },
+            {
+              "type": "input_image",
+              "image_url": {
+                "type": "braintrust_attachment",
+                "key": "image-key",
+                "filename": "image.png",
+                "content_type": "image/png"
+              },
+              "detail": "low"
+            }
+          ]
+        },
+        {
+          "type": "message",
+          "role": "user",
+          "content": [
+            {
+              "type": "input_image",
+              "image_url": {
+                "type": "braintrust_attachment",
+                "key": "image-key",
+                "filename": "image.png",
+                "content_type": "image/png"
+              }
+            }
+          ]
+        }
+      ],
+      "output": [
+        {
+          "type": "function_call",
+          "call_id": "call",
+          "name": "example_tool",
+          "arguments": "{}"
+        }
+      ]
+    },
+    {
+      "id": "tool",
+      "span_id": "tool",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "tool",
+        "name": "tool"
+      },
+      "metrics": {
+        "start": 2,
+        "end": 3
+      },
+      "input": {},
+      "output": "Result",
+      "metadata": {
+        "tool_call_id": "call"
+      }
+    },
+    {
+      "id": "final",
+      "span_id": "final",
+      "root_span_id": "root",
+      "span_parents": [
+        "root"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 4
+      },
+      "input": [
+        {
+          "type": "additional_tools",
+          "role": "developer",
+          "tools": []
+        },
+        {
+          "type": "message",
+          "role": "developer",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "Instructions"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "Request"
+            },
+            {
+              "type": "input_image",
+              "image_url": "https://example.com/other.png"
+            },
+            {
+              "type": "input_image",
+              "image_url": {
+                "type": "braintrust_attachment",
+                "key": "image-key",
+                "filename": "image.png",
+                "content_type": "image/png"
+              },
+              "detail": "low"
+            }
+          ]
+        },
+        {
+          "type": "message",
+          "role": "user",
+          "content": [
+            {
+              "type": "input_image",
+              "image_url": {
+                "type": "braintrust_attachment",
+                "key": "image-key",
+                "filename": "image.png",
+                "content_type": "image/png"
+              }
+            }
+          ]
+        },
+        {
+          "type": "function_call",
+          "call_id": "call",
+          "name": "example_tool",
+          "arguments": "{}"
+        },
+        {
+          "type": "function_call_output",
+          "call_id": "call",
+          "output": "Result"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "Answer"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "call",
+      "response_id": "final",
+      "response_text": "Answer",
+      "work_ids": [
+        "call",
+        "tool"
+      ],
+      "user_texts": [
+        "Request",
+        ""
+      ]
+    }
+  ],
+  "requests": [
+    [
+      {
+        "role": "additional_tools",
+        "tools": []
+      },
+      {
+        "role": "developer",
+        "content": [
+          {
+            "type": "text",
+            "text": "Instructions"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Request"
+          },
+          {
+            "type": "image",
+            "image": "https://example.com/other.png",
+            "media_type": "image/jpeg"
+          },
+          {
+            "type": "image",
+            "image": {
+              "type": "braintrust_attachment",
+              "key": "image-key",
+              "filename": "image.png",
+              "content_type": "image/png"
+            },
+            "media_type": "image/png",
+            "provider_options": {
+              "detail": "low"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "image",
+            "image": {
+              "type": "braintrust_attachment",
+              "key": "image-key",
+              "filename": "image.png",
+              "content_type": "image/png"
+            },
+            "media_type": "image/png"
+          }
+        ]
+      }
+    ]
+  ]
+}

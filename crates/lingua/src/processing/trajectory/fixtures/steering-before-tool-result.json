@@ -1,0 +1,66 @@
+{
+  "spans": [
+    {
+      "id": "call",
+      "span_id": "call",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [{"role": "user", "content": "Original request"}],
+      "output": [{"type": "function_call", "call_id": "call", "name": "lookup", "arguments": "{}"}]
+    },
+    {
+      "id": "steered",
+      "span_id": "steered",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 3, "end": 4},
+      "input": [
+        {"role": "user", "content": "Original request"},
+        {"type": "function_call", "call_id": "call", "name": "lookup", "arguments": "{}"},
+        {"role": "user", "content": "Use revised constraints"},
+        {"type": "function_call_output", "call_id": "call", "output": "Result"}
+      ],
+      "output": [{"type": "function_call", "call_id": "follow-up", "name": "lookup", "arguments": "{}"}]
+    },
+    {
+      "id": "final",
+      "span_id": "final",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 5, "end": 6},
+      "input": [
+        {"role": "user", "content": "Original request"},
+        {"type": "function_call", "call_id": "call", "name": "lookup", "arguments": "{}"},
+        {"role": "user", "content": "Use revised constraints"},
+        {"type": "function_call_output", "call_id": "call", "output": "Result"},
+        {"type": "function_call", "call_id": "follow-up", "name": "lookup", "arguments": "{}"},
+        {
+          "role": "user",
+          "content": "<environment_context>Updated environment</environment_context>"
+        },
+        {"type": "function_call_output", "call_id": "follow-up", "output": "Result"}
+      ],
+      "output": [{"role": "assistant", "content": "Final answer"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "call",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": ["call"],
+      "user_texts": ["Original request"]
+    },
+    {
+      "request_id": "steered",
+      "response_id": "final",
+      "response_text": "Final answer",
+      "work_ids": ["steered"],
+      "user_texts": ["Use revised constraints"]
+    }
+  ]
+}

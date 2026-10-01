@@ -1,0 +1,98 @@
+{
+  "spans": [
+    {
+      "id": "first",
+      "span_id": "first",
+      "root_span_id": "root",
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 1, "end": 2 },
+      "input": [
+        {
+          "type": "additional_tools",
+          "role": "developer",
+          "tools": [
+            {
+              "type": "function",
+              "name": "search",
+              "description": "Search records",
+              "parameters": {
+                "type": "object",
+                "properties": { "query": { "type": "string" } },
+                "required": ["query"]
+              },
+              "strict": false
+            }
+          ]
+        },
+        { "role": "user", "content": "Find a record" }
+      ],
+      "output": [{ "role": "assistant", "content": "Found it" }]
+    },
+    {
+      "id": "second",
+      "span_id": "second",
+      "root_span_id": "root",
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 3, "end": 4 },
+      "input": [
+        {
+          "type": "additional_tools",
+          "role": "developer",
+          "tools": [
+            {
+              "type": "function",
+              "name": "inspect",
+              "description": "Inspect a record",
+              "parameters": { "type": "object", "properties": {} },
+              "strict": false
+            }
+          ]
+        },
+        { "role": "user", "content": "Find a record" },
+        { "role": "assistant", "content": "Found it" },
+        { "role": "user", "content": "Inspect it" }
+      ],
+      "output": [{ "role": "assistant", "content": "Checked it" }]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "first",
+      "response_id": "first",
+      "response_text": "Found it",
+      "work_ids": [],
+      "user_texts": ["Find a record"]
+    },
+    {
+      "request_id": "second",
+      "response_id": "second",
+      "response_text": "Checked it",
+      "work_ids": [],
+      "user_texts": ["Inspect it"]
+    }
+  ],
+  "request_tools": [
+    [
+      {
+        "kind": "function",
+        "name": "search",
+        "description": "Search records",
+        "parameters": {
+          "type": "object",
+          "properties": { "query": { "type": "string" } },
+          "required": ["query"]
+        },
+        "strict": false
+      }
+    ],
+    [
+      {
+        "kind": "function",
+        "name": "inspect",
+        "description": "Inspect a record",
+        "parameters": { "type": "object", "properties": {} },
+        "strict": false
+      }
+    ]
+  ]
+}

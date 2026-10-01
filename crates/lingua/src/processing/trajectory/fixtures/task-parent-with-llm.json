@@ -1,0 +1,33 @@
+{
+  "spans": [
+    {
+      "id": "root",
+      "span_id": "root",
+      "root_span_id": "root",
+      "span_attributes": {"type": "task"},
+      "metrics": {"start": 1, "end": 10},
+      "input": [{"role": "user", "content": "Question"}],
+      "output": [{"role": "assistant", "content": "Answer"}],
+      "metadata": {"turn_id": "turn"}
+    },
+    {
+      "id": "llm",
+      "span_id": "llm",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 2, "end": 8},
+      "span_parents": ["root"],
+      "input": [{"role": "user", "content": "Question"}],
+      "output": [{"role": "assistant", "content": "Model answer"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "llm",
+      "response_id": "llm",
+      "response_text": "Model answer",
+      "work_ids": [],
+      "user_texts": ["Question"]
+    }
+  ]
+}

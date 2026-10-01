@@ -3,6 +3,7 @@ pub mod dedup;
 pub mod import;
 mod json_repair;
 pub mod stream;
+pub mod trajectory;
 pub mod transform;
 
 pub use adapters::{

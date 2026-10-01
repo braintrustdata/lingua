@@ -1,0 +1,92 @@
+{
+  "spans": [
+    {
+      "id": "abandoned",
+      "span_id": "abandoned",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 1
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Search"
+        }
+      ],
+      "output": []
+    },
+    {
+      "id": "retry",
+      "span_id": "retry",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 4
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Search"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer"
+        }
+      ]
+    },
+    {
+      "id": "running",
+      "span_id": "running",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 5
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Next request"
+        }
+      ],
+      "output": []
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "abandoned",
+      "response_id": "retry",
+      "response_text": "Answer",
+      "work_ids": [
+        "abandoned"
+      ],
+      "user_texts": [
+        "Search"
+      ]
+    },
+    {
+      "request_id": "running",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "running"
+      ],
+      "user_texts": [
+        "Next request"
+      ]
+    }
+  ],
+  "end_times": [
+    "1970-01-01T00:00:04Z",
+    null
+  ]
+}

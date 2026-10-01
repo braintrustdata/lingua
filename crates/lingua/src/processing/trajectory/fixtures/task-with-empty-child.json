@@ -1,0 +1,23 @@
+{
+  "spans": [
+    {
+      "id": "conversation", "span_id": "conversation", "root_span_id": "root",
+      "span_attributes": {"type": "task"},
+      "metrics": {"start": 1, "end": 4},
+      "input": [{"role": "user", "content": "Question"}],
+      "output": [{"role": "assistant", "content": "Answer"}]
+    },
+    {
+      "id": "helper", "span_id": "helper", "root_span_id": "root",
+      "span_parents": ["conversation"],
+      "span_attributes": {"type": "task"},
+      "metrics": {"start": 2, "end": 3}
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "conversation", "response_id": "conversation",
+      "response_text": "Answer", "work_ids": [], "user_texts": ["Question"]
+    }
+  ]
+}

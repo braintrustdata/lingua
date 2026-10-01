@@ -1,0 +1,134 @@
+{
+  "spans": [
+    {
+      "id": "hosted",
+      "span_id": "hosted",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [{"role": "user", "content": "Search the reference"}],
+      "output": [
+        {
+          "type": "web_search_call",
+          "id": "search",
+          "status": "completed",
+          "action": {"type": "search", "query": "Example query"}
+        },
+        {
+          "type": "message",
+          "role": "assistant",
+          "content": [{"type": "output_text", "text": "Found the reference"}]
+        }
+      ]
+    },
+    {
+      "id": "client",
+      "span_id": "client",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 3, "end": 4},
+      "input": [{"role": "user", "content": "Look up the record"}],
+      "output": [
+        {"role": "assistant", "content": "Checking the record"},
+        {"type": "function_call", "call_id": "call", "name": "lookup", "arguments": "{}"}
+      ]
+    },
+    {
+      "id": "hosted-only",
+      "span_id": "hosted-only",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 5, "end": 6},
+      "input": [{"role": "user", "content": "Search again"}],
+      "output": [
+        {
+          "type": "web_search_call",
+          "id": "search",
+          "status": "completed",
+          "action": {"type": "search", "query": "Example query"}
+        }
+      ]
+    },
+    {
+      "id": "discovery",
+      "span_id": "discovery",
+      "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 7, "end": 8},
+      "input": [{"role": "user", "content": "Find a tool"}],
+      "output": [
+        {
+          "arguments": {"paths": ["catalog"]},
+          "call_id": null,
+          "execution": "server",
+          "id": "tsc_discover_catalog",
+          "status": "completed",
+          "type": "tool_search_call"
+        },
+        {
+          "call_id": null,
+          "execution": "server",
+          "id": "tso_discover_catalog",
+          "status": "completed",
+          "tools": [
+            {
+              "description": "List and read catalog items.",
+              "name": "catalog",
+              "tools": [
+                {
+                  "defer_loading": true,
+                  "description": "List catalog items.",
+                  "name": "list_catalog_items",
+                  "parameters": {
+                    "additionalProperties": false,
+                    "properties": {"limit": {"minimum": 1, "type": "integer"}},
+                    "type": "object"
+                  },
+                  "strict": false,
+                  "type": "function"
+                }
+              ],
+              "type": "namespace"
+            }
+          ],
+          "type": "tool_search_output"
+        },
+        {"role": "assistant", "content": "Found a tool"}
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "hosted",
+      "response_id": "hosted",
+      "response_text": "Found the reference",
+      "work_ids": [],
+      "user_texts": ["Search the reference"]
+    },
+    {
+      "request_id": "client",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": ["client"],
+      "user_texts": ["Look up the record"]
+    },
+    {
+      "request_id": "hosted-only",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": ["hosted-only"],
+      "user_texts": ["Search again"]
+    },
+    {
+      "request_id": "discovery",
+      "response_id": "discovery",
+      "response_text": "Found a tool",
+      "work_ids": [],
+      "user_texts": ["Find a tool"]
+    }
+  ]
+}
