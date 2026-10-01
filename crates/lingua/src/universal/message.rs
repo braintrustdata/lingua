@@ -54,10 +54,10 @@ impl UserContent {
 }
 
 /// User content parts - text, image, audio, and file parts allowed
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[skip_serializing_none]
 pub enum UserContentPart {
     Text(TextContentPart),
     Image {
@@ -414,4 +414,20 @@ pub struct ToolErrorContentPart {
     pub tool_name: String,
     pub error: String,
     pub provider_metadata: Option<ProviderMetadata>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::UserContent;
+    use crate::serde_json;
+
+    #[test]
+    fn user_content_omits_absent_optional_fields() {
+        let wire = serde_json::json!([
+            {"type": "image", "image": "https://example.com/image.png"},
+            {"type": "file", "data": "https://example.com/report.pdf", "media_type": "application/pdf"}
+        ]);
+        let content: UserContent = serde_json::from_value(wire.clone()).unwrap();
+        assert_eq!(serde_json::to_value(content).unwrap(), wire);
+    }
 }

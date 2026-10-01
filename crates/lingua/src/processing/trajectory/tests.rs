@@ -849,6 +849,31 @@ fn best_effort_import_preserves_unsupported_items_and_diagnostics() {
     assert_eq!(imported.opaque_output.len(), 1);
 }
 
+fn check_preserved_metadata_fixture(fixture: &str) {
+    let fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
+    let source = fixture.spans[0].clone();
+    let strict = import_span(source.clone()).unwrap();
+    assert!(strict.input.is_empty());
+    assert!(!strict.errors.is_empty());
+    let imported = import_span_with_options(source.clone(), fixture.import_options).unwrap();
+    assert!(imported.errors.is_empty(), "{:?}", imported.errors);
+    assert!(matches!(imported.input.as_slice(), [Message::User { .. }]));
+    assert_eq!(imported.opaque_input.len(), 1);
+    assert_eq!(imported.opaque_input[0].index, Some(0));
+    assert_eq!(imported.opaque_input[0].value, source.input.unwrap()[0]);
+    check_fixture(&fixture);
+}
+
+#[test]
+fn preserves_unconvertible_tool_metadata() {
+    check_preserved_metadata_fixture(include_str!("fixtures/responses-opaque-tool-metadata.json"));
+}
+
+#[test]
+fn preserves_unconvertible_file_metadata() {
+    check_preserved_metadata_fixture(include_str!("fixtures/responses-cached-file.json"));
+}
+
 #[test]
 fn message_only_imports_preserve_readable_messages() {
     let spans: Vec<Span> =

@@ -1301,6 +1301,45 @@ pub(crate) fn is_opaque_item_for_import(data: &serde_json::Value) -> bool {
     })
 }
 
+#[derive(Deserialize)]
+struct ResponsesItemWithOpaqueTools {
+    tools: Option<Vec<serde::de::IgnoredAny>>,
+    #[serde(flatten)]
+    item: openai::InputItem,
+}
+
+pub(crate) fn try_parse_responses_with_opaque_metadata_for_import(
+    data: &serde_json::Value,
+) -> Option<Vec<Message>> {
+    let ResponsesItemWithOpaqueTools { tools, mut item } =
+        ResponsesItemWithOpaqueTools::deserialize(data).ok()?;
+    if item.input_item_type == Some(openai::InputItemType::AdditionalTools) {
+        return (tools.is_some() && item.role == Some(openai::InputItemRole::Developer))
+            .then(Vec::new);
+    }
+    if tools.is_some() {
+        return None;
+    }
+    let openai::InputItemContent::InputContentArray(parts) = item.content.as_mut()? else {
+        return None;
+    };
+    let mut preserved_cache_metadata = false;
+    for part in parts {
+        if matches!(
+            part.input_content_type,
+            openai::InputItemContentListType::InputFile
+                | openai::InputItemContentListType::InputImage
+                | openai::InputItemContentListType::InputAudio
+        ) {
+            preserved_cache_metadata |= part.prompt_cache_breakpoint.take().is_some();
+        }
+    }
+    if !preserved_cache_metadata {
+        return None;
+    }
+    <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![item]).ok()
+}
+
 fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<Vec<Message>> {
     match input {
         openai::Instructions::InputItemArray(items) => {
