@@ -54,6 +54,8 @@ pub struct ImportedSpan {
     pub interruption_messages: Vec<usize>,
     #[serde(default)]
     pub errors: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub warnings: Vec<String>,
 }
 
 impl ImportedSpan {
@@ -69,6 +71,7 @@ impl ImportedSpan {
             context_messages: Vec::new(),
             interruption_messages: Vec::new(),
             errors: self.errors.clone(),
+            warnings: self.warnings.clone(),
         }
     }
 }
@@ -214,6 +217,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         mut opaque_input,
         mut opaque_output,
         errors: message_errors,
+        warnings,
     } = import_span_messages(
         span.input,
         span.output,
@@ -288,6 +292,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         context_messages,
         interruption_messages,
         errors,
+        warnings,
     })
 }
 

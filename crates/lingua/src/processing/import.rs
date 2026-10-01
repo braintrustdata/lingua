@@ -17,7 +17,8 @@ use crate::providers::google::convert::try_parse_google_for_import;
 #[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
     assistant_content_parts_from_openai_tool_calls, try_parse_openai_for_import,
-    try_system_message_from_openai_metadata, ChatCompletionRequestMessageExt,
+    try_parse_responses_with_opaque_metadata_for_import, try_system_message_from_openai_metadata,
+    ChatCompletionRequestMessageExt,
 };
 #[cfg(feature = "openai")]
 use crate::providers::openai::generated as openai;
@@ -57,6 +58,7 @@ pub struct OpaqueItem {
 struct MessageImport {
     options: ImportOptions,
     errors: Vec<String>,
+    warnings: Vec<String>,
     opaque: Vec<OpaqueItem>,
 }
 
@@ -303,8 +305,13 @@ fn try_parse_mixed_messages_for_import(
 
         #[cfg(feature = "openai")]
         if parsed_messages.is_none() && import.options.preserve_unsupported {
-            parsed_messages = crate::providers::openai::convert::try_parse_responses_with_opaque_metadata_for_import(item);
-            if parsed_messages.is_some() {
+            if let Some((messages, warning)) =
+                try_parse_responses_with_opaque_metadata_for_import(item)
+            {
+                parsed_messages = Some(messages);
+                import
+                    .warnings
+                    .push(format!("Message item {index}: {warning}"));
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
@@ -879,13 +886,15 @@ struct SpanMessages {
     opaque_input: Vec<OpaqueItem>,
     opaque_output: Vec<OpaqueItem>,
     errors: Vec<String>,
+    warnings: Vec<String>,
 }
 
 /// Import a span's input and output messages, preserving their boundary and parse errors.
 ///
 /// Both structured span imports and message-only imports use this conversion path to
 /// convert provider messages into the Lingua format. Best-effort imports also retain
-/// unsupported items separately, without treating them as conversational messages.
+/// unsupported items separately, without treating them as conversational messages,
+/// and report warnings when imported messages omit provider metadata.
 fn import_span_messages(
     input: Option<Value>,
     output: Option<Value>,
@@ -909,7 +918,11 @@ fn import_span_messages(
             return Vec::new();
         }
         let errors_before = import.errors.len();
+        let warnings_before = import.warnings.len();
         let messages = try_converting_to_messages(&value, import);
+        for warning in &mut import.warnings[warnings_before..] {
+            *warning = format!("{field}: {warning}");
+        }
         if messages.is_empty() && import.opaque.is_empty() {
             if expect_messages && import.errors.len() == errors_before {
                 import
@@ -954,6 +967,7 @@ fn import_span_messages(
         opaque_input,
         opaque_output: import.opaque,
         errors: import.errors,
+        warnings: import.warnings,
     }
 }
 

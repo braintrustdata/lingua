@@ -1310,12 +1310,18 @@ struct ResponsesItemWithOpaqueTools {
 
 pub(crate) fn try_parse_responses_with_opaque_metadata_for_import(
     data: &serde_json::Value,
-) -> Option<Vec<Message>> {
+) -> Option<(Vec<Message>, &'static str)> {
     let ResponsesItemWithOpaqueTools { tools, mut item } =
         ResponsesItemWithOpaqueTools::deserialize(data).ok()?;
     if item.input_item_type == Some(openai::InputItemType::AdditionalTools) {
-        return (tools.is_some() && item.role == Some(openai::InputItemRole::Developer))
-            .then(Vec::new);
+        return (tools.is_some() && item.role == Some(openai::InputItemRole::Developer)).then(
+            || {
+                (
+                    Vec::new(),
+                    "Unsupported additional_tools definitions omitted from imported messages",
+                )
+            },
+        );
     }
     if tools.is_some() {
         return None;
@@ -1337,7 +1343,12 @@ pub(crate) fn try_parse_responses_with_opaque_metadata_for_import(
     if !preserved_cache_metadata {
         return None;
     }
-    <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![item]).ok()
+    let messages =
+        <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![item]).ok()?;
+    Some((
+        messages,
+        "Media prompt_cache_breakpoint omitted from imported messages",
+    ))
 }
 
 fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<Vec<Message>> {

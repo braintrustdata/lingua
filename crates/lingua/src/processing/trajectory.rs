@@ -55,6 +55,7 @@ pub struct PreparedSpan {
     usage: Option<UniversalUsage>,
     tool_result: Option<ToolResult>,
     failure: Option<ImportFailure>,
+    warnings: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -144,6 +145,7 @@ impl PreparedSpan {
             usage: span.usage,
             tool_result: span.tool_result,
             failure,
+            warnings: span.warnings,
         })
     }
 

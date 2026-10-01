@@ -50,6 +50,8 @@ struct ImportFixture {
     requests: Option<Vec<Vec<Message>>>,
     #[serde(default)]
     import_failures: Vec<crate::serde_json::Value>,
+    #[serde(default)]
+    import_warnings: Vec<crate::serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -114,6 +116,14 @@ fn check_fixture(fixture: &ImportFixture) {
                 .cloned()
                 .unwrap_or(crate::serde_json::json!([])),
             crate::serde_json::json!(fixture.import_failures),
+        );
+        assert_eq!(
+            trajectories[0]
+                .metadata
+                .get("import_warnings")
+                .cloned()
+                .unwrap_or(crate::serde_json::json!([])),
+            crate::serde_json::json!(fixture.import_warnings),
         );
         if let Some(compactions) = &fixture.compactions {
             assert_eq!(
@@ -754,6 +764,7 @@ fn generated_conversation(
         import_options: ImportOptions::default(),
         worker_responses,
         import_failures: Vec::new(),
+        import_warnings: Vec::new(),
         start_times: None,
         end_times: None,
         compactions: None,
@@ -855,8 +866,10 @@ fn check_preserved_metadata_fixture(fixture: &str) {
     let strict = import_span(source.clone()).unwrap();
     assert!(strict.input.is_empty());
     assert!(!strict.errors.is_empty());
+    assert!(strict.warnings.is_empty());
     let imported = import_span_with_options(source.clone(), fixture.import_options).unwrap();
     assert!(imported.errors.is_empty(), "{:?}", imported.errors);
+    assert!(!imported.warnings.is_empty());
     assert!(matches!(imported.input.as_slice(), [Message::User { .. }]));
     assert_eq!(imported.opaque_input.len(), 1);
     assert_eq!(imported.opaque_input[0].index, Some(0));

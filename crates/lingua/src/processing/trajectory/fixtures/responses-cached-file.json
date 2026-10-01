@@ -29,6 +29,12 @@
       ]
     }
   ],
+  "import_warnings": [
+    {
+      "span_id": "call",
+      "message": "input: Message item 0: Media prompt_cache_breakpoint omitted from imported messages"
+    }
+  ],
   "turns": [
     {
       "request_id": "call",
