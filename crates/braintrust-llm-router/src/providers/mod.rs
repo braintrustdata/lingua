@@ -227,6 +227,10 @@ pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -
 /// Providers are pure HTTP clients - they receive pre-transformed payloads
 /// as bytes, forward them to the upstream API, and return raw bytes responses.
 /// All format transformations happen in the Router layer via lingua.
+#[allow(
+    clippy::double_must_use,
+    reason = "async_trait adds #[must_use] to methods that already return must-use futures"
+)]
 #[async_trait]
 pub trait Provider: Send + Sync {
     /// Provider identifier (e.g., "openai", "anthropic").
