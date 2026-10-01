@@ -1,0 +1,48 @@
+{
+  "import_options": { "preserve_unsupported": true },
+  "spans": [
+    {
+      "id": "call",
+      "span_id": "call",
+      "root_span_id": "root",
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 1, "end": 2 },
+      "input": [
+        {
+          "id": "tools",
+          "type": "additional_tools",
+          "role": "developer",
+          "tools": [
+            {
+              "type": "namespace",
+              "name": "utilities",
+              "description": "Utilities",
+              "tools": [
+                {
+                  "type": "custom",
+                  "name": "execute",
+                  "format": {
+                    "type": "grammar",
+                    "syntax": "[REDACTED_PERSON]",
+                    "definition": "start: SOURCE\nSOURCE: /[\\s\\S]+/"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        { "role": "user", "content": "Say hello" }
+      ],
+      "output": [{ "role": "assistant", "content": "Hello" }]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "call",
+      "response_id": "call",
+      "response_text": "Hello",
+      "work_ids": [],
+      "user_texts": ["Say hello"]
+    }
+  ]
+}
