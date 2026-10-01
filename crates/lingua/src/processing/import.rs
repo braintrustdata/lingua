@@ -301,6 +301,17 @@ fn try_parse_mixed_messages_for_import(
             parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
         }
 
+        #[cfg(feature = "openai")]
+        if parsed_messages.is_none() && import.options.preserve_unsupported {
+            parsed_messages = crate::providers::openai::convert::try_parse_responses_with_opaque_metadata_for_import(item);
+            if parsed_messages.is_some() {
+                import.opaque.push(OpaqueItem {
+                    index: Some(index),
+                    value: item.clone(),
+                });
+            }
+        }
+
         let Some(mut parsed_messages) = parsed_messages else {
             import
                 .errors
