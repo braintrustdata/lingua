@@ -9,6 +9,7 @@ Google's API has some unique characteristics:
 */
 
 use crate::capabilities::ProviderFormat;
+use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::google::capabilities::{
@@ -40,6 +41,25 @@ use serde::{Deserialize, Serialize};
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
+
+fn validate_system_messages_have_no_audio(messages: &[Message]) -> Result<(), TransformError> {
+    if messages.iter().any(|message| {
+        matches!(
+            message,
+            Message::System { content } | Message::Developer { content } if content.has_audio()
+        )
+    }) {
+        return Err(TransformError::FromUniversalFailed(
+            ConvertError::UnsupportedMapping {
+                from: "Lingua audio content".to_string(),
+                to: "Google system instruction",
+            }
+            .to_string(),
+        ));
+    }
+
+    Ok(())
+}
 
 fn served_service_tier_from_google(service_tier: ServiceTier) -> ServedServiceTier {
     match service_tier {
@@ -262,6 +282,7 @@ impl ProviderAdapter for GoogleAdapter {
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
         // Extract system messages (Google requires them in systemInstruction, not contents)
+        validate_system_messages_have_no_audio(&req.messages)?;
         let mut messages = req.messages.clone();
         let system_contents = extract_system_messages(&mut messages);
 
@@ -1177,6 +1198,29 @@ mod tests {
             }]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_google_rejects_developer_audio_before_system_extraction() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![
+                Message::Developer {
+                    content: UserContent::Array(vec![crate::universal::UserContentPart::Audio {
+                        data: "UklGRg==".to_string(),
+                        format: crate::universal::AudioFormat::Wav,
+                    }]),
+                },
+                Message::User {
+                    content: UserContent::String("Hello".to_string()),
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let error = adapter.request_from_universal(&req).unwrap_err();
+        assert!(error.to_string().contains("Lingua audio content"));
     }
 
     #[test]

@@ -1,0 +1,550 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_05765ca1bbd30e53006aa836ee5e6887d2836c55ca33c6ba72",
+      "object": "response",
+      "created_at": 1789409006,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "List databases in the connected MongoDB instance.",
+          "name": "list_databases",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_05765ca1bbd30e53006aa836ee5e6887d2836c55ca33c6ba72",
+      "object": "response",
+      "created_at": 1789409006,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "List databases in the connected MongoDB instance.",
+          "name": "list_databases",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "The",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "5IJeaSOJFkh30",
+    "output_index": 0,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " connected",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "21tN4M",
+    "output_index": 0,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Mongo",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "VPXIAdHr3t",
+    "output_index": 0,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "DB",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "6r4H4JLO2kYizQ",
+    "output_index": 0,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " instance",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "d4pYgo0",
+    "output_index": 0,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " contains",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "g5YP2Jw",
+    "output_index": 0,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " these",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "nTrggAS2HO",
+    "output_index": 0,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " databases",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "Kzqk3E",
+    "output_index": 0,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":\n\n",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "CgLg64firRoho",
+    "output_index": 0,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "TJ4Fu9mN6Unn2zI",
+    "output_index": 0,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "XrnMh6bkETUPxf",
+    "output_index": 0,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "admin",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "2DU4Oq5GgSO",
+    "output_index": 0,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`\n",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "bpRa0EOrkor8JU",
+    "output_index": 0,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "Ijyvtbhp0YfCoeq",
+    "output_index": 0,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "KKPxeHUlsAsEnk",
+    "output_index": 0,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "config",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "hYwtFEzbsT",
+    "output_index": 0,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`\n",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "IoG8tbxl1HTs3S",
+    "output_index": 0,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "fYsSD7TyJKSEyRD",
+    "output_index": 0,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "L1SJpBtGiv3x5e",
+    "output_index": 0,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "local",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "8ZKKikaFVK4",
+    "output_index": 0,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`",
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "obfuscation": "zvy0GdMKVK91GP9",
+    "output_index": 0,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "logprobs": [],
+    "output_index": 0,
+    "sequence_number": 25,
+    "text": "The connected MongoDB instance contains these databases:\n\n- `admin`\n- `config`\n- `local`"
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "The connected MongoDB instance contains these databases:\n\n- `admin`\n- `config`\n- `local`"
+    },
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The connected MongoDB instance contains these databases:\n\n- `admin`\n- `config`\n- `local`"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_05765ca1bbd30e53006aa836ee5e6887d2836c55ca33c6ba72",
+      "object": "response",
+      "created_at": 1789409006,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1789409007,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [
+        {
+          "id": "msg_05765ca1bbd30e53006aa836ef61b887d28ec6732fe9527917",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "The connected MongoDB instance contains these databases:\n\n- `admin`\n- `config`\n- `local`"
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "List databases in the connected MongoDB instance.",
+          "name": "list_databases",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 107,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 25,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 132
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 28
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "spans": [
+    {
+      "id": "root",
+      "span_id": "root",
+      "root_span_id": "root",
+      "span_attributes": {"type": "task"},
+      "metrics": {"start": 1, "end": 10},
+      "input": [{"role": "user", "content": "Question"}],
+      "output": [{"role": "assistant", "content": "Answer"}],
+      "metadata": {"turn_id": "turn"}
+    },
+    {
+      "id": "tool",
+      "span_id": "tool",
+      "root_span_id": "root",
+      "span_attributes": {"type": "tool"},
+      "metrics": {"start": 2, "end": 5},
+      "span_parents": ["root"],
+      "output": "Result"
+    },
+    {
+      "id": "worker",
+      "span_id": "worker",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 3, "end": 4},
+      "span_parents": ["tool"],
+      "input": [{"role": "user", "content": "Worker request"}],
+      "output": [{"role": "assistant", "content": "Worker answer"}]
+    },
+    {
+      "id": "analysis",
+      "span_id": "analysis",
+      "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 6, "end": 7},
+      "span_parents": ["root"],
+      "metadata": {"trajectory_role": "analysis"},
+      "input": [{"role": "user", "content": "Review"}],
+      "output": [{"role": "assistant", "content": "Review result"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "root",
+      "response_id": "root",
+      "response_text": "Answer",
+      "work_ids": ["tool", "analysis"],
+      "user_texts": ["Question"]
+    }
+  ],
+  "worker_responses": ["worker"]
+}

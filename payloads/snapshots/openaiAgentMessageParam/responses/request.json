@@ -1,0 +1,20 @@
+{
+  "model": "gpt-5.6-sol",
+  "input": [
+    {
+      "type": "agent_message",
+      "author": "/root/research",
+      "recipient": "/root",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "The requested check passed."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "Acknowledge the agent's report in one sentence."
+    }
+  ]
+}

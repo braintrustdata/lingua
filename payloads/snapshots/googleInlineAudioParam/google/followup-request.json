@@ -1,0 +1,36 @@
+{
+  "model": "gemini-3.5-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Transcribe this audio clip."
+        },
+        {
+          "inlineData": {
+            "mimeType": "audio/wav",
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA="
+          }
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "They want to keep their languages alive, their cultures strong, and the environment healthy.",
+          "thoughtSignature": "EroGCrcGARFNMg8CvXctjdKye/9t3vRNDqimpBSg/uCFEY7lWhaslLTmVpjVwMOPD3YpRlrKiVgiDmJ+nUx3neRaQgG6cR6s8d4qKocXxFgJHrUovi5SizUPFrHXN/rDgbXy1Izz/27reXI6BZ5J05wkwV/kMUieG1ff8dCPg0xkpGrUhPwtGUXBxMEkm4r0qQjoCnl7p5MGUjj8Y9SymX1r1YMYAP2F0iM6y8KFTkpaEn9Cn3aI3IJN3duq4+lwLFogLe5maAL57Ctjcq7g4akxnF/NT9Cipr+8H4UR+aYMGibguiS7JSYVOTa5thRQzjvsGNVBV55gj29tj1rlbyI9hY1Xdc1PyNwBv70OpgBg7OHodNhUIKJJlu1z/3NqWo1hQdhCNTfLX5HGiEB/gKbRP49xW98hbt2t1kfWpsZLfz4rQ7weJS1NNy/SkX/aIoHvk8fIC8s1AwxnsUhQ9xGpTu09OxwHPaLm2xabKFKIQVah3faJfUZxUxiujel35FtmhlQc9SZYNJyQdxGJOrRnMEpgPJFjtTceXWWPLq0tL+eSp2DOCl64mM7GiHzSnu6ioFOHHFpg4cf1LUyRkKFdOepXr5eweOwF+6W2LPBlChGqmRqk8sKXfOS6RVfGOLr1IjLnkUQLg4IlqQvHvZlVEN8xnCIEZ9se2+AW0dv+W+wzFsooNl355J/5JpCel3KuQHewVG0flE2HN2tBhArzIbEBuUvJIkMt/yo/7Kq5Bu73j2bCs8JdR/CWNpGO/tjkHZhIbjol2yA6ALhQBPkvWVS07vsIQ8qBG/0FZ1gnpLDGBCntXQrUhwxshoPeVjI6vrlHW52aCNtLL5EQ9QIqFBcURZRLQVV7WzstbPJzl5ZIDJs/i4oyhVIiQ8PKBV0eSt6T+lX58zhXMLeBtZOJyLKlTLgxsVVmQrZmYn+okFsqlQ8MRAIvs5WiOnXg5W3aDNj4FSIAQqTijs+wvynO2cWzaZugrT2f1sOAPqnClzcYpINhNFxJCL4RjeZdQx5HKuSrktBXECsL2WtSFKzaJ7Kj/2t08mAz6xBPNQybCe4+I9JEUPVmHN8lbeWiRyWmeECpikz9Mk36pQ=="
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ]
+}

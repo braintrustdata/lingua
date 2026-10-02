@@ -1,13 +1,14 @@
 use std::error::Error as StdError;
 use std::io::ErrorKind;
 use std::net::SocketAddr;
+use std::sync::{Arc, Weak};
 use std::time::Duration;
 
 use dashmap::DashMap;
 use http::Extensions;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use reqwest::{redirect::Policy, Client, ClientBuilder, Request, Response};
+use reqwest::{redirect::Policy, Certificate, Client, ClientBuilder, Request, Response};
 use reqwest_middleware::{ClientWithMiddleware, Middleware, Next};
 use reqwest_retry::{
     default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
@@ -39,6 +40,7 @@ pub struct ClientSettings {
     pub user_agent: String,
     pub dns_overrides: Vec<DnsOverride>,
     pub follow_redirects: bool,
+    pub additional_ca_bundle: Option<String>,
 }
 
 impl Default for ClientSettings {
@@ -52,6 +54,7 @@ impl Default for ClientSettings {
             user_agent: format!("braintrust-llm-router/{}", env!("CARGO_PKG_VERSION")),
             dns_overrides: Vec::new(),
             follow_redirects: true,
+            additional_ca_bundle: None,
         }
     }
 }
@@ -82,7 +85,30 @@ pub fn build_client(settings: &ClientSettings) -> Result<Client> {
         builder = builder.resolve_to_addrs(&override_entry.domain, &override_entry.addrs);
     }
 
+    builder = add_additional_ca_bundle(builder, settings.additional_ca_bundle.as_deref())?;
+
     builder.build().map_err(Error::from)
+}
+
+pub fn add_additional_ca_bundle(
+    mut builder: ClientBuilder,
+    additional_ca_bundle: Option<&str>,
+) -> Result<ClientBuilder> {
+    let Some(additional_ca_bundle) = additional_ca_bundle else {
+        return Ok(builder);
+    };
+
+    let certificates = Certificate::from_pem_bundle(additional_ca_bundle.as_bytes())?;
+    if certificates.is_empty() {
+        return Err(Error::InvalidRequest(
+            "additional CA bundle contains no certificates".to_string(),
+        ));
+    }
+
+    for certificate in certificates {
+        builder = builder.add_root_certificate(certificate);
+    }
+    Ok(builder)
 }
 
 pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMiddleware> {
@@ -162,9 +188,71 @@ fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
     );
 
     reqwest_middleware::ClientBuilder::new(client)
-        .with(ResponseMetadataMiddleware)
         .with(retry_middleware)
+        // Time each retry attempt through response headers, including connection acquisition,
+        // setup, upload, and upstream processing; exclude retry backoff and response body reads.
+        .with(ResponseMetadataMiddleware)
         .build()
+}
+
+#[derive(Clone, Default)]
+pub struct HttpRequestStats(Arc<parking_lot::Mutex<HttpRequestMeasurements>>);
+
+#[derive(Default)]
+struct HttpRequestMeasurements {
+    elapsed: Duration,
+    attempts: u32,
+    last_response_peer_address: Option<SocketAddr>,
+}
+
+tokio::task_local! {
+    static HTTP_REQUEST_STATS: HttpRequestStats;
+}
+
+impl HttpRequestStats {
+    pub async fn scope<F: std::future::Future>(&self, future: F) -> F::Output {
+        HTTP_REQUEST_STATS.scope(self.clone(), future).await
+    }
+
+    pub fn snapshot(&self) -> Option<(f64, u32)> {
+        let stats = self.0.lock();
+        (stats.attempts > 0).then_some((stats.elapsed.as_secs_f64() * 1000.0, stats.attempts))
+    }
+
+    pub fn last_response_peer_address(&self) -> Option<SocketAddr> {
+        self.0.lock().last_response_peer_address
+    }
+}
+
+struct HttpAttemptTimer {
+    stats: HttpRequestStats,
+    started: tokio::time::Instant,
+}
+
+impl HttpAttemptTimer {
+    fn start(extensions: &mut Extensions) -> Option<Arc<Self>> {
+        if extensions
+            .get::<Weak<Self>>()
+            .and_then(Weak::upgrade)
+            .is_some()
+        {
+            return None;
+        }
+        let stats = HTTP_REQUEST_STATS.try_with(Clone::clone).ok()?;
+        stats.0.lock().attempts += 1;
+        let timer = Arc::new(Self {
+            stats,
+            started: tokio::time::Instant::now(),
+        });
+        extensions.insert(Arc::downgrade(&timer));
+        Some(timer)
+    }
+}
+
+impl Drop for HttpAttemptTimer {
+    fn drop(&mut self) {
+        self.stats.0.lock().elapsed += self.started.elapsed();
+    }
 }
 
 struct ResponseMetadataMiddleware;
@@ -177,7 +265,11 @@ impl Middleware for ResponseMetadataMiddleware {
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> reqwest_middleware::Result<Response> {
+        let timer = HttpAttemptTimer::start(extensions);
         let response = next.run(req, extensions).await?;
+        if let Some(timer) = &timer {
+            timer.stats.0.lock().last_response_peer_address = response.remote_addr();
+        }
 
         #[cfg(feature = "tracing")]
         tracing::Span::current().record(
@@ -223,7 +315,11 @@ fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retrya
 
     #[cfg(feature = "tracing")]
     if matches!(retryable, Some(Retryable::Transient)) {
-        tracing::warn!(error = %err, "retrying middleware request after transient error");
+        tracing::warn!(
+            error = %err,
+            error_debug = ?err,
+            "retrying middleware request after transient error"
+        );
     }
 
     retryable
@@ -282,7 +378,11 @@ static SHARED_CLIENTS: Lazy<DashMap<ClientSettings, ClientWithMiddleware>> =
     Lazy::new(DashMap::new);
 
 pub fn set_override_client(client: ClientWithMiddleware) {
-    *OVERRIDE_CLIENT.write() = Some(client);
+    *OVERRIDE_CLIENT.write() = Some(
+        reqwest_middleware::ClientBuilder::from_client(client)
+            .with(ResponseMetadataMiddleware)
+            .build(),
+    );
 }
 
 pub fn clear_override_client() {
@@ -301,12 +401,180 @@ fn has_cached_client(settings: &ClientSettings) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::sync::Arc;
+    use std::thread;
+
+    use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
+    use rustls::{ServerConfig, ServerConnection, StreamOwned};
+
     use super::*;
     use serial_test::serial;
     use wiremock::{
         matchers::{method, path},
         Mock, MockServer, ResponseTemplate,
     };
+
+    struct DelayedTransport {
+        fail_next: std::sync::atomic::AtomicBool,
+    }
+
+    #[async_trait::async_trait]
+    impl Middleware for DelayedTransport {
+        async fn handle(
+            &self,
+            req: Request,
+            _: &mut Extensions,
+            _: Next<'_>,
+        ) -> reqwest_middleware::Result<Response> {
+            let delay = if req.url().path() == "/slow" { 100 } else { 10 };
+            tokio::time::sleep(Duration::from_millis(delay)).await;
+            if self
+                .fail_next
+                .swap(false, std::sync::atomic::Ordering::SeqCst)
+            {
+                return Err(reqwest_middleware::Error::Middleware(
+                    std::io::Error::from(ErrorKind::ConnectionReset).into(),
+                ));
+            }
+            Ok(http::Response::new("ok").into())
+        }
+    }
+
+    fn timed_test_client(fail_first: bool) -> ClientWithMiddleware {
+        reqwest_middleware::ClientBuilder::from_client(build_retrying_middleware_client(
+            Client::new(),
+        ))
+        .with(DelayedTransport {
+            fail_next: std::sync::atomic::AtomicBool::new(fail_first),
+        })
+        .build()
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn http_stats_isolate_concurrent_requests_on_a_shared_client() {
+        let client = timed_test_client(false);
+        let fast = HttpRequestStats::default();
+        let slow = HttpRequestStats::default();
+        let (fast_response, slow_response) = tokio::join!(
+            fast.scope(client.get("http://localhost/fast").send()),
+            slow.scope(client.get("http://localhost/slow").send()),
+        );
+        assert_eq!(fast_response.unwrap().text().await.unwrap(), "ok");
+        assert_eq!(slow_response.unwrap().text().await.unwrap(), "ok");
+        assert_eq!(fast.snapshot(), Some((10.0, 1)));
+        assert_eq!(slow.snapshot(), Some((100.0, 1)));
+        assert!(HttpAttemptTimer::start(&mut Extensions::new()).is_none());
+        assert!(HttpRequestStats::default().snapshot().is_none());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn http_stats_include_cancelled_attempts_and_exclude_time_between_attempts() {
+        let client = timed_test_client(false);
+        let stats = HttpRequestStats::default();
+        stats
+            .scope(async {
+                let result = tokio::time::timeout(
+                    Duration::from_millis(20),
+                    client.get("http://localhost/slow").send(),
+                )
+                .await;
+                assert!(result.is_err());
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                client.get("http://localhost/fast").send().await.unwrap();
+            })
+            .await;
+        assert_eq!(stats.snapshot(), Some((30.0, 2)));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn http_stats_count_each_middleware_retry() {
+        let client = timed_test_client(true);
+        let stats = HttpRequestStats::default();
+        let response = stats
+            .scope(client.get("http://localhost/fast").send())
+            .await
+            .unwrap();
+        assert_eq!(response.text().await.unwrap(), "ok");
+        assert_eq!(stats.snapshot(), Some((20.0, 2)));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn http_stats_cover_default_and_override_clients_without_duplicate_attempts() {
+        struct ClearOverride;
+        impl Drop for ClearOverride {
+            fn drop(&mut self) {
+                clear_override_client();
+            }
+        }
+        let _cleanup = ClearOverride;
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .respond_with(ResponseTemplate::new(200).set_delay(Duration::from_millis(10)))
+            .mount(&server)
+            .await;
+        for override_client in [
+            None,
+            Some(ClientWithMiddleware::from(Client::new())),
+            Some(build_retrying_middleware_client(Client::new())),
+        ] {
+            match override_client {
+                Some(client) => set_override_client(client),
+                None => clear_override_client(),
+            }
+            for _ in 0..2 {
+                let client = build_middleware_client(&ClientSettings::default()).unwrap();
+                let stats = HttpRequestStats::default();
+                assert_eq!(stats.last_response_peer_address(), None);
+                stats.scope(client.get(server.uri()).send()).await.unwrap();
+                let (elapsed_ms, attempts) = stats.snapshot().unwrap();
+                assert!(elapsed_ms >= 10.0);
+                assert_eq!(attempts, 1);
+                assert_eq!(stats.last_response_peer_address(), Some(*server.address()));
+            }
+        }
+    }
+
+    // Fixed localhost-only TLS material for these tests. The private key does not authenticate to
+    // any external service and has no value outside the synthetic test certificate chain.
+    const TEST_CA_CERT: &str = include_str!("../testdata/custom-ca/ca-cert.pem");
+    const UNRELATED_CA_CERT: &str = include_str!("../testdata/custom-ca/unrelated-ca-cert.pem");
+    const TEST_SERVER_CERT: &str = include_str!("../testdata/custom-ca/server-cert.pem");
+    const TEST_SERVER_KEY: &str = include_str!("../testdata/custom-ca/server-key.pem");
+
+    fn spawn_https_server() -> (String, thread::JoinHandle<std::io::Result<()>>) {
+        let certificates = CertificateDer::pem_slice_iter(TEST_SERVER_CERT.as_bytes())
+            .collect::<std::result::Result<Vec<_>, _>>()
+            .expect("server certificate");
+        let private_key =
+            PrivateKeyDer::from_pem_slice(TEST_SERVER_KEY.as_bytes()).expect("server private key");
+        let config = ServerConfig::builder()
+            .with_no_client_auth()
+            .with_single_cert(certificates, private_key)
+            .expect("TLS server config");
+        let listener = TcpListener::bind(("127.0.0.1", 0)).expect("bind TLS server");
+        let address = listener.local_addr().expect("TLS server address");
+
+        let handle = thread::spawn(move || {
+            let (stream, _) = listener.accept()?;
+            let connection =
+                ServerConnection::new(Arc::new(config)).map_err(std::io::Error::other)?;
+            let mut stream = StreamOwned::new(connection, stream);
+            let mut request = [0; 1024];
+            let bytes_read = stream.read(&mut request)?;
+            if bytes_read == 0 {
+                return Err(std::io::Error::from(std::io::ErrorKind::UnexpectedEof));
+            }
+            stream.write_all(
+                b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok",
+            )?;
+            stream.flush()
+        });
+
+        (format!("https://localhost:{}/", address.port()), handle)
+    }
 
     #[test]
     #[serial]
@@ -377,6 +645,89 @@ mod tests {
             ClientSettings::default().request_timeout,
             Duration::from_secs(600)
         );
+    }
+
+    #[test]
+    fn build_client_rejects_a_bundle_without_certificates() {
+        let settings = ClientSettings {
+            additional_ca_bundle: Some("not a certificate".to_string()),
+            ..ClientSettings::default()
+        };
+
+        let error = build_client(&settings).expect_err("certificate-free bundle should fail");
+        assert_eq!(
+            error.to_string(),
+            "invalid request: additional CA bundle contains no certificates"
+        );
+    }
+
+    #[test]
+    fn build_client_rejects_malformed_certificate_pem() {
+        let settings = ClientSettings {
+            additional_ca_bundle: Some(
+                "-----BEGIN CERTIFICATE-----\nnot-base64\n-----END CERTIFICATE-----".to_string(),
+            ),
+            ..ClientSettings::default()
+        };
+
+        let error = build_client(&settings).expect_err("malformed certificate should fail");
+        assert!(matches!(error, Error::Http(_)));
+    }
+
+    #[test]
+    fn build_client_accepts_a_multi_certificate_bundle() {
+        let settings = ClientSettings {
+            additional_ca_bundle: Some(format!("{UNRELATED_CA_CERT}\n{TEST_CA_CERT}")),
+            ..ClientSettings::default()
+        };
+
+        build_client(&settings).expect("multi-certificate CA bundle");
+    }
+
+    #[tokio::test]
+    async fn additional_ca_bundle_enables_a_private_tls_connection() {
+        let (url, server) = spawn_https_server();
+        let default_client = build_client(&ClientSettings::default()).expect("default client");
+
+        let client_error = default_client
+            .get(&url)
+            .send()
+            .await
+            .expect_err("private CA should not be trusted by default");
+        assert!(
+            client_error.is_connect(),
+            "expected TLS connection failure, got: {client_error:?}"
+        );
+
+        let server_error = server
+            .join()
+            .expect("TLS server thread")
+            .expect_err("TLS handshake should fail");
+        assert!(
+            matches!(
+                server_error
+                    .get_ref()
+                    .and_then(|error| error.downcast_ref::<rustls::Error>()),
+                Some(rustls::Error::AlertReceived(
+                    rustls::AlertDescription::UnknownCA
+                ))
+            ),
+            "expected UnknownCA TLS alert, got: {server_error:?}"
+        );
+
+        let (url, server) = spawn_https_server();
+        let settings = ClientSettings {
+            additional_ca_bundle: Some(format!("{UNRELATED_CA_CERT}\n{TEST_CA_CERT}")),
+            ..ClientSettings::default()
+        };
+        let client = build_client(&settings).expect("client with additional CA");
+        let response = client.get(url).send().await.expect("private TLS request");
+
+        assert_eq!(response.text().await.expect("response body"), "ok");
+        server
+            .join()
+            .expect("TLS server thread")
+            .expect("TLS server request");
     }
 
     #[tokio::test]

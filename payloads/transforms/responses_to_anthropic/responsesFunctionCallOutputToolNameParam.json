@@ -1,0 +1,28 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011Cf3mmHDJr3WR4U2dofF4o",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "The connected MongoDB instance contains the following databases:\n\n1. **admin** - The administrative database for user authentication and authorization\n2. **config** - Used by MongoDB for sharded cluster configuration\n3. **local** - Used to store data local to a single MongoDB server (not replicated)\n\nThese are the default system databases that come with a MongoDB installation. There don't appear to be any custom user databases created yet."
+    }
+  ],
+  "container": null,
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 642,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 91,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

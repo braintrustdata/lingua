@@ -37,6 +37,27 @@ pub enum MediaError {
     Base64Error(String),
 }
 
+fn validate_media_type(
+    content_type: &str,
+    allowed_types: Option<&[&str]>,
+) -> Result<String, MediaError> {
+    let media_type = content_type
+        .split(';')
+        .next()
+        .unwrap_or(content_type)
+        .trim()
+        .to_ascii_lowercase();
+    if let Some(allowed) = allowed_types {
+        if !allowed
+            .iter()
+            .any(|allowed| allowed.eq_ignore_ascii_case(&media_type))
+        {
+            return Err(MediaError::UnsupportedMediaType(media_type));
+        }
+    }
+    Ok(media_type)
+}
+
 /// Parse a base64 data URL into its components.
 ///
 /// Returns `None` if the URL is not a valid data URL.
@@ -347,20 +368,7 @@ mod wasm_fetch {
             .map_err(|e| MediaError::FetchError(format!("{:?}", e)))?
             .ok_or(MediaError::MissingContentType)?;
 
-        // Extract base content type (before semicolon)
-        let base_content_type = content_type
-            .split(';')
-            .next()
-            .unwrap_or(&content_type)
-            .trim()
-            .to_string();
-
-        // Check allowed types
-        if let Some(allowed) = allowed_types {
-            if !allowed.contains(&base_content_type.as_str()) {
-                return Err(MediaError::UnsupportedMediaType(base_content_type));
-            }
-        }
+        let base_content_type = validate_media_type(&content_type, allowed_types)?;
 
         // Get array buffer
         let array_buffer = JsFuture::from(
@@ -389,6 +397,21 @@ mod wasm_fetch {
             data,
         })
     }
+
+    /// Fetch a URL using the platform trust store plus an optional PEM CA bundle.
+    pub async fn fetch_url_to_base64_with_additional_ca_bundle(
+        url: &str,
+        allowed_types: Option<&[&str]>,
+        max_bytes: Option<usize>,
+        additional_ca_bundle: Option<&str>,
+    ) -> Result<MediaBlock, MediaError> {
+        if additional_ca_bundle.is_some() {
+            return Err(MediaError::FetchError(
+                "additional CA bundles are not supported on wasm32".to_string(),
+            ));
+        }
+        fetch_url_to_base64(url, allowed_types, max_bytes).await
+    }
 }
 
 // ============================================================================
@@ -398,12 +421,16 @@ mod wasm_fetch {
 #[cfg(not(target_arch = "wasm32"))]
 mod native_fetch {
     use super::*;
+    use ipnet::IpNet;
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs};
+    use std::str::FromStr;
     use std::time::Duration;
     use url::{Host, Url};
 
     const MAX_REDIRECTS: usize = 3;
     const MEDIA_FETCH_TIMEOUT: Duration = Duration::from_secs(30);
+    const ALLOW_CIDRS_ENV: &str = "BRAINTRUST_URL_SECURITY_ALLOW_CIDRS";
+    const AWS_IMDS_IPV6: Ipv6Addr = Ipv6Addr::new(0xfd00, 0x0ec2, 0, 0, 0, 0, 0, 0x0254);
 
     fn ipv4_in_cidr(address: Ipv4Addr, base: Ipv4Addr, prefix_len: u32) -> bool {
         let address = u32::from(address);
@@ -417,24 +444,35 @@ mod native_fetch {
         (address & mask) == (base & mask)
     }
 
-    fn is_blocked_ipv4(address: Ipv4Addr) -> bool {
-        address.is_loopback()
-            || address.is_private()
-            || address.is_link_local()
+    fn is_hard_blocked_ipv4(address: Ipv4Addr) -> bool {
+        address.is_link_local()
             || address.is_multicast()
             || address.is_unspecified()
             || ipv4_in_cidr(address, Ipv4Addr::new(0, 0, 0, 0), 8)
-            || ipv4_in_cidr(address, Ipv4Addr::new(100, 64, 0, 0), 10)
-            || ipv4_in_cidr(address, Ipv4Addr::new(192, 0, 0, 0), 24)
-            || ipv4_in_cidr(address, Ipv4Addr::new(198, 18, 0, 0), 15)
             || ipv4_in_cidr(address, Ipv4Addr::new(224, 0, 0, 0), 4)
             || ipv4_in_cidr(address, Ipv4Addr::new(240, 0, 0, 0), 4)
     }
 
-    fn is_blocked_ipv6(address: Ipv6Addr) -> bool {
-        address.is_loopback()
+    fn is_blocked_ipv4(address: Ipv4Addr) -> bool {
+        is_hard_blocked_ipv4(address)
+            || address.is_loopback()
+            || address.is_private()
+            || address.is_link_local()
+            || ipv4_in_cidr(address, Ipv4Addr::new(100, 64, 0, 0), 10)
+            || ipv4_in_cidr(address, Ipv4Addr::new(192, 0, 0, 0), 24)
+            || ipv4_in_cidr(address, Ipv4Addr::new(198, 18, 0, 0), 15)
+    }
+
+    fn is_hard_blocked_ipv6(address: Ipv6Addr) -> bool {
+        address == AWS_IMDS_IPV6
             || address.is_unspecified()
             || address.is_multicast()
+            || address.is_unicast_link_local()
+    }
+
+    fn is_blocked_ipv6(address: Ipv6Addr) -> bool {
+        is_hard_blocked_ipv6(address)
+            || address.is_loopback()
             || address.is_unique_local()
             || address.is_unicast_link_local()
             || address.to_ipv4_mapped().is_some_and(is_blocked_ipv4)
@@ -447,10 +485,48 @@ mod native_fetch {
         }
     }
 
-    fn is_blocked_hostname(hostname: &str) -> bool {
-        hostname.eq_ignore_ascii_case("localhost")
-            || hostname.eq_ignore_ascii_case("metadata.amazonaws.com")
+    fn is_hard_blocked_hostname(hostname: &str) -> bool {
+        let hostname = hostname.trim_end_matches('.');
+        hostname.eq_ignore_ascii_case("metadata.amazonaws.com")
             || hostname.eq_ignore_ascii_case("metadata.google.internal")
+    }
+
+    fn normalize_ip_for_policy(address: IpAddr) -> IpAddr {
+        match address {
+            IpAddr::V6(address) => address
+                .to_ipv4_mapped()
+                .map(IpAddr::V4)
+                .unwrap_or(IpAddr::V6(address)),
+            IpAddr::V4(_) => address,
+        }
+    }
+
+    fn parse_allowed_cidrs() -> Result<Vec<IpNet>, MediaError> {
+        let Ok(raw) = std::env::var(ALLOW_CIDRS_ENV) else {
+            return Ok(Vec::new());
+        };
+        raw.split(',')
+            .map(str::trim)
+            .filter(|cidr| !cidr.is_empty())
+            .map(|cidr| {
+                IpNet::from_str(cidr).map_err(|error| {
+                    MediaError::FetchError(format!("invalid {ALLOW_CIDRS_ENV}: {error}"))
+                })
+            })
+            .collect()
+    }
+
+    fn is_allowed_ip(address: IpAddr, allowed_cidrs: &[IpNet]) -> bool {
+        let address = normalize_ip_for_policy(address);
+        let hard_blocked = match address {
+            IpAddr::V4(address) => is_hard_blocked_ipv4(address),
+            IpAddr::V6(address) => is_hard_blocked_ipv6(address),
+        };
+        if hard_blocked {
+            return false;
+        }
+
+        !is_blocked_ip(address) || allowed_cidrs.iter().any(|cidr| cidr.contains(&address))
     }
 
     struct ValidatedMediaUrl {
@@ -459,6 +535,14 @@ mod native_fetch {
     }
 
     fn validate_media_url(url: &Url) -> Result<ValidatedMediaUrl, MediaError> {
+        let allowed_cidrs = parse_allowed_cidrs()?;
+        validate_media_url_with_allowed_cidrs(url, &allowed_cidrs)
+    }
+
+    fn validate_media_url_with_allowed_cidrs(
+        url: &Url,
+        allowed_cidrs: &[IpNet],
+    ) -> Result<ValidatedMediaUrl, MediaError> {
         if url.scheme() != "http" && url.scheme() != "https" {
             return Err(MediaError::FetchError(
                 "media URL must use http or https".to_string(),
@@ -470,7 +554,7 @@ mod native_fetch {
             .ok_or_else(|| MediaError::FetchError("media URL is missing a host".to_string()))?;
         match host {
             Host::Ipv4(address) => {
-                if is_blocked_ipv4(address) {
+                if !is_allowed_ip(IpAddr::V4(address), allowed_cidrs) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -481,7 +565,7 @@ mod native_fetch {
                 });
             }
             Host::Ipv6(address) => {
-                if is_blocked_ipv6(address) {
+                if !is_allowed_ip(IpAddr::V6(address), allowed_cidrs) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -492,7 +576,7 @@ mod native_fetch {
                 });
             }
             Host::Domain(host) => {
-                if is_blocked_hostname(host) {
+                if is_hard_blocked_hostname(host) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -512,7 +596,7 @@ mod native_fetch {
 
         let mut resolved_addresses = Vec::new();
         for address in addresses {
-            if is_blocked_ip(address.ip()) {
+            if !is_allowed_ip(address.ip(), allowed_cidrs) {
                 return Err(MediaError::FetchError(
                     "media URL resolves to a blocked address".to_string(),
                 ));
@@ -532,7 +616,31 @@ mod native_fetch {
         })
     }
 
-    async fn fetch_validated_url(url: &str) -> Result<reqwest::Response, MediaError> {
+    fn add_additional_ca_bundle(
+        mut builder: reqwest::ClientBuilder,
+        additional_ca_bundle: Option<&str>,
+    ) -> Result<reqwest::ClientBuilder, MediaError> {
+        let Some(additional_ca_bundle) = additional_ca_bundle else {
+            return Ok(builder);
+        };
+
+        let certificates = reqwest::Certificate::from_pem_bundle(additional_ca_bundle.as_bytes())
+            .map_err(|error| MediaError::FetchError(error.to_string()))?;
+        if certificates.is_empty() {
+            return Err(MediaError::FetchError(
+                "additional CA bundle contains no certificates".to_string(),
+            ));
+        }
+        for certificate in certificates {
+            builder = builder.add_root_certificate(certificate);
+        }
+        Ok(builder)
+    }
+
+    async fn fetch_validated_url(
+        url: &str,
+        additional_ca_bundle: Option<&str>,
+    ) -> Result<reqwest::Response, MediaError> {
         let mut current_url = Url::parse(url)
             .map_err(|e| MediaError::FetchError(format!("invalid media URL: {e}")))?;
 
@@ -545,6 +653,7 @@ mod native_fetch {
                 client_builder =
                     client_builder.resolve_to_addrs(&hostname, &validated_url.addresses);
             }
+            client_builder = add_additional_ca_bundle(client_builder, additional_ca_bundle)?;
             let client = client_builder
                 .build()
                 .map_err(|e| MediaError::FetchError(e.to_string()))?;
@@ -552,7 +661,7 @@ mod native_fetch {
                 .get(current_url.clone())
                 .send()
                 .await
-                .map_err(|e| MediaError::FetchError(e.to_string()))?;
+                .map_err(|e| MediaError::FetchError(e.without_url().to_string()))?;
 
             if !response.status().is_redirection() {
                 return Ok(response);
@@ -615,7 +724,17 @@ mod native_fetch {
         allowed_types: Option<&[&str]>,
         max_bytes: Option<usize>,
     ) -> Result<MediaBlock, MediaError> {
-        let mut response = fetch_validated_url(url).await?;
+        fetch_url_to_base64_with_additional_ca_bundle(url, allowed_types, max_bytes, None).await
+    }
+
+    /// Fetch a URL using the default trust store plus an optional PEM CA bundle.
+    pub async fn fetch_url_to_base64_with_additional_ca_bundle(
+        url: &str,
+        allowed_types: Option<&[&str]>,
+        max_bytes: Option<usize>,
+        additional_ca_bundle: Option<&str>,
+    ) -> Result<MediaBlock, MediaError> {
+        let mut response = fetch_validated_url(url, additional_ca_bundle).await?;
 
         if !response.status().is_success() {
             return Err(MediaError::FetchError(format!(
@@ -632,20 +751,7 @@ mod native_fetch {
             .ok_or(MediaError::MissingContentType)?
             .to_string();
 
-        // Extract base content type (before semicolon)
-        let base_content_type = content_type
-            .split(';')
-            .next()
-            .unwrap_or(&content_type)
-            .trim()
-            .to_string();
-
-        // Check allowed types
-        if let Some(allowed) = allowed_types {
-            if !allowed.contains(&base_content_type.as_str()) {
-                return Err(MediaError::UnsupportedMediaType(base_content_type));
-            }
-        }
+        let base_content_type = validate_media_type(&content_type, allowed_types)?;
 
         // Get bytes
         let bytes = response_bytes_with_limit(&mut response, max_bytes).await?;
@@ -668,7 +774,7 @@ mod native_fetch {
         fn validate_media_url_rejects_non_http_schemes() {
             let url = Url::parse("file:///etc/passwd").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_allowed_cidrs(&url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("http or https")
             ));
@@ -678,17 +784,24 @@ mod native_fetch {
         fn validate_media_url_rejects_localhost() {
             let url = Url::parse("http://localhost/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_allowed_cidrs(&url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
         }
 
         #[test]
+        fn validate_media_url_allows_configured_private_cidr() {
+            let url = Url::parse("http://127.0.0.1/image.png").unwrap();
+            let allowed_cidrs = [IpNet::from_str("127.0.0.0/8").unwrap()];
+            assert!(validate_media_url_with_allowed_cidrs(&url, &allowed_cidrs).is_ok());
+        }
+
+        #[test]
         fn validate_media_url_rejects_dns_resolved_localhost() {
             let url = Url::parse("http://localhost./image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_allowed_cidrs(&url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
@@ -697,8 +810,20 @@ mod native_fetch {
         #[test]
         fn validate_media_url_rejects_metadata_ip() {
             let url = Url::parse("http://169.254.169.254/latest/meta-data").unwrap();
+            let allowed_cidrs = [IpNet::from_str("169.254.0.0/16").unwrap()];
             assert!(matches!(
-                validate_media_url(&url),
+                validate_media_url_with_allowed_cidrs(&url, &allowed_cidrs),
+                Err(MediaError::FetchError(message))
+                    if message.contains("blocked address")
+            ));
+        }
+
+        #[test]
+        fn validate_media_url_rejects_ipv6_metadata_ip_despite_allowed_ula() {
+            let url = Url::parse("http://[fd00:ec2::254]/latest/meta-data").unwrap();
+            let allowed_cidrs = [IpNet::from_str("fd00::/8").unwrap()];
+            assert!(matches!(
+                validate_media_url_with_allowed_cidrs(&url, &allowed_cidrs),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
@@ -712,7 +837,7 @@ mod native_fetch {
             ] {
                 let url = Url::parse(url).unwrap();
                 assert!(matches!(
-                    validate_media_url(&url),
+                    validate_media_url_with_allowed_cidrs(&url, &[]),
                     Err(MediaError::FetchError(message))
                         if message.contains("blocked address")
                 ));
@@ -730,7 +855,7 @@ mod native_fetch {
                 let redirect_url = current_url.join(location).unwrap();
 
                 assert!(matches!(
-                    validate_media_url(&redirect_url),
+                    validate_media_url_with_allowed_cidrs(&redirect_url, &[]),
                     Err(MediaError::FetchError(message))
                         if message.contains("blocked address")
                 ));
@@ -741,14 +866,14 @@ mod native_fetch {
         fn validate_media_url_rejects_ipv4_mapped_ipv6_localhost() {
             let dotted_url = Url::parse("http://[::ffff:127.0.0.1]/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&dotted_url),
+                validate_media_url_with_allowed_cidrs(&dotted_url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
 
             let hex_url = Url::parse("http://[::ffff:7f00:1]/image.png").unwrap();
             assert!(matches!(
-                validate_media_url(&hex_url),
+                validate_media_url_with_allowed_cidrs(&hex_url, &[]),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
@@ -784,15 +909,28 @@ mod native_fetch {
                 assert!(!is_blocked_ip(address), "{address} should be allowed");
             }
         }
+
+        #[test]
+        fn additional_ca_bundle_rejects_content_without_certificates() {
+            let error =
+                add_additional_ca_bundle(reqwest::Client::builder(), Some("not a certificate"))
+                    .expect_err("certificate-free bundle should fail");
+
+            assert!(matches!(
+                error,
+                MediaError::FetchError(message)
+                    if message.contains("contains no certificates")
+            ));
+        }
     }
 }
 
 // Re-export the appropriate implementation
 #[cfg(target_arch = "wasm32")]
-pub use wasm_fetch::fetch_url_to_base64;
+pub use wasm_fetch::{fetch_url_to_base64, fetch_url_to_base64_with_additional_ca_bundle};
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use native_fetch::fetch_url_to_base64;
+pub use native_fetch::{fetch_url_to_base64, fetch_url_to_base64_with_additional_ca_bundle};
 
 /// Convert media (URL or data URL) to a MediaBlock.
 ///
@@ -809,13 +947,29 @@ pub async fn convert_media_to_base64(
     allowed_types: Option<&[&str]>,
     max_bytes: Option<usize>,
 ) -> Result<MediaBlock, MediaError> {
+    convert_media_to_base64_with_additional_ca_bundle(media, allowed_types, max_bytes, None).await
+}
+
+/// Convert media to base64, trusting an optional additional PEM CA bundle for URL fetches.
+pub async fn convert_media_to_base64_with_additional_ca_bundle(
+    media: &str,
+    allowed_types: Option<&[&str]>,
+    max_bytes: Option<usize>,
+    additional_ca_bundle: Option<&str>,
+) -> Result<MediaBlock, MediaError> {
     // Try to parse as data URL first
     if let Some(block) = parse_base64_data_url(media) {
         return Ok(block);
     }
 
     // Otherwise fetch the URL
-    fetch_url_to_base64(media, allowed_types, max_bytes).await
+    fetch_url_to_base64_with_additional_ca_bundle(
+        media,
+        allowed_types,
+        max_bytes,
+        additional_ca_bundle,
+    )
+    .await
 }
 
 /// Check if a URL is a localhost URL (for special handling).
@@ -826,6 +980,30 @@ pub fn is_localhost_url(url: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fetched_pdf_media_type_is_case_insensitive() {
+        for content_type in [
+            "application/pdf",
+            "Application/PDF",
+            " APPLICATION/PDF ; charset=UTF-8",
+        ] {
+            for allowed in ["application/pdf", "Application/PDF"] {
+                assert_eq!(
+                    validate_media_type(content_type, Some(&[allowed])).unwrap(),
+                    "application/pdf"
+                );
+            }
+        }
+        assert_eq!(
+            validate_media_type("Application/PDF", None).unwrap(),
+            "application/pdf"
+        );
+        assert!(matches!(
+            validate_media_type("Image/PNG; charset=UTF-8", Some(&["application/pdf"])),
+            Err(MediaError::UnsupportedMediaType(media_type)) if media_type == "image/png"
+        ));
+    }
 
     #[test]
     fn test_parse_base64_data_url_valid() {

@@ -38,6 +38,7 @@ aws-sdk-bedrockruntime = { version = "1.130.0", default-features = false }
 url = "2.5"
 urlencoding = "2.1"
 base64 = "0.22"
+ipnet = "2.11"
 
 # Bytes
 bytes = "1"
@@ -59,6 +60,7 @@ pyo3 = { version = "0.24.1", features = ["extension-module"] }
 
 # Dev
 tokio-test = "0.4"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 paste = "1.0"
 log = "0.4"
 env_logger = "0.11"
@@ -97,7 +99,8 @@ aws-smithy-eventstream = { version = "0.60.20" }
 aws-smithy-types = { version = "1.4.7" }
 
 # Auth
-jsonwebtoken = { version = "10.3", features = ["rust_crypto"] }
+aws-lc-rs = "=1.15.0"
+jsonwebtoken = { version = "10.3", default-features = false, features = ["aws_lc_rs", "use_pem"] }
 
 # Tracing (optional)
 tracing = { version = "0.1" }

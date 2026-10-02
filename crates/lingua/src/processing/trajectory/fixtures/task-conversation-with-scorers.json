@@ -1,0 +1,45 @@
+{
+  "spans": [
+    {
+      "id": "root", "span_id": "root", "root_span_id": "root",
+      "span_attributes": { "type": "task" },
+      "metrics": { "start": 0, "end": 10 }
+    },
+    {
+      "id": "conversation", "span_id": "conversation", "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": { "type": "task" },
+      "metrics": { "start": 1, "end": 2 },
+      "input": [{ "role": "user", "content": "Question" }],
+      "output": [{ "role": "assistant", "content": "Answer" }]
+    },
+    {
+      "id": "scorer", "span_id": "scorer", "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": { "type": "llm", "purpose": "scorer" },
+      "metrics": { "start": 3, "end": 4 },
+      "input": [{ "role": "user", "content": "Evaluate" }],
+      "output": [{ "role": "assistant", "content": "Score" }]
+    },
+    {
+      "id": "score-wrapper", "span_id": "score-wrapper", "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": { "type": "score" },
+      "metrics": { "start": 5, "end": 7 }
+    },
+    {
+      "id": "scorer-child", "span_id": "scorer-child", "root_span_id": "root",
+      "span_parents": ["score-wrapper"],
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 5, "end": 6 },
+      "input": [{ "role": "user", "content": "Evaluate" }],
+      "output": [{ "role": "assistant", "content": "Score" }]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "conversation", "response_id": "conversation",
+      "response_text": "Answer", "work_ids": [], "user_texts": ["Question"]
+    }
+  ]
+}

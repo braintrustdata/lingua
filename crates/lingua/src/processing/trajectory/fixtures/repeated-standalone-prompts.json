@@ -1,0 +1,26 @@
+{
+  "spans": [
+    {
+      "id": "first", "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [{"role": "system", "content": "First instructions"}, {"role": "user", "content": "Check again"}],
+      "output": [{"role": "assistant", "content": "First answer"}]
+    },
+    {
+      "id": "second", "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 3, "end": 4},
+      "input": [{"role": "system", "content": "Revised instructions"}, {"role": "user", "content": "Check again"}],
+      "output": [{"role": "assistant", "content": "Second answer"}]
+    }
+  ],
+  "turns": [
+    {"request_id": "first", "response_id": "first", "response_text": "First answer", "work_ids": [], "user_texts": ["Check again"]},
+    {"request_id": "second", "response_id": "second", "response_text": "Second answer", "work_ids": [], "user_texts": ["Check again"]}
+  ],
+  "requests": [
+    [{"role": "system", "content": "First instructions"}, {"role": "user", "content": "Check again"}],
+    [{"role": "system", "content": "Revised instructions"}, {"role": "user", "content": "Check again"}]
+  ]
+}

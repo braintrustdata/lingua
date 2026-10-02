@@ -1,0 +1,67 @@
+{
+  "id": "custom",
+  "span_id": "custom",
+  "root_span_id": "root",
+  "span_parents": [
+    "root"
+  ],
+  "span_attributes": {
+    "type": "llm"
+  },
+  "metrics": {
+    "start": 1,
+    "end": 2
+  },
+  "input": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "kind": "text",
+            "value": "Inspect the item"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "kind": "toolCall",
+            "toolCallId": "call",
+            "toolName": "inspect",
+            "content": {
+              "id": "item"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "kind": "toolResult",
+            "toolCallId": "call",
+            "toolName": "inspect",
+            "observation": {
+              "kind": "text",
+              "text": "Result"
+            },
+            "isError": false
+          }
+        ]
+      }
+    ]
+  },
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "kind": "text",
+          "value": "Done"
+        }
+      ]
+    }
+  }
+}

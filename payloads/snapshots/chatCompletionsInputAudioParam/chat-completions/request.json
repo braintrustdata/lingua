@@ -1,0 +1,21 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Transcribe this audio clip."
+        },
+        {
+          "type": "input_audio",
+          "input_audio": {
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+            "format": "wav"
+          }
+        }
+      ]
+    }
+  ]
+}

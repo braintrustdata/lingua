@@ -39,6 +39,7 @@ fn main() {
 }
 
 const RESPONSES_ROUNDTRIP_SKIP_CASES: &[&str] = &[
+    "openaiAgentMessageParam",
     "responsesFunctionCallOutputWithoutThoughtSignatureParam",
     "responsesAdditionalToolsParam",
     "responsesGpt56PromptCacheOptionsParam",

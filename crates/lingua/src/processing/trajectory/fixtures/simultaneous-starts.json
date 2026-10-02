@@ -1,0 +1,28 @@
+{
+  "spans": [
+    {
+      "id": "z-first", "span_id": "z-first", "root_span_id": "root",
+      "span_attributes": {"type": "llm", "exec_counter": 1},
+      "metrics": {"start": 1, "end": 4},
+      "input": [{"role": "user", "content": "First request"}],
+      "output": [{"role": "assistant", "content": "First answer"}]
+    },
+    {
+      "id": "a-second", "span_id": "a-second", "root_span_id": "root",
+      "span_attributes": {"type": "llm", "exec_counter": 2},
+      "metrics": {"start": 1, "end": 3},
+      "input": [{"role": "user", "content": "Second request"}],
+      "output": [{"role": "assistant", "content": "Second answer"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "z-first", "response_id": "z-first",
+      "response_text": "First answer", "work_ids": [], "user_texts": ["First request"]
+    },
+    {
+      "request_id": "a-second", "response_id": "a-second",
+      "response_text": "Second answer", "work_ids": [], "user_texts": ["Second request"]
+    }
+  ]
+}

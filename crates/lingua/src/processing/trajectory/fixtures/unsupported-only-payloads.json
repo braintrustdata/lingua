@@ -1,0 +1,110 @@
+{
+  "spans": [
+    {
+      "id": "unsupported",
+      "span_id": "unsupported",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "input": [
+        {
+          "type": "agent_message",
+          "author": "/worker",
+          "recipient": "/root",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "Check complete"
+            }
+          ]
+        }
+      ],
+      "output": [
+        {
+          "type": "agent_message",
+          "author": "/worker",
+          "recipient": "/root",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "Check complete"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "task",
+      "span_id": "task",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "task"
+      },
+      "metrics": {
+        "start": 2,
+        "end": 3
+      },
+      "input": {
+        "query": "Query"
+      },
+      "output": {
+        "result": "Result"
+      }
+    },
+    {
+      "id": "healthy",
+      "span_id": "healthy",
+      "root_span_id": "root",
+      "span_attributes": {
+        "type": "llm"
+      },
+      "metrics": {
+        "start": 3,
+        "end": 4
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Next question"
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Answer"
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "unsupported",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "unsupported"
+      ],
+      "user_texts": []
+    },
+    {
+      "request_id": "healthy",
+      "response_id": "healthy",
+      "response_text": "Answer",
+      "work_ids": [],
+      "user_texts": [
+        "Next question"
+      ]
+    }
+  ],
+  "import_failures": [
+    {
+      "span_id": "unsupported",
+      "message": "Unsupported input message format; Unsupported output message format"
+    }
+  ]
+}

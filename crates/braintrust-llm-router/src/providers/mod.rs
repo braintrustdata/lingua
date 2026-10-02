@@ -5,6 +5,7 @@ mod bedrock;
 mod body_model;
 mod databricks;
 mod google;
+mod json_selection;
 mod mistral;
 mod openai;
 mod remote_media;
@@ -22,7 +23,9 @@ pub use openai::{
     is_openai_compatible, openai_compatible_endpoint, OpenAICompatibleEndpoint, OpenAIConfig,
     OpenAIProvider,
 };
-pub(crate) use remote_media::{prepare_request_with_remote_media, RemoteMediaPolicy};
+pub(crate) use remote_media::{
+    prepare_request_with_remote_media, reject_remote_responses_audio, RemoteMediaPolicy,
+};
 pub use vertex::{VertexConfig, VertexProvider};
 
 use async_trait::async_trait;
@@ -224,6 +227,10 @@ pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -
 /// Providers are pure HTTP clients - they receive pre-transformed payloads
 /// as bytes, forward them to the upstream API, and return raw bytes responses.
 /// All format transformations happen in the Router layer via lingua.
+#[allow(
+    clippy::double_must_use,
+    reason = "async_trait adds #[must_use] to methods that already return must-use futures"
+)]
 #[async_trait]
 pub trait Provider: Send + Sync {
     /// Provider identifier (e.g., "openai", "anthropic").

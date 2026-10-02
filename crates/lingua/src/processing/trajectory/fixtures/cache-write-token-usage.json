@@ -1,0 +1,22 @@
+[
+  {
+    "id": "final",
+    "span_id": "final",
+    "root_span_id": "root",
+    "span_parents": ["root"],
+    "span_attributes": { "type": "llm", "name": "final" },
+    "metrics": {
+      "start": 1,
+      "end": 2,
+      "prompt_tokens": 100,
+      "completion_tokens": 10,
+      "tokens": 110,
+      "prompt_cached_tokens": 20,
+      "prompt_cache_creation_tokens": 70,
+      "prompt_cache_creation_5m_tokens": 30,
+      "prompt_cache_creation_1h_tokens": 40
+    },
+    "input": [{ "role": "user", "content": "Question" }],
+    "output": [{ "role": "assistant", "content": "Answer" }]
+  }
+]

@@ -73,6 +73,7 @@ pretty_assertions = { workspace = true }
 tempfile = { workspace = true }
 tokio-stream = { workspace = true }
 serial_test = "3"
+rustls = { workspace = true }
 
 # Example/test utilities
 dotenv = { workspace = true }

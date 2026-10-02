@@ -1,0 +1,19 @@
+{
+  "model": "gemini-3.5-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Transcribe this audio clip."
+        },
+        {
+          "inlineData": {
+            "mimeType": "audio/wav",
+            "data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA="
+          }
+        }
+      ]
+    }
+  ]
+}

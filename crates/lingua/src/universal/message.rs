@@ -44,11 +44,20 @@ pub enum UserContent {
     Array(Vec<UserContentPart>),
 }
 
-/// User content parts - text, image, and file parts allowed
+impl UserContent {
+    pub fn has_audio(&self) -> bool {
+        matches!(
+            self,
+            Self::Array(parts) if parts.iter().any(|part| matches!(part, UserContentPart::Audio { .. }))
+        )
+    }
+}
+
+/// User content parts - text, image, audio, and file parts allowed
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[skip_serializing_none]
 pub enum UserContentPart {
     Text(TextContentPart),
     Image {
@@ -59,6 +68,10 @@ pub enum UserContentPart {
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+    Audio {
+        data: String,
+        format: AudioFormat,
+    },
     File {
         #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
         data: serde_json::Value,
@@ -68,6 +81,14 @@ pub enum UserContentPart {
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+}
+
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum AudioFormat {
+    Mp3,
+    Wav,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -393,4 +414,20 @@ pub struct ToolErrorContentPart {
     pub tool_name: String,
     pub error: String,
     pub provider_metadata: Option<ProviderMetadata>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::UserContent;
+    use crate::serde_json;
+
+    #[test]
+    fn user_content_omits_absent_optional_fields() {
+        let wire = serde_json::json!([
+            {"type": "image", "image": "https://example.com/image.png"},
+            {"type": "file", "data": "https://example.com/report.pdf", "media_type": "application/pdf"}
+        ]);
+        let content: UserContent = serde_json::from_value(wire.clone()).unwrap();
+        assert_eq!(serde_json::to_value(content).unwrap(), wire);
+    }
 }

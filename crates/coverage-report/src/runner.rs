@@ -23,8 +23,12 @@ use crate::types::{PairResult, TestFilter, TransformResult, ValidationLevel};
 type PairResults = HashMap<(usize, usize), PairResult>;
 type AllResults = (PairResults, PairResults, PairResults);
 
-fn universal_request_to_value(req: &UniversalRequest) -> Value {
-    lingua::serde_json::to_value(normalize_request_for_comparison(req)).unwrap_or(Value::Null)
+fn universal_request_to_value(req: &UniversalRequest, same_provider: bool) -> Value {
+    let mut normalized = normalize_request_for_comparison(req);
+    if !same_provider {
+        normalized.params.extras.clear();
+    }
+    lingua::serde_json::to_value(normalized).unwrap_or(Value::Null)
 }
 
 fn universal_response_to_value(resp: &UniversalResponse) -> Value {
@@ -141,7 +145,8 @@ pub fn test_request_transformation(
     }
 
     target_adapter.apply_defaults(&mut expected_universal);
-    let expected_universal_value = universal_request_to_value(&expected_universal);
+    let same_provider = source_adapter.format() == target_adapter.format();
+    let expected_universal_value = universal_request_to_value(&expected_universal, same_provider);
 
     let provider_value = match target_adapter.request_from_universal(&expected_universal) {
         Ok(v) => v,
@@ -192,13 +197,11 @@ pub fn test_request_transformation(
             // of the comparison match. Formats like BedrockAnthropic, Google, and
             // Converse carry model in the URL path, not the payload body, so the
             // roundtripped universal would otherwise lose the model we injected above.
-            if source_adapter.format() == target_adapter.format()
-                && model.is_some()
-                && target_universal.model.is_none()
-            {
+            if same_provider && model.is_some() && target_universal.model.is_none() {
                 target_universal.model = model.map(String::from);
             }
-            let target_universal_value = universal_request_to_value(&target_universal);
+            let target_universal_value =
+                universal_request_to_value(&target_universal, same_provider);
             let context = CompareContext::for_request(source_adapter, target_adapter, test_case);
             let roundtrip_result = compare_values(
                 &expected_universal_value,

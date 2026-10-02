@@ -9,7 +9,7 @@ use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
 use crate::universal::{
-    AssistantContent, AssistantContentPart, CacheControl, Message, ProviderOptions,
+    AssistantContent, AssistantContentPart, AudioFormat, CacheControl, Message, ProviderOptions,
     TextContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
     ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
     UserContentPart,
@@ -20,6 +20,34 @@ use crate::util::media::{
 use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
+
+fn universal_audio_from_openai(audio: openai::InputAudio) -> Result<UserContentPart, ConvertError> {
+    base64::engine::general_purpose::STANDARD
+        .decode(&audio.data)
+        .map_err(|error| ConvertError::ContentConversionFailed {
+            reason: format!("OpenAI input_audio.data must be base64: {error}"),
+        })?;
+
+    let format = match audio.format {
+        openai::InputAudioFormat::Mp3 => AudioFormat::Mp3,
+        openai::InputAudioFormat::Wav => AudioFormat::Wav,
+    };
+
+    Ok(UserContentPart::Audio {
+        data: audio.data,
+        format,
+    })
+}
+
+fn openai_audio_from_universal(data: String, format: AudioFormat) -> openai::InputAudio {
+    openai::InputAudio {
+        data,
+        format: match format {
+            AudioFormat::Mp3 => openai::InputAudioFormat::Mp3,
+            AudioFormat::Wav => openai::InputAudioFormat::Wav,
+        },
+    }
+}
 
 fn tool_caller_from_provider<T>(caller: Option<T>) -> Result<Option<ToolCaller>, ConvertError>
 where
@@ -672,8 +700,7 @@ fn normalize_responses_items_for_import(data: &serde_json::Value) -> Option<serd
         data
     };
 
-    let compat_items =
-        serde_json::from_value::<Vec<ResponsesImportCompatItem>>(candidate.clone()).ok()?;
+    let compat_items = Vec::<ResponsesImportCompatItem>::deserialize(candidate).ok()?;
     let normalized = serde_json::to_value(compat_items).ok()?;
 
     if normalized == *candidate {
@@ -840,6 +867,21 @@ fn provider_options_from_openai_tool_call(namespace: Option<String>) -> Option<P
         );
     }
     Some(ProviderOptions { options })
+}
+
+/// `namespace` on a function call output names the OpenAI-side tool registry
+/// scope that produced the output, so it has no provider-neutral meaning.
+/// Reject it explicitly rather than dropping it when the tool result enters the
+/// universal model; same-format requests and responses keep it byte-for-byte
+/// through the passthrough path instead of being re-serialized.
+fn reject_function_call_output_namespace(namespace: Option<&str>) -> Result<(), ConvertError> {
+    match namespace {
+        Some(namespace) if !namespace.is_empty() => Err(ConvertError::UnsupportedMapping {
+            from: format!("OpenAI Responses function_call_output namespace '{namespace}'"),
+            to: "Lingua tool result (tool namespaces are provider-scoped registry state)",
+        }),
+        _ => Ok(()),
+    }
 }
 
 fn non_completed_function_call_status_to_string(
@@ -1044,6 +1086,13 @@ fn openai_file_payload_from_data(
         return Ok(OpenAIFilePayload::FileUrl(data));
     }
 
+    if media_type.eq_ignore_ascii_case("application/pdf") {
+        return Ok(OpenAIFilePayload::FileData(format!(
+            "data:application/pdf;base64,{}",
+            data
+        )));
+    }
+
     Ok(OpenAIFilePayload::FileData(format!(
         "data:{};base64,{}",
         media_type,
@@ -1085,7 +1134,8 @@ fn universal_file_payload_from_openai(
             let decoded_text = base64::engine::general_purpose::STANDARD
                 .decode(&block.data)
                 .ok()
-                .and_then(|bytes| String::from_utf8(bytes).ok());
+                .and_then(|bytes| String::from_utf8(bytes).ok())
+                .filter(|_| !block.media_type.eq_ignore_ascii_case("application/pdf"));
             let has_known_extension = filename
                 .as_deref()
                 .and_then(|name| name.rsplit('.').next())
@@ -1243,11 +1293,70 @@ pub(crate) fn try_parse_responses_items_for_import(
     try_from_responses_items_candidate(&normalized)
 }
 
+pub(crate) fn is_opaque_item_for_import(data: &serde_json::Value) -> bool {
+    openai::InputItem::deserialize(data).is_ok_and(|item| {
+        item.input_item_type == Some(openai::InputItemType::Compaction)
+            && item.id.is_some()
+            && item.encrypted_content.is_some()
+    })
+}
+
+#[derive(Deserialize)]
+struct ResponsesItemWithOpaqueTools {
+    tools: Option<Vec<serde::de::IgnoredAny>>,
+    #[serde(flatten)]
+    item: openai::InputItem,
+}
+
+pub(crate) fn try_parse_responses_with_opaque_metadata_for_import(
+    data: &serde_json::Value,
+) -> Option<(Vec<Message>, &'static str)> {
+    let ResponsesItemWithOpaqueTools { tools, mut item } =
+        ResponsesItemWithOpaqueTools::deserialize(data).ok()?;
+    if item.input_item_type == Some(openai::InputItemType::AdditionalTools) {
+        return (tools.is_some() && item.role == Some(openai::InputItemRole::Developer)).then(
+            || {
+                (
+                    Vec::new(),
+                    "Unsupported additional_tools definitions omitted from imported messages",
+                )
+            },
+        );
+    }
+    if tools.is_some() {
+        return None;
+    }
+    let openai::InputItemContent::InputContentArray(parts) = item.content.as_mut()? else {
+        return None;
+    };
+    let mut preserved_cache_metadata = false;
+    for part in parts {
+        if matches!(
+            part.input_content_type,
+            openai::InputItemContentListType::InputFile
+                | openai::InputItemContentListType::InputImage
+                | openai::InputItemContentListType::InputAudio
+        ) {
+            preserved_cache_metadata |= part.prompt_cache_breakpoint.take().is_some();
+        }
+    }
+    if !preserved_cache_metadata {
+        return None;
+    }
+    let messages =
+        <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![item]).ok()?;
+    Some((
+        messages,
+        "Media prompt_cache_breakpoint omitted from imported messages",
+    ))
+}
+
 fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<Vec<Message>> {
     match input {
         openai::Instructions::InputItemArray(items) => {
-            let messages = try_convert_non_empty(items)?;
-            non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages))
+            let messages =
+                <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(items).ok()?;
+            Some(merge_adjacent_reasoning_assistant_messages(messages))
         }
         openai::Instructions::String(text) => Some(vec![Message::User {
             content: UserContent::String(text),
@@ -1296,8 +1405,16 @@ pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Ve
 
     if let Some(request) = try_parse::<openai::CreateResponseClass>(data) {
         if let Some(input) = request.input {
-            if let Some(messages) = try_messages_from_openai_instructions(input) {
-                return Some(messages);
+            if let Some(mut messages) = try_messages_from_openai_instructions(input) {
+                if let Some(instructions) = request.instructions.filter(|text| !text.is_empty()) {
+                    messages.insert(
+                        0,
+                        Message::System {
+                            content: UserContent::String(instructions),
+                        },
+                    );
+                }
+                return non_empty_messages(messages);
             }
         }
     }
@@ -1321,6 +1438,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
         for mut input in inputs {
             let pending_tool_search_call_id = last_tool_search_call_id.take();
             match input.input_item_type {
+                Some(openai::InputItemType::AgentMessage) => {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses agent_message".to_string(),
+                        to: "Lingua messages (agent routing and encrypted content are provider-specific)",
+                    });
+                }
                 // Built-in tool calls - convert to ToolCall with provider_executed: true
                 Some(openai::InputItemType::WebSearchCall) => {
                     let tool_call = AssistantContentPart::ToolCall {
@@ -1660,6 +1783,8 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                                 field: "function call output call_id".to_string(),
                             })?;
 
+                    reject_function_call_output_namespace(input.namespace.as_deref())?;
+
                     let output = input
                         .output
                         .map(openai_output_to_string)
@@ -1738,6 +1863,12 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
 
     fn try_from(value: openai::InputContent) -> Result<Self, Self::Error> {
         Ok(match value.input_content_type {
+            openai::InputItemContentListType::EncryptedContent => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "OpenAI Responses encrypted_content".to_string(),
+                    to: "Lingua user content (opaque agent replay state is provider-specific)",
+                });
+            }
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
                 let cache_control = cache_control_from_responses_prompt_cache_breakpoint(
@@ -1805,10 +1936,18 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 }
             }
             openai::InputItemContentListType::InputAudio => {
-                // Handle audio input if needed in the future
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: "InputAudio content type".to_string(),
-                });
+                if value.prompt_cache_breakpoint.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses input_audio prompt_cache_breakpoint".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(value.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)?
             }
             openai::InputItemContentListType::InputFile => {
                 if value.prompt_cache_breakpoint.is_some() {
@@ -1942,6 +2081,11 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
+            UserContentPart::Audio { data, format } => openai::InputContent {
+                input_content_type: openai::InputItemContentListType::InputAudio,
+                input_audio: Some(openai_audio_from_universal(data, format)),
+                ..Default::default()
+            },
             UserContentPart::File {
                 data,
                 filename,
@@ -1981,6 +2125,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
 impl Default for openai::InputContent {
     fn default() -> Self {
         Self {
+            encrypted_content: None,
             text: None,
             input_content_type: openai::InputItemContentListType::InputText,
             detail: None,
@@ -1989,6 +2134,7 @@ impl Default for openai::InputContent {
             file_data: None,
             file_url: None,
             filename: None,
+            input_audio: None,
             annotations: None,
             logprobs: None,
             refusal: None,
@@ -2199,6 +2345,9 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
 impl Default for openai::InputItem {
     fn default() -> Self {
         Self {
+            agent: None,
+            author: None,
+            recipient: None,
             role: None,
             content: None,
             phase: None,
@@ -3164,6 +3313,12 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             Some(openai::OutputItemType::CustomToolCall) => {
                 Some(openai::InputItemType::CustomToolCall)
             }
+            Some(openai::OutputItemType::FunctionCallOutput) => {
+                Some(openai::InputItemType::FunctionCallOutput)
+            }
+            Some(openai::OutputItemType::CustomToolCallOutput) => {
+                Some(openai::InputItemType::CustomToolCallOutput)
+            }
             Some(openai::OutputItemType::Program) => Some(openai::InputItemType::Program),
             Some(openai::OutputItemType::ProgramOutput) => {
                 Some(openai::InputItemType::ProgramOutput)
@@ -3337,6 +3492,12 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
     fn try_from(input_item: openai::InputItem) -> Result<Self, Self::Error> {
         // Convert InputItem to OutputItem by mapping the fields
         let output_item_type = match input_item.input_item_type {
+            Some(openai::InputItemType::AgentMessage) => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "OpenAI Responses agent_message".to_string(),
+                    to: "OpenAI Responses output items (agent routing is unsupported)",
+                });
+            }
             Some(openai::InputItemType::Message) => Some(openai::OutputItemType::Message),
             Some(openai::InputItemType::Reasoning) => Some(openai::OutputItemType::Reasoning),
             Some(openai::InputItemType::FunctionCall) => Some(openai::OutputItemType::FunctionCall),
@@ -3800,6 +3961,20 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                 }
                 Some(openai::OutputItemType::AdditionalTools) => {
                     messages.push(tool_discovery::message_from_output_additional_tools(item)?);
+                    continue;
+                }
+                Some(openai::OutputItemType::FunctionCallOutput)
+                | Some(openai::OutputItemType::CustomToolCallOutput) => {
+                    // Tool results carry no output-only fields, so reuse the
+                    // request-side input item conversion instead of duplicating
+                    // it; that keeps both directions in step.
+                    let input_item =
+                        <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(item)?;
+                    messages.extend(
+                        <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![
+                            input_item,
+                        ])?,
+                    );
                     continue;
                 }
                 _ => {
@@ -4432,6 +4607,12 @@ fn convert_input_content_to_output_message_content(
     input_content: openai::InputContent,
 ) -> Result<openai::OutputMessageContent, ConvertError> {
     match input_content.input_content_type {
+        openai::InputItemContentListType::EncryptedContent => {
+            Err(ConvertError::UnsupportedMapping {
+                from: "OpenAI Responses encrypted_content".to_string(),
+                to: "OpenAI Responses output message content (opaque agent replay state is unsupported)",
+            })
+        }
         openai::InputItemContentListType::OutputText
         | openai::InputItemContentListType::InputText => Ok(openai::OutputMessageContent {
             output_message_content_type: openai::ContentType::OutputText,
@@ -4828,6 +5009,20 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     provider_options: None,
                 })
             }
+            openai::PurpleType::InputAudio => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions input_audio cache metadata".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(part.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -4916,6 +5111,20 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                     provider_options: None,
                 })
             }
+            openai::PurpleType::InputAudio => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions input_audio cache metadata".to_string(),
+                        to: "Lingua audio content (cache control is unsupported)",
+                    });
+                }
+
+                universal_audio_from_openai(part.base.input_audio.ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "input_audio".to_string(),
+                    }
+                })?)
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -4932,32 +5141,50 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
 
     fn try_from(msg: Message) -> Result<Self, Self::Error> {
         match msg {
-            Message::System { content } => Ok(ChatCompletionRequestMessageExt {
-                role: openai::ChatCompletionRequestMessageRole::System,
-                content: Some(convert_user_content_to_chat_completion_content(content)?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-                cache_control: None,
-                reasoning: None,
-                reasoning_signature: None,
-            }),
-            Message::Developer { content } => Ok(ChatCompletionRequestMessageExt {
-                role: openai::ChatCompletionRequestMessageRole::Developer,
-                content: Some(convert_user_content_to_chat_completion_content(content)?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-                cache_control: None,
-                reasoning: None,
-                reasoning_signature: None,
-            }),
+            Message::System { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "OpenAI Chat Completions system/developer message",
+                    });
+                }
+
+                Ok(ChatCompletionRequestMessageExt {
+                    role: openai::ChatCompletionRequestMessageRole::System,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    cache_control: None,
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
+            Message::Developer { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "OpenAI Chat Completions system/developer message",
+                    });
+                }
+
+                Ok(ChatCompletionRequestMessageExt {
+                    role: openai::ChatCompletionRequestMessageRole::Developer,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    cache_control: None,
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
             Message::User { content } => Ok(ChatCompletionRequestMessageExt {
                 role: openai::ChatCompletionRequestMessageRole::User,
                 content: Some(convert_user_content_to_chat_completion_content(content)?),
@@ -5215,6 +5442,32 @@ fn convert_user_content_part_to_chat_completion_part(
             })
         }
         UserContentPart::File {
+            data: serde_json::Value::String(data),
+            filename,
+            media_type,
+            provider_options: None,
+        } if media_type.eq_ignore_ascii_case("application/pdf")
+            && !is_remote_media_uri(&data) => {
+            let OpenAIFilePayload::FileData(file_data) = openai_file_payload_from_data(serde_json::Value::String(data), &media_type)? else {
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: "Remote PDF URLs are not supported by OpenAI ChatCompletions; provide PDF data instead".into(),
+                });
+            };
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: None,
+                content_part_type: openai::PurpleType::File,
+                prompt_cache_breakpoint: None,
+                image_url: None,
+                input_audio: None,
+                file: Some(openai::File {
+                    file_data: Some(file_data),
+                    file_id: None,
+                    filename: openai_filename_for_file(filename, &media_type, &None),
+                }),
+                refusal: None,
+            })
+        }
+        UserContentPart::File {
             media_type,
             ..
         } => {
@@ -5227,6 +5480,15 @@ and Anthropic document blocks do not map safely.",
                 ),
             })
         }
+        UserContentPart::Audio { data, format } => Ok(openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::InputAudio,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: Some(openai_audio_from_universal(data, format)),
+            file: None,
+            refusal: None,
+        }),
     }
 }
 
@@ -5612,7 +5874,182 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::capabilities::ProviderFormat;
+    use crate::processing::transform::transform_request;
     use crate::serde_json::json;
+    use crate::TransformResult;
+    use bytes::Bytes;
+
+    fn wav_base64() -> String {
+        base64::engine::general_purpose::STANDARD.encode(include_bytes!(
+            "../../../../../payloads/fixtures/audio/strawberry.wav"
+        ))
+    }
+
+    #[test]
+    fn chat_input_audio_converts_to_universal_audio() {
+        let audio = wav_base64();
+        let part = openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::InputAudio,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: Some(openai::InputAudio {
+                data: audio,
+                format: openai::InputAudioFormat::Wav,
+            }),
+            file: None,
+            refusal: None,
+        };
+
+        let actual = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(part)
+        .expect("audio should convert");
+
+        assert!(matches!(
+            actual,
+            UserContentPart::Audio {
+                format: AudioFormat::Wav,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn responses_input_audio_converts_to_universal_audio() {
+        let audio = wav_base64();
+        let part = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputAudio,
+            input_audio: Some(openai::InputAudio {
+                data: audio,
+                format: openai::InputAudioFormat::Wav,
+            }),
+            ..Default::default()
+        };
+
+        let actual = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(part)
+            .expect("audio should convert");
+
+        assert!(matches!(
+            actual,
+            UserContentPart::Audio {
+                format: AudioFormat::Wav,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn chat_system_and_developer_audio_are_rejected() {
+        for message in [
+            Message::System {
+                content: UserContent::Array(vec![UserContentPart::Audio {
+                    data: wav_base64(),
+                    format: AudioFormat::Wav,
+                }]),
+            },
+            Message::Developer {
+                content: UserContent::Array(vec![UserContentPart::Audio {
+                    data: wav_base64(),
+                    format: AudioFormat::Wav,
+                }]),
+            },
+        ] {
+            let error = <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(message)
+                .expect_err("Chat Completions instruction roles must not emit input_audio");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        }
+    }
+
+    #[test]
+    fn chat_input_audio_transforms_to_google_inline_data() {
+        let audio = wav_base64();
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "messages": [{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Score this call."},
+                    {"type": "input_audio", "input_audio": {"data": audio, "format": "wav"}}
+                ]
+            }]
+        });
+
+        let transformed = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect("audio request should transform to Google");
+        let value: serde_json::Value = serde_json::from_slice(transformed.as_bytes()).unwrap();
+
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["mimeType"],
+            "audio/wav"
+        );
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["data"],
+            audio
+        );
+    }
+
+    #[test]
+    fn responses_wav_input_audio_transforms_to_google_inline_data() {
+        let audio = wav_base64();
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "input": [{
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": "Score this call."},
+                    {"type": "input_audio", "input_audio": {"data": audio, "format": "wav"}}
+                ]
+            }]
+        });
+
+        let transformed = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect("audio request should transform to Google");
+        let value: serde_json::Value = serde_json::from_slice(transformed.as_bytes()).unwrap();
+
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["mimeType"],
+            "audio/wav"
+        );
+        assert_eq!(
+            value["contents"][0]["parts"][1]["inlineData"]["data"],
+            audio
+        );
+    }
+
+    #[test]
+    fn url_input_audio_is_rejected_outside_router_preprocessing() {
+        let request = json!({
+            "model": "gemini-2.0-flash",
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "input_audio",
+                    "input_audio": {"data": "https://example.com/audio.wav", "format": "wav"}
+                }]
+            }]
+        });
+
+        let error = transform_request(
+            Bytes::from(serde_json::to_vec(&request).unwrap()),
+            ProviderFormat::Google,
+            None,
+        )
+        .expect_err("router-only audio URL should fail direct conversion");
+
+        assert!(error
+            .to_string()
+            .contains("input_audio.data must be base64"));
+    }
 
     #[test]
     fn tool_caller_from_provider_rejects_program_without_caller_id() {
@@ -7425,6 +7862,52 @@ mod tests {
     }
 
     #[test]
+    fn chat_completions_pdf_rejects_remote_urls_and_provider_options() {
+        for (data, provider_options) in [
+            ("https://example.com/document.pdf", None),
+            (
+                "JVBERi0xLjQ=",
+                Some(ProviderOptions {
+                    options: serde_json::from_str(r#"{"citations":{"enabled":true}}"#).unwrap(),
+                }),
+            ),
+        ] {
+            let input = UserContentPart::File {
+                data: serde_json::Value::String(data.into()),
+                filename: Some("document.pdf".into()),
+                media_type: "application/pdf".into(),
+                provider_options,
+            };
+            let error = convert_user_content_part_to_chat_completion_part(input).unwrap_err();
+            assert!(matches!(error, ConvertError::UnsupportedInputType { .. }));
+        }
+    }
+
+    #[test]
+    fn responses_input_pdf_preserves_utf8_compatible_bytes() {
+        let input = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputFile,
+            file_data: Some("data:application/pdf;base64,JVBERi0xLjQ=".to_string()),
+            filename: Some("document.pdf".to_string()),
+            ..Default::default()
+        };
+        let converted = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(input)
+            .expect("PDF should import");
+        let UserContentPart::File {
+            data,
+            filename,
+            media_type,
+            ..
+        } = converted
+        else {
+            panic!("expected file content");
+        };
+        assert_eq!(data, serde_json::Value::String("JVBERi0xLjQ=".to_string()));
+        assert_eq!(filename.as_deref(), Some("document.pdf"));
+        assert_eq!(media_type, "application/pdf");
+    }
+
+    #[test]
     fn responses_input_file_imports_back_to_text_file() {
         let input = openai::InputContent {
             input_content_type: openai::InputItemContentListType::InputFile,
@@ -8196,6 +8679,216 @@ mod tests {
         assert_eq!(
             input_item.input_item_type,
             Some(openai::InputItemType::AdditionalTools)
+        );
+    }
+
+    fn function_call_output_item(
+        output_item_type: openai::OutputItemType,
+        name: Option<&str>,
+    ) -> openai::OutputItem {
+        openai::OutputItem {
+            output_item_type: Some(output_item_type),
+            call_id: Some("call_list_databases".to_string()),
+            name: name.map(str::to_string),
+            output: Some(openai::OutputUnion::String(
+                r#"{"databases":["admin"]}"#.to_string(),
+            )),
+            ..Default::default()
+        }
+    }
+
+    fn single_tool_result(messages: &[Message]) -> &ToolResultContentPart {
+        let [Message::Tool { content }] = messages else {
+            panic!("expected exactly one tool message, got {messages:?}");
+        };
+        let [ToolContentPart::ToolResult(result)] = content.as_slice() else {
+            panic!("expected exactly one tool result, got {content:?}");
+        };
+        result
+    }
+
+    #[test]
+    fn responses_response_import_maps_function_call_output_to_tool_result() {
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![
+            function_call_output_item(
+                openai::OutputItemType::FunctionCallOutput,
+                Some("list_databases"),
+            ),
+        ])
+        .expect("function_call_output output item should import");
+
+        let result = single_tool_result(&messages);
+        assert_eq!(result.tool_call_id, "call_list_databases");
+        assert_eq!(result.tool_name, "list_databases");
+        assert_eq!(result.output, json!({"databases": ["admin"]}));
+        assert_eq!(result.custom_tool_call, None);
+    }
+
+    #[test]
+    fn responses_response_import_maps_custom_tool_call_output_to_tool_result() {
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![
+            function_call_output_item(
+                openai::OutputItemType::CustomToolCallOutput,
+                Some("list_databases"),
+            ),
+        ])
+        .expect("custom_tool_call_output output item should import");
+
+        let result = single_tool_result(&messages);
+        assert_eq!(result.tool_name, "list_databases");
+        assert_eq!(result.custom_tool_call, Some(true));
+    }
+
+    #[test]
+    fn responses_response_function_call_output_without_call_id_is_rejected() {
+        let item = openai::OutputItem {
+            call_id: None,
+            ..function_call_output_item(
+                openai::OutputItemType::FunctionCallOutput,
+                Some("list_databases"),
+            )
+        };
+
+        let error = <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![item])
+            .expect_err("function_call_output without call_id should be rejected");
+        assert!(
+            matches!(error, ConvertError::MissingRequiredField { ref field }
+                if field == "function call output call_id"),
+            "unexpected error: {error:?}"
+        );
+    }
+
+    #[test]
+    fn responses_response_function_call_output_tool_name_round_trips() {
+        for name in [Some("list_databases"), None] {
+            let item = function_call_output_item(openai::OutputItemType::FunctionCallOutput, name);
+            let messages =
+                <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![item.clone()])
+                    .expect("function_call_output output item should import");
+            let exported =
+                <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
+                    .expect("tool result should export as an output item");
+
+            let [exported_item] = exported.as_slice() else {
+                panic!("expected exactly one output item, got {exported:?}");
+            };
+            // An absent name must stay absent rather than becoming the empty
+            // string, which the spec rejects via `minLength: 1`.
+            assert_eq!(exported_item.name, item.name);
+            assert_eq!(exported_item.call_id, item.call_id);
+            assert_eq!(
+                exported_item.output_item_type,
+                Some(openai::OutputItemType::FunctionCallOutput)
+            );
+        }
+    }
+
+    fn responses_request_with_function_call_output(namespace: Option<&str>) -> serde_json::Value {
+        let mut output_item = json!({
+            "type": "function_call_output",
+            "call_id": "call_list_databases",
+            "name": "list_databases",
+            "output": r#"{"databases":["admin"]}"#
+        });
+        if let Some(namespace) = namespace {
+            output_item["namespace"] = json!(namespace);
+        }
+
+        json!({
+            "model": "gpt-5.1",
+            "input": [
+                {"role": "user", "content": "Which databases exist?"},
+                {
+                    "type": "function_call",
+                    "call_id": "call_list_databases",
+                    "name": "list_databases",
+                    "arguments": "{}"
+                },
+                output_item
+            ]
+        })
+    }
+
+    #[test]
+    fn function_call_output_namespace_survives_same_format_passthrough() {
+        let request = responses_request_with_function_call_output(Some("mongodb"));
+        let bytes = Bytes::from(serde_json::to_vec(&request).unwrap());
+
+        let transformed = transform_request(bytes.clone(), ProviderFormat::Responses, None)
+            .expect("same-format Responses request should transform");
+
+        match transformed.result {
+            TransformResult::PassThrough(passed) => assert_eq!(passed, bytes),
+            other => panic!("expected byte-preserving passthrough, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn function_call_output_namespace_is_rejected_on_cross_provider_import() {
+        let with_namespace = responses_request_with_function_call_output(Some("mongodb"));
+        let error = transform_request(
+            Bytes::from(serde_json::to_vec(&with_namespace).unwrap()),
+            ProviderFormat::Anthropic,
+            None,
+        )
+        .expect_err("function_call_output namespace should not convert cross-provider");
+        let message = error.to_string();
+        assert!(
+            message.contains("namespace") && message.contains("function_call_output"),
+            "error should name the unsupported field and item kind: {message}"
+        );
+
+        let without_namespace = responses_request_with_function_call_output(None);
+        transform_request(
+            Bytes::from(serde_json::to_vec(&without_namespace).unwrap()),
+            ProviderFormat::Anthropic,
+            None,
+        )
+        .expect("the same item without a namespace should still convert");
+    }
+
+    #[test]
+    fn function_call_output_namespace_is_not_smuggled_into_the_tool_result() {
+        let input_item = openai::InputItem {
+            input_item_type: Some(openai::InputItemType::FunctionCallOutput),
+            call_id: Some("call_list_databases".to_string()),
+            name: Some("list_databases".to_string()),
+            output: Some(openai::Output::String("ok".to_string())),
+            ..Default::default()
+        };
+
+        let messages =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![input_item])
+                .expect("function_call_output input item should import");
+
+        // Pinning the serialized shape guards against reintroducing the opaque
+        // round-trip carrier used by the tool-call arm: any extra key here means
+        // provider-scoped state slipped into the universal model.
+        assert_eq!(
+            serde_json::to_value(single_tool_result(&messages)).unwrap(),
+            json!({
+                "tool_call_id": "call_list_databases",
+                "tool_name": "list_databases",
+                "output": "ok",
+            })
+        );
+    }
+
+    #[test]
+    fn response_function_call_output_namespace_is_rejected_on_import() {
+        let item = openai::OutputItem {
+            namespace: Some("mongodb".to_string()),
+            ..function_call_output_item(
+                openai::OutputItemType::FunctionCallOutput,
+                Some("list_databases"),
+            )
+        };
+
+        let error = <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![item])
+            .expect_err("response-side namespace should not enter the universal model");
+        assert!(
+            matches!(error, ConvertError::UnsupportedMapping { .. }),
+            "unexpected error: {error:?}"
         );
     }
 }

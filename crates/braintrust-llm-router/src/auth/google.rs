@@ -13,6 +13,17 @@ const DEFAULT_TOKEN_URI: &str = "https://oauth2.googleapis.com/token";
 const TOKEN_BUFFER: Duration = Duration::from_secs(60);
 const DEFAULT_SCOPE: &str = "https://www.googleapis.com/auth/cloud-platform";
 
+fn install_aws_lc_provider() -> Result<()> {
+    let provider = &jsonwebtoken::crypto::aws_lc::DEFAULT_PROVIDER;
+    match provider.install_default() {
+        Ok(()) => Ok(()),
+        Err(existing) if std::ptr::eq(existing, provider) => Ok(()),
+        Err(_) => Err(anyhow!(
+            "a non-AWS-LC jsonwebtoken provider was already installed"
+        )),
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct ServiceAccountKey {
     pub client_email: String,
@@ -169,6 +180,7 @@ async fn request_token(
         sub: None,
     };
 
+    install_aws_lc_provider()?;
     let header = Header::new(Algorithm::RS256);
     let encoding_key = EncodingKey::from_rsa_pem(config.key.private_key.as_bytes())
         .context("failed to parse Google service account private key")?;
@@ -316,5 +328,42 @@ AuWIGWj6mq+yKlKUjA2WGQ==
         assert_eq!(second, "fresh-token");
 
         assert_eq!(server.received_requests().await.unwrap().len(), 2);
+    }
+
+    #[tokio::test]
+    async fn service_account_json_creates_and_caches_google_access_token() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/token"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "access_token": "vertex-access-token",
+                "expires_in": 3600,
+            })))
+            .up_to_n_times(1)
+            .mount(&server)
+            .await;
+        let config = GoogleServiceAccountConfig::from_json(
+            &json!({
+                "type": "service_account",
+                "client_email": "vertex-test@example.test",
+                "private_key": TEST_RSA_PRIVATE_KEY_PEM,
+                "token_uri": format!("{}/token", server.uri()),
+            })
+            .to_string(),
+            None,
+        )
+        .expect("parse service-account JSON");
+        let manager = GoogleTokenManager::new();
+        let client = Client::builder().build().expect("build HTTP client");
+
+        for _ in 0..2 {
+            let token = manager
+                .get_token(&client, &config)
+                .await
+                .expect("create Google access token");
+            assert_eq!(token, "vertex-access-token");
+        }
+
+        assert_eq!(server.received_requests().await.unwrap().len(), 1);
     }
 }

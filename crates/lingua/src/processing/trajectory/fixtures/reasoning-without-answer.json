@@ -1,0 +1,17 @@
+{
+  "spans": [
+    {
+      "id": "reasoning", "span_id": "reasoning", "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [{"role": "user", "content": "Question"}],
+      "output": [{"type": "reasoning", "id": "reasoning-item", "summary": [{"type": "summary_text", "text": "Checking the evidence"}]}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "reasoning", "response_id": null,
+      "response_text": "", "work_ids": ["reasoning"], "user_texts": ["Question"]
+    }
+  ]
+}

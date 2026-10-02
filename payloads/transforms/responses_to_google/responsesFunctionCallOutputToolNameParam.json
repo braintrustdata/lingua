@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Based on the list_databases tool, the following databases exist in the connected MongoDB instance:\n\n* **admin**\n* **config**\n* **local**",
+            "thoughtSignature": "EmgKZgERTTIPIh1dX6f/lbLALWeqmEhK25WiuFC5gXZVr0eBIBj8P8Pa9XVscxky407wE6ffxV4J5QL4JqQBc/yaGdup9se8cmGrFtuv8uevBSeUG8jbifMeE0n+E0vFCdHoYiQzrlAyRA=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 87,
+    "candidatesTokenCount": 33,
+    "totalTokenCount": 120,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 87
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "-TaoaqvHH4OwsOIPnKargQ8"
+}

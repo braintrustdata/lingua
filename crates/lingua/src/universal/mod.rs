@@ -19,6 +19,7 @@ pub mod response_format;
 pub mod stream;
 pub mod tool_choice;
 pub mod tools;
+pub mod trajectory;
 pub mod transform;
 
 // Re-export main types for convenience
@@ -41,5 +42,9 @@ pub use stream::{
 pub use tools::{
     tools_to_openai_chat_value, tools_to_responses_value, BuiltinToolProvider, UniversalTool,
     UniversalToolType,
+};
+pub use trajectory::{
+    Agent, AgentResponse, Compaction, EvidenceField, EvidencePart, Finding, FindingEvidence,
+    FindingSeverity, LLMAnalysis, Scope, Section, ToolResult, Trajectory, Turn, Work, WorkStep,
 };
 pub use transform::{extract_system_messages, flatten_consecutive_messages};

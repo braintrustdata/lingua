@@ -81,5 +81,7 @@
  * The item type. Always `program`.
  *
  * The item type. Always `program_output`.
+ *
+ * The item type. Always `agent_message`.
  */
-export type InputItemType = "additional_tools" | "apply_patch_call" | "apply_patch_call_output" | "code_interpreter_call" | "compaction" | "compaction_trigger" | "computer_call" | "computer_call_output" | "custom_tool_call" | "custom_tool_call_output" | "file_search_call" | "function_call" | "function_call_output" | "image_generation_call" | "item_reference" | "local_shell_call" | "local_shell_call_output" | "mcp_approval_request" | "mcp_approval_response" | "mcp_call" | "mcp_list_tools" | "message" | "program" | "program_output" | "reasoning" | "shell_call" | "shell_call_output" | "tool_search_call" | "tool_search_output" | "web_search_call";
+export type InputItemType = "additional_tools" | "agent_message" | "apply_patch_call" | "apply_patch_call_output" | "code_interpreter_call" | "compaction" | "compaction_trigger" | "computer_call" | "computer_call_output" | "custom_tool_call" | "custom_tool_call_output" | "file_search_call" | "function_call" | "function_call_output" | "image_generation_call" | "item_reference" | "local_shell_call" | "local_shell_call_output" | "mcp_approval_request" | "mcp_approval_response" | "mcp_call" | "mcp_list_tools" | "message" | "program" | "program_output" | "reasoning" | "shell_call" | "shell_call_output" | "tool_search_call" | "tool_search_output" | "web_search_call";

@@ -1,0 +1,19 @@
+{
+  "spans": [
+    {
+      "id": "analysis", "span_id": "analysis", "root_span_id": "root",
+      "span_attributes": {"type": "llm"},
+      "metadata": {"trajectory_role": "analysis"},
+      "metrics": {"start": 1, "end": 2},
+      "input": [{"role": "user", "content": "Evaluate the result"}],
+      "output": [{"role": "assistant", "content": "Assessment"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "analysis", "response_id": null,
+      "response_text": "", "work_ids": ["analysis"], "user_texts": []
+    }
+  ],
+  "requests": [[]]
+}

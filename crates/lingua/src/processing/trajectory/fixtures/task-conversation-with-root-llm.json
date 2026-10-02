@@ -1,0 +1,32 @@
+{
+  "spans": [
+    {
+      "id": "root", "span_id": "root", "root_span_id": "root",
+      "span_attributes": { "type": "task" },
+      "metrics": { "start": 0, "end": 10 }
+    },
+    {
+      "id": "conversation", "span_id": "conversation", "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": { "type": "task" },
+      "metadata": { "turn_id": "turn" },
+      "metrics": { "start": 1, "end": 5 },
+      "input": [{ "role": "user", "content": "Question" }],
+      "output": [{ "role": "assistant", "content": "Task answer" }]
+    },
+    {
+      "id": "llm", "span_id": "llm", "root_span_id": "root",
+      "span_parents": ["root"],
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 2, "end": 4 },
+      "input": [{ "role": "user", "content": "Question" }],
+      "output": [{ "role": "assistant", "content": "Model answer" }]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "llm", "response_id": "llm",
+      "response_text": "Model answer", "work_ids": [], "user_texts": ["Question"]
+    }
+  ]
+}

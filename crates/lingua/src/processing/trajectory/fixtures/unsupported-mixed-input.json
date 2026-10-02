@@ -1,0 +1,38 @@
+[
+  {
+    "id": "unsupported",
+    "span_id": "unsupported",
+    "root_span_id": "root",
+    "span_parents": ["root"],
+    "span_attributes": { "type": "llm", "name": "unsupported" },
+    "metrics": { "start": 1, "end": 2 },
+    "input": [
+      {
+        "type": "agent_message",
+        "author": "/worker",
+        "recipient": "/root",
+        "content": [{ "type": "input_text", "text": "Check complete" }]
+      },
+      { "role": "user", "content": "Acknowledge the report" }
+    ],
+    "output": [
+      { "role": "assistant", "content": "Partial reply" },
+      {
+        "type": "agent_message",
+        "author": "/worker",
+        "recipient": "/root",
+        "content": [{ "type": "input_text", "text": "Check complete" }]
+      }
+    ]
+  },
+  {
+    "id": "healthy",
+    "span_id": "healthy",
+    "root_span_id": "root",
+    "span_parents": ["root"],
+    "span_attributes": { "type": "llm", "name": "healthy" },
+    "metrics": { "start": 3, "end": 4 },
+    "input": [{ "role": "user", "content": "Next request" }],
+    "output": [{ "role": "assistant", "content": "Done" }]
+  }
+]

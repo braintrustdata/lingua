@@ -44,6 +44,10 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
         "gpt-5",
         &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
     ),
+    (
+        "gpt-6",
+        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+    ),
     // TODO: would be nice if we could apply these rules by provider instead of model name, and
     // apply these to all Mistral models
     ("mistral", &[ForceMaxTokens]),
@@ -58,9 +62,9 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
 
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
-    let lower = model.to_ascii_lowercase();
+    let normalized = normalize_openai_model_name(model);
     for (prefix, transforms) in MODEL_TRANSFORM_RULES {
-        if lower.starts_with(prefix) {
+        if normalized.starts_with(prefix) {
             return transforms;
         }
     }
@@ -92,6 +96,20 @@ pub fn supports_prompt_cache_breakpoint(model: &str) -> bool {
         (major.parse::<u32>(), minor.parse::<u32>()),
         (Ok(major), Ok(minor)) if (major, minor) >= (5, 6)
     )
+}
+
+/// Whether a Chat Completions model is explicitly known to accept `input_audio` content.
+///
+/// Keep this allowlist narrow: model schemas accept the content shape broadly, but most Chat
+/// Completions models reject audio input at request validation time.
+pub fn supports_chat_input_audio(model: &str) -> bool {
+    let model = normalize_openai_model_name(model);
+    model == "gpt-4o-audio-preview"
+        || model.starts_with("gpt-4o-audio-preview-")
+        || model == "gpt-4o-mini-audio-preview"
+        || model.starts_with("gpt-4o-mini-audio-preview-")
+        || model == "gpt-audio"
+        || model.starts_with("gpt-audio-")
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -155,7 +173,10 @@ impl EffortFamily {
 
 fn normalize_openai_model_name(model: &str) -> String {
     let lower = model.to_ascii_lowercase();
-    if let Some(stripped) = lower.strip_prefix("openai/") {
+    if let Some(stripped) = lower
+        .strip_prefix("openai/")
+        .or_else(|| lower.strip_prefix("openai."))
+    {
         stripped.to_string()
     } else {
         lower
@@ -177,9 +198,9 @@ fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
 
     if point_release.is_some_and(|release| release.starts_with('6')) {
         Some(EffortFamily::NoneLowMediumHighXhighMax)
-    } else if point_release
-        .is_some_and(|release| release.starts_with('4') || release.starts_with('2'))
-    {
+    } else if point_release.is_some_and(|release| {
+        release.starts_with('5') || release.starts_with('4') || release.starts_with('2')
+    }) {
         if point_release.is_some_and(|release| release.starts_with("2-codex")) {
             Some(EffortFamily::LowMediumHighXhigh)
         } else {
@@ -346,6 +367,22 @@ mod tests {
     use crate::serde_json::{self, json};
 
     #[test]
+    fn test_chat_input_audio_capability() {
+        for model in [
+            "gpt-4o-audio-preview",
+            "gpt-4o-mini-audio-preview-2024-12-17",
+            "gpt-audio",
+            "gpt-audio-mini",
+        ] {
+            assert!(supports_chat_input_audio(model), "model: {model}");
+        }
+
+        for model in ["gpt-5-nano", "gpt-4o", "gpt-4.1"] {
+            assert!(!supports_chat_input_audio(model), "model: {model}");
+        }
+    }
+
+    #[test]
     fn test_get_model_transforms() {
         let cases = [
             (
@@ -366,6 +403,14 @@ mod tests {
             ),
             (
                 "gpt-5-mini",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "openai.gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "openai/gpt-6-astra",
                 &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
             ),
             ("gpt-4", &[][..]),
@@ -494,6 +539,9 @@ mod tests {
             ),
             ("gpt-5.4", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
             ("gpt-5.4", ReasoningEffort::Max, ReasoningEffort::Xhigh),
+            ("gpt-5.5", ReasoningEffort::None, ReasoningEffort::None),
+            ("gpt-5.5", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
+            ("gpt-5.5", ReasoningEffort::Max, ReasoningEffort::Xhigh),
             (
                 "gpt-5.6-terra",
                 ReasoningEffort::None,
@@ -516,6 +564,11 @@ mod tests {
                 "databricks-gpt-5-6-luna",
                 ReasoningEffort::None,
                 ReasoningEffort::None,
+            ),
+            (
+                "databricks-gpt-5-5",
+                ReasoningEffort::Max,
+                ReasoningEffort::Xhigh,
             ),
             (
                 "databricks-gpt-5-1",

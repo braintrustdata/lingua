@@ -1,0 +1,62 @@
+{
+  "import_options": { "preserve_unsupported": true },
+  "spans": [
+    {
+      "id": "call",
+      "span_id": "call",
+      "root_span_id": "root",
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 1, "end": 2 },
+      "input": [
+        {
+          "role": "user",
+          "content": [
+            { "type": "input_text", "text": "Read the attachment" },
+            {
+              "type": "input_file",
+              "file_url": "https://example.com/report.pdf",
+              "prompt_cache_breakpoint": { "mode": "explicit" }
+            }
+          ]
+        }
+      ],
+      "output": [
+        {
+          "type": "message",
+          "role": "assistant",
+          "content": [{ "type": "output_text", "text": "Report read" }]
+        }
+      ]
+    }
+  ],
+  "import_warnings": [
+    {
+      "span_id": "call",
+      "message": "input: Message item 0: Media prompt_cache_breakpoint omitted from imported messages"
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "call",
+      "response_id": "call",
+      "response_text": "Report read",
+      "work_ids": [],
+      "user_texts": ["Read the attachment"]
+    }
+  ],
+  "requests": [
+    [
+      {
+        "role": "user",
+        "content": [
+          { "type": "text", "text": "Read the attachment" },
+          {
+            "type": "file",
+            "data": "https://example.com/report.pdf",
+            "media_type": "application/pdf"
+          }
+        ]
+      }
+    ]
+  ]
+}

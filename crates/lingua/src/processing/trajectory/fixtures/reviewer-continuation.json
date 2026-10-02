@@ -1,0 +1,325 @@
+[
+  {
+    "id": "trace",
+    "span_id": "trace",
+    "root_span_id": "trace",
+    "span_parents": [],
+    "span_attributes": {
+      "type": "task",
+      "name": "task"
+    },
+    "metrics": {
+      "start": 0,
+      "end": 20
+    }
+  },
+  {
+    "id": "parent-one",
+    "span_id": "parent-one",
+    "root_span_id": "trace",
+    "span_parents": [
+      "trace"
+    ],
+    "span_attributes": {
+      "type": "task",
+      "name": "task"
+    },
+    "metrics": {
+      "start": 1,
+      "end": 10
+    },
+    "metadata": {
+      "turn_id": "turn-one"
+    }
+  },
+  {
+    "id": "agent-call",
+    "span_id": "agent-call",
+    "root_span_id": "trace",
+    "span_parents": [
+      "parent-one"
+    ],
+    "span_attributes": {
+      "type": "llm",
+      "name": "llm"
+    },
+    "metrics": {
+      "start": 2,
+      "end": 3
+    },
+    "metadata": {
+      "request_kind": "agent"
+    },
+    "input": [
+      {
+        "role": "user",
+        "content": "First request"
+      }
+    ],
+    "output": [
+      {
+        "type": "message",
+        "id": "message-Progress",
+        "role": "assistant",
+        "status": "completed",
+        "phase": "commentary",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Progress",
+            "annotations": []
+          }
+        ]
+      },
+      {
+        "type": "function_call",
+        "call_id": "call-1",
+        "name": "example_tool",
+        "arguments": "{}"
+      }
+    ]
+  },
+  {
+    "id": "tool",
+    "span_id": "tool",
+    "root_span_id": "trace",
+    "span_parents": [
+      "parent-one"
+    ],
+    "span_attributes": {
+      "type": "tool",
+      "name": "tool"
+    },
+    "metrics": {
+      "start": 3,
+      "end": 4
+    },
+    "input": {},
+    "output": {
+      "result": "Tool result"
+    }
+  },
+  {
+    "id": "review",
+    "span_id": "review",
+    "root_span_id": "trace",
+    "span_parents": [
+      "parent-one"
+    ],
+    "span_attributes": {
+      "type": "llm",
+      "name": "llm"
+    },
+    "metrics": {
+      "start": 4,
+      "end": 5
+    },
+    "metadata": {
+      "request_kind": "reviewer"
+    },
+    "input": [
+      {
+        "role": "user",
+        "content": "Review request"
+      }
+    ],
+    "output": [
+      {
+        "type": "message",
+        "id": "message-Review result",
+        "role": "assistant",
+        "status": "completed",
+        "phase": "final_answer",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Review result",
+            "annotations": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "agent-final",
+    "span_id": "agent-final",
+    "root_span_id": "trace",
+    "span_parents": [
+      "parent-one"
+    ],
+    "span_attributes": {
+      "type": "llm",
+      "name": "llm"
+    },
+    "metrics": {
+      "start": 5,
+      "end": 6
+    },
+    "metadata": {
+      "request_kind": "agent"
+    },
+    "input": [
+      {
+        "role": "user",
+        "content": "First request"
+      },
+      {
+        "type": "function_call",
+        "call_id": "call-1",
+        "name": "example_tool",
+        "arguments": "{}"
+      },
+      {
+        "type": "function_call_output",
+        "call_id": "call-1",
+        "output": "Tool result"
+      }
+    ],
+    "output": [
+      {
+        "type": "compaction",
+        "id": "compaction-1",
+        "encrypted_content": "opaque-checkpoint"
+      },
+      {
+        "type": "reasoning",
+        "id": "reasoning-1",
+        "summary": [],
+        "encrypted_content": "opaque-reasoning"
+      },
+      {
+        "type": "message",
+        "id": "message-First answer",
+        "role": "assistant",
+        "status": "completed",
+        "phase": "final_answer",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "First answer",
+            "annotations": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "trailing-review",
+    "span_id": "trailing-review",
+    "root_span_id": "trace",
+    "span_parents": [
+      "parent-one"
+    ],
+    "span_attributes": {
+      "type": "llm",
+      "name": "llm"
+    },
+    "metrics": {
+      "start": 7,
+      "end": 8
+    },
+    "metadata": {
+      "request_kind": "reviewer"
+    },
+    "input": [
+      {
+        "role": "user",
+        "content": "Another review request"
+      }
+    ],
+    "output": [
+      {
+        "type": "message",
+        "id": "message-Another review result",
+        "role": "assistant",
+        "status": "completed",
+        "phase": "final_answer",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Another review result",
+            "annotations": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "parent-two",
+    "span_id": "parent-two",
+    "root_span_id": "trace",
+    "span_parents": [
+      "trace"
+    ],
+    "span_attributes": {
+      "type": "task",
+      "name": "task"
+    },
+    "metrics": {
+      "start": 11,
+      "end": 14
+    },
+    "metadata": {
+      "turn_id": "turn-two"
+    }
+  },
+  {
+    "id": "second-final",
+    "span_id": "second-final",
+    "root_span_id": "trace",
+    "span_parents": [
+      "parent-two"
+    ],
+    "span_attributes": {
+      "type": "llm",
+      "name": "llm"
+    },
+    "metrics": {
+      "start": 12,
+      "end": 13
+    },
+    "metadata": {
+      "request_kind": "agent"
+    },
+    "input": [
+      {
+        "role": "user",
+        "content": "First request"
+      },
+      {
+        "type": "message",
+        "id": "message-First answer",
+        "role": "assistant",
+        "status": "completed",
+        "phase": "final_answer",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "First answer",
+            "annotations": []
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "Second request"
+      }
+    ],
+    "output": [
+      {
+        "type": "message",
+        "id": "message-Second answer",
+        "role": "assistant",
+        "status": "completed",
+        "phase": "final_answer",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Second answer",
+            "annotations": []
+          }
+        ]
+      }
+    ]
+  }
+]

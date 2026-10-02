@@ -1,4 +1,4 @@
-use crate::serde_json::{self, Value};
+use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::Message;
 use serde::de::DeserializeOwned;
@@ -31,7 +31,7 @@ pub(crate) fn try_parse<T>(data: &Value) -> Option<T>
 where
     T: DeserializeOwned,
 {
-    serde_json::from_value::<T>(data.clone()).ok()
+    T::deserialize(data).ok()
 }
 
 pub(crate) fn try_convert_non_empty<T>(value: T) -> Option<Vec<Message>>

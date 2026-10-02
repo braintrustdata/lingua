@@ -1,0 +1,21 @@
+{
+  "expectedMessageCount": 7,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "system",
+    "user",
+    "system",
+    "user",
+    "user"
+  ],
+  "mustContainText": [
+    "Answer concisely.",
+    "Hello",
+    "Answer politely.",
+    "Goodbye",
+    "Preserve instructions for an empty conversation.",
+    "Empty instructions",
+    "Null instructions"
+  ]
+}

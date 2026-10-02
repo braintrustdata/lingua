@@ -159,6 +159,13 @@ impl TryFromLLM<Message> for BedrockMessage {
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, content) = match message {
             Message::System { content } | Message::Developer { content } => {
+                if content.has_audio() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua audio content".to_string(),
+                        to: "Bedrock Converse system prompt",
+                    });
+                }
+
                 let text = match content {
                     UserContent::String(s) => format!("System: {}", s),
                     UserContent::Array(parts) => {
@@ -181,6 +188,16 @@ impl TryFromLLM<Message> for BedrockMessage {
                 let blocks = match content {
                     UserContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
                     UserContent::Array(parts) => {
+                        if parts
+                            .iter()
+                            .any(|part| matches!(part, UserContentPart::Audio { .. }))
+                        {
+                            return Err(ConvertError::UnsupportedMapping {
+                                from: "Lingua audio content".to_string(),
+                                to: "Bedrock Converse audio input",
+                            });
+                        }
+
                         if parts
                             .iter()
                             .any(|part| matches!(part, UserContentPart::File { .. }))
@@ -650,7 +667,9 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
 mod tests {
     use super::*;
     use crate::serde_json::json;
-    use crate::universal::message::{ToolDiscoveryResultContentPart, ToolDiscoveryResultItem};
+    use crate::universal::message::{
+        AudioFormat, ToolDiscoveryResultContentPart, ToolDiscoveryResultItem,
+    };
 
     #[test]
     fn test_bedrock_message_to_universal_user() {
@@ -760,6 +779,48 @@ mod tests {
 
         let error = <BedrockMessage as TryFromLLM<Message>>::try_from(message)
             .expect_err("Bedrock must not silently drop file content");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+    }
+
+    #[test]
+    fn test_message_to_bedrock_rejects_audio_content() {
+        let message = Message::User {
+            content: UserContent::Array(vec![
+                UserContentPart::Text(TextContentPart {
+                    text: "Transcribe this audio clip.".to_string(),
+                    encrypted_content: None,
+                    cache_control: None,
+                    provider_options: None,
+                }),
+                UserContentPart::Audio {
+                    data: "UklGRg==".to_string(),
+                    format: AudioFormat::Wav,
+                },
+            ]),
+        };
+
+        let error = <BedrockMessage as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Bedrock must not silently drop audio content");
+        match error {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Lingua audio content");
+                assert_eq!(to, "Bedrock Converse audio input");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_system_audio_is_rejected() {
+        let message = Message::System {
+            content: UserContent::Array(vec![UserContentPart::Audio {
+                data: "UklGRg==".to_string(),
+                format: AudioFormat::Wav,
+            }]),
+        };
+
+        let error = <BedrockMessage as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Bedrock must not silently drop system audio");
         assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
     }
 
