@@ -871,6 +871,22 @@ pub(crate) fn transform_stream_chunk_step(
     let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
     let source_is_native_stream = matches!(detection.kind, DetectKind::Stream);
+
+    // A same-format native chunk is forwarded byte-for-byte, so it must not be routed through
+    // the universal model first: adapters reject provider-only blocks (for example Google's
+    // server-side `toolCall` parts) that a same-format hop is required to preserve verbatim.
+    // Callers consume `universal` only on the transformed path.
+    if source_format == target_format && source_is_native_stream {
+        return Ok(StreamTransformStep {
+            result: TransformResult::PassThrough(chunk_bytes),
+            source_format,
+            source_is_native_stream,
+            universal: None,
+            event_type,
+            is_passthrough: true,
+        });
+    }
+
     let universal = match detection.kind {
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
@@ -881,17 +897,6 @@ pub(crate) fn transform_stream_chunk_step(
             unreachable!("stream detection never falls back to request payloads")
         }
     };
-
-    if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
-        return Ok(StreamTransformStep {
-            result: TransformResult::PassThrough(chunk_bytes),
-            source_format,
-            source_is_native_stream,
-            universal,
-            event_type,
-            is_passthrough: true,
-        });
-    }
 
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
@@ -3248,5 +3253,215 @@ mod tests {
             Some("anthropic.claude-3-haiku-20240307-v1:0")
         );
         assert!(output.get("guardrailConfig").is_some());
+    }
+
+    // ========================================================================
+    // Provider-only Google semantics (Discovery revision 20260915)
+    //
+    // Each of these fields configures Google-owned execution (media
+    // verbalization, Google's video-understanding pipeline, server-side hosted
+    // tools). Same-format Google traffic must keep them byte-for-byte, and a
+    // cross-provider transform must fail with a stable error category naming
+    // the Google-specific block instead of dropping it.
+    // ========================================================================
+
+    #[cfg(feature = "google")]
+    fn google_request_with_part(part: Value) -> Value {
+        json!({
+            "model": "gemini-3-pro-preview",
+            "contents": [{"role": "user", "parts": [part]}]
+        })
+    }
+
+    #[cfg(feature = "google")]
+    fn assert_passthrough_preserves_bytes(payload: &Value, transform: impl Fn(Bytes) -> Bytes) {
+        let input = to_bytes(payload);
+        let input_ptr = input.as_ptr();
+
+        let bytes = transform(input);
+
+        assert_eq!(
+            bytes.as_ptr(),
+            input_ptr,
+            "same-format Google traffic must be forwarded byte-for-byte"
+        );
+    }
+
+    #[cfg(feature = "google")]
+    fn assert_reports_unsupported_google_mapping(error: TransformError, expected_block: &str) {
+        assert!(
+            error.is_client_error(),
+            "an unsupported provider-only mapping is a client error: {error}"
+        );
+
+        match error {
+            TransformError::ToUniversalFailed(reason) => {
+                assert!(
+                    reason.contains(expected_block),
+                    "error must name the Google-specific block '{expected_block}': {reason}"
+                );
+            }
+            other => panic!("expected ToUniversalFailed, got {other:?}"),
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "google")]
+    fn test_google_media_display_name_passthrough_preserves_bytes() {
+        let payload = google_request_with_part(json!({
+            "inlineData": {
+                "mimeType": "video/mp4",
+                "data": "AAAA",
+                "displayName": "my_clip.mp4"
+            }
+        }));
+
+        assert_passthrough_preserves_bytes(&payload, |input| {
+            let result = transform_request(input, ProviderFormat::Google, None).unwrap();
+            assert!(result.is_passthrough());
+            result.result.into_bytes()
+        });
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_google_media_display_name_to_chat_completions_reports_unsupported_mapping() {
+        let payload = google_request_with_part(json!({
+            "inlineData": {
+                "mimeType": "video/mp4",
+                "data": "AAAA",
+                "displayName": "my_clip.mp4"
+            }
+        }));
+
+        let error = transform_request(to_bytes(&payload), ProviderFormat::ChatCompletions, None)
+            .expect_err("a Google media reference handle has no universal representation");
+
+        assert_reports_unsupported_google_mapping(error, "Google Blob.displayName");
+
+        let file_payload = google_request_with_part(json!({
+            "fileData": {
+                "fileUri": "gs://bucket/my_file.pdf",
+                "mimeType": "application/pdf",
+                "displayName": "my_file.pdf"
+            }
+        }));
+
+        let error = transform_request(
+            to_bytes(&file_payload),
+            ProviderFormat::ChatCompletions,
+            None,
+        )
+        .expect_err("a Google media reference handle has no universal representation");
+
+        assert_reports_unsupported_google_mapping(error, "Google FileData.displayName");
+    }
+
+    #[test]
+    #[cfg(feature = "google")]
+    fn test_google_media_processing_passthrough_preserves_bytes() {
+        let payload = google_request_with_part(json!({
+            "fileData": {"fileUri": "gs://bucket/clip.mp4", "mimeType": "video/mp4"},
+            "mediaProcessing": "AGENTIC"
+        }));
+
+        assert_passthrough_preserves_bytes(&payload, |input| {
+            let result = transform_request(input, ProviderFormat::Google, None).unwrap();
+            assert!(result.is_passthrough());
+            result.result.into_bytes()
+        });
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "anthropic"))]
+    fn test_google_media_processing_to_anthropic_reports_unsupported_mapping() {
+        let payload = google_request_with_part(json!({
+            "fileData": {"fileUri": "gs://bucket/clip.mp4", "mimeType": "video/mp4"},
+            "mediaProcessing": "AGENTIC"
+        }));
+
+        let error = transform_request(to_bytes(&payload), ProviderFormat::Anthropic, None)
+            .expect_err("Google's video-understanding pipeline selector is not portable");
+
+        assert_reports_unsupported_google_mapping(error, "Google Part.mediaProcessing");
+    }
+
+    #[cfg(feature = "google")]
+    fn google_hosted_tool_call_response() -> Value {
+        json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-3-pro-preview",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "toolCall": {
+                            "id": "call_1",
+                            "toolName": "google_search",
+                            "toolType": "GOOGLE_SEARCH_WEB"
+                        }
+                    }]
+                },
+                "finishReason": "STOP"
+            }]
+        })
+    }
+
+    #[test]
+    #[cfg(feature = "google")]
+    fn test_google_hosted_tool_call_response_passthrough_preserves_bytes() {
+        let payload = google_hosted_tool_call_response();
+
+        // The API requires the client to echo a hosted toolCall back verbatim, so both the
+        // response and the streamed chunk hop must stay byte-identical.
+        assert_passthrough_preserves_bytes(&payload, |input| {
+            let result = transform_response(input, ProviderFormat::Google).unwrap();
+            assert!(result.result.is_passthrough());
+            result.result.into_bytes()
+        });
+
+        assert_passthrough_preserves_bytes(&payload, |input| {
+            let result = transform_stream_chunk(input, ProviderFormat::Google).unwrap();
+            assert!(result.is_passthrough());
+            result.into_bytes()
+        });
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_google_hosted_tool_call_to_chat_completions_reports_unsupported_mapping() {
+        let error = transform_response(
+            to_bytes(&google_hosted_tool_call_response()),
+            ProviderFormat::ChatCompletions,
+        )
+        .expect_err("a server-side hosted tool call is not a caller-executable function call");
+
+        assert_reports_unsupported_google_mapping(error, "Google Part.toolCall");
+
+        let echo_back = google_request_with_part(json!({
+            "toolResponse": {
+                "id": "call_1",
+                "toolType": "GOOGLE_SEARCH_WEB",
+                "response": {"results": []}
+            }
+        }));
+
+        let error = transform_request(to_bytes(&echo_back), ProviderFormat::ChatCompletions, None)
+            .expect_err("the hosted tool echo-back protocol is not portable");
+
+        assert_reports_unsupported_google_mapping(error, "Google Part.toolResponse");
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_google_hosted_tool_call_stream_chunk_to_chat_completions_reports_unsupported_mapping() {
+        let error = transform_stream_chunk(
+            to_bytes(&google_hosted_tool_call_response()),
+            ProviderFormat::ChatCompletions,
+        )
+        .expect_err("a streamed hosted tool call must not silently vanish from the delta");
+
+        assert_reports_unsupported_google_mapping(error, "Google Part.toolCall");
     }
 }

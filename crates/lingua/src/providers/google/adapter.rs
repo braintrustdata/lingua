@@ -16,7 +16,7 @@ use crate::providers::google::capabilities::{
     effort_to_thinking_level, supports_disabling_thinking, thinking_level_to_effort,
     GoogleCapabilities, GoogleThinkingStyle,
 };
-use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
+use crate::providers::google::convert::{reject_provider_only_parts, SYNTHETIC_CALL_ID_PREFIX};
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
     Content as GoogleContent, GenerateContentResponse, GenerationConfig, ServiceTier,
@@ -736,6 +736,13 @@ impl ProviderAdapter for GoogleAdapter {
                 .content
                 .and_then(|content| content.parts)
                 .unwrap_or_default();
+
+            // Hosted `toolCall` / `toolResponse` parts and the other Google-owned part
+            // semantics have no universal representation. Without this guard a streamed
+            // hosted tool call would vanish from the delta while the candidate still
+            // reports a terminal TOOL_CALLS finish reason.
+            reject_provider_only_parts(&parts)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
             let mut text_segments = Vec::new();
             let mut reasoning = Vec::new();
@@ -2305,5 +2312,79 @@ mod tests {
             .expect("placeholder candidate should be present");
         assert_eq!(candidates.len(), 1);
         assert!(typed.usage_metadata.is_some());
+    }
+
+    /// A streamed hosted `toolCall` part must never be silently turned into a universal
+    /// tool call, and it must not vanish while the candidate still reports a terminal
+    /// finish reason. Converting to universal is explicitly unsupported.
+    #[test]
+    fn test_google_stream_hosted_tool_call_is_not_emitted_as_universal_tool_call() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "responseId": "response_123",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "toolCall": {
+                            "id": "call_1",
+                            "toolName": "google_search",
+                            "toolType": "GOOGLE_SEARCH_WEB"
+                        }
+                    }]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let error = adapter
+            .stream_to_universal(payload)
+            .expect_err("hosted tool call parts must not convert to a universal stream delta");
+
+        match error {
+            TransformError::ToUniversalFailed(reason) => {
+                assert!(reason.contains("Part.toolCall"), "unexpected: {reason}");
+            }
+            other => panic!("expected ToUniversalFailed, got {other:?}"),
+        }
+    }
+
+    /// `labels` has no named `GoogleParams` member, so it rides the Google-scoped extras map.
+    /// This pins the full Google -> universal -> Google round trip.
+    #[test]
+    fn test_google_labels_round_trip_through_extras() {
+        /// Typed view of the request tagging map added in Discovery revision 20260915.
+        #[derive(Debug, Deserialize, PartialEq)]
+        struct GoogleLabelsView {
+            labels: std::collections::BTreeMap<String, String>,
+        }
+
+        let adapter = GoogleAdapter;
+        let expected = std::collections::BTreeMap::from([
+            ("env".to_string(), "prod".to_string()),
+            ("team".to_string(), "search".to_string()),
+        ]);
+        let payload = json!({
+            "model": "gemini-3-pro-preview",
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "labels": {"team": "search", "env": "prod"}
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let google_extras = universal
+            .params
+            .extras
+            .get(&ProviderFormat::Google)
+            .expect("Google-scoped extras must carry the unnamed request parameters");
+        assert!(
+            google_extras.contains_key("labels"),
+            "labels must be preserved under the Google-scoped extras"
+        );
+
+        let reconstructed: GoogleLabelsView =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap())
+                .expect("labels must be re-emitted at the top level");
+        assert_eq!(reconstructed.labels, expected);
     }
 }

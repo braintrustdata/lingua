@@ -1729,7 +1729,7 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> Result<serde_jso
             all_schemas,
             &mut essential_schemas,
             &mut processed,
-        );
+        )?;
     }
 
     // Discovery schema ids can include internal protobuf package prefixes. Keep those
@@ -1835,76 +1835,43 @@ fn add_google_schema_with_dependencies(
     all_schemas: &serde_json::Map<String, serde_json::Value>,
     essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
     processed: &mut std::collections::HashSet<String>,
-) {
+) -> Result<(), String> {
     if processed.contains(type_name) {
-        return;
+        return Ok(());
     }
 
     processed.insert(type_name.to_string());
 
-    let Some(schema) = all_schemas
-        .get(type_name)
-        .cloned()
-        .or_else(|| google_missing_discovery_schema(type_name))
-    else {
-        return;
-    };
+    // Every schema reachable from the generation roots must be defined upstream. Substituting a
+    // hard-coded fallback here would silently mask an upstream rename or removal and pin a stale
+    // shape into the public API, so a missing schema fails generation instead.
+    let schema = all_schemas.get(type_name).cloned().ok_or_else(|| {
+        format!(
+            "Google schema '{type_name}' is referenced from the generation roots but is missing \
+             from the Discovery specification"
+        )
+    })?;
 
-    {
-        // Strip top-level Discovery metadata fields (not valid JSON Schema)
-        // Only strip "id" at the schema root level, not inside "properties"
-        let mut cleaned = schema.clone();
-        if let Some(obj) = cleaned.as_object_mut() {
-            obj.remove("id");
-        }
-        essential_schemas.insert(type_name.to_string(), cleaned);
-
-        // Find and add referenced types (Discovery uses bare $ref names)
-        let mut refs = std::collections::HashSet::new();
-        extract_discovery_refs(&schema, &mut refs);
-
-        for ref_name in refs {
-            add_google_schema_with_dependencies(
-                &ref_name,
-                all_schemas,
-                essential_schemas,
-                processed,
-            );
-        }
+    // Strip top-level Discovery metadata fields (not valid JSON Schema)
+    // Only strip "id" at the schema root level, not inside "properties"
+    let mut cleaned = schema.clone();
+    if let Some(obj) = cleaned.as_object_mut() {
+        obj.remove("id");
     }
-}
+    essential_schemas.insert(type_name.to_string(), cleaned);
 
-fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
-    match type_name {
-        // The live Google Discovery spec references MediaResolution from Part but does not
-        // currently include a MediaResolution entry in schemas. Preserve the schema shape
-        // from prior Discovery specs so generation can remain fully typed.
-        "MediaResolution" => Some(serde_json::json!({
-            "description": "Media resolution for the input media.",
-            "type": "object",
-            "properties": {
-                "level": {
-                    "description": "The media resolution level.",
-                    "type": "string",
-                    "enum": [
-                        "MEDIA_RESOLUTION_UNSPECIFIED",
-                        "MEDIA_RESOLUTION_LOW",
-                        "MEDIA_RESOLUTION_MEDIUM",
-                        "MEDIA_RESOLUTION_HIGH",
-                        "MEDIA_RESOLUTION_ULTRA_HIGH"
-                    ],
-                    "enumDescriptions": [
-                        "Media resolution has not been set.",
-                        "Media resolution set to low.",
-                        "Media resolution set to medium.",
-                        "Media resolution set to high.",
-                        "Media resolution set to ultra high."
-                    ]
-                }
-            }
-        })),
-        _ => None,
+    // Find and add referenced types (Discovery uses bare $ref names)
+    let mut refs = std::collections::HashSet::new();
+    extract_discovery_refs(&schema, &mut refs);
+
+    let mut refs: Vec<String> = refs.into_iter().collect();
+    refs.sort();
+
+    for ref_name in refs {
+        add_google_schema_with_dependencies(&ref_name, all_schemas, essential_schemas, processed)?;
     }
+
+    Ok(())
 }
 
 fn extract_discovery_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
@@ -2487,6 +2454,26 @@ mod google_post_process_tests {
         assert!(error.contains("Google schema name normalization collision"));
         assert!(error.contains("MediaResolution"));
         assert!(error.contains("V1mainMediaResolution"));
+    }
+
+    /// Google previously referenced `MediaResolution` from `Part` without defining it, and the
+    /// generator substituted a hard-coded schema. Revision 20260915 defines the schema upstream,
+    /// so the fallback is gone and a dangling reference must fail generation loudly rather than
+    /// silently pinning a stale shape into the public API.
+    #[test]
+    fn fails_when_a_referenced_google_schema_is_missing_from_the_specification() {
+        let mut spec = discovery_spec_with_media_resolution_refs(&["V1mainMediaResolution"]);
+        spec["schemas"]
+            .as_object_mut()
+            .unwrap()
+            .remove("V1mainMediaResolution");
+
+        let error = create_essential_google_schemas(&spec).unwrap_err();
+
+        assert!(
+            error.contains("V1mainMediaResolution") && error.contains("missing"),
+            "unexpected error: {error}"
+        );
     }
 
     #[test]

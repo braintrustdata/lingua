@@ -4,10 +4,10 @@ import type { Level } from "./Level";
 /**
  * Optional. Media resolution for the input media.
  *
- * Media resolution for the input media.
+ * Media resolution for tokenization.
  */
 export type MediaResolution = { 
 /**
- * The media resolution level.
+ * The tokenization quality used for given media. for Gemini API support .
  */
 level: Level | null, };

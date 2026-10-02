@@ -61,6 +61,85 @@ fn text_part(text: String) -> GooglePart {
     }
 }
 
+/// Google's `Blob.displayName` / `FileData.displayName` name the media *for the model* when
+/// `verbalization_mode` is `REFERENCE_ONLY`. That is a Google-specific reference identifier, not
+/// universal file metadata, so it stays unset instead of reusing `UserContentPart::File::filename`.
+fn inline_blob(mime_type: Option<String>, data: Option<String>) -> GoogleBlob {
+    GoogleBlob {
+        mime_type,
+        data,
+        display_name: None,
+    }
+}
+
+fn remote_file_data(file_uri: String, mime_type: String) -> GoogleFileData {
+    GoogleFileData {
+        file_uri: Some(file_uri),
+        mime_type: Some(mime_type),
+        display_name: None,
+    }
+}
+
+/// Target label used when a Google-native block cannot be represented in the universal model.
+const UNIVERSAL_CONTENT: &str = "Lingua universal content";
+
+/// Google `Part` semantics that are owned by Google's own execution rather than by the portable
+/// message contract. Same-format Google traffic keeps them verbatim through passthrough, but a
+/// conversion into the universal model must fail loudly instead of dropping them:
+///
+/// * `Blob.displayName` / `FileData.displayName` name the media *to the model* under Google's
+///   `REFERENCE_ONLY` verbalization mode. That is a Google reference handle, not the source-file
+///   metadata carried by `UserContentPart::File::filename`.
+/// * `mediaProcessing` selects between Google's static frame sampling and its agentic
+///   video-understanding loop; dropping it silently changes how the media is interpreted.
+/// * `toolCall` / `toolResponse` are Google's server-side hosted tool channel (FILE_SEARCH,
+///   GOOGLE_MAPS, GOOGLE_SEARCH_*, URL_CONTEXT) with a client echo-back protocol. They are
+///   structurally distinct from `functionCall`, which is the caller-defined channel Lingua maps.
+fn reject_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
+    let unsupported = |from: &str| ConvertError::UnsupportedMapping {
+        from: from.to_string(),
+        to: UNIVERSAL_CONTENT,
+    };
+
+    if part
+        .inline_data
+        .as_ref()
+        .is_some_and(|blob| blob.display_name.is_some())
+    {
+        return Err(unsupported("Google Blob.displayName"));
+    }
+
+    if part
+        .file_data
+        .as_ref()
+        .is_some_and(|file_data| file_data.display_name.is_some())
+    {
+        return Err(unsupported("Google FileData.displayName"));
+    }
+
+    if part.media_processing.is_some() {
+        return Err(unsupported("Google Part.mediaProcessing"));
+    }
+
+    if part.tool_call.is_some() {
+        return Err(unsupported(
+            "Google Part.toolCall (server-side hosted tool)",
+        ));
+    }
+
+    if part.tool_response.is_some() {
+        return Err(unsupported(
+            "Google Part.toolResponse (server-side hosted tool)",
+        ));
+    }
+
+    Ok(())
+}
+
+pub(super) fn reject_provider_only_parts(parts: &[GooglePart]) -> Result<(), ConvertError> {
+    parts.iter().try_for_each(reject_provider_only_part)
+}
+
 fn mime_type_from_url(url: &str) -> String {
     infer_mime_type_from_reference(None, Some(url)).unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string())
 }
@@ -193,6 +272,7 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut assistant_parts: Vec<AssistantContentPart> = Vec::new();
 
                 for part in &parts {
+                    reject_provider_only_part(part)?;
                     if let Some(t) = &part.text {
                         if part.thought == Some(true) {
                             // Thinking part: thought=true marks model's internal reasoning
@@ -290,6 +370,7 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut tool_parts: Vec<ToolContentPart> = Vec::new();
 
                 for part in &parts {
+                    reject_provider_only_part(part)?;
                     if let Some(t) = &part.text {
                         user_parts.push(UserContentPart::Text(TextContentPart {
                             text: t.clone(),
@@ -444,30 +525,27 @@ impl TryFromLLM<Message> for GoogleContent {
                                 } => {
                                     if let Some(block) = parse_base64_data_url(&data) {
                                         converted.push(GooglePart {
-                                            inline_data: Some(GoogleBlob {
-                                                mime_type: Some(block.media_type),
-                                                data: Some(block.data),
-                                            }),
+                                            inline_data: Some(inline_blob(
+                                                Some(block.media_type),
+                                                Some(block.data),
+                                            )),
                                             ..Default::default()
                                         });
                                     } else if is_remote_media_uri(&data) {
                                         let mime_type =
                                             media_type.unwrap_or_else(|| mime_type_from_url(&data));
                                         converted.push(GooglePart {
-                                            file_data: Some(GoogleFileData {
-                                                file_uri: Some(data),
-                                                mime_type: Some(mime_type),
-                                            }),
+                                            file_data: Some(remote_file_data(data, mime_type)),
                                             ..Default::default()
                                         });
                                     } else {
                                         let mime_type = media_type
                                             .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
                                         converted.push(GooglePart {
-                                            inline_data: Some(GoogleBlob {
-                                                mime_type: Some(mime_type),
-                                                data: Some(data),
-                                            }),
+                                            inline_data: Some(inline_blob(
+                                                Some(mime_type),
+                                                Some(data),
+                                            )),
                                             ..Default::default()
                                         });
                                     }
@@ -478,10 +556,10 @@ impl TryFromLLM<Message> for GoogleContent {
                                         AudioFormat::Wav => "audio/wav",
                                     };
                                     converted.push(GooglePart {
-                                        inline_data: Some(GoogleBlob {
-                                            mime_type: Some(mime_type.to_string()),
-                                            data: Some(data),
-                                        }),
+                                        inline_data: Some(inline_blob(
+                                            Some(mime_type.to_string()),
+                                            Some(data),
+                                        )),
                                         ..Default::default()
                                     });
                                 }
@@ -493,10 +571,10 @@ impl TryFromLLM<Message> for GoogleContent {
                                 } => {
                                     if let Some(block) = parse_base64_data_url(&data) {
                                         converted.push(GooglePart {
-                                            inline_data: Some(GoogleBlob {
-                                                mime_type: Some(block.media_type),
-                                                data: Some(block.data),
-                                            }),
+                                            inline_data: Some(inline_blob(
+                                                Some(block.media_type),
+                                                Some(block.data),
+                                            )),
                                             ..Default::default()
                                         });
                                     } else if is_remote_media_uri(&data) {
@@ -513,18 +591,15 @@ impl TryFromLLM<Message> for GoogleContent {
                                             to: "Google fileData (provide a recognized filename or MIME-bearing data URL)",
                                         })?;
                                         converted.push(GooglePart {
-                                            file_data: Some(GoogleFileData {
-                                                file_uri: Some(data),
-                                                mime_type: Some(mime_type),
-                                            }),
+                                            file_data: Some(remote_file_data(data, mime_type)),
                                             ..Default::default()
                                         });
                                     } else {
                                         converted.push(GooglePart {
-                                            inline_data: Some(GoogleBlob {
-                                                mime_type: Some(media_type),
-                                                data: Some(data),
-                                            }),
+                                            inline_data: Some(inline_blob(
+                                                Some(media_type),
+                                                Some(data),
+                                            )),
                                             ..Default::default()
                                         });
                                     }
@@ -624,10 +699,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                         _ => None,
                                     };
                                     converted.push(GooglePart {
-                                        inline_data: Some(GoogleBlob {
-                                            data: data_str,
-                                            mime_type: Some(media_type),
-                                        }),
+                                        inline_data: Some(inline_blob(Some(media_type), data_str)),
                                         ..Default::default()
                                     });
                                 }
@@ -1430,6 +1502,7 @@ impl From<&UniversalUsage> for UsageMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::{MediaProcessing, ToolCall, ToolResponse, ToolType};
     use crate::serde_json::json;
     use serde::Deserialize;
 
@@ -1749,6 +1822,7 @@ mod tests {
                     inline_data: Some(GoogleBlob {
                         mime_type: Some(mime_type.to_string()),
                         data: Some("UklGRg==".to_string()),
+                        display_name: None,
                     }),
                     ..Default::default()
                 }]),
@@ -1798,6 +1872,7 @@ mod tests {
                 inline_data: Some(GoogleBlob {
                     mime_type: Some("text/plain".to_string()),
                     data: Some("Sample text.".to_string()),
+                    display_name: None,
                 }),
                 ..Default::default()
             }]),
@@ -2690,5 +2765,188 @@ mod tests {
         let parsed: GenerationConfig =
             serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
         assert_eq!(parsed.enable_affective_dialog, Some(true));
+    }
+
+    // ========================================================================
+    // Provider-only Google part semantics (Discovery revision 20260915)
+    // ========================================================================
+
+    fn google_content(role: &str, part: GooglePart) -> GoogleContent {
+        GoogleContent {
+            role: Some(role.to_string()),
+            parts: Some(vec![part]),
+        }
+    }
+
+    fn assert_rejected_as_provider_only(content: GoogleContent, expected_from: &str) {
+        let error = <Message as TryFromLLM<GoogleContent>>::try_from(content)
+            .expect_err("provider-only Google part semantics must not convert to universal");
+
+        match error {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, expected_from);
+                assert_eq!(to, UNIVERSAL_CONTENT);
+            }
+            other => panic!("expected UnsupportedMapping, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_google_blob_display_name_rejected_for_cross_provider_conversion() {
+        for role in ["user", "model"] {
+            assert_rejected_as_provider_only(
+                google_content(
+                    role,
+                    GooglePart {
+                        inline_data: Some(GoogleBlob {
+                            mime_type: Some("video/mp4".to_string()),
+                            data: Some("AAAA".to_string()),
+                            display_name: Some("my_clip.mp4".to_string()),
+                        }),
+                        ..Default::default()
+                    },
+                ),
+                "Google Blob.displayName",
+            );
+        }
+    }
+
+    #[test]
+    fn test_google_blob_without_display_name_still_converts() {
+        let content = google_content(
+            "user",
+            GooglePart {
+                inline_data: Some(inline_blob(
+                    Some("image/png".to_string()),
+                    Some("AAAA".to_string()),
+                )),
+                ..Default::default()
+            },
+        );
+
+        let message = <Message as TryFromLLM<GoogleContent>>::try_from(content)
+            .expect("media without a Google reference handle stays portable");
+        assert!(matches!(message, Message::User { .. }));
+    }
+
+    #[test]
+    fn test_google_file_data_display_name_rejected_for_cross_provider_conversion() {
+        assert_rejected_as_provider_only(
+            google_content(
+                "user",
+                GooglePart {
+                    file_data: Some(GoogleFileData {
+                        file_uri: Some("gs://bucket/my_file.pdf".to_string()),
+                        mime_type: Some("application/pdf".to_string()),
+                        display_name: Some("my_file.pdf".to_string()),
+                    }),
+                    ..Default::default()
+                },
+            ),
+            "Google FileData.displayName",
+        );
+    }
+
+    #[test]
+    fn test_google_media_processing_part_rejected_for_cross_provider_conversion() {
+        for media_processing in [
+            MediaProcessing::Agentic,
+            MediaProcessing::Static,
+            MediaProcessing::MediaProcessingUnspecified,
+        ] {
+            assert_rejected_as_provider_only(
+                google_content(
+                    "user",
+                    GooglePart {
+                        file_data: Some(remote_file_data(
+                            "gs://bucket/clip.mp4".to_string(),
+                            "video/mp4".to_string(),
+                        )),
+                        media_processing: Some(media_processing),
+                        ..Default::default()
+                    },
+                ),
+                "Google Part.mediaProcessing",
+            );
+        }
+    }
+
+    #[test]
+    fn test_google_hosted_tool_call_part_rejected_for_cross_provider_conversion() {
+        assert_rejected_as_provider_only(
+            google_content(
+                "model",
+                GooglePart {
+                    tool_call: Some(ToolCall {
+                        id: Some("call_1".to_string()),
+                        tool_name: Some("google_search".to_string()),
+                        tool_type: Some(ToolType::GoogleSearchWeb),
+                        args: None,
+                    }),
+                    ..Default::default()
+                },
+            ),
+            "Google Part.toolCall (server-side hosted tool)",
+        );
+
+        assert_rejected_as_provider_only(
+            google_content(
+                "user",
+                GooglePart {
+                    tool_response: Some(ToolResponse {
+                        id: Some("call_1".to_string()),
+                        tool_type: Some(ToolType::GoogleSearchWeb),
+                        response: None,
+                    }),
+                    ..Default::default()
+                },
+            ),
+            "Google Part.toolResponse (server-side hosted tool)",
+        );
+    }
+
+    /// The caller-defined `functionCall` channel must stay mapped; only Google's hosted
+    /// `toolCall` channel is provider-only.
+    #[test]
+    fn test_google_function_call_part_is_still_mapped() {
+        let content = google_content(
+            "model",
+            GooglePart {
+                function_call: Some(GoogleFunctionCall {
+                    id: Some("call_1".to_string()),
+                    name: Some("get_weather".to_string()),
+                    args: None,
+                }),
+                ..Default::default()
+            },
+        );
+
+        let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
+        match message {
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } => assert!(matches!(
+                parts.as_slice(),
+                [AssistantContentPart::ToolCall { .. }]
+            )),
+            other => panic!("expected assistant tool call, got {other:?}"),
+        }
+    }
+
+    /// `PUP_LIMITED_DISABLED` is an account-level Prohibited Use Policy state, not per-response
+    /// content filtering, so neither mapper may fold it into `FinishReason::ContentFilter`.
+    #[test]
+    fn test_pup_limited_disabled_streaming_and_nonstreaming_mappers_agree() {
+        let non_streaming = FinishReason::from(&GoogleFinishReason::PupLimitedDisabled);
+        let streaming =
+            FinishReason::from_provider_string("PUP_LIMITED_DISABLED", ProviderFormat::Google);
+
+        assert_eq!(non_streaming, streaming);
+        assert_eq!(
+            non_streaming,
+            FinishReason::Other("PUP_LIMITED_DISABLED".to_string())
+        );
+        assert_eq!(non_streaming.to_string(), "PUP_LIMITED_DISABLED");
     }
 }
