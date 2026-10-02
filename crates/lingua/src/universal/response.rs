@@ -348,8 +348,15 @@ impl FinishReason {
             ) => Self::ContentFilter,
             ("content_filtered", ProviderFormat::Converse) => Self::ContentFilter,
             (
-                "SAFETY" | "RECITATION" | "OTHER" | "BLOCKLIST" | "PROHIBITED_CONTENT" | "SPII"
-                | "IMAGE_SAFETY" | "ESCALATION",
+                "SAFETY"
+                | "RECITATION"
+                | "OTHER"
+                | "BLOCKLIST"
+                | "PROHIBITED_CONTENT"
+                | "SPII"
+                | "IMAGE_SAFETY"
+                | "ESCALATION"
+                | "PUP_LIMITED_DISABLED",
                 ProviderFormat::Google,
             ) => Self::ContentFilter,
             ("content_filter", _) => Self::ContentFilter,
@@ -1417,6 +1424,17 @@ mod tests {
     }
 
     #[test]
+    fn test_google_pup_limited_disabled_string_maps_to_content_filter() {
+        let result =
+            FinishReason::from_provider_string("PUP_LIMITED_DISABLED", ProviderFormat::Google);
+        assert_eq!(result, FinishReason::ContentFilter);
+        assert!(
+            result.is_incomplete(),
+            "a policy-terminated generation must not report as complete"
+        );
+    }
+
+    #[test]
     fn test_anthropic_refusal_maps_to_content_filter() {
         for provider in [
             ProviderFormat::Anthropic,
@@ -1488,6 +1506,7 @@ mod tests {
             "SPII",
             "IMAGE_SAFETY",
             "ESCALATION",
+            "PUP_LIMITED_DISABLED",
         ] {
             assert_eq!(
                 FinishReason::from_provider_string(reason, ProviderFormat::Google),

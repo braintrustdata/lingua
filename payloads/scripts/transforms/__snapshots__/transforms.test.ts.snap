@@ -15027,6 +15027,7 @@ exports[`chat-completions → google > chatCompletionsGcsBackedVideoFileParam > 
         },
         {
           "fileData": {
+            "displayName": "sample-200mb.mp4",
             "fileUri": "gs://lingua-test-bucket/sample-200mb.mp4",
             "mimeType": "video/mp4",
           },
@@ -15152,6 +15153,7 @@ exports[`chat-completions → google > chatCompletionsUrlBackedAudioFileParam > 
         },
         {
           "fileData": {
+            "displayName": "sample-3s.mp3",
             "fileUri": "https://samplelib.com/mp3/sample-3s.mp3",
             "mimeType": "audio/mp3",
           },
@@ -15205,6 +15207,7 @@ exports[`chat-completions → google > chatCompletionsUrlBackedVideoFileParam > 
         },
         {
           "fileData": {
+            "displayName": "sample-5s.mp4",
             "fileUri": "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
             "mimeType": "video/mp4",
           },

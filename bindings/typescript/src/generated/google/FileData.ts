@@ -5,6 +5,12 @@
  */
 export type FileData = { 
 /**
+ * Optional. Specifies the name used to refer to this file to the model (e.g.
+ * "my_file.pdf"). Used as the file reference identifier when `verbalization_mode` is set to
+ * `REFERENCE_ONLY`.
+ */
+displayName: string | null, 
+/**
  * Required. URI.
  */
 fileUri: string | null, 

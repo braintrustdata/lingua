@@ -16,7 +16,7 @@ use crate::providers::google::capabilities::{
     effort_to_thinking_level, supports_disabling_thinking, thinking_level_to_effort,
     GoogleCapabilities, GoogleThinkingStyle,
 };
-use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
+use crate::providers::google::convert::{reject_provider_only_part, SYNTHETIC_CALL_ID_PREFIX};
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
     Content as GoogleContent, GenerateContentResponse, GenerationConfig, ServiceTier,
@@ -162,6 +162,29 @@ impl ProviderAdapter for GoogleAdapter {
         // Single parse: typed params now includes typed contents and generation_config
         let typed_params: GoogleParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        if typed_params.labels.is_some() {
+            return Err(TransformError::ToUniversalFailed(
+                ConvertError::UnsupportedMapping {
+                    from: "Google request labels".to_string(),
+                    to: "Lingua universal request",
+                }
+                .to_string(),
+            ));
+        }
+        if typed_params
+            .generation_config
+            .as_ref()
+            .is_some_and(|config| config.audio_transcription_config.is_some())
+        {
+            return Err(TransformError::ToUniversalFailed(
+                ConvertError::UnsupportedMapping {
+                    from: "Google generationConfig.audioTranscriptionConfig".to_string(),
+                    to: "Lingua universal request",
+                }
+                .to_string(),
+            ));
+        }
 
         let model = typed_params.model.clone();
 
@@ -736,6 +759,11 @@ impl ProviderAdapter for GoogleAdapter {
                 .content
                 .and_then(|content| content.parts)
                 .unwrap_or_default();
+
+            for part in &parts {
+                reject_provider_only_part(part)
+                    .map_err(|error| TransformError::ToUniversalFailed(error.to_string()))?;
+            }
 
             let mut text_segments = Vec::new();
             let mut reasoning = Vec::new();

@@ -7,7 +7,13 @@ import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
 export interface GoogleGenerateContentRequest {
   model?: string;
   contents: Content[];
-  generationConfig?: GenerateContentConfig;
+  generationConfig?: GenerateContentConfig & {
+    audioTranscriptionConfig?: {
+      diarization?: boolean;
+      wordTimestamp?: boolean;
+    };
+  };
+  labels?: Record<string, string>;
   tools?: Tool[];
   toolConfig?: Record<string, unknown>;
   systemInstruction?: Content;
@@ -140,6 +146,9 @@ export interface TestCase {
   "bedrock-anthropic"?: AnthropicMessageCreateParams | null;
   "vertex-anthropic"?: AnthropicMessageCreateParams | null;
   "vertex-google"?: GoogleGenerateContentRequest | null;
+  // The request remains capturable, but CI skips missing live provider fixtures
+  // until a real provider response is recorded for this case.
+  capturePendingReason?: string;
   // Baseten serves OSS models via an OpenAI-compatible chat-completions API.
   baseten?: ChatCompletionCreateParams | null;
   // Optional expectations for proxy compatibility tests
