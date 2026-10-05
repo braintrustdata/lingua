@@ -216,6 +216,25 @@ fn check_fixture(fixture: &ImportFixture) {
             .collect();
         assert_eq!(worker_responses, fixture.worker_responses);
     }
+    for sources in [
+        fixture.spans.clone(),
+        fixture.spans.iter().rev().cloned().collect(),
+    ] {
+        let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
+        let mut collector = TrajectoryCollector::default();
+        for source in sources {
+            let span = import_span_with_options(source, fixture.import_options).unwrap();
+            if stream.needs_payload(span.header.id.as_deref().unwrap()) {
+                collect(&mut collector, stream.push(span).unwrap());
+            }
+        }
+        collect(&mut collector, stream.finish().unwrap());
+        assert_eq!(
+            Some(serde_json::to_value(collector.snapshot().unwrap()).unwrap()),
+            snapshot,
+            "Import result depends on payload arrival order",
+        );
+    }
 }
 
 fn run_fixture(

@@ -542,6 +542,10 @@ impl TrajectoryStream {
         Ok(stream)
     }
 
+    pub fn needs_payload(&self, id: &str) -> bool {
+        self.by_id.get(id).is_some_and(|&index| !self.ready[index])
+    }
+
     pub fn pending_ids(&self, limit: usize) -> Vec<String> {
         let mut pending = Vec::new();
         let mut seen = HashSet::new();
