@@ -1091,6 +1091,22 @@ import_fixture!(
     "fixtures/task-boundary-with-child.json"
 );
 import_fixture!(
+    task_boundary_after_llm,
+    "fixtures/task-boundary-after-llm.json"
+);
+
+#[test]
+fn task_dependencies_allow_non_task_prefetch() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/task-boundary-after-llm.json")).unwrap();
+    let stream = stream_from_sources(fixture.spans).unwrap();
+    assert_eq!(
+        stream.pending_ids(4),
+        ["request", "first", "retry", "answer"]
+    );
+}
+
+import_fixture!(
     analysis_without_conversation,
     "fixtures/analysis-without-conversation.json"
 );

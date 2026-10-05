@@ -405,6 +405,7 @@ pub struct TrajectoryStream {
     remaining: BTreeMap<ScopeKey, usize>,
     states: BTreeMap<ScopeKey, TurnState>,
     task_boundaries: HashSet<ScopeKey>,
+    boundary_tasks: BTreeMap<ScopeKey, Vec<usize>>,
     task_children: Vec<Vec<usize>>,
     task_resolved: Vec<bool>,
     initial_events: Vec<TrajectoryEvent>,
@@ -526,6 +527,7 @@ impl TrajectoryStream {
             remaining: BTreeMap::new(),
             states: BTreeMap::new(),
             task_boundaries: HashSet::new(),
+            boundary_tasks: BTreeMap::new(),
             task_children,
             task_resolved,
             initial_events: Vec::new(),
@@ -543,12 +545,27 @@ impl TrajectoryStream {
     pub fn pending_ids(&self, limit: usize) -> Vec<String> {
         let mut pending = Vec::new();
         let mut seen = HashSet::new();
+        let mut blocked = false;
         for &index in &self.order[self.cursor..] {
-            let blocked = !self.task_resolved[index]
+            let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+            let boundary_tasks = self.pending_boundary_tasks(&key);
+            if blocked {
+                if matches!(self.roles[index], Role::Task { .. }) {
+                    continue;
+                }
+                if self.ready[index] {
+                    break;
+                }
+            }
+            blocked |= !self.task_resolved[index]
                 && self.task_children[index]
                     .iter()
                     .any(|child| !self.task_resolved[*child]);
             let mut dependencies = vec![index];
+            if let Some(tasks) = boundary_tasks {
+                dependencies.extend(tasks.iter().rev().copied());
+                blocked = true;
+            }
             while let Some(index) = dependencies.pop() {
                 if pending.len() == limit {
                     return pending;
@@ -567,11 +584,18 @@ impl TrajectoryStream {
                     pending.push(self.spans[index].id.clone());
                 }
             }
-            if blocked {
-                return pending;
-            }
         }
         pending
+    }
+
+    fn pending_boundary_tasks(&self, key: &ScopeKey) -> Option<&[usize]> {
+        if self.task_boundaries.contains(key) {
+            return None;
+        }
+        self.boundary_tasks
+            .get(key)
+            .map(Vec::as_slice)
+            .filter(|tasks| tasks.iter().any(|index| !self.task_resolved[*index]))
     }
 
     pub fn push(&mut self, span: ImportedSpan) -> Result<Vec<TrajectoryEvent>> {
@@ -610,6 +634,9 @@ impl TrajectoryStream {
                 self.task_resolved[index] = true;
                 let span = &self.spans[index];
                 if span.has_request(true) && (fallback || span.output.is_empty()) {
+                    if span.source.turn.is_some() && span.output.is_empty() {
+                        self.task_boundaries.insert(key.clone());
+                    }
                     let mut parent = self.parents[index];
                     while let Some(ancestor) = parent {
                         if ScopeKey::new(&self.spans[ancestor], &self.owners[&ancestor]) != key {
@@ -761,6 +788,12 @@ impl TrajectoryStream {
                 )
                 .then(self.spans[*a].id.cmp(&self.spans[*b].id))
         });
+        for &index in &self.order {
+            if self.roles[index] == (Role::Task { fallback: false }) {
+                let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+                self.boundary_tasks.entry(key).or_default().push(index);
+            }
+        }
         let mut scopes: BTreeMap<TrajectoryScope, Option<String>> = BTreeMap::new();
         for span in &self.spans {
             scopes.insert(
@@ -827,13 +860,16 @@ impl TrajectoryStream {
     fn drain(&mut self) -> Result<Vec<TrajectoryEvent>> {
         let mut events = std::mem::take(&mut self.initial_events);
         while let Some(&index) = self.order.get(self.cursor) {
-            if !self.ready[index] || !self.task_resolved[index] {
+            let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+            if !self.ready[index]
+                || !self.task_resolved[index]
+                || self.pending_boundary_tasks(&key).is_some()
+            {
                 break;
             }
             if self.roles[index] != Role::Ignored {
                 self.advance(index, &mut events)?;
             }
-            let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
             let remaining = self
                 .remaining
                 .get_mut(&key)
@@ -1019,12 +1055,6 @@ impl TrajectoryStream {
                 self.states.insert(key, state);
                 return Ok(());
             }
-        }
-        if matches!(self.roles[index], Role::Task { .. })
-            && span.source.turn.is_some()
-            && span.output.is_empty()
-        {
-            self.task_boundaries.insert(key.clone());
         }
         let explicit = if self.task_boundaries.contains(&key) {
             if matches!(self.roles[index], Role::Task { .. }) {

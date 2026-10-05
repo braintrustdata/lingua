@@ -30,7 +30,7 @@ pub struct SpanContext {
     #[serde(default)]
     pub kind: String,
     pub name: Option<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_default")]
     pub exec_counter: i64,
     #[serde(default)]
     pub scorer: bool,
@@ -120,7 +120,7 @@ struct Attributes {
     kind: Option<String>,
     name: Option<String>,
     purpose: Option<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_default")]
     exec_counter: i64,
 }
 
