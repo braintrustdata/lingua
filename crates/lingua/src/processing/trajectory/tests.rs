@@ -1637,6 +1637,45 @@ fn malformed_timing_preserves_healthy_turns_and_reports_failure() {
 }
 
 #[test]
+fn failed_payload_does_not_block_later_turns() {
+    let sources = vec![
+        span("broken", 1, json!([]), json!([])),
+        span(
+            "healthy",
+            2,
+            json!([{"role":"user", "content":"Hello"}]),
+            json!([]),
+        ),
+    ];
+    let mut stream = stream_from_sources(sources.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    collect(
+        &mut collector,
+        stream
+            .fail("broken", "Invalid payload".to_string())
+            .unwrap(),
+    );
+    collect(
+        &mut collector,
+        stream
+            .push(import_span(sources[1].clone()).unwrap())
+            .unwrap(),
+    );
+    collect(&mut collector, stream.finish().unwrap());
+    let result = collector.snapshot().unwrap();
+    assert_eq!(result[0].turns.len(), 1);
+    assert_eq!(result[0].turns[0].request_id, "healthy");
+    assert_eq!(
+        result[0].metadata["import_failures"][0]["span_id"],
+        "broken"
+    );
+    assert_eq!(
+        result[0].metadata["import_failures"][0]["message"],
+        "Invalid payload"
+    );
+}
+
+#[test]
 fn interruption_in_later_request_marks_the_previous_turn() {
     let question = json!({"role": "user", "content": "Again"});
     let mut first = span("first", 1, json!([question]), json!([]));

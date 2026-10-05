@@ -11,6 +11,15 @@ use std::borrow::Cow;
 
 type Result<T> = std::result::Result<T, String>;
 
+pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
+    "turn_id",
+    "tool_call_id",
+    "model",
+    "trajectory_role",
+    "request_kind",
+    "compaction",
+];
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpanContext {
     pub id: Option<String>,
