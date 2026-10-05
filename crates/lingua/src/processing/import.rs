@@ -429,11 +429,26 @@ enum LenientTextContentPartCompat {
 
 #[cfg(feature = "openai")]
 #[derive(Deserialize)]
-struct AttachmentImageCompat {
-    #[serde(alias = "image")]
-    image_url: ImageAttachment,
-    #[serde(flatten)]
-    part: openai::InputContent,
+#[serde(untagged)]
+enum AttachmentImageCompat {
+    Responses {
+        #[serde(alias = "image")]
+        image_url: ImageAttachment,
+        #[serde(flatten)]
+        part: openai::InputContent,
+    },
+    ChatCompletions {
+        image_url: AttachmentImageUrlCompat,
+        #[serde(flatten)]
+        part: openai::ChatCompletionRequestMessageContentPart,
+    },
+}
+
+#[cfg(feature = "openai")]
+#[derive(Deserialize)]
+struct AttachmentImageUrlCompat {
+    url: ImageAttachment,
+    detail: Option<openai::Detail>,
 }
 
 #[cfg(feature = "openai")]
@@ -450,21 +465,31 @@ enum ImageAttachment {
 
 #[cfg(feature = "openai")]
 fn try_parse_attachment_image(item: &Value) -> Option<UserContentPart> {
-    let AttachmentImageCompat { image_url, part } =
-        AttachmentImageCompat::deserialize(item).ok()?;
-    if part.input_content_type != openai::InputItemContentListType::InputImage
-        || part.prompt_cache_breakpoint.is_some()
-    {
-        return None;
-    }
+    let (image_url, detail) = match AttachmentImageCompat::deserialize(item).ok()? {
+        AttachmentImageCompat::Responses { image_url, part }
+            if part.input_content_type == openai::InputItemContentListType::InputImage
+                && part.prompt_cache_breakpoint.is_none() =>
+        {
+            (
+                image_url,
+                part.detail.map(|detail| serde_json::json!(detail)),
+            )
+        }
+        AttachmentImageCompat::ChatCompletions { image_url, part }
+            if part.content_part_type == openai::PurpleType::ImageUrl
+                && part.prompt_cache_breakpoint.is_none() =>
+        {
+            (
+                image_url.url,
+                image_url.detail.map(|detail| serde_json::json!(detail)),
+            )
+        }
+        _ => return None,
+    };
     let ImageAttachment::Braintrust { content_type, .. } = &image_url;
-    let provider_options = part
-        .detail
-        .map(|detail| crate::universal::message::ProviderOptions {
-            options: [("detail".to_string(), serde_json::json!(detail))]
-                .into_iter()
-                .collect(),
-        });
+    let provider_options = detail.map(|detail| crate::universal::message::ProviderOptions {
+        options: [("detail".to_string(), detail)].into_iter().collect(),
+    });
     Some(UserContentPart::Image {
         image: serde_json::to_value(&image_url).ok()?,
         media_type: Some(content_type.clone()),
