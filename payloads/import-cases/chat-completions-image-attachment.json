@@ -1,0 +1,34 @@
+{
+  "span_attributes": { "type": "llm" },
+  "input": [
+    { "role": "system", "content": "Describe images concisely." },
+    {
+      "role": "user",
+      "content": [
+        { "type": "text", "text": "Describe the attached image." },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": {
+              "type": "braintrust_attachment",
+              "key": "test-image-key",
+              "filename": "example.png",
+              "content_type": "image/png"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [{ "type": "text", "text": "Use one sentence." }]
+    }
+  ],
+  "output": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": { "role": "assistant", "content": "The image shows a blue square." }
+    }
+  ]
+}

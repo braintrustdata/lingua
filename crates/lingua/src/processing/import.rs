@@ -429,11 +429,26 @@ enum LenientTextContentPartCompat {
 
 #[cfg(feature = "openai")]
 #[derive(Deserialize)]
-struct AttachmentImageCompat {
-    #[serde(alias = "image")]
-    image_url: ImageAttachment,
-    #[serde(flatten)]
-    part: openai::InputContent,
+#[serde(untagged)]
+enum AttachmentImageCompat {
+    Responses {
+        #[serde(alias = "image")]
+        image_url: ImageAttachment,
+        #[serde(flatten)]
+        part: openai::InputContent,
+    },
+    ChatCompletions {
+        image_url: AttachmentImageUrlCompat,
+        #[serde(flatten)]
+        part: openai::ChatCompletionRequestMessageContentPart,
+    },
+}
+
+#[cfg(feature = "openai")]
+#[derive(Deserialize)]
+struct AttachmentImageUrlCompat {
+    url: ImageAttachment,
+    detail: Option<openai::Detail>,
 }
 
 #[cfg(feature = "openai")]
@@ -450,21 +465,31 @@ enum ImageAttachment {
 
 #[cfg(feature = "openai")]
 fn try_parse_attachment_image(item: &Value) -> Option<UserContentPart> {
-    let AttachmentImageCompat { image_url, part } =
-        AttachmentImageCompat::deserialize(item).ok()?;
-    if part.input_content_type != openai::InputItemContentListType::InputImage
-        || part.prompt_cache_breakpoint.is_some()
-    {
-        return None;
-    }
+    let (image_url, detail) = match AttachmentImageCompat::deserialize(item).ok()? {
+        AttachmentImageCompat::Responses { image_url, part }
+            if part.input_content_type == openai::InputItemContentListType::InputImage
+                && part.prompt_cache_breakpoint.is_none() =>
+        {
+            (
+                image_url,
+                part.detail.map(|detail| serde_json::json!(detail)),
+            )
+        }
+        AttachmentImageCompat::ChatCompletions { image_url, part }
+            if part.content_part_type == openai::PurpleType::ImageUrl
+                && part.prompt_cache_breakpoint.is_none() =>
+        {
+            (
+                image_url.url,
+                image_url.detail.map(|detail| serde_json::json!(detail)),
+            )
+        }
+        _ => return None,
+    };
     let ImageAttachment::Braintrust { content_type, .. } = &image_url;
-    let provider_options = part
-        .detail
-        .map(|detail| crate::universal::message::ProviderOptions {
-            options: [("detail".to_string(), serde_json::json!(detail))]
-                .into_iter()
-                .collect(),
-        });
+    let provider_options = detail.map(|detail| crate::universal::message::ProviderOptions {
+        options: [("detail".to_string(), detail)].into_iter().collect(),
+    });
     Some(UserContentPart::Image {
         image: serde_json::to_value(&image_url).ok()?,
         media_type: Some(content_type.clone()),
@@ -1004,6 +1029,68 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(feature = "openai")]
+    #[test]
+    fn chat_completions_image_attachments_preserve_content_and_detail() {
+        use crate::serde_json;
+
+        let fixture: Span = serde_json::from_str(include_str!(
+            "../../../../payloads/import-cases/chat-completions-image-attachment.json"
+        ))
+        .unwrap();
+        for detail in [None, Some("auto"), Some("low"), Some("high")] {
+            for preserve_unsupported in [false, true] {
+                let mut span = fixture.clone();
+                if let Some(detail) = detail {
+                    span.input.as_mut().unwrap()[1]["content"][1]["image_url"]["detail"] =
+                        serde_json::json!(detail);
+                }
+                let imported = import_span_with_options(
+                    span,
+                    ImportOptions {
+                        preserve_unsupported,
+                    },
+                )
+                .unwrap();
+                assert!(imported.errors.is_empty(), "{:?}", imported.errors);
+                assert!(imported.opaque_input.is_empty());
+                assert_eq!(imported.input.len(), 3);
+                assert_eq!(imported.output.len(), 1);
+                let Message::User {
+                    content: UserContent::Array(parts),
+                } = &imported.input[1]
+                else {
+                    panic!("expected the image user message");
+                };
+                let [UserContentPart::Text(text), UserContentPart::Image {
+                    image,
+                    media_type,
+                    provider_options,
+                }] = parts.as_slice()
+                else {
+                    panic!("expected text followed by an image");
+                };
+                assert_eq!(text.text, "Describe the attached image.");
+                assert_eq!(
+                    image,
+                    &serde_json::json!({
+                        "type": "braintrust_attachment",
+                        "key": "test-image-key",
+                        "filename": "example.png",
+                        "content_type": "image/png",
+                    })
+                );
+                assert_eq!(media_type.as_deref(), Some("image/png"));
+                assert_eq!(
+                    provider_options
+                        .as_ref()
+                        .map(|options| serde_json::to_value(options).unwrap()),
+                    detail.map(|detail| serde_json::json!({ "detail": detail })),
+                );
+            }
+        }
+    }
 
     #[test]
     fn invalid_tool_call_metadata_preserves_valid_hints() {
