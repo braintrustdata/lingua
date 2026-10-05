@@ -16,6 +16,18 @@
               "content_type": "image/png"
             }
           }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": {
+              "type": "braintrust_attachment",
+              "key": "test-detail-image-key",
+              "filename": "detail.png",
+              "content_type": "image/png"
+            },
+            "detail": "high"
+          }
         }
       ]
     },

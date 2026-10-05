@@ -1030,68 +1030,6 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 mod tests {
     use super::*;
 
-    #[cfg(feature = "openai")]
-    #[test]
-    fn chat_completions_image_attachments_preserve_content_and_detail() {
-        use crate::serde_json;
-
-        let fixture: Span = serde_json::from_str(include_str!(
-            "../../../../payloads/import-cases/chat-completions-image-attachment.json"
-        ))
-        .unwrap();
-        for detail in [None, Some("auto"), Some("low"), Some("high")] {
-            for preserve_unsupported in [false, true] {
-                let mut span = fixture.clone();
-                if let Some(detail) = detail {
-                    span.input.as_mut().unwrap()[1]["content"][1]["image_url"]["detail"] =
-                        serde_json::json!(detail);
-                }
-                let imported = import_span_with_options(
-                    span,
-                    ImportOptions {
-                        preserve_unsupported,
-                    },
-                )
-                .unwrap();
-                assert!(imported.errors.is_empty(), "{:?}", imported.errors);
-                assert!(imported.opaque_input.is_empty());
-                assert_eq!(imported.input.len(), 3);
-                assert_eq!(imported.output.len(), 1);
-                let Message::User {
-                    content: UserContent::Array(parts),
-                } = &imported.input[1]
-                else {
-                    panic!("expected the image user message");
-                };
-                let [UserContentPart::Text(text), UserContentPart::Image {
-                    image,
-                    media_type,
-                    provider_options,
-                }] = parts.as_slice()
-                else {
-                    panic!("expected text followed by an image");
-                };
-                assert_eq!(text.text, "Describe the attached image.");
-                assert_eq!(
-                    image,
-                    &serde_json::json!({
-                        "type": "braintrust_attachment",
-                        "key": "test-image-key",
-                        "filename": "example.png",
-                        "content_type": "image/png",
-                    })
-                );
-                assert_eq!(media_type.as_deref(), Some("image/png"));
-                assert_eq!(
-                    provider_options
-                        .as_ref()
-                        .map(|options| serde_json::to_value(options).unwrap()),
-                    detail.map(|detail| serde_json::json!({ "detail": detail })),
-                );
-            }
-        }
-    }
-
     #[test]
     fn invalid_tool_call_metadata_preserves_valid_hints() {
         let spans: Vec<Span> = serde_json::from_str(include_str!(
