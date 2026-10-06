@@ -25,6 +25,7 @@ use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
+pub use crate::universal::trajectory::OpaqueItem;
 use crate::universal::Message;
 use crate::universal::{
     AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
@@ -44,14 +45,6 @@ pub(crate) fn is_instruction(message: &Message) -> bool {
 pub struct ImportOptions {
     #[serde(default)]
     pub preserve_unsupported: bool,
-}
-
-/// Source data retained without interpreting it as a conversational message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OpaqueItem {
-    /// Position in the source array, or None when the payload itself is opaque.
-    pub index: Option<usize>,
-    pub value: Value,
 }
 
 #[derive(Default)]
@@ -945,9 +938,6 @@ fn import_span_messages(
         let errors_before = import.errors.len();
         let warnings_before = import.warnings.len();
         let messages = try_converting_to_messages(&value, import);
-        for warning in &mut import.warnings[warnings_before..] {
-            *warning = format!("{field}: {warning}");
-        }
         if messages.is_empty() && import.opaque.is_empty() {
             if expect_messages && import.errors.len() == errors_before {
                 import
@@ -957,6 +947,12 @@ fn import_span_messages(
             if options.preserve_unsupported {
                 import.opaque.push(OpaqueItem { index: None, value });
             }
+        }
+        if options.preserve_unsupported && !import.opaque.is_empty() {
+            import.warnings.extend(import.errors.drain(errors_before..));
+        }
+        for warning in &mut import.warnings[warnings_before..] {
+            *warning = format!("{field}: {warning}");
         }
         messages
     };

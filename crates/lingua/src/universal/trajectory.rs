@@ -131,6 +131,9 @@ pub struct Turn {
     // Step definition
     #[ts(optional)]
     pub request: Option<Vec<Message>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<OpaqueItem>>", optional)]
+    pub opaque_request: Vec<OpaqueItem>,
     #[ts(optional)]
     pub response: Option<AgentResponse>,
     pub work: Vec<WorkStep>,
@@ -162,6 +165,12 @@ pub struct Compaction {
 pub struct AgentResponse {
     #[ts(optional)]
     pub response: Option<AssistantContent>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<OpaqueItem>>", optional)]
+    pub opaque_input: Vec<OpaqueItem>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<OpaqueItem>>", optional)]
+    pub opaque_output: Vec<OpaqueItem>,
 
     #[ts(optional)]
     pub usage: Option<UniversalUsage>,
@@ -187,12 +196,27 @@ pub struct ToolResult {
 pub struct LLMAnalysis {
     #[ts(optional)]
     pub work: Option<Vec<Message>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<OpaqueItem>>", optional)]
+    pub opaque_input: Vec<OpaqueItem>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<OpaqueItem>>", optional)]
+    pub opaque_output: Vec<OpaqueItem>,
     #[ts(optional)]
     pub model: Option<String>,
     #[ts(optional)]
     pub params: Option<UniversalParams>,
     #[ts(optional)]
     pub usage: Option<UniversalUsage>,
+}
+
+/// Source data retained without interpreting it as a conversational message.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct OpaqueItem {
+    /// Position in the source array, or None when the payload itself is opaque.
+    pub index: Option<usize>,
+    #[ts(type = "unknown")]
+    pub value: Value,
 }
 
 #[skip_serializing_none]
