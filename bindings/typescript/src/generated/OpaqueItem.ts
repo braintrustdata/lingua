@@ -7,4 +7,4 @@ export type OpaqueItem = {
 /**
  * Position in the source array, or None when the payload itself is opaque.
  */
-index: number | null, value: unknown, };
+index: number | null, value: unknown, is_metadata?: boolean, };

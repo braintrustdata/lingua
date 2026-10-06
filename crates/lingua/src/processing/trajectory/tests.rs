@@ -896,7 +896,10 @@ fn check_preserved_metadata_fixture(fixture: &str) {
     assert_eq!(imported.opaque_input.len(), 1);
     assert_eq!(imported.opaque_input[0].index, Some(0));
     assert_eq!(imported.opaque_input[0].value, source.input.unwrap()[0]);
+    assert!(imported.opaque_input[0].is_metadata);
     check_fixture(&fixture);
+    let trajectories = run_fixture(&fixture, 1, false, &[]);
+    assert!(trajectories[0].turns[0].opaque_request[0].is_metadata);
 }
 
 #[test]
@@ -1013,6 +1016,7 @@ fn structured_json_survives_trajectory_streaming() {
             *fixture.spans[0].input.as_ref().unwrap()
         );
         assert_eq!(turn.opaque_request[0].index, None);
+        assert!(!turn.opaque_request[0].is_metadata);
         let Work::AgentResponse(draft) = &turn.work[0].work else {
             panic!("Expected agent response")
         };

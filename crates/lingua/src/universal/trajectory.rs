@@ -217,6 +217,9 @@ pub struct OpaqueItem {
     pub index: Option<usize>,
     #[ts(type = "unknown")]
     pub value: Value,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    #[ts(as = "Option<bool>", optional)]
+    pub is_metadata: bool,
 }
 
 #[skip_serializing_none]

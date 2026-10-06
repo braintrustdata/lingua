@@ -252,6 +252,7 @@ fn try_parse_mixed_messages_for_import(
             import.opaque.push(OpaqueItem {
                 index: Some(index),
                 value: item.clone(),
+                is_metadata: false,
             });
             continue;
         }
@@ -308,6 +309,7 @@ fn try_parse_mixed_messages_for_import(
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
+                    is_metadata: true,
                 });
             }
         }
@@ -320,6 +322,7 @@ fn try_parse_mixed_messages_for_import(
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
+                    is_metadata: false,
                 });
             }
             continue;
@@ -932,7 +935,11 @@ fn import_span_messages(
     };
     let parse = |value: Value, field: &str, import: &mut MessageImport| {
         if options.preserve_unsupported && is_opaque_item(&value) {
-            import.opaque.push(OpaqueItem { index: None, value });
+            import.opaque.push(OpaqueItem {
+                index: None,
+                value,
+                is_metadata: false,
+            });
             return Vec::new();
         }
         let errors_before = import.errors.len();
@@ -945,7 +952,11 @@ fn import_span_messages(
                     .push(format!("Unsupported {field} message format"));
             }
             if options.preserve_unsupported {
-                import.opaque.push(OpaqueItem { index: None, value });
+                import.opaque.push(OpaqueItem {
+                    index: None,
+                    value,
+                    is_metadata: false,
+                });
             }
         }
         if options.preserve_unsupported && !import.opaque.is_empty() {
