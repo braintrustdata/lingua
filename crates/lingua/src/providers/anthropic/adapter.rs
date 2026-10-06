@@ -565,10 +565,25 @@ impl ProviderAdapter for AnthropicAdapter {
             });
 
         let thinking_val = if use_adaptive_thinking {
+            // Same-provider Anthropic round-trips carry the original `thinking` in extras.
+            // Preserve its `display` so an explicit "summarized" opt-in survives; models
+            // that default `display` to "omitted" would otherwise return empty thinking.
+            let display = anthropic_extras_view
+                .thinking
+                .as_ref()
+                .map(|raw| serde_json::from_value::<Thinking>(raw.clone()))
+                .transpose()
+                .map_err(|e| {
+                    TransformError::FromUniversalFailed(format!(
+                        "invalid Anthropic thinking extras: {}",
+                        e
+                    ))
+                })?
+                .and_then(|thinking| thinking.display);
             Some(
                 serde_json::to_value(&Thinking {
                     budget_tokens: None,
-                    display: None,
+                    display,
                     thinking_type: ThinkingType::Adaptive,
                 })
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
@@ -1736,7 +1751,7 @@ fn parse_content_block_start_event(payload: &Value) -> ContentBlockStartEventVie
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::providers::anthropic::generated::System;
+    use crate::providers::anthropic::generated::{System, ThinkingDisplayMode};
     use crate::serde_json::json;
     use crate::universal::UniversalReasoningSignature;
     use serde::Deserialize;
@@ -2591,6 +2606,44 @@ mod tests {
                 output_config.effort,
                 Some(expected_effort),
                 "{model}: output_config.effort should round-trip {effort}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_preserves_adaptive_thinking_display_round_trip() {
+        // Same-provider Anthropic round-trip: an explicit `thinking.display` must survive
+        // the adaptive-thinking rebuild.
+        for (model, display) in [
+            ("claude-sonnet-5", Some("summarized")),
+            ("claude-opus-5", Some("summarized")),
+            ("claude-opus-4-7", Some("omitted")),
+            ("claude-sonnet-5", None),
+        ] {
+            let adapter = AnthropicAdapter;
+            let mut thinking = json!({"type": "adaptive"});
+            if let Some(display) = display {
+                thinking["display"] = json!(display);
+            }
+            let payload = json!({
+                "model": model,
+                "max_tokens": 4096,
+                "messages": [{"role": "user", "content": "What is 2+2?"}],
+                "thinking": thinking
+            });
+
+            let universal = adapter.request_to_universal(payload).unwrap();
+            let result: CreateMessageParams =
+                serde_json::from_value(adapter.request_from_universal(&universal).unwrap())
+                    .unwrap();
+
+            let thinking = result.thinking.expect("thinking should be present");
+            assert_eq!(thinking.thinking_type, ThinkingType::Adaptive);
+            let expected_display: Option<ThinkingDisplayMode> =
+                display.map(|d| serde_json::from_value(json!(d)).unwrap());
+            assert_eq!(
+                thinking.display, expected_display,
+                "{model}: thinking.display should round-trip {display:?}"
             );
         }
     }
