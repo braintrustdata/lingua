@@ -523,7 +523,7 @@ impl TrajectoryStream {
     pub fn new(
         headers: Vec<ImportedSpan>,
         exclude_system: bool,
-        failures: Option<JsValue>,
+        failures: Option<js_sys::Array>,
     ) -> Result<TrajectoryStream, JsValue> {
         Ok(Self {
             inner: crate::processing::trajectory::TrajectoryStream::with_failures(
@@ -532,7 +532,7 @@ impl TrajectoryStream {
                     .map(|span| span.inner.header_only())
                     .collect(),
                 failures
-                    .map(serde_wasm_bindgen::from_value)
+                    .map(|failures| serde_wasm_bindgen::from_value(failures.into()))
                     .transpose()
                     .map_err(|error| JsValue::from_str(&error.to_string()))?
                     .unwrap_or_default(),

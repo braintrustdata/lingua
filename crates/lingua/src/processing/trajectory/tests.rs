@@ -1673,8 +1673,12 @@ fn malformed_timing_preserves_healthy_turns_and_reports_failure() {
 
 #[test]
 fn failed_payload_does_not_block_later_turns() {
+    let mut broken = span("broken", 1, json!([]), json!([]));
+    broken
+        .other
+        .insert("metadata".into(), crate::serde_json::json!({"model": {}}));
     let sources = vec![
-        span("broken", 1, json!([]), json!([])),
+        broken,
         span(
             "healthy",
             2,
@@ -1701,12 +1705,14 @@ fn failed_payload_does_not_block_later_turns() {
     assert_eq!(result[0].turns.len(), 1);
     assert_eq!(result[0].turns[0].request_id, "healthy");
     assert_eq!(
-        result[0].metadata["import_failures"][0]["span_id"],
-        "broken"
-    );
-    assert_eq!(
-        result[0].metadata["import_failures"][0]["message"],
-        "Invalid payload"
+        result[0].metadata["import_failures"],
+        crate::serde_json::json!([
+            {
+                "span_id": "broken",
+                "message": "Invalid metadata.model: invalid type: map, expected a string"
+            },
+            {"span_id": "broken", "message": "Invalid payload"}
+        ])
     );
 }
 

@@ -674,7 +674,7 @@ impl TrajectoryStream {
         if self.ready[index] {
             return Err(format!("Trajectory span {id} was already loaded"));
         }
-        self.spans[index].failure = Some(ImportFailure {
+        self.failures.push(ImportFailure {
             root_span_id: self.spans[index].root_span_id.clone(),
             span_id: id.to_string(),
             message,
