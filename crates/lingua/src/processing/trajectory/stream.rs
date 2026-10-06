@@ -28,6 +28,9 @@ pub enum TrajectoryEvent {
         id: String,
         request_id: String,
         request: Vec<Message>,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[ts(as = "Option<Vec<OpaqueItem>>", optional)]
+        opaque_request: Vec<OpaqueItem>,
     },
     Work {
         scope: TrajectoryScope,
@@ -801,6 +804,8 @@ impl TrajectoryStream {
                         .cloned()
                         .collect(),
                 ),
+                opaque_input: span.opaque_input.clone(),
+                opaque_output: span.opaque_output.clone(),
                 model: span.source.model.clone(),
                 params: None,
                 usage: span.usage(),
@@ -950,6 +955,11 @@ impl TrajectoryStream {
                     } else {
                         Vec::new()
                     }),
+                    opaque_request: if self.roles[index].can_request() {
+                        span.opaque_input.clone()
+                    } else {
+                        Vec::new()
+                    },
                     response_id: None,
                     response: None,
                     work: Vec::new(),
@@ -981,6 +991,7 @@ impl TrajectoryStream {
                 id: state.id.clone().unwrap(),
                 request_id: span.id.clone(),
                 request: self.request(span, request_filter, initial_request),
+                opaque_request: span.opaque_input.clone(),
             });
         }
         let id = state.id.as_deref().unwrap();
@@ -1045,14 +1056,20 @@ impl TrajectoryStream {
                     message: failure.message,
                 }),
         );
-        for (index, span) in self.spans.iter().enumerate() {
-            if !self.owners[&index].skipped && !span.warnings.is_empty() {
-                events.push(TrajectoryEvent::Warning {
-                    root_span_id: span.root_span_id.clone(),
-                    span_id: span.id.clone(),
-                    message: span.warnings.join("; "),
-                });
-            }
+        let mut warnings: Vec<_> = self
+            .spans
+            .iter()
+            .enumerate()
+            .filter(|(index, span)| !self.owners[index].skipped && !span.warnings.is_empty())
+            .map(|(_, span)| span)
+            .collect();
+        warnings.sort_by(|a, b| a.id.cmp(&b.id));
+        for span in warnings {
+            events.push(TrajectoryEvent::Warning {
+                root_span_id: span.root_span_id.clone(),
+                span_id: span.id.clone(),
+                message: span.warnings.join("; "),
+            });
         }
         events.push(TrajectoryEvent::Done);
         self.finished = true;
@@ -1112,10 +1129,12 @@ impl TrajectoryCollector {
                 id,
                 request_id,
                 request,
+                opaque_request,
             } => {
                 let turn = &mut self.turn(&scope, &id)?.turn;
                 turn.request_id = request_id;
                 turn.request = Some(request);
+                turn.opaque_request = opaque_request;
             }
             TrajectoryEvent::Work {
                 scope,

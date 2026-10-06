@@ -855,9 +855,31 @@ fn best_effort_import_preserves_unsupported_items_and_diagnostics() {
     .unwrap();
     assert!(!imported.input.is_empty());
     assert!(!imported.output.is_empty());
-    assert_eq!(imported.errors, strict.errors);
+    assert!(imported.errors.is_empty());
+    assert_eq!(
+        imported.warnings,
+        [
+            "input: Unsupported message item at index 0",
+            "output: Unsupported message item at index 1",
+        ]
+    );
     assert_eq!(imported.opaque_input.len(), 1);
     assert_eq!(imported.opaque_output.len(), 1);
+    let trajectories = assemble(std::slice::from_ref(&imported), &[], false).unwrap();
+    let turn = &trajectories[0].turns[0];
+    assert_eq!(turn.request.as_ref().unwrap().len(), 1);
+    let response = turn.response.as_ref().unwrap();
+    assert!(response.response.is_some());
+    assert_eq!(
+        response.opaque_input[0].value,
+        imported.opaque_input[0].value
+    );
+    assert_eq!(
+        response.opaque_output[0].value,
+        imported.opaque_output[0].value
+    );
+    assert_eq!(response.opaque_output[0].index, Some(1));
+    assert!(!trajectories[0].metadata.contains_key("import_failures"));
 }
 
 fn check_preserved_metadata_fixture(fixture: &str) {
@@ -874,7 +896,10 @@ fn check_preserved_metadata_fixture(fixture: &str) {
     assert_eq!(imported.opaque_input.len(), 1);
     assert_eq!(imported.opaque_input[0].index, Some(0));
     assert_eq!(imported.opaque_input[0].value, source.input.unwrap()[0]);
+    assert!(imported.opaque_input[0].is_metadata);
     check_fixture(&fixture);
+    let trajectories = run_fixture(&fixture, 1, false, &[]);
+    assert!(trajectories[0].turns[0].opaque_request[0].is_metadata);
 }
 
 #[test]
@@ -950,13 +975,23 @@ fn preserves_custom_content_without_inventing_messages() {
     .unwrap();
     assert!(imported.input.is_empty());
     assert!(imported.output.is_empty());
-    assert!(!imported.errors.is_empty());
+    assert!(imported.errors.is_empty());
+    assert!(!imported.warnings.is_empty());
     assert_eq!(imported.opaque_input.len(), 3);
     for (index, item) in imported.opaque_input.iter().enumerate() {
         assert_eq!(item.index, Some(index));
         assert_eq!(item.value, original_input["messages"][index]);
     }
     assert_eq!(imported.opaque_output[0].value, original_output);
+    let trajectories = assemble(&[imported], &[], false).unwrap();
+    let turn = &trajectories[0].turns[0];
+    assert!(turn.request.as_ref().unwrap().is_empty());
+    assert_eq!(turn.opaque_request.len(), 3);
+    let Work::AgentResponse(response) = &turn.work[0].work else {
+        panic!("Expected agent response");
+    };
+    assert_eq!(response.opaque_output[0].value, original_output);
+    assert!(!trajectories[0].metadata.contains_key("import_failures"));
 }
 
 macro_rules! import_fixture {
@@ -966,6 +1001,43 @@ macro_rules! import_fixture {
             check_import_fixture(include_str!($file));
         }
     };
+}
+
+#[test]
+fn structured_json_survives_trajectory_streaming() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/structured-json-payloads.json")).unwrap();
+    check_fixture(&fixture);
+    for batch_size in [1, 16] {
+        let trajectories = run_fixture(&fixture, batch_size, false, &[]);
+        let turn = &trajectories[0].turns[0];
+        assert_eq!(
+            turn.opaque_request[0].value,
+            *fixture.spans[0].input.as_ref().unwrap()
+        );
+        assert_eq!(turn.opaque_request[0].index, None);
+        assert!(!turn.opaque_request[0].is_metadata);
+        let Work::AgentResponse(draft) = &turn.work[0].work else {
+            panic!("Expected agent response")
+        };
+        assert_eq!(draft.opaque_input[0].value, turn.opaque_request[0].value);
+        assert!(draft.opaque_output.is_empty());
+        let Work::LLMAnalysis(analysis) = &turn.work[1].work else {
+            panic!("Expected analysis")
+        };
+        assert_eq!(
+            analysis.opaque_input[0].value,
+            *fixture.spans[1].input.as_ref().unwrap()
+        );
+        assert_eq!(
+            analysis.opaque_output[0].value,
+            *fixture.spans[1].output.as_ref().unwrap()
+        );
+        assert_eq!(
+            turn.response.as_ref().unwrap().opaque_input[0].value,
+            *fixture.spans[2].input.as_ref().unwrap()
+        );
+    }
 }
 
 import_fixture!(
