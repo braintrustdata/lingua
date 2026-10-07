@@ -826,7 +826,7 @@ impl ProviderAdapter for AnthropicAdapter {
             }
         }
 
-        // Enforce model-specific transforms (e.g. strip sampling params for Opus 4.7).
+        // Enforce sampling policy after extras so they cannot restore removed parameters.
         capabilities::apply_model_transforms(model, &mut obj);
 
         Ok(Value::Object(obj))
@@ -2255,12 +2255,17 @@ mod tests {
     }
 
     #[test]
-    fn test_anthropic_strips_sampling_params_for_opus_4_7() {
+    fn test_anthropic_strips_sampling_params_for_new_claude_models() {
         use crate::universal::message::UserContent;
 
         let adapter = AnthropicAdapter;
 
         for model in [
+            "claude-haiku-5-5",
+            "claude-haiku-5.5",
+            "us.anthropic.claude-haiku-5-5-v1:0",
+            "publishers/anthropic/models/claude-haiku-5-5",
+            "claude-future-6",
             "claude-opus-4-7",
             "claude-opus-4-8",
             "claude-opus-4-10",
@@ -3043,7 +3048,7 @@ mod tests {
     }
 
     #[test]
-    fn test_anthropic_strips_sampling_params_from_extras_for_opus_4_7() {
+    fn test_anthropic_strips_sampling_params_from_extras_for_haiku_5_5() {
         use crate::capabilities::ProviderFormat;
         use crate::universal::message::UserContent;
         use std::collections::HashMap;
@@ -3059,7 +3064,7 @@ mod tests {
         extras_map.insert(ProviderFormat::Anthropic, anthropic_extras);
 
         let req = UniversalRequest {
-            model: Some("claude-opus-4-7".to_string()),
+            model: Some("claude-haiku-5-5".to_string()),
             messages: vec![Message::User {
                 content: UserContent::String("Hello".to_string()),
             }],
@@ -3075,15 +3080,15 @@ mod tests {
 
         assert!(
             result.temperature.is_none(),
-            "Temperature should be stripped even when sourced from extras for Opus 4.7"
+            "Temperature should be stripped even when sourced from extras for Haiku 5.5"
         );
         assert!(
             result.top_p.is_none(),
-            "top_p should be stripped even when sourced from extras for Opus 4.7"
+            "top_p should be stripped even when sourced from extras for Haiku 5.5"
         );
         assert!(
             result.top_k.is_none(),
-            "top_k should be stripped even when sourced from extras for Opus 4.7"
+            "top_k should be stripped even when sourced from extras for Haiku 5.5"
         );
     }
 
