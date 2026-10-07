@@ -58,6 +58,7 @@ export type { WorkStep } from "./generated/WorkStep";
 export type { AgentResponse } from "./generated/AgentResponse";
 export type { ToolResult } from "./generated/ToolResult";
 export type { LLMAnalysis } from "./generated/LLMAnalysis";
+export type { OpaqueItem } from "./generated/OpaqueItem";
 export type { UniversalUsage } from "./generated/UniversalUsage";
 export type { InputTokenDetails } from "./generated/InputTokenDetails";
 export type { OutputTokenDetails } from "./generated/OutputTokenDetails";

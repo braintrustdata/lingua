@@ -8,6 +8,7 @@ fn trajectory_preserves_json_values_and_provider_params() {
         "metadata": { "id": 123456789012345678901234567890 },
         "turns": [{
             "request_id": "request",
+            "opaque_request": [{ "index": null, "value": { "id": 123456789012345678901234567890 } }],
             "start_time": "2026-09-25T12:00:00Z",
             "params": {
                 "extras": {
@@ -49,6 +50,7 @@ fn trajectory_preserves_json_values_and_provider_params() {
     );
     let original_turn = &original.turns[0];
     let decoded_turn = &decoded.turns[0];
+    assert_eq!(decoded_turn.opaque_request[0].value, expected);
     assert_eq!(
         decoded_turn.params.as_ref().unwrap().extras,
         original_turn.params.as_ref().unwrap().extras
