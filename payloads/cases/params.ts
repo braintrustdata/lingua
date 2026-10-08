@@ -2548,7 +2548,11 @@ export const paramsCases: TestCaseCollection = {
       messages: [{ role: "user", content: "Say hi." }],
     },
     google: null,
-    bedrock: null,
+    bedrock: {
+      modelId: "global.anthropic.claude-haiku-5-5",
+      messages: [{ role: "user", content: [{ text: "Say hi." }] }],
+      inferenceConfig: { maxTokens: 1024 },
+    },
   },
 
   bedrockAnthropicOpus48SamplingParam: {

@@ -1,0 +1,32 @@
+{
+  "modelId": "global.anthropic.claude-haiku-5-5",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Say hi."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Hi there! How can I help you today?"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "inferenceConfig": {
+    "maxTokens": 1024
+  }
+}

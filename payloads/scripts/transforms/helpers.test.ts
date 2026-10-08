@@ -5,9 +5,28 @@ import {
   TRANSFORM_PAIRS,
   getStreamingTransformableCases,
   getTransformableCases,
+  getTargetModelForCase,
   transformAndValidateRequest,
   type TransformPair,
 } from "./helpers";
+
+test("Haiku 5.5 Bedrock captures select Haiku 5.5 and omit sampling parameters", () => {
+  const input = paramsCases.haiku55SamplingParams?.["chat-completions"];
+  if (!input) {
+    throw new Error("Missing Haiku 5.5 sampling regression input");
+  }
+  const model = getTargetModelForCase("bedrock", "haiku55SamplingParams");
+  expect(model).toBe("global.anthropic.claude-haiku-5-5");
+  const request = transformAndValidateRequest(
+    input,
+    "Converse",
+    "bedrock",
+    model
+  );
+  expect(request).toMatchObject({ modelId: model });
+  expect(request).not.toHaveProperty("inferenceConfig.temperature");
+  expect(request).not.toHaveProperty("inferenceConfig.topP");
+});
 
 test("Haiku 5.5 requests omit deprecated sampling parameters", () => {
   const testCase = paramsCases.haiku55SamplingParams;

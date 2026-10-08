@@ -12580,10 +12580,6 @@ exports[`chat-completions → bedrock > googleToolCallThoughtSignatureReplayPara
 
 exports[`chat-completions → bedrock > haiku55SamplingParams > request 1`] = `
 {
-  "inferenceConfig": {
-    "temperature": 0.7,
-    "topP": 0.9,
-  },
   "messages": [
     {
       "content": [
@@ -12594,7 +12590,35 @@ exports[`chat-completions → bedrock > haiku55SamplingParams > request 1`] = `
       "role": "user",
     },
   ],
-  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "modelId": "global.anthropic.claude-haiku-5-5",
+}
+`;
+
+exports[`chat-completions → bedrock > haiku55SamplingParams > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 14,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 27,
+  },
 }
 `;
 
