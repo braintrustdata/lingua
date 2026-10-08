@@ -28,6 +28,28 @@ test("Haiku 5.5 Bedrock captures select Haiku 5.5 and omit sampling parameters",
   expect(request).not.toHaveProperty("inferenceConfig.topP");
 });
 
+test("Haiku 5.5 Vertex captures select Haiku 5.5 and omit sampling parameters", () => {
+  const input = paramsCases.haiku55SamplingParams?.["chat-completions"];
+  if (!input) {
+    throw new Error("Missing Haiku 5.5 sampling regression input");
+  }
+  const model = getTargetModelForCase(
+    "vertex-anthropic",
+    "haiku55SamplingParams"
+  );
+  expect(model).toBe("publishers/anthropic/models/claude-haiku-5-5");
+  const request = transformAndValidateRequest(
+    input,
+    "Anthropic",
+    "vertex-anthropic",
+    model
+  );
+  expect(request).toMatchObject({ model });
+  for (const parameter of ["temperature", "top_p", "top_k"]) {
+    expect(request).not.toHaveProperty(parameter);
+  }
+});
+
 test("Haiku 5.5 requests omit deprecated sampling parameters", () => {
   const testCase = paramsCases.haiku55SamplingParams;
   if (!testCase?.["chat-completions"] || !testCase.anthropic) {
