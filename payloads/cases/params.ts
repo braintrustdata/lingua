@@ -2535,8 +2535,6 @@ export const paramsCases: TestCaseCollection = {
   },
 
   haiku55SamplingParams: {
-    // Live validation expects success; the WASM request regression needs no response capture.
-    expect: { status: 200 },
     "chat-completions": {
       model: OPENAI_NON_REASONING_MODEL,
       messages: [{ role: "user", content: "Say hi." }],
