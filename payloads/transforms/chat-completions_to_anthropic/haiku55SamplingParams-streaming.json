@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-5-5",
-      "id": "msg_011CfptKYDxYjuJ5EXe1i7k5",
+      "id": "msg_011CfpwDydMpreWQKoXse8pN",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -47,15 +47,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "! How can I help you today"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "?"
+      "text": "! How can I help you today?"
     }
   },
   {

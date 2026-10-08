@@ -1,0 +1,21 @@
+{
+  "request": {
+    "inferenceConfig": {
+      "temperature": 0.7,
+      "topP": 0.9
+    },
+    "messages": [
+      {
+        "content": [
+          {
+            "text": "Say hi."
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+  },
+  "error": "The model returned the following errors: `temperature` and `top_p` cannot both be specified for this model. Please use only one.",
+  "name": "ValidationException"
+}

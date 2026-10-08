@@ -1,0 +1,4 @@
+{
+  "error": "The model returned the following errors: `temperature` and `top_p` cannot both be specified for this model. Please use only one.",
+  "name": "ValidationException"
+}

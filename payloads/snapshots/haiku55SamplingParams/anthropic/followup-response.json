@@ -1,12 +1,12 @@
 {
   "model": "claude-haiku-5-5",
-  "id": "msg_011CfptJJuVRezHpound2L2C",
+  "id": "msg_011CfpwDVWRSzpvxNx1r6H4V",
   "type": "message",
   "role": "assistant",
   "content": [
     {
       "type": "text",
-      "text": "That depends on what you're working on or what you're trying to accomplish! Could you tell me a bit more about your situation? For example:\n\n- Are you working on a project, task, or problem?\n- Are you deciding between options?\n- Are you looking for ideas or suggestions for something specific?\n\nShare what's on your mind, and I'll help you figure out a good next step."
+      "text": "Happy to help, but I don't have context on what you're working on. Could you tell me a bit more? For example:\n\n- **What's your goal?** (a project, a decision, a problem, learning something new)\n- **Where are you now?** (what you've done so far, what's blocking you)\n- **Any constraints?** (time, budget, tools, skills)\n\nShare whatever you can, even if it's rough, and I'll suggest concrete next steps."
     }
   ],
   "container": null,
@@ -21,7 +21,7 @@
       "ephemeral_5m_input_tokens": 0,
       "ephemeral_1h_input_tokens": 0
     },
-    "output_tokens": 113,
+    "output_tokens": 139,
     "output_tokens_details": {
       "thinking_tokens": 0
     },

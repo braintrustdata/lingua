@@ -1,0 +1,4 @@
+{
+  "error": "The model returned the following errors: messages.1.content.0: Invalid `data` in `redacted_thinking` block",
+  "name": "ValidationException"
+}

@@ -2,9 +2,9 @@
   {
     "type": "response.created",
     "response": {
-      "id": "resp_0b8baf75a08e5396006ac7a1043d7087d2bccffb4754d72e4e",
+      "id": "resp_047463f1e6c23078006ac7a9f1464c87d2965274e1219e8c51",
       "object": "response",
-      "created_at": 1791467780,
+      "created_at": 1791470065,
       "status": "in_progress",
       "access_programs": null,
       "background": false,
@@ -71,9 +71,9 @@
   {
     "type": "response.in_progress",
     "response": {
-      "id": "resp_0b8baf75a08e5396006ac7a1043d7087d2bccffb4754d72e4e",
+      "id": "resp_047463f1e6c23078006ac7a9f1464c87d2965274e1219e8c51",
       "object": "response",
-      "created_at": 1791467780,
+      "created_at": 1791470065,
       "status": "in_progress",
       "access_programs": null,
       "background": false,
@@ -140,7 +140,7 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "msg_0b8baf75a08e5396006ac7a104bf6487d2aee47d8e7a3530cf",
+      "id": "msg_047463f1e6c23078006ac7a9f1f8f887d2aa9b48e419990712",
       "type": "message",
       "status": "in_progress",
       "content": [],
@@ -153,7 +153,7 @@
   {
     "type": "response.content_part.added",
     "content_index": 0,
-    "item_id": "msg_0b8baf75a08e5396006ac7a104bf6487d2aee47d8e7a3530cf",
+    "item_id": "msg_047463f1e6c23078006ac7a9f1f8f887d2aa9b48e419990712",
     "output_index": 0,
     "part": {
       "type": "output_text",
@@ -167,9 +167,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "Hi",
-    "item_id": "msg_0b8baf75a08e5396006ac7a104bf6487d2aee47d8e7a3530cf",
+    "item_id": "msg_047463f1e6c23078006ac7a9f1f8f887d2aa9b48e419990712",
     "logprobs": [],
-    "obfuscation": "AZ1oXgJR33ehCi",
+    "obfuscation": "bwcH5mKCcpJbWV",
     "output_index": 0,
     "sequence_number": 4
   },
@@ -177,16 +177,16 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "!",
-    "item_id": "msg_0b8baf75a08e5396006ac7a104bf6487d2aee47d8e7a3530cf",
+    "item_id": "msg_047463f1e6c23078006ac7a9f1f8f887d2aa9b48e419990712",
     "logprobs": [],
-    "obfuscation": "xqmv7wpx04vepIp",
+    "obfuscation": "3qSvOrMPiHDqYlk",
     "output_index": 0,
     "sequence_number": 5
   },
   {
     "type": "response.output_text.done",
     "content_index": 0,
-    "item_id": "msg_0b8baf75a08e5396006ac7a104bf6487d2aee47d8e7a3530cf",
+    "item_id": "msg_047463f1e6c23078006ac7a9f1f8f887d2aa9b48e419990712",
     "logprobs": [],
     "output_index": 0,
     "sequence_number": 6,
@@ -195,7 +195,7 @@
   {
     "type": "response.content_part.done",
     "content_index": 0,
-    "item_id": "msg_0b8baf75a08e5396006ac7a104bf6487d2aee47d8e7a3530cf",
+    "item_id": "msg_047463f1e6c23078006ac7a9f1f8f887d2aa9b48e419990712",
     "output_index": 0,
     "part": {
       "type": "output_text",
@@ -208,7 +208,7 @@
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "msg_0b8baf75a08e5396006ac7a104bf6487d2aee47d8e7a3530cf",
+      "id": "msg_047463f1e6c23078006ac7a9f1f8f887d2aa9b48e419990712",
       "type": "message",
       "status": "completed",
       "content": [
@@ -228,13 +228,13 @@
   {
     "type": "response.completed",
     "response": {
-      "id": "resp_0b8baf75a08e5396006ac7a1043d7087d2bccffb4754d72e4e",
+      "id": "resp_047463f1e6c23078006ac7a9f1464c87d2965274e1219e8c51",
       "object": "response",
-      "created_at": 1791467780,
+      "created_at": 1791470065,
       "status": "completed",
       "access_programs": null,
       "background": false,
-      "completed_at": 1791467780,
+      "completed_at": 1791470066,
       "error": null,
       "frequency_penalty": 0,
       "incomplete_details": null,
@@ -245,7 +245,7 @@
       "moderation": null,
       "output": [
         {
-          "id": "msg_0b8baf75a08e5396006ac7a104bf6487d2aee47d8e7a3530cf",
+          "id": "msg_047463f1e6c23078006ac7a9f1f8f887d2aa9b48e419990712",
           "type": "message",
           "status": "completed",
           "content": [

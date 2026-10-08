@@ -4,8 +4,8 @@
       "content": {
         "parts": [
           {
-            "text": "Hi! How can I help you today?",
-            "thoughtSignature": "EuoDCucDAWkUfRMO84Mfq/t78cZnTYnwsEvMditO6TbGcJHAvGJECxxU1xG6vPX8e5+tMFDVQMf2AdE3UULOTkfLbSQBKoQuz17MvWICl1ULxijO15YoCrfMWYzX525hFv+4fdinbLsr2/FpHFwR3iKdOB85VTYUqDjppsdWZ1M8RAaClH6+bv5A+EaS4qHgv9DkGyGsVf3H54Rs72rp9tQhyo2BkgOyFnnzfyvgzg6av6OYco2AokiQ1XK2bKn/uTPiLNjTFTPHlHYlWKiYsbHBxW7T7bQm3vzztDyPEkIuuD79RC/XSKwa2htnY5FNUPBOxfz9n0oCOfpFrcxmEx0tLO8exSfJjHBRn+fUPQ+QcQIFmAB8FhfGoJ5fyscYbmr7xFAVMfD14Elmun29imXU6MpBZCfZJEmwRe1StcJqURgAfcB2j+J9TnfHanEidgOPPKIynqfOpH718Ks5NQZS3Al+2kx2LZx1R7HHfD6ytnw2XOmmzJixS/07J3886X9tFD7EMdh9QoW9jf6RaItl80Pchhkqj+5Z/k7jRvZz8tFqcbAO+DkFmgjX344E/aTVG5racMZ1guHpSdLqzCLyqniQvej3JOrtDAZN2gPPHxy6zNRhdjVLtmfzLZig6OBNdpW1tlzBHuzuxw=="
+            "text": "Hi there! How can I help you today?",
+            "thoughtSignature": "ErsDCrgDAWkUfRNLBpDejNDoQ0o5NI5r9iBOHFFL98+XIvToyxZ2g9AoIDMrGqrtFyD0nM/XKfZCDeMrHw2sVMLoCuLTYwd47G3j+B+OAnGqSDuEbExj0ERDLz1KkLHMgbmEyIK0kPpUQtFOifyLVEw9BZsLkspYX3NSCNRYsjFYvx81sRyIoJjPiUJiyzQWjGNz6J3q9evzPEfbqKk772d2YnkUr07JqYFBa4y+lQKvIK+qmPy9ZEGDmb1h+DgONmuS8r9oTNEv6EIGUaXaJN6yirzIOXRXbwHSABCLBx+oggIwYtP2/yYF4l93CYBzfCUhvIoaopFmoP/pHkENj/HIEdz4fRIypUEFMoQR7Xro6LgPFIxfhLyvnwihgzEh25Egl8WKiCwOUStPWzLnVDfqnTeoLyIwQ8Fjoj5AcCVzJnH8oCx/Ww7XsdYZsx6h4IhbUJPPfSKYob0L4bhB0inklp+IwxWMVXYcHuY1srHtG4dyUFr6ATz7/mRYomhqOpM8WomL8m5PFDxrrrrTCx6T/khmaKOVmpq4ou4VhD7RyEoStKzuGKqtM2b1i4OQUQYbM5h28EOocElYLDQ="
           }
         ],
         "role": "model"
@@ -16,17 +16,17 @@
   ],
   "usageMetadata": {
     "promptTokenCount": 4,
-    "candidatesTokenCount": 9,
-    "totalTokenCount": 117,
+    "candidatesTokenCount": 10,
+    "totalTokenCount": 107,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 4
       }
     ],
-    "thoughtsTokenCount": 104,
+    "thoughtsTokenCount": 93,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "AaHHauqwH-iI-sAP9Y-2uQ8"
+  "responseId": "8KnHapWoBrHTjMcPyvaU8Qo"
 }
