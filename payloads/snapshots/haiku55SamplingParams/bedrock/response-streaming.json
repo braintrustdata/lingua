@@ -15,7 +15,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "! How can I help you today"
+        "text": "! How"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " can I help you today"
       },
       "contentBlockIndex": 0
     }
@@ -46,7 +54,7 @@
         "totalTokens": 27
       },
       "metrics": {
-        "latencyMs": 1122
+        "latencyMs": 1110
       }
     }
   }

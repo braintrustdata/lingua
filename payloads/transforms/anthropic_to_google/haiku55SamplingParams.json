@@ -4,8 +4,8 @@
       "content": {
         "parts": [
           {
-            "text": "Hi there! How can I help you today?",
-            "thoughtSignature": "ErsDCrgDAWkUfRNLBpDejNDoQ0o5NI5r9iBOHFFL98+XIvToyxZ2g9AoIDMrGqrtFyD0nM/XKfZCDeMrHw2sVMLoCuLTYwd47G3j+B+OAnGqSDuEbExj0ERDLz1KkLHMgbmEyIK0kPpUQtFOifyLVEw9BZsLkspYX3NSCNRYsjFYvx81sRyIoJjPiUJiyzQWjGNz6J3q9evzPEfbqKk772d2YnkUr07JqYFBa4y+lQKvIK+qmPy9ZEGDmb1h+DgONmuS8r9oTNEv6EIGUaXaJN6yirzIOXRXbwHSABCLBx+oggIwYtP2/yYF4l93CYBzfCUhvIoaopFmoP/pHkENj/HIEdz4fRIypUEFMoQR7Xro6LgPFIxfhLyvnwihgzEh25Egl8WKiCwOUStPWzLnVDfqnTeoLyIwQ8Fjoj5AcCVzJnH8oCx/Ww7XsdYZsx6h4IhbUJPPfSKYob0L4bhB0inklp+IwxWMVXYcHuY1srHtG4dyUFr6ATz7/mRYomhqOpM8WomL8m5PFDxrrrrTCx6T/khmaKOVmpq4ou4VhD7RyEoStKzuGKqtM2b1i4OQUQYbM5h28EOocElYLDQ="
+            "text": "Hi! How can I help you today?",
+            "thoughtSignature": "EtEECs4EAWkUfRN2JatBx6CCc5lI2uLctkBa/8jT2VAdIwuJtirmYni0svb6Pjai4PKVmFtBqOCVOudwB5/Pudvbj2YIo3hnqWKzRdvCCqhngIqfiIlt0Mz2LfRuDhXx8eWsxkJttWwOPZPJFd1egolWmMSr+MAsksPt2GUYy+c5waFx3RwhN7ptTrwFBuIkqlwJv6DGGu1MzLVQtKzHYIwyKIJZ3t0ixbXUYNcWk9Ys1/jE/wOkGLzKvJ+eDQOz/BfMTFcQRMznER1nbNyLrkbhFf0EiihSBWPsjUKpn9KOprP3oQYNTTdRmdFz4w9lpaygfFIIzVEBymQKMvJD5e5FDdQJKD7kLfxgswMW6QlZBx4qaAIj6hzlSdNWpWfNkvv62xqzf7MLMoSqjWcXGU3+UdvUGpUuvE6NRX8Vd3FS/zArEKkkYFrOlZm4n0+Ruz2x6wCG8ciyzLiJhmVGOy4aIlbIDdjsX1Bd/EOn1YOONFsdZ3EK0cEohC1AHSdA3jnnk02NyGMA/ktthSpCxwlPZ+A4SyMUr+BsFn3FGaKE5JdGCExxpDzlYHqfM0eA5wSMqR0+4SUJkEO9LxrHvRCHVkldIf7gNP8L8mMedjCovipSVl+8hNMNtntSM2TasjaCDPoag8oB6eJKGtQnch95VQ5yZB7f9LhDaXh6I6t6R5xBEZ/4G3lWRFsHrM/7PvC3EU7IWpC9hVPUtTpPon+2U1KPxXKs+rKY4bE5ZUoqcZCjcwVpcRPeOGCQSIWAuUscuPMAbYblrDE60kLCRW0/If0="
           }
         ],
         "role": "model"
@@ -16,17 +16,17 @@
   ],
   "usageMetadata": {
     "promptTokenCount": 4,
-    "candidatesTokenCount": 10,
-    "totalTokenCount": 107,
+    "candidatesTokenCount": 9,
+    "totalTokenCount": 162,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 4
       }
     ],
-    "thoughtsTokenCount": 93,
+    "thoughtsTokenCount": 149,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "8KnHapWoBrHTjMcPyvaU8Qo"
+  "responseId": "Ia7HaqLRMM7e-sAPzKz9iAs"
 }

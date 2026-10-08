@@ -39,7 +39,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " out, but I don't have context"
+        "text": " out, but I need"
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +47,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " about what you're working"
+        "text": " a"
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " on yet. Could you t"
+        "text": " bit more context."
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +63,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "ell me a"
+        "text": " What"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " bit more?"
+        "text": " are"
       },
       "contentBlockIndex": 0
     }
@@ -79,7 +79,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " For"
+        "text": " you working"
       },
       "contentBlockIndex": 0
     }
@@ -87,7 +87,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " example:\n\n-"
+        "text": " on,"
       },
       "contentBlockIndex": 0
     }
@@ -95,7 +95,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Are you working"
+        "text": " or what's"
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " on a project, a probl"
+        "text": " the situation? For"
       },
       "contentBlockIndex": 0
     }
@@ -111,7 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "em, or a dec"
+        "text": " example:\n\n- Are"
       },
       "contentBlockIndex": 0
     }
@@ -119,7 +119,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "ision?\n-"
+        "text": " you trying to fin"
       },
       "contentBlockIndex": 0
     }
@@ -127,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Is"
+        "text": "ish a project or task"
       },
       "contentBlockIndex": 0
     }
@@ -135,7 +135,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " there a go"
+        "text": "?\n- Are you de"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "al you"
+        "text": "ciding between"
       },
       "contentBlockIndex": 0
     }
@@ -151,7 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "'re"
+        "text": " options"
       },
       "contentBlockIndex": 0
     }
@@ -159,7 +159,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " trying to re"
+        "text": "?\n- Are you looking"
       },
       "contentBlockIndex": 0
     }
@@ -167,7 +167,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "ach?\n-"
+        "text": " for "
       },
       "contentBlockIndex": 0
     }
@@ -175,7 +175,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Are you looking for "
+        "text": "ideas for something"
       },
       "contentBlockIndex": 0
     }
@@ -183,7 +183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "ideas for your"
+        "text": " to do?\n- Is"
       },
       "contentBlockIndex": 0
     }
@@ -191,7 +191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " day, your"
+        "text": " there a probl"
       },
       "contentBlockIndex": 0
     }
@@ -199,7 +199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " career, or something"
+        "text": "em you're stuck on?"
       },
       "contentBlockIndex": 0
     }
@@ -207,7 +207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " else?"
+        "text": "\n\nTell me a"
       },
       "contentBlockIndex": 0
     }
@@ -215,7 +215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\nShare"
+        "text": " little more and"
       },
       "contentBlockIndex": 0
     }
@@ -223,7 +223,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " wh"
+        "text": " we"
       },
       "contentBlockIndex": 0
     }
@@ -231,7 +231,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "atever you're com"
+        "text": " can work"
       },
       "contentBlockIndex": 0
     }
@@ -239,7 +239,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "fortable with, and we"
+        "text": " through"
       },
       "contentBlockIndex": 0
     }
@@ -247,7 +247,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " can map"
+        "text": " it"
       },
       "contentBlockIndex": 0
     }
@@ -255,15 +255,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " out next"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " steps together."
+        "text": " together."
       },
       "contentBlockIndex": 0
     }
@@ -282,11 +274,11 @@
     "metadata": {
       "usage": {
         "inputTokens": 35,
-        "outputTokens": 126,
-        "totalTokens": 161
+        "outputTokens": 114,
+        "totalTokens": 149
       },
       "metrics": {
-        "latencyMs": 8483
+        "latencyMs": 1635
       }
     }
   }

@@ -1,4 +1,4 @@
 {
-  "error": "Error: VERTEX_PROJECT environment variable is required",
+  "error": "Error: Vertex streamRawPredict failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"`temperature` and `top_p` cannot both be specified for this model. Please use only one.\"},\"request_id\":\"req_vrtx_011CfpxbCVD4Xk3SQoCa2fLs\"}",
   "name": "Error"
 }

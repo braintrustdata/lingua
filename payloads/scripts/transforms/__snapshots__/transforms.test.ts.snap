@@ -421,7 +421,7 @@ exports[`anthropic → chat-completions > haiku55SamplingParams > response 1`] =
       "type": "text",
     },
   ],
-  "id": "msg_EWjUOaQY2GcQ9cDwRrJdb9PNQAUvN",
+  "id": "msg_EWjlhahxAhZtBYE39A8tbP6Tl4MF1",
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -3274,7 +3274,7 @@ exports[`anthropic → google > haiku55SamplingParams > response 1`] = `
 {
   "content": [
     {
-      "text": "Hi there! How can I help you today?",
+      "text": "Hi! How can I help you today?",
       "type": "text",
     },
   ],
@@ -3286,9 +3286,9 @@ exports[`anthropic → google > haiku55SamplingParams > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 4,
-    "output_tokens": 103,
+    "output_tokens": 158,
     "output_tokens_details": {
-      "thinking_tokens": 93,
+      "thinking_tokens": 149,
     },
     "service_tier": "standard",
   },
@@ -6359,7 +6359,7 @@ exports[`anthropic → responses > haiku55SamplingParams > response 1`] = `
       "type": "text",
     },
   ],
-  "id": "msg_0f6fb77ad7a8823b006ac7a9ef6f0c87d2b078fbae7ab2cb2d",
+  "id": "msg_0e49d6f754e85066006ac7ae20d4dc87d28da5915d4d9c0151",
   "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -9398,7 +9398,7 @@ exports[`chat-completions → anthropic > haiku55SamplingParams > response 1`] =
     },
   ],
   "created": 0,
-  "id": "chatcmpl-011CfpwDqJnrEK2RDhhy9TMr",
+  "id": "chatcmpl-011Cfpxaxaob2SuTbg1v198G",
   "model": "claude-haiku-5-5",
   "object": "chat.completion",
   "usage": {
@@ -16057,12 +16057,12 @@ exports[`chat-completions → google > haiku55SamplingParams > response 1`] = `
   "model": "gemini-3.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 108,
+    "completion_tokens": 109,
     "completion_tokens_details": {
-      "reasoning_tokens": 98,
+      "reasoning_tokens": 99,
     },
     "prompt_tokens": 4,
-    "total_tokens": 112,
+    "total_tokens": 113,
   },
 }
 `;
@@ -19475,7 +19475,7 @@ exports[`chat-completions → responses > haiku55SamplingParams > response 1`] =
     },
   ],
   "created": 0,
-  "id": "chatcmpl-046b927efa85f0b2006ac7a9ef6bec87d2a71c28c6e2418ed0",
+  "id": "chatcmpl-0bd53234ae0d33b0006ac7ae20d35087d291f4e6da3d605385",
   "model": "gpt-5.6-terra",
   "object": "chat.completion",
   "service_tier": "default",

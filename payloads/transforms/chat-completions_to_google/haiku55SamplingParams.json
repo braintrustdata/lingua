@@ -5,7 +5,7 @@
         "parts": [
           {
             "text": "Hi there! How can I help you today?",
-            "thoughtSignature": "EskDCsYDAWkUfROYYcAI9kpDyfTloN4xqjYvZmWnDN4CsQDRlrUP/dkn4xGj/SP5r7KQysy+9BnRKrbORXyAUIMPrIbal8YlS4Hr0O2Sep78JA2GJa/HrHzsYMhFBCEoCbOl+9AFDgKBOMSAua50USOJCiCjFtcvwQqjjK88VAHrlRsiwJG6shwF2WQS78FWjrIBDw5TrznMYZfvW6rCaL+EUT2F8imrmiS+zJyk7tfPROrr9WGY341Y3Tc1rAwzWyJZ1B8z8lOR9r6V3jBUHzodmAuWv+J1YjPXlI7u6v1/O81TMq2SiLSbfwZ98e4cHAVLU3ZNM4jf9IIprZnHl/8eHS1akcLHDouGR0rbJFoqJVpZNQrWevxdvQlpzgQpBaeIPhOBw/OP+dIdrzYFEJ6gh27bp/Jeg0XAzmhrbSPqsZsq4bCqyI9Ghw+/d4brD+869E3vJUx2cGKZFL5H0n7hNlCtFULd3hVlE1cLfSWnoCcDub0uJKwgOS1yGaSIC9WQe5wztBrK1qk9fY353p9OFlszB1en87jemY1e74bsv/LZ3X7l4YFgYb2mz7pOw3gyFcQ1Oj+gDfkAOcD7GI0957AlZgQz5V17bA=="
+            "thoughtSignature": "EuADCt0DAWkUfRPwxCzZctdSxeCggufvAkcWS59dUyXDCay6K0M4RpTlutRYLm6ZcjYnEWeGVDEygzugMMr2tAQt8a6cqv5NqVTF+AcMH9uCDqErb8xWgEweurktHdtMV1wGxQlAxXvfd24yNJtE47Q2uCVFnjefBAQAXR7pohD+65FozwwCzYRl8/550aNGoyMzoFaBzPHwyRyPLNBmm3HNwbh5oxeX0oL3Twk35Vy3g0h9LSbkML3c9J5rdAytL+IIAFm9cH4NIefxOtA8P5fB3ViB2v4R6u4v2RyO07TmECl2guK56Gmi6uHHsEtN1DpHzMWLzjq2/NjLG5aylDF7aDg09WsDEEMiYKLV1l5Y+M965zAhjka5pUOUjkgiJxoI5OE2paEkEdpJ3X8hM0MSyRoxQ+M2FU657jQ5Agy9AueFyUhVBkVzB/GuX9wecZtkHODWUMdPFyhUCEVZka56EdN8BpClUxOMd43nOuAQE+IYkZ5ss0XWZ674asinNJGvAMzo2AVTddewaJFOmfjNHTWmKGMt++AmlI5hkb2Q4PfPP4Lqo4GOY24rvjomiqwVkskjIawSJycBAS8/xNHtC9TUeq2sS97mawmO8B2LZS58lYT34lp7/5/G5OqJUUPX"
           }
         ],
         "role": "model"
@@ -17,16 +17,16 @@
   "usageMetadata": {
     "promptTokenCount": 4,
     "candidatesTokenCount": 10,
-    "totalTokenCount": 112,
+    "totalTokenCount": 113,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 4
       }
     ],
-    "thoughtsTokenCount": 98,
+    "thoughtsTokenCount": 99,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "76nHapKoMrrM_PUP7-DFkAE"
+  "responseId": "Ia7HaueyIZusjMcP2peKkQ8"
 }
