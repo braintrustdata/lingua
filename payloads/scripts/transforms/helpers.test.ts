@@ -1,11 +1,33 @@
 import { describe, expect, test } from "vitest";
+import { paramsCases } from "../../cases/params";
 import {
   STREAMING_PAIRS,
   TRANSFORM_PAIRS,
   getStreamingTransformableCases,
   getTransformableCases,
+  transformAndValidateRequest,
   type TransformPair,
 } from "./helpers";
+
+test("Haiku 5.5 requests omit deprecated sampling parameters", () => {
+  const testCase = paramsCases.haiku55SamplingParams;
+  if (!testCase?.["chat-completions"] || !testCase.anthropic) {
+    throw new Error("Missing Haiku 5.5 sampling regression inputs");
+  }
+  const request = transformAndValidateRequest(
+    testCase["chat-completions"],
+    "Anthropic",
+    "anthropic",
+    testCase.anthropic.model
+  );
+  expect(request).toMatchObject({
+    model: "claude-haiku-5-5",
+    messages: [{ role: "user", content: "Say hi." }],
+  });
+  for (const parameter of ["temperature", "top_p", "top_k"]) {
+    expect(request).not.toHaveProperty(parameter);
+  }
+});
 
 function findPair(
   pairs: TransformPair[],
