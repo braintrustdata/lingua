@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Happy to help, but I don't have any context yet about what you're working on. Could you tell me a bit more? For example:\n\n- **Are you working on a task, project, or problem?** If so, what is it?\n- **Are you deciding between options?** Let me know what they are.\n- **Are you looking for ideas?** Tell me your goals, interests, or what you have available (time, skills, resources).\n- **Are you stuck on something specific?** Share the details and where you're getting stuck.\n\nOnce I know more, I can suggest concrete next steps."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 35,
+    "outputTokens": 171,
+    "totalTokens": 206,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 3997
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "f9d4565f-54a0-44e0-867a-8cfaef907780",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

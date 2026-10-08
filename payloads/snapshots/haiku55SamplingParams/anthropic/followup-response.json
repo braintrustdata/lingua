@@ -1,0 +1,32 @@
+{
+  "model": "claude-haiku-5-5",
+  "id": "msg_011CfpxaeS9KUeMMFNfCXJwY",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Happy to help you figure that out, but I'm missing some context. What are you working on, or what's the situation? For example:\n\n- Are you working on a project, a task, or a problem?\n- Are you deciding between options?\n- Or are you looking for ideas for something specific, like learning a skill, planning your day, or getting unstuck?\n\nTell me a bit more and I'll suggest some concrete next steps."
+    }
+  ],
+  "container": null,
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 35,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 128,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global"
+  },
+  "diagnostics": null
+}

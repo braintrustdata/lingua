@@ -2534,6 +2534,28 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  haiku55SamplingParams: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say hi." }],
+      temperature: 0.7,
+      top_p: 0.9,
+    },
+    responses: null,
+    anthropic: {
+      model: "claude-haiku-5-5",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say hi." }],
+    },
+    "vertex-anthropic": null,
+    google: null,
+    bedrock: {
+      modelId: "global.anthropic.claude-haiku-5-5",
+      messages: [{ role: "user", content: [{ text: "Say hi." }] }],
+      inferenceConfig: { maxTokens: 1024 },
+    },
+  },
+
   bedrockAnthropicOpus48SamplingParam: {
     "chat-completions": {
       model: OPENAI_NON_REASONING_MODEL,
