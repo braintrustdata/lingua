@@ -223,6 +223,47 @@ exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > res
 }
 `;
 
+exports[`anthropic → chat-completions > anthropicOpus5AdaptiveThinkingDisplaySummarizedParam > request 1`] = `
+{
+  "max_completion_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 17 times 23?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicOpus5AdaptiveThinkingDisplaySummarizedParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "391
+
+(Reason: 17 × 23 = 17 × (20 + 3) = 340 + 51 = 391.)",
+      "type": "text",
+    },
+  ],
+  "id": "msg_EWlMwzKfJ9yL820CZGb6ZBH5H9a9u",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 14,
+    "output_tokens": 359,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
 {
   "max_completion_tokens": 4096,
@@ -256,6 +297,45 @@ exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffo
     "output_tokens": 74,
     "output_tokens_details": {
       "thinking_tokens": 64,
+    },
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicSonnet5AdaptiveThinkingDisplaySummarizedParam > request 1`] = `
+{
+  "max_completion_tokens": 4096,
+  "messages": [
+    {
+      "content": "A fair coin is flipped until either HHT or HTH first appears. What is the probability that HHT appears first, and what is the expected number of flips until stopping? Derive both results using state equations.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicSonnet5AdaptiveThinkingDisplaySummarizedParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_EWlPKwwQhGqS9tuVCPRC4ocNj4tLH",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 50,
+    "output_tokens": 4096,
+    "output_tokens_details": {
+      "thinking_tokens": 4096,
     },
   },
 }
@@ -2628,6 +2708,55 @@ exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] 
 }
 `;
 
+exports[`anthropic → google > anthropicOpus5AdaptiveThinkingDisplaySummarizedParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 17 times 23?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 4096,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > anthropicOpus5AdaptiveThinkingDisplaySummarizedParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "17 times 23 is **391**.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "input_tokens": 11,
+    "output_tokens": 288,
+    "output_tokens_details": {
+      "thinking_tokens": 276,
+    },
+    "service_tier": "standard",
+  },
+}
+`;
+
 exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
 {
   "contents": [
@@ -2667,6 +2796,115 @@ exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > 
     "output_tokens": 86,
     "output_tokens_details": {
       "thinking_tokens": 79,
+    },
+    "service_tier": "standard",
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicSonnet5AdaptiveThinkingDisplaySummarizedParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "A fair coin is flipped until either HHT or HTH first appears. What is the probability that HHT appears first, and what is the expected number of flips until stopping? Derive both results using state equations.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 4096,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > anthropicSonnet5AdaptiveThinkingDisplaySummarizedParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "To solve this problem, we can model the sequence of coin flips as a Markov chain. The state of the system is determined by the useful suffix of the flips we have performed so far that could lead to either $HHT$ or $HTH$.
+
+### 1. Definition of States
+
+We define the following states based on the progress toward the two target patterns:
+*   $\\emptyset$: The starting state (no flips made, or the last flip was a $T$ which does not help build either sequence).
+*   $H$: The last flip was $H$.
+*   $HH$: The last two flips were $HH$ (one flip away from $HHT$).
+*   $HT$: The last two flips were $HT$ (one flip away from $HTH$).
+*   $HHT$: The absorbing state representing $HHT$ appearing first.
+*   $HTH$: The absorbing state representing $HTH$ appearing first.
+
+---
+
+### Part 1: Probability that $HHT$ appears first
+
+Let $p_S$ be the probability that $HHT$ appears first, starting from state $S$. We want to find $p_{\\emptyset}$. 
+
+By analyzing the transitions from each state with a fair coin (where the probability of getting $H$ or $T$ is $\\frac{1}{2}$), we set up the following state equations:
+
+1.  **State $\\emptyset$:** 
+    *   If we flip $T$ (prob $\\frac{1}{2}$), we stay in $\\emptyset$.
+    *   If we flip $H$ (prob $\\frac{1}{2}$), we move to $H$.
+    $$p_{\\emptyset} = \\frac{1}{2} p_{\\emptyset} + \\frac{1}{2} p_H \\implies p_{\\emptyset} = p_H$$
+
+2.  **State $H$:**
+    *   If we flip $H$ (prob $\\frac{1}{2}$), we move to $HH$.
+    *   If we flip $T$ (prob $\\frac{1}{2}$), we move to $HT$.
+    $$p_H = \\frac{1}{2} p_{HH} + \\frac{1}{2} p_{HT}$$
+
+3.  **State $HH$:**
+    *   If we flip $T$ (prob $\\frac{1}{2}$), we reach $HHT$ (success, probability $1$).
+    *   If we flip $H$ (prob $\\frac{1}{2}$), we remain in $HH$.
+    $$p_{HH} = \\frac{1}{2}(1) + \\frac{1}{2} p_{HH} \\implies \\frac{1}{2} p_{HH} = \\frac{1}{2} \\implies p_{HH} = 1$$
+
+4.  **State $HT$:**
+    *   If we flip $H$ (prob $\\frac{1}{2}$), we reach $HTH$ (failure, probability $0$).
+    *   If we flip $T$ (prob $\\frac{1}{2}$), we reset to $\\emptyset$.
+    $$p_{HT} = \\frac{1}{2}(0) + \\frac{1}{2} p_{\\emptyset} \\implies p_{HT} = \\frac{1}{2} p_{\\emptyset}$$
+
+#### Solving the System:
+Substitute $p_{HH} = 1$ and $p_{HT} = \\frac{1}{2} p_{\\emptyset}$ into the equation for $p_H$:
+$$p_H = \\frac{1}{2}(1) + \\frac{1}{2}\\left(\\frac{1}{2} p_{\\emptyset}\\right) = \\frac{1}{2} + \\frac{1}{4} p_{\\emptyset}$$
+
+Since $p_{\\emptyset} = p_H$, we can substitute $p_{\\emptyset}$ for $p_H$:
+$$p_{\\emptyset} = \\frac{1}{2} + \\frac{1}{4} p_{\\emptyset}$$
+
+Subtract $\\frac{1}{4} p_{\\emptyset}$ from both sides:
+$$\\frac{3}{4} p_{\\emptyset} = \\frac{1}{2} \\implies p_{\\emptyset} = \\frac{2}{3}$$
+
+**Result:** The probability that $HHT$ appears first is **$\\frac{2}{3}$**.
+
+---
+
+### Part 2: Expected number of flips until stopping
+
+Let $E_S$ be the expected number of additional flips needed to reach either absorbing state ($HHT$ or $HTH$), starting from state $S$. We want to find $E_{\\emptyset}$.
+
+Using the law of total expectation, each transition costs $1$ flip. We set up the following state equations:
+
+1",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "input_tokens": 44,
+    "output_tokens": 4092,
+    "output_tokens_details": {
+      "thinking_tokens": 3047,
     },
     "service_tier": "standard",
   },
@@ -6092,6 +6330,54 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > response 1
 }
 `;
 
+exports[`anthropic → responses > anthropicOpus5AdaptiveThinkingDisplaySummarizedParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 17 times 23?",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 4096,
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicOpus5AdaptiveThinkingDisplaySummarizedParam > response 1`] = `
+{
+  "content": [
+    {
+      "signature": "gAAAAABqx8YsNdmiXHkVs_ScwUYnEhAJfIjQudA_0sbl2vewNY8hEdgRmsXetflDBesatnsBaQ04ojppiw-Rx7Mdj2aUIsMGQ1y9noD9rtjSnxn2p3M7-SPyrJj6Jz4OHIJ5aAEuVOPeJnvYB-YRdQMYZjhH29i5O0jtAEYiIqKeP3wFYZ4Ahz-nY9vMmNAfJsawlGhZYON8Z5oBRMIe9EgdScnFVtNHpZpRtczNFpdbME_JbtnBpZ00DdPUN31UV0z5-z_NpUHdyQLUMcNsUXSEn-0YySBAKmE93UNo63Vj-_2gSUmnmFu6xRITdnvbpk_Mugwq72ncMRx-h2j9g-Ws6oFCCmHEsGPaZkwujNrhqQr9fzWf7Wy6VFm4WE_gBMSbgTif_yG4i_2nPD6njctel-MMJGDLSPM2zUGYQNp7GCh_q9_RVfoidxZ95pRX3TslNFwAGbL_bjXJN9PMKgCfa6rnt9Xyz2aSSjwhYXbt9jkmg3MEyz-dzzb-It7mwvmp1vAPRQJiUg6lByzW6FrGOYElqHTSMKZpK3H07z9XzGotIKqekKAKMPh_WjPrWzyELf9vvF8pZ9rVzgXtRD-1e5imkYEkQygxv1J_-HxKWkuwcvzqR1rTYsk1VIbFUCn4K2Zo5hPeiGvzS31jFu7OLHOojRi5GTLSrOepAdHdtN9590kRoNUW7lJbzSLJgeYrkuh22ZNd0cLWQpWG-dDN1en122sdgSrdYv-fkXVhw0BtuFB5hU6MOBwjpi1uaio7fDtolnKBLIvtAgngwf6UsqIB0NjmmiR1HpmvStkDT88zrr04-pqK5wL_jFW2ddRyjKbWziXuMh1bTNWoRx2Zv8IDktMhI_51mexWxN2OQVfrPMMPJSQLrBKWtKrmsyqeHGsbr8-n4VH10AwM6nqYRVRdECx9ZZRnoZ8imqtHCtQ2xhoULCbNhD_USkXzqOGsecr538eZsUFQNP0W29R_DwkTK48lftgtTT9gN-isJct1ANaGuitJfvY1IJY2sRaAPEEFUn9vBoMwxXUryMgGymtMAUkbme_swwcBrxtFpl25w4L3s-XVpTnUXiAqxb-q7hT0RABf3dhf44h957BfUjkQGyx_6o33iwa-pH5HV76qOZZyVaGXLZPdQnVKI2SiOyZBXx2jtmpBCQRxhNWoVQopLXR9iOmlBGIwYXrr0Rg3RKq92mX1CgNmYmb9XHxGmqenkJ8L",
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "391",
+      "type": "text",
+    },
+  ],
+  "id": "msg_070d7c11b5dda1da006ac7c62a12c887d29dcf7ec775f16ba2",
+  "model": "gpt-5.6-terra",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 14,
+    "output_tokens": 19,
+    "output_tokens_details": {
+      "thinking_tokens": 12,
+    },
+  },
+}
+`;
+
 exports[`anthropic → responses > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
 {
   "input": [
@@ -6125,6 +6411,215 @@ exports[`anthropic → responses > anthropicOpus5DisabledThinkingHighEffortParam
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 11,
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicSonnet5AdaptiveThinkingDisplaySummarizedParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "A fair coin is flipped until either HHT or HTH first appears. What is the probability that HHT appears first, and what is the expected number of flips until stopping? Derive both results using state equations.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 4096,
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicSonnet5AdaptiveThinkingDisplaySummarizedParam > response 1`] = `
+{
+  "content": [
+    {
+      "signature": "gAAAAABqx8bJvNm_haK_ekAZyqf0EOW7yNV6eq7EhM05wOeuD7Hw_sqqeYOAsLcPW17kJuuw9VNQILv7hlLJEXFIfQHzU0yyu9_Jeplt6DZ2yhdSe2bcCIInuQssTtrGD6BsAjTCZe0_L-MJ_IUhQeK_oztq5qtBc0ZCB3XECo6rKuqXC_B-9_wFxsqFtTSG_EeOR4y0-sOXDD2dAmXaify5FagMEH4X6msSvIFstpSPMtmrojGhZNuXn61LfUP7XDt9K9_3nxKgi_zeHirKAekdXauClU2PRmeyT-LXZPco4X-Jy_VehsV03Pp2l-WMEMKzxG2VIUi8506cVJAi8vul-xLnDr6b85AWP0wckhmUl5pU_Zb8ucZcMbfqgViuy9NrrUUyGwXE69Dv4iDDqrsLDCQoeYJGUIhDY7fqlt_q5I2M7KrkugLV5P6mjaig_ioTJ-7GaGN6o8uoG_EkriBAZqtUNXMPl6TAOmuXrmzWQXez5lSOTK4Wt5eXtc1itLq_KEtgNV5ntNCHuKpzi2ayYb9TfiJ1TO4v0lrYli8Hi3ovQjzpnehgMJ_jxhVWGyUpJyLjaET1pOk_mZC_xjIjqvFAKx4rwpXfKxEJV667cEmn9HOQw6WlTjLmJMMW8vQyba-y9wOTRdGOa0FGAKZ5S1zg40QtBJ1Cx_4LatATGGHjhj8BFLKBTD46X4uFZimc1wZE8h7C2ZtuLp8QQ1s_WrKOTKlaPf93qCkHstuzfHBZ6nqpkaUhvrUkL1MDvCaR11ft_lBJGxYucRYZBTQowXdAHfdhC-prcWN193ds0YDkboHaxL8sR527mzoobEcye_SDjHhhieZ-AIvihwxSkMgzU9qwDyElIJJJmh2rVOE4qeXoKld7638fkNLEEKvYSWeXejIeYrtz7Pqer93rFoaMQllL9JGUVn67dkIvlDjc0OJk0_YwQ8Ox8LrU2pG6VZyMjUKaXCXdwDPQRCc-m4s_wFHUkFYSKTWr26AhlIPQjO29rnGtY1XlwVEbPNlWZnYb2gIn9bRrm2FXwtWSZx402t5xEMG_wdBab_BhC7dhHOJu0cIWr9Fy1QE1HsDcm8NzLe_W93T9fO--bCnrhI5j5Vs8pzywc5h9y0QWBGC1Yo4RHPTjHDI2OJP5xDYr07WYkg0nLqsCAgiEoTiPI9qPbQzWNrdJViJ46cb8mkGEaCk5VRaPNsX9rzNCD2jK9uxlbHc6MMkzJGPnIRZHb9Hphxqu9xmVPc_13BSPVEcVP9-F1ealJHoWI8vujuEXRN0LPwskHz-mdxQFoZGM2_5L91aD9eejpOrWrJtOQK8QWH9CYKqk-7q-AtSuY6k54f0eLCe0NrMPjSPc2XlFuOGtMdZAeL0rN-Gl2skcWpzRqNBi6QrektaHEEze_5FRyOevj2gyf74Lv3nAN8UsPqmYwJgFrzovpiMbMlkJJ_5Yeeus8o3-hsvJc1X9uGDU009n3UwxUSV4Do5nwwd0WKhULtj7O7HpFsy4DnC8Nh2vu2Cu1CnPjD6YFcZfnNnOVB2F2-PArr-x0J_Hf0Ne4tzWnm5lekhEoL9qqjgUw7XWmZic7Ik33LBBMQZ3FMjki8YMUj1hUifrB95SVqE6I_rftQVYsG0m_ivfNaga8oTBBeLzkLGV6bVZsJh0NDnIWJn8wkOtg1yriKlxP0n2uh0TuPncV0Gc8yAb5AZtx2gZ4xLor2Abc23wivK3FXwYLNkajiz8I4nJW6CVU6rHPEJyxeQzS5-04Bra1G_RJwwYmcoT8X4XwdG9k-grf_ocPCXFTwRbOKTEaRQiHryzWVa1BwA1ZUP6BgNYzfmzcr6yoBuIWMkDKIqbZtqfq1NazJV9DfIko4ujnbtzSgUqhFjo9J-q_ZRItdGxy9fDCnFV0ZgpMA8tfJeUAChTK1FVZEoxZDCv4Goiq8ZdWP2yPCRStcMzPuWimBVRe1bEiotHrMDRL8_cFTpczVKHFFZMacXa3QHtJn7s6QBleyP0FWn3mEndBlV1BrxzdHfvmczWYEHvNalENjVpSvMiiatmLC-g2Ox2-xYTjHvz_Wd4UzBTfxHD30yEAC6o5D9RLero4MxV3-dvzD3PlQgarlHeN3S7aGX6GPN6SNP-R5OfzKyhOsan4O5UL4rU_mZU7KcXCXMtscE4ub2OoxDSqflxTa8ZXvlsARWhQak4mvbHPWP-L_O2owzDJiztq5jyWpkkJgUjDWjB1XKE9g_G4lyod6lejVdZrUBYxohHvs2OnKdVTKSrEqT86YvoWrNnub5Yy--mbzrsBUnyDwEU2TlxUc-Fa7dFshqJu4p6rzXuGmwuc8ToaJqV6P0_UEa0dLKwmL1Da0Ju6p7IRtwvfr3aPYG0XZ6fyzf3bf89QA3Fx_Vf7QC-53dSrvVYdzB68mZwZTbURwBwS8HGHuwQmLMeUgneEo3whIuH-3yrRFeES_6HfFoejbYoBSohPGQ6gDugZnD_CjZT8aQ2BzCDCtAoyTfGsmaS2S-DhyyHw8qbmyy5g2AWozfVzTJ_NqK-wMPZOBxm3qlGmULwq7OVcShU8uP1h9I-KGVZbwS8l_i2ECUdeXrFbIYZ2qnY9CT6XnDRZxaG9y57B8FvDEVv9GZtCMC3GAxV-f9G24E_fg_UAUhcIc1Lggi55_g7ARxJcJySiKgwdPSpLWP1JMNes-TasM-k5Sfi7946OT0nYNBNRiAUSX1Q_vuHBi52l6xwo_byQIOn8TD-uKrmM-6B8UiJCX-SsKEzQUeEKz9AxhTppMjhwnIUlEjpK7zR0mpX9ARlcjC1v9zBGKeggH9q2CV1uWhuk3229fb-Dn5Iuae9lByiOV80BQBDSBcVPpO--3wIijnYMTDmKFgmiNSBi9IEywFmuqpsTevuTcIPsXEmksIiz67AzGGXXOs5-y3lECM-_wLDQbMutIh7cirHLgVzJX82dSmApfknetQfDS5q4f_WRHyNY_Yub0cEFyZRM8aad2AZu88Ssws-7nAV1jvaDrH_joeri9FRy7s4y2caEEJ8x6aHgz4c5_TwJ3M41Psix7WJbv6zFt1MCsbQTAYl2h158ggoFRh2v6vSnQ4tezAva_0n_w==",
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Let the transient states track the longest current suffix that is also a prefix of either target pattern:
+
+- \\(S_0\\): no relevant suffix
+- \\(S_H\\): current suffix is \\(H\\)
+- \\(S_{HH}\\): current suffix is \\(HH\\)
+- \\(S_{HT}\\): current suffix is \\(HT\\)
+
+Absorbing states:
+
+- \\(A\\): \\(HHT\\) occurs
+- \\(B\\): \\(HTH\\) occurs
+
+The transitions are
+
+\\[
+\\begin{array}{c|cc}
+\\text{State} & H & T\\\\ \\hline
+S_0 & S_H & S_0\\\\
+S_H & S_{HH} & S_{HT}\\\\
+S_{HH} & S_{HH} & A\\\\
+S_{HT} & B & S_0
+\\end{array}
+\\]
+
+For example, from \\(S_{HH}\\), another \\(H\\) leaves the relevant suffix \\(HH\\), while a \\(T\\) produces \\(HHT\\).
+
+---
+
+## Probability that \\(HHT\\) appears first
+
+Let \\(p_0,p_H,p_{HH},p_{HT}\\) be the probabilities of eventually hitting \\(A=HHT\\) before \\(B=HTH\\), starting from the corresponding states.
+
+The state equations are
+
+\\[
+p_0=\\frac12p_H+\\frac12p_0,
+\\]
+
+\\[
+p_H=\\frac12p_{HH}+\\frac12p_{HT},
+\\]
+
+\\[
+p_{HH}=\\frac12p_{HH}+\\frac12(1),
+\\]
+
+\\[
+p_{HT}=\\frac12(0)+\\frac12p_0.
+\\]
+
+From the first and third equations,
+
+\\[
+p_0=p_H,\\qquad p_{HH}=1.
+\\]
+
+Also,
+
+\\[
+p_{HT}=\\frac12p_0.
+\\]
+
+Thus
+
+\\[
+p_0=p_H
+=\\frac12(1)+\\frac12\\left(\\frac12p_0\\right)
+=\\frac12+\\frac14p_0.
+\\]
+
+Therefore,
+
+\\[
+\\frac34p_0=\\frac12,
+\\]
+
+so
+
+\\[
+\\boxed{p_0=\\frac23}.
+\\]
+
+Hence,
+
+\\[
+\\boxed{\\Pr(HHT\\text{ appears before }HTH)=\\frac23.}
+\\]
+
+---
+
+## Expected number of flips until stopping
+
+Let \\(E_0,E_H,E_{HH},E_{HT}\\) denote the expected additional flips until either pattern appears, starting from each state.
+
+The equations are
+
+\\[
+E_0=1+\\frac12E_H+\\frac12E_0,
+\\]
+
+\\[
+E_H=1+\\frac12E_{HH}+\\frac12E_{HT},
+\\]
+
+\\[
+E_{HH}=1+\\frac12E_{HH}+\\frac12(0),
+\\]
+
+\\[
+E_{HT}=1+\\frac12(0)+\\frac12E_0.
+\\]
+
+From these,
+
+\\[
+E_{HH}=2,
+\\]
+
+and
+
+\\[
+E_{HT}=1+\\frac12E_0.
+\\]
+
+The first equation gives
+
+\\[
+E_0=2+E_H.
+\\]
+
+Meanwhile,
+
+\\[
+E_H
+=1+\\frac12(2)+\\frac12\\left(1+\\frac12E_0\\right)
+=\\frac52+\\frac14E_0.
+\\]
+
+Therefore,
+
+\\[
+E_0=2+\\frac52+\\frac14E_0
+=\\frac92+\\frac14E_0.
+\\]
+
+So
+
+\\[
+\\frac34E_0=\\frac92,
+\\]
+
+which gives
+
+\\[
+\\boxed{E_0=6}.
+\\]
+
+Thus the expected stopping time is
+
+\\[
+\\boxed{6\\text{ flips}.}
+\\]",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0c7e8850fccc1b7a006ac7c6bdaf2487d2a5fa5b82d0e74b9e",
+  "model": "gpt-5.6-terra",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 50,
+    "output_tokens": 1332,
+    "output_tokens_details": {
+      "thinking_tokens": 516,
+    },
   },
 }
 `;

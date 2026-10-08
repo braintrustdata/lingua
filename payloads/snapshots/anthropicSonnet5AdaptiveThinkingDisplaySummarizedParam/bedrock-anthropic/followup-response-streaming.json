@@ -1,0 +1,3258 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-5",
+      "id": "msg_bdrk_h5bborlldglvjpj6ckrh3jaevq4xawx7vsbzlglavzyzz2svb3fa",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "container": null,
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 4139,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 8,
+        "service_tier": "standard"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "thinking",
+      "thinking": "",
+      "signature": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "The"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " user's \""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "what should"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I do next?\" is p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "retty open-ended since"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " just"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " fin"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ished solving a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " probability problem, so I'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "m trying to inf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "er what context"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " mak"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "es sense here - lik"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ely a student w"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "anting to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " check their underst"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "anding or expl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ore related"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " conc"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "epts further"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ".\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Given the techn"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ical nature ("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Markov chains, state"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " equ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ations), this"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " re"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ads like inter"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "view prep,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " co"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ursework, or self"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "-study. I think"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the most useful response off"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ers concrete options"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ": verifying the result"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " through simulation code"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", underst"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "anding the general"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " method behind the sol"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ution, or t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ackling simil"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ar practice problems to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " re"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "inforce the techn"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ique.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Before su"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ggesting next steps though"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", I want to double-check my"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " own answer is correct."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Let me verify P(H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " first) = 2/3 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "using Conway's le"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ading number"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " algorithm for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Penney's game, which comput"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "es correlation values"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " between pat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "terns H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HT and H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "TH to determine the odds"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " one"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " beats the other.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "m chec"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "king each k"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "1,2,3 for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " whether the last k let"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ters of HHT match the first"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " k letters of HTH,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " finding a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " match only"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " at k=2 (HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HT), giving L"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(A"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ",B) a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " contribution of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " 2^1="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Running"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the same com"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "parison the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " other direction and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " self"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "-comparisons:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " L(B"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ",A)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "=1,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " L(A,A"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ")=4, L"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(B,B)=5."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " So the odds that B be"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ats A come"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " out to (4-2):"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(5-1),"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " which"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " is 2:4,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " 1:2.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "This"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " means P(A w"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ins)="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2/3 and P(B"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " wins)=1/3,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " matching my"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " earlier derivation that H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " w"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ins with probability 2/3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Now I want to double"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "-check this using"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the known expected wa"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "iting time formula based"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " on autocorrelation and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " cross-correlation terms"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ".\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " know that HHT al"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "one ("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "without"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " rac"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ing) has an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " expected waiting time of "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "8 since it has no self-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "overlap, while HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H has a different"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " expected waiting time due to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " its self-overlap struct"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ure.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " rec"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "all the correct formula u"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ses "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2^k"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " summ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ed over self"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "-over"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "lap positions k, including"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the full length n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ". Chec"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "king against"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HH: overlaps at"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " k=1 and k=2"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " give 2+"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "4=6, matching the known"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " expected wa"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "iting time of 6 fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ips for HH.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Testing H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "T: only"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " full match"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " at k=2"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " contributes, giving "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2^2=4, which"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " matches the known answ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "er."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " For HHT, only"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the full over"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "lap at k=3 appl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ies since"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " ne"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ither pr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "efix of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " length 1 or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " 2 matches the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " cor"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "responding suffix, gi"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ving 2^3=8,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " also"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " corre"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ct. Now I'm working"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " through HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " find"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " its self"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "-overlap positions.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "This"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " conf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "irms HTH g"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ets"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " cont"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ributions at"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " k"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "=1 and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " k=3,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " giving 2+8=10"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", matching what"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I exp"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ected. Now I want to find"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " a general formula for the expected"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " time until"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " either"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " two compet"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ing patterns appears first"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", which should"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " rel"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ate to the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " correlation/overlap values"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " between both"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " patterns and their individ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ual exp"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ected wa"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "iting times through"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " a system of equations from"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " ren"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ewal theory.\n\n"
+    }
+  },
+  {
+    "type": "ping"
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "R"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ather than der"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ive this"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " cross"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "-corre"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "lation formula f"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ully, I tr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ust the expl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "icit Markov chain comput"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ation I already"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " verified: being"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " in state H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H, the exp"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ected additional fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ips need"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ed is 2, consistent"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " with wa"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "iting for a ge"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ometric event"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "; being"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " in state HT, there"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "'s a 1/2 ch"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ance of fin"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ishing immediately and 1"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "/2 chance of reset"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ting to the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " empty state, which also"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " checks out. So E"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "∅ = 6 is conf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "irmed correct,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " mat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ching the probability I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " ver"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ified through"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Conway's le"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ading number"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " algorithm.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "For"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " next"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " steps, I should"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " suggest the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " person"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " verify this with a simulation"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", try related"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " vari"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ants like"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " swapping which p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "attern is H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "T"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H vs HHT to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " check symmetry, expl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ore other"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " pattern p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "airs or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " three-way races, lear"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Conway's alg"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "orithm as a general sh"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ortcut, or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " try"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " an alternative derivation using"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " gener"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ating functions or martingales"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ".\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "signature_delta",
+      "signature": "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"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "Great"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " question! Here are some"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " product"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ive next steps,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " depending on what you want"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " to get"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " out of this:\n\n## 1"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ". **Verify with a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " quick simulation** (f"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "astest s"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "anity check)\n```"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "python\nimport random\n\ndef simul"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ate():"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n    seq = []\n    "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "flips = 0\n    while"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " True:\n        fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ips += 1\n        seq"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ".append(random.choice('"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "T'))\n        if len"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(seq) >= 3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ":\n            last3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "''.join(seq[-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "3:])\n            if last3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " == 'HHT':"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n                return 'HHT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "', flips\n            if last3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " == 'HTH':"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n                return 'HTH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "', flips\n\nN"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = 100000\nresults"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = [simulate() for _"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " in range(N)]"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\nhht_wins = sum"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(1 for r"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " in"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " results if r[0]"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "=='HHT')\nav"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "g_flips = sum("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "r[1] for r in results"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ")/N\n\nprint(f\""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "P(HHT first"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ") "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "≈ {hht_w"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ins/N:.4f}"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "  (expected:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " 0"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ".6"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "667)\")\nprint(f\""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "E"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "[flips] ≈"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " {avg_flips:."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "4f}        "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(expected: 6.0"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ")"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\")\n```"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n## 2. **Learn"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " the sh"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ortcut: Conway's"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Leading Number Algor"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ithm**\nThis"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " probl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "em is"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " instance of **Penney's"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Game**. There"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "'s a sl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ick formula using"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " \""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "correlation num"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "bers\" that gives the od"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ds inst"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "antly without building"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " full Markov chain."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Worth lear"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ning if you'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ll face"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " more p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "attern-rac"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ing problems — I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " can"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " wal"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "k through it and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " show it"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " reproduces your "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "2:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "1"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " odds.\n\n## 3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ". **Try vari"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ants to test"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " your"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " understanding**\n-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Race **HH vs HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "** (sh"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "orter patterns —"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " sim"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "pler state"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " space)\n- Race **H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HT vs TH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "** (different overlap structure"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ")\n- A"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " **three-way race**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ": HHT vs H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "TH vs THH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- Compute **conditional"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " expectations**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ": E"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "[flips | HHT w"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ins] and E[flips |"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HTH wins]"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " separ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ately,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " then"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " check"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "max_tokens",
+      "stop_sequence": null,
+      "stop_details": null,
+      "container": null
+    },
+    "usage": {
+      "input_tokens": 4139,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 4096,
+      "output_tokens_details": {
+        "thinking_tokens": 3508
+      }
+    }
+  },
+  {
+    "type": "message_stop",
+    "amazon-bedrock-invocationMetrics": {
+      "inputTokenCount": 4139,
+      "outputTokenCount": 4096,
+      "invocationLatency": 41744,
+      "firstByteLatency": 1183
+    }
+  }
+]

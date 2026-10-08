@@ -1,0 +1,17 @@
+{
+  "anthropic_version": "bedrock-2023-05-31",
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "role": "user",
+      "content": "A fair coin is flipped until either HHT or HTH first appears. What is the probability that HHT appears first, and what is the expected number of flips until stopping? Derive both results using state equations."
+    }
+  ],
+  "thinking": {
+    "type": "adaptive",
+    "display": "summarized"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}

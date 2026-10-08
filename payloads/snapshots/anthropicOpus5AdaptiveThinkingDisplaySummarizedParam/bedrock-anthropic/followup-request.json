@@ -1,0 +1,35 @@
+{
+  "anthropic_version": "bedrock-2023-05-31",
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 17 times 23?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "17 times 23 comes out to 391.\n\n",
+          "signature": "CAISiQMKlwIIEhABGAIqQJ1t9zH1HMlPCEAFUVS5PYgVowt20vMiXvLyTUk7UQABjSw/OKUVZ+8TNg8F72vOOgReC0bYyuz0tefwaO5eR88yDGNsYXVkZS1ob25leTgBQgh0aGlua2luZ1oMOTgyNTM0MzkzMjk2qAGjjJ/WBsIBOggEEAAaDALaigNPNwV0qQQmrSABMgQScc8lOgQ4MyOKQgQ4MyOKSgQ4MyOKUABaBNkF4VZgAmgBcADaAWAKFnByZWZpeF9iZWZvcmVfYmxvY2tfdjESIKTPevw1tLVCo2kt6XcVwPlr8/7UCKk1tJEhSpKCvlqpIgAyIMLAE8hqnJLiL5ZvPYYXdo+LekTJAq3MCXv6HgmK+04fSAMSDJdwvWxIpxLEy3bmHRoMVxQJxRfTo28GfpWGIjBlW2yWygTRfsvxi8zVq0OTTfBCzFd8RFR7+KpA++IbB8z8bwdESccRdIgqY2pGYtYqH7xKuBs5RKsDg1WlUlnbHjESLIAEPgFxiM2D4DXnx+EYAQ=="
+        },
+        {
+          "type": "text",
+          "text": "**17 × 23 = 391**\n\nHere's a quick way to see it:\n- 17 × 23 = 17 × (20 + 3)\n- 17 × 20 = 340\n- 17 × 3 = 51\n- 340 + 51 = **391**"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "thinking": {
+    "type": "adaptive",
+    "display": "summarized"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}
