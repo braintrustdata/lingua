@@ -400,6 +400,41 @@ exports[`anthropic → chat-completions > fableTemperatureParam > response 1`] =
 }
 `;
 
+exports[`anthropic → chat-completions > haiku55SamplingParams > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+}
+`;
+
+exports[`anthropic → chat-completions > haiku55SamplingParams > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I assist you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_EWitXyOT3c3T1eJ78L2Qsz146fenm",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 10,
+    "output_tokens": 9,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > imageContentParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -3209,6 +3244,51 @@ exports[`anthropic → google > fableTemperatureParam > response 1`] = `
     "output_tokens": 159,
     "output_tokens_details": {
       "thinking_tokens": 150,
+    },
+    "service_tier": "standard",
+  },
+}
+`;
+
+exports[`anthropic → google > haiku55SamplingParams > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > haiku55SamplingParams > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I help you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "input_tokens": 4,
+    "output_tokens": 113,
+    "output_tokens_details": {
+      "thinking_tokens": 104,
     },
     "service_tier": "standard",
   },
@@ -6257,6 +6337,43 @@ exports[`anthropic → responses > fableTemperatureParam > response 1`] = `
 }
 `;
 
+exports[`anthropic → responses > haiku55SamplingParams > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`anthropic → responses > haiku55SamplingParams > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi!",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0e41c5cedb6e4c7f006ac7a100ebd087d2bc88a6a3d9fc8a57",
+  "model": "gpt-5.6-terra",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 6,
+  },
+}
+`;
+
 exports[`anthropic → responses > imageContentParam > request 1`] = `
 {
   "input": [
@@ -9250,6 +9367,47 @@ exports[`chat-completions → anthropic > googleToolCallThoughtSignatureReplayPa
       "cached_tokens": 0,
     },
     "total_tokens": 665,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > haiku55SamplingParams > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-haiku-5-5",
+}
+`;
+
+exports[`chat-completions → anthropic > haiku55SamplingParams > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011CfptKHALyMeoK8a897vuS",
+  "model": "claude-haiku-5-5",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 14,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 27,
   },
 }
 `;
@@ -15715,6 +15873,55 @@ exports[`chat-completions → google > googleToolCallThoughtSignatureReplayParam
 }
 `;
 
+exports[`chat-completions → google > haiku55SamplingParams > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "temperature": 0.7,
+    "topP": 0.9,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > haiku55SamplingParams > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 80,
+    "completion_tokens_details": {
+      "reasoning_tokens": 71,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 84,
+  },
+}
+`;
+
 exports[`chat-completions → google > imageUrlMimeTypeFallbackParam > request 1`] = `
 {
   "contents": [
@@ -19119,6 +19326,48 @@ Would you like to see document counts or sample documents from any of these?",
       "cached_tokens": 0,
     },
     "total_tokens": 311,
+  },
+}
+`;
+
+exports[`chat-completions → responses > haiku55SamplingParams > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`chat-completions → responses > haiku55SamplingParams > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-047fbb4b7b6e7ee7006ac7a100d36487d292099a576cdeed55",
+  "model": "gpt-5.6-terra",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "usage": {
+    "completion_tokens": 6,
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 15,
   },
 }
 `;

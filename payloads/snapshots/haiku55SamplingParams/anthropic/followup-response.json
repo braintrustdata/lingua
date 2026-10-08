@@ -1,0 +1,32 @@
+{
+  "model": "claude-haiku-5-5",
+  "id": "msg_011CfptJJuVRezHpound2L2C",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That depends on what you're working on or what you're trying to accomplish! Could you tell me a bit more about your situation? For example:\n\n- Are you working on a project, task, or problem?\n- Are you deciding between options?\n- Are you looking for ideas or suggestions for something specific?\n\nShare what's on your mind, and I'll help you figure out a good next step."
+    }
+  ],
+  "container": null,
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 35,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 113,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global"
+  },
+  "diagnostics": null
+}
