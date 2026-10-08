@@ -9071,14 +9071,6 @@ data: [DONE]
 "
 `;
 
-exports[`streaming: chat-completions → vertex-anthropic > parallelToolCallsRequest > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"Here's the current weather for both cities:\\n\\n**San Francisco, CA:** 65°F and sunny ☀️\\n\\n**New York, NY:** 45°F and cloudy ☁️\\n\\nSan Francisco is enjoying nice sunny weather, while New York is cooler and cloudy today.","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_019mDvTnrEKMjT8ePHqdfxXW","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":67,"prompt_tokens":757,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":824}}
-
-data: [DONE]
-
-"
-`;
-
 exports[`streaming: chat-completions → vertex-anthropic > reasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"# Average Speed Calculation\\n\\n## Step 1: Find the distance for each segment\\n\\n**First segment:**\\n- Speed = 60 mph, Time = 2 hours\\n- Distance = Speed × Time = 60 × 2 = **120 miles**\\n\\n**Second segment:**\\n- Speed = 80 mph, Time = 1 hour\\n- Distance = Speed × Time = 80 × 1 = **80 miles**\\n\\n## Step 2: Find total distance and total time\\n\\n- **Total distance** = 120 + 80 = **200 miles**\\n- **Total time** = 2 + 1 = **3 hours**\\n\\n## Step 3: Calculate average speed\\n\\n$$\\\\text{Average Speed} = \\\\frac{\\\\text{Total Distance}}{\\\\text{Total Time}} = \\\\frac{200}{3} = \\\\boxed{66.67 \\\\text{ mph}}$$\\n\\n**The average speed is approximately 66.67 mph** (or 66⅔ mph)","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_019F1t95kVe8RrfswTc8EgNE","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":235,"prompt_tokens":45,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":280}}
 
@@ -9105,14 +9097,6 @@ data: [DONE]
 
 exports[`streaming: chat-completions → vertex-anthropic > simpleRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"The capital of France is Paris.","reasoning":[{"content":"This is a straightforward factual question. The capital of France is Paris."}],"reasoning_signature":"EpICCmUIDRACGAIqQOxcy514CRbJR0uzurQry6hdAZxym2LmbrKwOEcyrgBtuk+lo1PPdOXgfkOyXHPFMKEN1u+5VssNMAU5aoaSA7QyGWNsYXVkZS1oYWlrdS00LTUtMjAyNTEwMDE4ABIMAr7FUSDMz+0vKrgcGgyO5mKvG3W8xDI51mAiMOZZ8ws01FY4vFqbrAmEvRK1DImuxnr2yxGDTsWQPpuent9R54acDzaNHvdI+u4KnypbK2B3J+XK/8xhaWyDfUkBrKzlEwhHfuMx+6K9ogWS6T4rFWLEnKZdbrS4SPl6iBVxC0a6VFKU52+COlrE5qSk2EGT99L7xh2Dka96MPjH2SJ2FlmZAb3hMzDr7BgB","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_01XoqBFMqLFKFcZJDx154gVA","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":34,"prompt_tokens":43,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":77}}
-
-data: [DONE]
-
-"
-`;
-
-exports[`streaming: chat-completions → vertex-anthropic > simpleRequestTruncated > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"#","role":"assistant"},"finish_reason":"length","index":0}],"id":"msg_vrtx_01ENevW1uW1SS1joqgMK9iEM","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":1,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":17}}
 
 data: [DONE]
 

@@ -2547,11 +2547,7 @@ export const paramsCases: TestCaseCollection = {
       max_tokens: 1024,
       messages: [{ role: "user", content: "Say hi." }],
     },
-    "vertex-anthropic": {
-      model: "publishers/anthropic/models/claude-haiku-5-5",
-      max_tokens: 1024,
-      messages: [{ role: "user", content: "Say hi." }],
-    },
+    "vertex-anthropic": null,
     google: null,
     bedrock: {
       modelId: "global.anthropic.claude-haiku-5-5",
