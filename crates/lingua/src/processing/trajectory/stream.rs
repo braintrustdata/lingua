@@ -591,6 +591,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice: _,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
@@ -622,6 +623,14 @@ impl TrajectoryStream {
 
     fn initialize(&mut self, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
         resolve_task_roles(&self.spans, &self.owners, &self.parents, &mut self.roles);
+        let is_step: Vec<_> = self.roles.iter().map(|role| role.can_request()).collect();
+        let mut voice_calls = voice::voice_calls(
+            &self.spans,
+            &self.parents,
+            &self.owners,
+            &is_step,
+            &mut self.failures,
+        );
         for (index, span) in self.spans.iter().enumerate() {
             let role = self.roles[index];
             if role == Role::Ignored {
@@ -722,6 +731,11 @@ impl TrajectoryStream {
                     sections: None,
                     findings: None,
                     metadata: Default::default(),
+                    voice_calls: if scope.owner_span_id.is_none() {
+                        voice_calls.remove(&scope.root_span_id)
+                    } else {
+                        None
+                    },
                 },
                 scope,
             });

@@ -24,6 +24,62 @@ pub struct Trajectory {
     pub metadata: Map<String, Value>,
     #[ts(optional)]
     pub version: Option<String>,
+    #[ts(optional)]
+    pub voice_calls: Option<Vec<VoiceCall>>,
+}
+
+/// Audio of a voice call. Speech is ordered by span start and can overlap.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct VoiceCall {
+    /// Id of the span that logged the recordings.
+    pub id: String,
+    pub recordings: Vec<AudioRecording>,
+    pub speech: Vec<Speech>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct AudioRecording {
+    pub id: String,
+    /// Id of the span holding the audio attachment.
+    pub attachment_span_id: String,
+    /// JSON pointer to the attachment in that span, like `/input/audio/call-0000`.
+    pub attachment_pointer: String,
+    #[ts(optional)]
+    pub start_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub duration_ms: Option<f64>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct Speech {
+    /// Id of the span that logged this speech.
+    pub id: String,
+    pub speaker: Speaker,
+    /// Ids of the trajectory steps that this speech belongs to.
+    pub step_ids: Vec<String>,
+    pub selections: Vec<AudioSelection>,
+    #[ts(optional)]
+    pub interrupted: Option<bool>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum Speaker {
+    User,
+    Agent,
+}
+
+/// A stretch of one recording. Offsets are from the start of that recording.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct AudioSelection {
+    pub recording_id: String,
+    #[ts(optional)]
+    pub channel_index: Option<u32>,
+    pub start_offset_ms: f64,
+    pub end_offset_ms: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

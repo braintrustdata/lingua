@@ -52,6 +52,7 @@ struct ImportFixture {
     import_failures: Vec<crate::serde_json::Value>,
     #[serde(default)]
     import_warnings: Vec<crate::serde_json::Value>,
+    voice_calls: Option<Value>,
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -124,6 +125,10 @@ fn check_fixture(fixture: &ImportFixture) {
                 .cloned()
                 .unwrap_or(crate::serde_json::json!([])),
             crate::serde_json::json!(fixture.import_warnings),
+        );
+        assert_eq!(
+            serde_json::to_value(&trajectories[0].voice_calls).unwrap(),
+            fixture.voice_calls.clone().unwrap_or_default(),
         );
         if let Some(compactions) = &fixture.compactions {
             assert_eq!(
@@ -770,6 +775,7 @@ fn generated_conversation(
         compactions: None,
         request_tools: None,
         requests: None,
+        voice_calls: None,
     }
 }
 
@@ -1857,6 +1863,14 @@ fn overlapping_calls_preserve_the_later_answer_unless_they_continue_it() {
 import_fixture!(
     resumed_explicit_turn_owns_late_work,
     "fixtures/resumed-explicit-turn.json"
+);
+import_fixture!(
+    livekit_realtime_talk_over,
+    "fixtures/livekit-realtime-talk-over.json"
+);
+import_fixture!(
+    livekit_cascaded_segmented_recordings,
+    "fixtures/livekit-cascaded-segmented-recordings.json"
 );
 
 #[test]
