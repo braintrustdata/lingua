@@ -1,3 +1,4 @@
+use super::voice::SpanVoice;
 use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
@@ -33,6 +34,8 @@ pub struct SpanContext {
     #[serde(default)]
     pub analysis: bool,
     pub compaction: Option<Compaction>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub voice: Option<SpanVoice>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -123,6 +126,14 @@ struct Metadata {
     trajectory_role: Option<json::Value>,
     request_kind: Option<json::Value>,
     compaction: Option<json::Value>,
+    #[serde(rename = "turn.id")]
+    voice_turn_id: Option<json::Value>,
+    #[serde(rename = "audio.recordings")]
+    audio_recordings: Option<json::Value>,
+    #[serde(rename = "audio.selections")]
+    audio_selections: Option<json::Value>,
+    #[serde(rename = "contrib.livekit.interrupted")]
+    livekit_interrupted: Option<json::Value>,
 }
 
 fn metadata_field<T: serde::de::DeserializeOwned>(
@@ -246,15 +257,21 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         .enumerate()
         .filter_map(|(index, message)| is_interruption(message).then_some(index))
         .collect();
+    // LiveKit logs each user utterance as a `user_turn` task; only newer SDKs also log `turn.id` there.
+    let is_voice_turn = source.span_attributes.kind.as_deref() == Some("task")
+        && source.span_attributes.name.as_deref() == Some("user_turn")
+        && metadata_field::<String>(metadata.voice_turn_id, "turn.id", &mut errors)
+            .is_some_and(|id| !id.is_empty());
     let turn = metadata_field::<String>(metadata.turn_id, "turn_id", &mut errors)
         .filter(|value| !value.is_empty())
         .or_else(|| {
-            (source.span_attributes.kind.as_deref() == Some("task")
-                && source
-                    .span_attributes
-                    .name
-                    .as_deref()
-                    .is_some_and(|name| name.starts_with("turn: ")))
+            (is_voice_turn
+                || source.span_attributes.kind.as_deref() == Some("task")
+                    && source
+                        .span_attributes
+                        .name
+                        .as_deref()
+                        .is_some_and(|name| name.starts_with("turn: ")))
             .then(|| source.header.id.clone())
             .flatten()
         });
@@ -272,6 +289,19 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
                 _ => None,
             },
         });
+    let voice = SpanVoice {
+        recordings: metadata_field(metadata.audio_recordings, "audio.recordings", &mut errors)
+            .unwrap_or_default(),
+        selections: metadata_field(metadata.audio_selections, "audio.selections", &mut errors)
+            .unwrap_or_default(),
+        interrupted: metadata_field(
+            metadata.livekit_interrupted,
+            "contrib.livekit.interrupted",
+            &mut errors,
+        ),
+    };
+    source.header.voice =
+        (!voice.recordings.is_empty() || !voice.selections.is_empty()).then_some(voice);
     source.header.model = model.or(source.header.model);
     source.header.start = start;
     source.header.end = end;

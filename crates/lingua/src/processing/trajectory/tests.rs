@@ -52,6 +52,7 @@ struct ImportFixture {
     import_failures: Vec<crate::serde_json::Value>,
     #[serde(default)]
     import_warnings: Vec<crate::serde_json::Value>,
+    voice_calls: Option<Value>,
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -124,6 +125,10 @@ fn check_fixture(fixture: &ImportFixture) {
                 .cloned()
                 .unwrap_or(crate::serde_json::json!([])),
             crate::serde_json::json!(fixture.import_warnings),
+        );
+        assert_eq!(
+            serde_json::to_value(&trajectories[0].voice_calls).unwrap(),
+            fixture.voice_calls.clone().unwrap_or_default(),
         );
         if let Some(compactions) = &fixture.compactions {
             assert_eq!(
@@ -399,13 +404,16 @@ fn check_span_coverage(
             {
                 continue;
             }
-            let requests: HashSet<_> = owner
+            let request_messages: Vec<_> = owner
                 .turns
                 .iter()
                 .flat_map(|turn| turn.request.iter().flatten())
                 .filter(|message| matches!(message, Message::User { .. }))
-                .map(message_dedup_hash)
+                .cloned()
                 .collect();
+            let requests: HashSet<_> = request_messages.iter().map(message_dedup_hash).collect();
+            // LLM calls can split a user turn task's joined message into its parts.
+            let request_words = format!(" {} ", super::stream::user_words(&request_messages));
             for (index, message) in imported
                 .input
                 .iter()
@@ -416,8 +424,12 @@ fn check_span_coverage(
                 if matches!(message, Message::User { .. })
                     && !imported.context_messages.contains(&index)
                 {
+                    let words = super::stream::user_words(std::slice::from_ref(message));
                     assert!(
-                        requests.contains(&message_dedup_hash(message)),
+                        requests.contains(&message_dedup_hash(message))
+                            || (imported.header.kind == "task"
+                                && !words.is_empty()
+                                && request_words.contains(&format!(" {words} "))),
                         "Lost current user message from {}",
                         imported.header.id.as_ref().unwrap()
                     );
@@ -770,6 +782,7 @@ fn generated_conversation(
         compactions: None,
         request_tools: None,
         requests: None,
+        voice_calls: None,
     }
 }
 
@@ -1857,6 +1870,18 @@ fn overlapping_calls_preserve_the_later_answer_unless_they_continue_it() {
 import_fixture!(
     resumed_explicit_turn_owns_late_work,
     "fixtures/resumed-explicit-turn.json"
+);
+import_fixture!(
+    livekit_realtime_talk_over,
+    "fixtures/livekit-realtime-talk-over.json"
+);
+import_fixture!(
+    livekit_cascaded_segmented_recordings,
+    "fixtures/livekit-cascaded-segmented-recordings.json"
+);
+import_fixture!(
+    livekit_realtime_split_user_turn,
+    "fixtures/livekit-realtime-split-user-turn.json"
 );
 
 #[test]

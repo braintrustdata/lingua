@@ -1,0 +1,733 @@
+{
+  "spans": [
+    {
+      "id": "d01faa970342d7dd",
+      "span_id": "42786cf3d8c5fa32",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": null,
+      "span_attributes": {
+        "name": "livekit.agent_session",
+        "type": "task",
+        "exec_counter": 0
+      },
+      "metrics": {
+        "start": 1791525041.912,
+        "end": 1791525064.4423585
+      },
+      "metadata": {
+        "audio.recordings": [
+          {
+            "attachment": {
+              "ref": "/input/audio/call-0000",
+              "span_id": "42786cf3d8c5fa32"
+            },
+            "channel_count": 2,
+            "duration_ms": 21800,
+            "id": "call-0000",
+            "mime_type": "audio/ogg",
+            "recording_group_id": "call",
+            "sample_rate_hz": 48000,
+            "sources": [
+              {
+                "boundary": "session_input",
+                "channel_index": 0
+              },
+              {
+                "boundary": "local_audio_output",
+                "channel_index": 1
+              }
+            ],
+            "state": "ready",
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 1791525041915,
+              "recording_start_offset_ms": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "fca6611802eb8f04",
+      "span_id": "8c3254db13f8155e",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "42786cf3d8c5fa32"
+      ],
+      "span_attributes": {
+        "name": "user_turn",
+        "type": "task",
+        "exec_counter": 5
+      },
+      "metrics": {
+        "start": 1791525043.817,
+        "end": 1791525047.036
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 5120,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 1904
+          }
+        ],
+        "turn.id": "8c3254db13f8155e"
+      },
+      "input": [
+        {
+          "content": "Where is my order DMO1042?",
+          "role": "user"
+        }
+      ]
+    },
+    {
+      "id": "3cc9caab039a52af",
+      "span_id": "6ac8ef6c84ed814b",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "8c3254db13f8155e"
+      ],
+      "span_attributes": {
+        "name": "livekit.user_speaking",
+        "type": "task",
+        "exec_counter": 6
+      },
+      "metrics": {
+        "start": 1791525043.819,
+        "end": 1791525047.0367725
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 5120,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 1904
+          }
+        ],
+        "turn.id": "8c3254db13f8155e"
+      }
+    },
+    {
+      "id": "9bba046de84c0218",
+      "span_id": "ab765cbd059bc986",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "42786cf3d8c5fa32"
+      ],
+      "span_attributes": {
+        "name": "assistant_turn",
+        "type": "task",
+        "exec_counter": 7
+      },
+      "metrics": {
+        "start": 1791525046.624,
+        "end": 1791525051.2049284
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 6112,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 4712
+          },
+          {
+            "channel_index": 1,
+            "end_offset_ms": 9213,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 7813
+          }
+        ],
+        "turn.id": "ab765cbd059bc986",
+        "contrib.livekit.interrupted": false
+      },
+      "output": [
+        {
+          "content": " Checking now.",
+          "role": "assistant"
+        },
+        {
+          "content": "You're welcome.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "c3f6c0b91b73a013",
+      "span_id": "fdea0293ac1ad609",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "ab765cbd059bc986"
+      ],
+      "span_attributes": {
+        "name": "llm_response",
+        "type": "llm",
+        "exec_counter": 8
+      },
+      "metrics": {
+        "start": 1791525046.625,
+        "end": 1791525048.0589826
+      },
+      "metadata": {
+        "turn.id": "ab765cbd059bc986",
+        "contrib.livekit.response_id": "item_2481b506-f02"
+      },
+      "input": [
+        {
+          "content": "Where is my order DMO1042?",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"DMO1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_Cpav75elYDUvRw6zUBRASF2v",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": " Checking now.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "3f76803ecb7647ef",
+      "span_id": "2504b74d640ce522",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "ab765cbd059bc986"
+      ],
+      "span_attributes": {
+        "name": "livekit.agent_speaking",
+        "type": "task",
+        "exec_counter": 9
+      },
+      "metrics": {
+        "start": 1791525046.627,
+        "end": 1791525048.056
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 6112,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 4712
+          }
+        ],
+        "turn.id": "ab765cbd059bc986"
+      }
+    },
+    {
+      "id": "b06d7d4b9bf4a2e5",
+      "span_id": "c1d11764c906e57a",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "ab765cbd059bc986"
+      ],
+      "span_attributes": {
+        "name": "lookup_order",
+        "type": "tool",
+        "exec_counter": 10
+      },
+      "metrics": {
+        "start": 1791525047.23,
+        "end": 1791525047.3528645
+      },
+      "metadata": {
+        "turn.id": "ab765cbd059bc986"
+      },
+      "input": {
+        "order_id": "DMO1042"
+      },
+      "output": {
+        "delivery": "Friday",
+        "demo_data": true,
+        "order_id": "DMO1042",
+        "status": "in_transit"
+      }
+    },
+    {
+      "id": "f58520c34f7f8302",
+      "span_id": "fa8dee023b331db4",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "42786cf3d8c5fa32"
+      ],
+      "span_attributes": {
+        "name": "user_turn",
+        "type": "task",
+        "exec_counter": 11
+      },
+      "metrics": {
+        "start": 1791525049.419,
+        "end": 1791525053.235
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 8299.791666666666,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 7505
+          },
+          {
+            "channel_index": 0,
+            "end_offset_ms": 11320,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 8338
+          }
+        ],
+        "turn.id": "fa8dee023b331db4"
+      },
+      "input": [
+        {
+          "content": " Thanks. Please describe the delivery process in detail",
+          "role": "user"
+        }
+      ]
+    },
+    {
+      "id": "78d84b2b5499f84c",
+      "span_id": "15dc2866966c33bf",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "fa8dee023b331db4"
+      ],
+      "span_attributes": {
+        "name": "livekit.user_speaking",
+        "type": "task",
+        "exec_counter": 12
+      },
+      "metrics": {
+        "start": 1791525049.42,
+        "end": 1791525050.2147818
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 8299.791666666666,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 7505
+          }
+        ],
+        "turn.id": "fa8dee023b331db4"
+      }
+    },
+    {
+      "id": "d92d053657b2c0b6",
+      "span_id": "d95a8334936c45d5",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "ab765cbd059bc986"
+      ],
+      "span_attributes": {
+        "name": "llm_response",
+        "type": "llm",
+        "exec_counter": 13
+      },
+      "metrics": {
+        "start": 1791525049.726,
+        "end": 1791525051.2047353
+      },
+      "metadata": {
+        "turn.id": "ab765cbd059bc986",
+        "contrib.livekit.response_id": "item_690faba8-dd1"
+      },
+      "input": [
+        {
+          "content": "Where is my order DMO1042?",
+          "role": "user"
+        },
+        {
+          "content": " Checking now.",
+          "role": "assistant"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"DMO1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_Cpav75elYDUvRw6zUBRASF2v",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"DMO1042\",\"status\":\"in_transit\",\"delivery\":\"Friday\",\"demo_data\":true}",
+          "role": "tool",
+          "tool_call_id": "call_Cpav75elYDUvRw6zUBRASF2v"
+        },
+        {
+          "content": " Thanks",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": "You're welcome.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "a4fd5845f1cc5a53",
+      "span_id": "d9d551bf15428153",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "ab765cbd059bc986"
+      ],
+      "span_attributes": {
+        "name": "livekit.agent_speaking",
+        "type": "task",
+        "exec_counter": 14
+      },
+      "metrics": {
+        "start": 1791525049.728,
+        "end": 1791525051.204
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 9213,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 7813
+          }
+        ],
+        "turn.id": "ab765cbd059bc986"
+      }
+    },
+    {
+      "id": "6282e35521709cfa",
+      "span_id": "fc7336c3e0d4d02f",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "fa8dee023b331db4"
+      ],
+      "span_attributes": {
+        "name": "livekit.user_speaking",
+        "type": "task",
+        "exec_counter": 15
+      },
+      "metrics": {
+        "start": 1791525050.253,
+        "end": 1791525053.2351737
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 11320,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 8338
+          }
+        ],
+        "turn.id": "fa8dee023b331db4"
+      }
+    },
+    {
+      "id": "8af478ffd3f818ba",
+      "span_id": "3f38581181e1a4e9",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "42786cf3d8c5fa32"
+      ],
+      "span_attributes": {
+        "name": "assistant_turn",
+        "type": "task",
+        "exec_counter": 16
+      },
+      "metrics": {
+        "start": 1791525052.537,
+        "end": 1791525061.7040942
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 19724,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 10624
+          }
+        ],
+        "turn.id": "3f38581181e1a4e9",
+        "contrib.livekit.interrupted": false
+      },
+      "output": [
+        {
+          "content": "It goes from the warehouse to a carrier hub, then it’s sorted, sent to your local station, loaded on a truck, and delivered to your address.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "1bc7e0740c36d3e9",
+      "span_id": "16ed7df9abedd3ca",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "3f38581181e1a4e9"
+      ],
+      "span_attributes": {
+        "name": "llm_response",
+        "type": "llm",
+        "exec_counter": 17
+      },
+      "metrics": {
+        "start": 1791525052.538,
+        "end": 1791525061.7042522
+      },
+      "metadata": {
+        "turn.id": "3f38581181e1a4e9",
+        "contrib.livekit.response_id": "item_3861538a-32c"
+      },
+      "input": [
+        {
+          "content": "Where is my order DMO1042?",
+          "role": "user"
+        },
+        {
+          "content": " Checking now.",
+          "role": "assistant"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"DMO1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_Cpav75elYDUvRw6zUBRASF2v",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"DMO1042\",\"status\":\"in_transit\",\"delivery\":\"Friday\",\"demo_data\":true}",
+          "role": "tool",
+          "tool_call_id": "call_Cpav75elYDUvRw6zUBRASF2v"
+        },
+        {
+          "content": " Thanks",
+          "role": "user"
+        },
+        {
+          "content": "You're welcome.",
+          "role": "assistant"
+        },
+        {
+          "content": ". Please describe the delivery process in detail",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": "It goes from the warehouse to a carrier hub, then it’s sorted, sent to your local station, loaded on a truck, and delivered to your address.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "fbdccb58cf8ae2b7",
+      "span_id": "6a410b5c8a3d27a0",
+      "root_span_id": "b7534b3acd7e7ebe5a4a2f9dd18e64c8",
+      "span_parents": [
+        "3f38581181e1a4e9"
+      ],
+      "span_attributes": {
+        "name": "livekit.agent_speaking",
+        "type": "task",
+        "exec_counter": 18
+      },
+      "metrics": {
+        "start": 1791525052.539,
+        "end": 1791525061.704
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 19724,
+            "recording_id": "call-0000",
+            "recording_span_id": "42786cf3d8c5fa32",
+            "start_offset_ms": 10624
+          }
+        ],
+        "turn.id": "3f38581181e1a4e9"
+      }
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "fca6611802eb8f04",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "c3f6c0b91b73a013",
+        "b06d7d4b9bf4a2e5"
+      ],
+      "user_texts": [
+        "Where is my order DMO1042?"
+      ],
+      "interrupted": null
+    },
+    {
+      "request_id": "f58520c34f7f8302",
+      "response_id": "d92d053657b2c0b6",
+      "response_text": "You're welcome.",
+      "work_ids": [],
+      "user_texts": [
+        " Thanks"
+      ],
+      "interrupted": null
+    },
+    {
+      "request_id": "1bc7e0740c36d3e9",
+      "response_id": "1bc7e0740c36d3e9",
+      "response_text": "It goes from the warehouse to a carrier hub, then it’s sorted, sent to your local station, loaded on a truck, and delivered to your address.",
+      "work_ids": [],
+      "user_texts": [
+        ". Please describe the delivery process in detail"
+      ],
+      "interrupted": null
+    }
+  ],
+  "voice_calls": [
+    {
+      "id": "d01faa970342d7dd",
+      "recordings": [
+        {
+          "id": "call-0000",
+          "attachment_span_id": "d01faa970342d7dd",
+          "attachment_pointer": "/input/audio/call-0000",
+          "start_time": "2026-10-09T05:50:41.915Z",
+          "duration_ms": 21800.0
+        }
+      ],
+      "speech": [
+        {
+          "id": "3cc9caab039a52af",
+          "speaker": "user",
+          "step_ids": [
+            "c3f6c0b91b73a013"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0000",
+              "channel_index": 0,
+              "start_offset_ms": 1904.0,
+              "end_offset_ms": 5120.0
+            }
+          ]
+        },
+        {
+          "id": "3f76803ecb7647ef",
+          "speaker": "agent",
+          "step_ids": [
+            "c3f6c0b91b73a013"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0000",
+              "channel_index": 1,
+              "start_offset_ms": 4712.0,
+              "end_offset_ms": 6112.0
+            }
+          ],
+          "interrupted": false
+        },
+        {
+          "id": "78d84b2b5499f84c",
+          "speaker": "user",
+          "step_ids": [
+            "d92d053657b2c0b6"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0000",
+              "channel_index": 0,
+              "start_offset_ms": 7505.0,
+              "end_offset_ms": 8299.791666666666
+            }
+          ]
+        },
+        {
+          "id": "a4fd5845f1cc5a53",
+          "speaker": "agent",
+          "step_ids": [
+            "d92d053657b2c0b6"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0000",
+              "channel_index": 1,
+              "start_offset_ms": 7813.0,
+              "end_offset_ms": 9213.0
+            }
+          ],
+          "interrupted": false
+        },
+        {
+          "id": "6282e35521709cfa",
+          "speaker": "user",
+          "step_ids": [
+            "1bc7e0740c36d3e9"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0000",
+              "channel_index": 0,
+              "start_offset_ms": 8338.0,
+              "end_offset_ms": 11320.0
+            }
+          ]
+        },
+        {
+          "id": "fbdccb58cf8ae2b7",
+          "speaker": "agent",
+          "step_ids": [
+            "1bc7e0740c36d3e9"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0000",
+              "channel_index": 1,
+              "start_offset_ms": 10624.0,
+              "end_offset_ms": 19724.0
+            }
+          ],
+          "interrupted": false
+        }
+      ]
+    }
+  ]
+}

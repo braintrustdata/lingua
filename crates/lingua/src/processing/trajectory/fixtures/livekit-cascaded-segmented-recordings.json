@@ -1,0 +1,583 @@
+{
+  "spans": [
+    {
+      "id": "68700321074961c8",
+      "span_id": "abb9e3a1cdca98ed",
+      "root_span_id": "53b6e21d0d6487c861719c545136a703",
+      "span_parents": null,
+      "span_attributes": {
+        "name": "livekit.agent_session",
+        "type": "task",
+        "exec_counter": 0
+      },
+      "metrics": {
+        "start": 1791402990.848,
+        "end": 1791403094.9129865
+      },
+      "metadata": {
+        "audio.recordings": [
+          {
+            "id": "call-0000",
+            "attachment": {
+              "ref": "/input/audio/call-0000",
+              "span_id": "abb9e3a1cdca98ed"
+            },
+            "duration_ms": 5000,
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 1791402990850,
+              "recording_start_offset_ms": 0
+            }
+          },
+          {
+            "id": "call-0001",
+            "attachment": {
+              "ref": "/input/audio/call-0001",
+              "span_id": "abb9e3a1cdca98ed"
+            },
+            "duration_ms": 5000,
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 1791402990850,
+              "recording_start_offset_ms": 5000
+            }
+          },
+          {
+            "id": "call-0002",
+            "attachment": {
+              "ref": "/input/audio/call-0002",
+              "span_id": "abb9e3a1cdca98ed"
+            },
+            "duration_ms": 5000,
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 1791402990850,
+              "recording_start_offset_ms": 10000
+            }
+          },
+          {
+            "id": "call-0003",
+            "attachment": {
+              "ref": "/input/audio/call-0003",
+              "span_id": "abb9e3a1cdca98ed"
+            },
+            "duration_ms": 5000,
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 1791402990850,
+              "recording_start_offset_ms": 15000
+            }
+          },
+          {
+            "id": "call-0004",
+            "attachment": {
+              "ref": "/input/audio/call-0004",
+              "span_id": "abb9e3a1cdca98ed"
+            },
+            "duration_ms": 5000,
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 1791402990850,
+              "recording_start_offset_ms": 20000
+            }
+          },
+          {
+            "id": "call-0005",
+            "attachment": {
+              "ref": "/input/audio/call-0005",
+              "span_id": "abb9e3a1cdca98ed"
+            },
+            "duration_ms": 5000,
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 1791402990850,
+              "recording_start_offset_ms": 25000
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "4e60fb6d084dea7a",
+      "span_id": "02e9b4d785813432",
+      "root_span_id": "53b6e21d0d6487c861719c545136a703",
+      "span_parents": [
+        "abb9e3a1cdca98ed"
+      ],
+      "span_attributes": {
+        "name": "assistant_turn",
+        "type": "task",
+        "exec_counter": 5
+      },
+      "metrics": {
+        "start": 1791402990.857,
+        "end": 1791402998.0281906
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 5000,
+            "recording_id": "call-0000",
+            "recording_span_id": "abb9e3a1cdca98ed",
+            "start_offset_ms": 1535
+          },
+          {
+            "channel_index": 1,
+            "end_offset_ms": 2135,
+            "recording_id": "call-0001",
+            "recording_span_id": "abb9e3a1cdca98ed",
+            "start_offset_ms": 0
+          }
+        ],
+        "contrib.livekit.interrupted": false,
+        "turn.id": "02e9b4d785813432"
+      },
+      "output": [
+        {
+          "content": "Hi, this is Sam from Northwind Outfitters. How can I assist you today?",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "4be3cfd31c97d605",
+      "span_id": "95e3ce30e674d9eb",
+      "root_span_id": "53b6e21d0d6487c861719c545136a703",
+      "span_parents": [
+        "02e9b4d785813432"
+      ],
+      "span_attributes": {
+        "name": "llm_response",
+        "type": "llm",
+        "exec_counter": 6
+      },
+      "metrics": {
+        "start": 1791402990.858,
+        "end": 1791402991.6889372
+      },
+      "metadata": {
+        "turn.id": "02e9b4d785813432"
+      },
+      "input": [
+        {
+          "content": "You are Sam, a phone support agent for Northwind Outfitters. Keep replies to one or two short spoken sentences. Use lookup_order whenever the caller gives an order number, and only state facts the tools return. Returns are accepted within 30 days of delivery; the return label is emailed. Speak only English.\nGreet the caller briefly as Sam from Northwind Outfitters and ask how you can help.",
+          "role": "system"
+        }
+      ],
+      "output": [
+        {
+          "content": "Hi, this is Sam from Northwind Outfitters. How can I assist you today?",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "37065cbd914bc2fe",
+      "span_id": "d7825dd5bba646ad",
+      "root_span_id": "53b6e21d0d6487c861719c545136a703",
+      "span_parents": [
+        "abb9e3a1cdca98ed"
+      ],
+      "span_attributes": {
+        "name": "user_turn",
+        "type": "task",
+        "exec_counter": 12
+      },
+      "metrics": {
+        "start": 1791403000.297,
+        "end": 1791403006.625
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 5000,
+            "recording_id": "call-0001",
+            "recording_span_id": "abb9e3a1cdca98ed",
+            "start_offset_ms": 4447
+          },
+          {
+            "channel_index": 0,
+            "end_offset_ms": 5000,
+            "recording_id": "call-0002",
+            "recording_span_id": "abb9e3a1cdca98ed",
+            "start_offset_ms": 0
+          },
+          {
+            "channel_index": 0,
+            "end_offset_ms": 272,
+            "recording_id": "call-0003",
+            "recording_span_id": "abb9e3a1cdca98ed",
+            "start_offset_ms": 0
+          }
+        ],
+        "turn.id": "d7825dd5bba646ad"
+      },
+      "input": [
+        {
+          "content": "Hi, I have a couple of questions. First, where is order 1042?",
+          "role": "user"
+        }
+      ]
+    },
+    {
+      "id": "20686ad45c6d1281",
+      "span_id": "b4eea8db2d0be43e",
+      "root_span_id": "53b6e21d0d6487c861719c545136a703",
+      "span_parents": [
+        "abb9e3a1cdca98ed"
+      ],
+      "span_attributes": {
+        "name": "assistant_turn",
+        "type": "task",
+        "exec_counter": 14
+      },
+      "metrics": {
+        "start": 1791403006.123,
+        "end": 1791403017.2605555
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 5000,
+            "recording_id": "call-0003",
+            "recording_span_id": "abb9e3a1cdca98ed",
+            "start_offset_ms": 2747
+          },
+          {
+            "channel_index": 1,
+            "end_offset_ms": 5000,
+            "recording_id": "call-0004",
+            "recording_span_id": "abb9e3a1cdca98ed",
+            "start_offset_ms": 0
+          },
+          {
+            "channel_index": 1,
+            "end_offset_ms": 1347,
+            "recording_id": "call-0005",
+            "recording_span_id": "abb9e3a1cdca98ed",
+            "start_offset_ms": 0
+          }
+        ],
+        "contrib.livekit.interrupted": false,
+        "turn.id": "b4eea8db2d0be43e"
+      },
+      "output": [
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_y0Fa7VoNupvps8VbeUhQwP5R",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "Your order 1042 is currently in transit with UPS and is expected to be delivered on Friday. What is your next question?",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "46abfeb4fb33e744",
+      "span_id": "0029f50271b0276f",
+      "root_span_id": "53b6e21d0d6487c861719c545136a703",
+      "span_parents": [
+        "b4eea8db2d0be43e"
+      ],
+      "span_attributes": {
+        "name": "llm_response",
+        "type": "llm",
+        "exec_counter": 15
+      },
+      "metrics": {
+        "start": 1791403006.123,
+        "end": 1791403006.8319285
+      },
+      "metadata": {
+        "turn.id": "b4eea8db2d0be43e"
+      },
+      "input": [
+        {
+          "content": "You are Sam, a phone support agent for Northwind Outfitters. Keep replies to one or two short spoken sentences. Use lookup_order whenever the caller gives an order number, and only state facts the tools return. Returns are accepted within 30 days of delivery; the return label is emailed. Speak only English.",
+          "role": "system"
+        },
+        {
+          "content": "Hi, this is Sam from Northwind Outfitters. How can I assist you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, I have a couple of questions. First, where is order 1042?",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": null,
+          "role": "assistant"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_y0Fa7VoNupvps8VbeUhQwP5R",
+              "type": "function"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "02feb449c8bc9ca5",
+      "span_id": "b95fcd862532faef",
+      "root_span_id": "53b6e21d0d6487c861719c545136a703",
+      "span_parents": [
+        "b4eea8db2d0be43e"
+      ],
+      "span_attributes": {
+        "name": "lookup_order",
+        "type": "tool",
+        "exec_counter": 18
+      },
+      "metrics": {
+        "start": 1791403006.821,
+        "end": 1791403006.8225667
+      },
+      "metadata": {
+        "turn.id": "b4eea8db2d0be43e"
+      },
+      "input": {
+        "order_id": "1042"
+      },
+      "output": {
+        "carrier": "UPS",
+        "delivery_day": "Friday",
+        "order_id": "1042",
+        "status": "in_transit"
+      }
+    },
+    {
+      "id": "b2a7f8ec4e53de3b",
+      "span_id": "0200ebcbf5fcf8ee",
+      "root_span_id": "53b6e21d0d6487c861719c545136a703",
+      "span_parents": [
+        "b4eea8db2d0be43e"
+      ],
+      "span_attributes": {
+        "name": "llm_response",
+        "type": "llm",
+        "exec_counter": 19
+      },
+      "metrics": {
+        "start": 1791403006.833,
+        "end": 1791403007.503374
+      },
+      "metadata": {
+        "turn.id": "b4eea8db2d0be43e"
+      },
+      "input": [
+        {
+          "content": "You are Sam, a phone support agent for Northwind Outfitters. Keep replies to one or two short spoken sentences. Use lookup_order whenever the caller gives an order number, and only state facts the tools return. Returns are accepted within 30 days of delivery; the return label is emailed. Speak only English.",
+          "role": "system"
+        },
+        {
+          "content": "Hi, this is Sam from Northwind Outfitters. How can I assist you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, I have a couple of questions. First, where is order 1042?",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_y0Fa7VoNupvps8VbeUhQwP5R",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1042\",\"status\":\"in_transit\",\"carrier\":\"UPS\",\"delivery_day\":\"Friday\"}",
+          "role": "tool",
+          "tool_call_id": "call_y0Fa7VoNupvps8VbeUhQwP5R"
+        }
+      ],
+      "output": [
+        {
+          "content": "Your order 1042 is currently in transit with UPS and is expected to be delivered on Friday. What is your next question?",
+          "role": "assistant"
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "4be3cfd31c97d605",
+      "response_id": "4be3cfd31c97d605",
+      "response_text": "Hi, this is Sam from Northwind Outfitters. How can I assist you today?",
+      "work_ids": [],
+      "user_texts": [],
+      "interrupted": null
+    },
+    {
+      "request_id": "37065cbd914bc2fe",
+      "response_id": "b2a7f8ec4e53de3b",
+      "response_text": "Your order 1042 is currently in transit with UPS and is expected to be delivered on Friday. What is your next question?",
+      "work_ids": [
+        "46abfeb4fb33e744",
+        "02feb449c8bc9ca5"
+      ],
+      "user_texts": [
+        "Hi, I have a couple of questions. First, where is order 1042?"
+      ],
+      "interrupted": null
+    }
+  ],
+  "voice_calls": [
+    {
+      "id": "68700321074961c8",
+      "recordings": [
+        {
+          "id": "call-0000",
+          "attachment_span_id": "68700321074961c8",
+          "attachment_pointer": "/input/audio/call-0000",
+          "start_time": "2026-10-07T19:56:30.850Z",
+          "duration_ms": 5000.0
+        },
+        {
+          "id": "call-0001",
+          "attachment_span_id": "68700321074961c8",
+          "attachment_pointer": "/input/audio/call-0001",
+          "start_time": "2026-10-07T19:56:35.850Z",
+          "duration_ms": 5000.0
+        },
+        {
+          "id": "call-0002",
+          "attachment_span_id": "68700321074961c8",
+          "attachment_pointer": "/input/audio/call-0002",
+          "start_time": "2026-10-07T19:56:40.850Z",
+          "duration_ms": 5000.0
+        },
+        {
+          "id": "call-0003",
+          "attachment_span_id": "68700321074961c8",
+          "attachment_pointer": "/input/audio/call-0003",
+          "start_time": "2026-10-07T19:56:45.850Z",
+          "duration_ms": 5000.0
+        },
+        {
+          "id": "call-0004",
+          "attachment_span_id": "68700321074961c8",
+          "attachment_pointer": "/input/audio/call-0004",
+          "start_time": "2026-10-07T19:56:50.850Z",
+          "duration_ms": 5000.0
+        },
+        {
+          "id": "call-0005",
+          "attachment_span_id": "68700321074961c8",
+          "attachment_pointer": "/input/audio/call-0005",
+          "start_time": "2026-10-07T19:56:55.850Z",
+          "duration_ms": 5000.0
+        }
+      ],
+      "speech": [
+        {
+          "id": "4e60fb6d084dea7a",
+          "speaker": "agent",
+          "step_ids": [
+            "4be3cfd31c97d605"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0000",
+              "channel_index": 1,
+              "start_offset_ms": 1535.0,
+              "end_offset_ms": 5000.0
+            },
+            {
+              "recording_id": "call-0001",
+              "channel_index": 1,
+              "start_offset_ms": 0.0,
+              "end_offset_ms": 2135.0
+            }
+          ],
+          "interrupted": false
+        },
+        {
+          "id": "37065cbd914bc2fe",
+          "speaker": "user",
+          "step_ids": [
+            "37065cbd914bc2fe"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0001",
+              "channel_index": 0,
+              "start_offset_ms": 4447.0,
+              "end_offset_ms": 5000.0
+            },
+            {
+              "recording_id": "call-0002",
+              "channel_index": 0,
+              "start_offset_ms": 0.0,
+              "end_offset_ms": 5000.0
+            },
+            {
+              "recording_id": "call-0003",
+              "channel_index": 0,
+              "start_offset_ms": 0.0,
+              "end_offset_ms": 272.0
+            }
+          ]
+        },
+        {
+          "id": "20686ad45c6d1281",
+          "speaker": "agent",
+          "step_ids": [
+            "46abfeb4fb33e744",
+            "b2a7f8ec4e53de3b"
+          ],
+          "selections": [
+            {
+              "recording_id": "call-0003",
+              "channel_index": 1,
+              "start_offset_ms": 2747.0,
+              "end_offset_ms": 5000.0
+            },
+            {
+              "recording_id": "call-0004",
+              "channel_index": 1,
+              "start_offset_ms": 0.0,
+              "end_offset_ms": 5000.0
+            },
+            {
+              "recording_id": "call-0005",
+              "channel_index": 1,
+              "start_offset_ms": 0.0,
+              "end_offset_ms": 1347.0
+            }
+          ],
+          "interrupted": false
+        }
+      ]
+    }
+  ]
+}
