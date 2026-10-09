@@ -3,7 +3,7 @@ mod stream;
 mod tests;
 pub use stream::{TrajectoryCollector, TrajectoryEvent, TrajectoryStream};
 
-use crate::processing::import::{is_instruction, ImportedSpan, SpanContext};
+use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext};
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
@@ -51,6 +51,8 @@ pub struct PreparedSpan {
     input_keys: Vec<u64>,
     standalone_request: bool,
     output: Vec<Message>,
+    opaque_input: Vec<OpaqueItem>,
+    opaque_output: Vec<OpaqueItem>,
     interruption_offsets: Vec<usize>,
     usage: Option<UniversalUsage>,
     tool_result: Option<ToolResult>,
@@ -139,6 +141,8 @@ impl PreparedSpan {
             source,
             input,
             output: span.output,
+            opaque_input: span.opaque_input,
+            opaque_output: span.opaque_output,
             input_keys,
             standalone_request,
             interruption_offsets,
@@ -202,6 +206,8 @@ impl PreparedSpan {
         }
         AgentResponse {
             response: Some(AssistantContent::Array(parts)),
+            opaque_input: self.opaque_input.clone(),
+            opaque_output: self.opaque_output.clone(),
             usage: self.usage(),
             start_time: Some(self.start),
             end_time: self.source.end,

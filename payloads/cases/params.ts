@@ -679,6 +679,60 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  anthropicSonnet5AdaptiveThinkingDisplaySummarizedParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: "claude-sonnet-5",
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "user",
+          content:
+            "A fair coin is flipped until either HHT or HTH first appears. What is the probability that HHT appears first, and what is the expected number of flips until stopping? Derive both results using state equations.",
+        },
+      ],
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: "high" },
+    },
+    google: null,
+    bedrock: null,
+    "bedrock-anthropic": {
+      model: "us.anthropic.claude-sonnet-5",
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "user",
+          content:
+            "A fair coin is flipped until either HHT or HTH first appears. What is the probability that HHT appears first, and what is the expected number of flips until stopping? Derive both results using state equations.",
+        },
+      ],
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: "high" },
+    },
+  },
+
+  anthropicOpus5AdaptiveThinkingDisplaySummarizedParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: "claude-opus-5",
+      max_tokens: 4096,
+      messages: [{ role: "user", content: "What is 17 times 23?" }],
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: "high" },
+    },
+    google: null,
+    bedrock: null,
+    "bedrock-anthropic": {
+      model: "us.anthropic.claude-opus-5",
+      max_tokens: 4096,
+      messages: [{ role: "user", content: "What is 17 times 23?" }],
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: "high" },
+    },
+  },
+
   anthropicOpus5DisabledThinkingHighEffortParam: {
     "chat-completions": null,
     responses: null,
@@ -2532,6 +2586,28 @@ export const paramsCases: TestCaseCollection = {
     },
     google: null,
     bedrock: null,
+  },
+
+  haiku55SamplingParams: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say hi." }],
+      temperature: 0.7,
+      top_p: 0.9,
+    },
+    responses: null,
+    anthropic: {
+      model: "claude-haiku-5-5",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say hi." }],
+    },
+    "vertex-anthropic": null,
+    google: null,
+    bedrock: {
+      modelId: "global.anthropic.claude-haiku-5-5",
+      messages: [{ role: "user", content: [{ text: "Say hi." }] }],
+      inferenceConfig: { maxTokens: 1024 },
+    },
   },
 
   bedrockAnthropicOpus48SamplingParam: {

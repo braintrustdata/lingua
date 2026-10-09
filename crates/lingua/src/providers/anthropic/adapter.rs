@@ -565,10 +565,25 @@ impl ProviderAdapter for AnthropicAdapter {
             });
 
         let thinking_val = if use_adaptive_thinking {
+            // Same-provider Anthropic round-trips carry the original `thinking` in extras.
+            // Preserve its `display` so an explicit "summarized" opt-in survives; models
+            // that default `display` to "omitted" would otherwise return empty thinking.
+            let display = anthropic_extras_view
+                .thinking
+                .as_ref()
+                .map(|raw| serde_json::from_value::<Thinking>(raw.clone()))
+                .transpose()
+                .map_err(|e| {
+                    TransformError::FromUniversalFailed(format!(
+                        "invalid Anthropic thinking extras: {}",
+                        e
+                    ))
+                })?
+                .and_then(|thinking| thinking.display);
             Some(
                 serde_json::to_value(&Thinking {
                     budget_tokens: None,
-                    display: None,
+                    display,
                     thinking_type: ThinkingType::Adaptive,
                 })
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
@@ -811,7 +826,7 @@ impl ProviderAdapter for AnthropicAdapter {
             }
         }
 
-        // Enforce model-specific transforms (e.g. strip sampling params for Opus 4.7).
+        // Enforce sampling policy after extras so they cannot restore removed parameters.
         capabilities::apply_model_transforms(model, &mut obj);
 
         Ok(Value::Object(obj))
@@ -1736,7 +1751,7 @@ fn parse_content_block_start_event(payload: &Value) -> ContentBlockStartEventVie
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::providers::anthropic::generated::System;
+    use crate::providers::anthropic::generated::{System, ThinkingDisplayMode};
     use crate::serde_json::json;
     use crate::universal::UniversalReasoningSignature;
     use serde::Deserialize;
@@ -2240,12 +2255,17 @@ mod tests {
     }
 
     #[test]
-    fn test_anthropic_strips_sampling_params_for_opus_4_7() {
+    fn test_anthropic_strips_sampling_params_for_new_claude_models() {
         use crate::universal::message::UserContent;
 
         let adapter = AnthropicAdapter;
 
         for model in [
+            "claude-haiku-5-5",
+            "claude-haiku-5.5",
+            "us.anthropic.claude-haiku-5-5-v1:0",
+            "publishers/anthropic/models/claude-haiku-5-5",
+            "claude-future-6",
             "claude-opus-4-7",
             "claude-opus-4-8",
             "claude-opus-4-10",
@@ -2591,6 +2611,44 @@ mod tests {
                 output_config.effort,
                 Some(expected_effort),
                 "{model}: output_config.effort should round-trip {effort}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_preserves_adaptive_thinking_display_round_trip() {
+        // Same-provider Anthropic round-trip: an explicit `thinking.display` must survive
+        // the adaptive-thinking rebuild.
+        for (model, display) in [
+            ("claude-sonnet-5", Some("summarized")),
+            ("claude-opus-5", Some("summarized")),
+            ("claude-opus-4-7", Some("omitted")),
+            ("claude-sonnet-5", None),
+        ] {
+            let adapter = AnthropicAdapter;
+            let mut thinking = json!({"type": "adaptive"});
+            if let Some(display) = display {
+                thinking["display"] = json!(display);
+            }
+            let payload = json!({
+                "model": model,
+                "max_tokens": 4096,
+                "messages": [{"role": "user", "content": "What is 2+2?"}],
+                "thinking": thinking
+            });
+
+            let universal = adapter.request_to_universal(payload).unwrap();
+            let result: CreateMessageParams =
+                serde_json::from_value(adapter.request_from_universal(&universal).unwrap())
+                    .unwrap();
+
+            let thinking = result.thinking.expect("thinking should be present");
+            assert_eq!(thinking.thinking_type, ThinkingType::Adaptive);
+            let expected_display: Option<ThinkingDisplayMode> =
+                display.map(|d| serde_json::from_value(json!(d)).unwrap());
+            assert_eq!(
+                thinking.display, expected_display,
+                "{model}: thinking.display should round-trip {display:?}"
             );
         }
     }
@@ -2990,7 +3048,7 @@ mod tests {
     }
 
     #[test]
-    fn test_anthropic_strips_sampling_params_from_extras_for_opus_4_7() {
+    fn test_anthropic_strips_sampling_params_from_extras_for_haiku_5_5() {
         use crate::capabilities::ProviderFormat;
         use crate::universal::message::UserContent;
         use std::collections::HashMap;
@@ -3006,7 +3064,7 @@ mod tests {
         extras_map.insert(ProviderFormat::Anthropic, anthropic_extras);
 
         let req = UniversalRequest {
-            model: Some("claude-opus-4-7".to_string()),
+            model: Some("claude-haiku-5-5".to_string()),
             messages: vec![Message::User {
                 content: UserContent::String("Hello".to_string()),
             }],
@@ -3022,15 +3080,15 @@ mod tests {
 
         assert!(
             result.temperature.is_none(),
-            "Temperature should be stripped even when sourced from extras for Opus 4.7"
+            "Temperature should be stripped even when sourced from extras for Haiku 5.5"
         );
         assert!(
             result.top_p.is_none(),
-            "top_p should be stripped even when sourced from extras for Opus 4.7"
+            "top_p should be stripped even when sourced from extras for Haiku 5.5"
         );
         assert!(
             result.top_k.is_none(),
-            "top_k should be stripped even when sourced from extras for Opus 4.7"
+            "top_k should be stripped even when sourced from extras for Haiku 5.5"
         );
     }
 

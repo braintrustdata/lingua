@@ -234,8 +234,16 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         source.span_attributes.kind.as_deref() == Some("llm"),
         options,
     );
-    opaque_input.extend(compaction_input.map(|value| OpaqueItem { index: None, value }));
-    opaque_output.extend(compaction_output.map(|value| OpaqueItem { index: None, value }));
+    opaque_input.extend(compaction_input.map(|value| OpaqueItem {
+        index: None,
+        value,
+        is_metadata: false,
+    }));
+    opaque_output.extend(compaction_output.map(|value| OpaqueItem {
+        index: None,
+        value,
+        is_metadata: false,
+    }));
     errors.extend(message_errors);
     let context_messages = input
         .iter()

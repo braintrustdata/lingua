@@ -151,10 +151,16 @@ This package provides scripts to systematically capture real API requests and re
 pnpm install --frozen-lockfile
 ```
 
-## Environment Variables
+## Environment variables
 
 - `OPENAI_API_KEY`: Required for capturing OpenAI payloads
 - `ANTHROPIC_API_KEY`: Required for capturing Anthropic payloads
+- `GOOGLE_SERVICE_ACCOUNT_JSON`: Service account JSON for Vertex Anthropic captures, read directly into memory. Takes precedence over `GOOGLE_APPLICATION_CREDENTIALS`; invalid JSON is rejected without trying the file option.
+- `GOOGLE_APPLICATION_CREDENTIALS`: Service account JSON file path for Vertex Anthropic captures when `GOOGLE_SERVICE_ACCOUNT_JSON` is unset.
+- `VERTEX_PROJECT`: Required Google Cloud project ID for Vertex Anthropic captures.
+- `VERTEX_LOCATION`: Vertex region (defaults to `us-east5`).
+
+In Starfolk, store `GOOGLE_SERVICE_ACCOUNT_JSON` with **Secret** and **Export into box login shells** enabled. `VERTEX_PROJECT` and `VERTEX_LOCATION` can be ordinary configuration values. No credential file is needed when using the JSON secret.
 
 ## Usage
 

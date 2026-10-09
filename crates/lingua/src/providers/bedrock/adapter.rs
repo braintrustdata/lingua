@@ -1025,6 +1025,28 @@ mod tests {
     }
 
     #[test]
+    fn test_bedrock_anthropic_haiku_5_5_strips_sampling_params() {
+        let adapter = BedrockAdapter;
+        let universal = UniversalRequest {
+            model: Some("global.anthropic.claude-haiku-5-5-v1:0".to_string()),
+            messages: vec![],
+            params: UniversalParams {
+                temperature: Some(0.7),
+                top_p: Some(0.9),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                ..Default::default()
+            },
+        };
+
+        let reconstructed: BedrockParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+        let inference_config = reconstructed.inference_config.unwrap();
+        assert_eq!(inference_config.temperature, None);
+        assert_eq!(inference_config.top_p, None);
+        assert_eq!(inference_config.max_tokens, Some(4096));
+    }
+
+    #[test]
     fn test_bedrock_anthropic_opus_4_8_strips_sampling_params() {
         let adapter = BedrockAdapter;
         let universal = UniversalRequest {

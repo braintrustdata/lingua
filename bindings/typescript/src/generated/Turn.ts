@@ -2,7 +2,8 @@
 import type { AgentResponse } from "./AgentResponse";
 import type { Compaction } from "./Compaction";
 import type { Message } from "./Message";
+import type { OpaqueItem } from "./OpaqueItem";
 import type { UniversalParams } from "./UniversalParams";
 import type { WorkStep } from "./WorkStep";
 
-export type Turn = { request_id: string, response_id?: string, request?: Array<Message>, response?: AgentResponse, work: Array<WorkStep>, model?: string, params?: UniversalParams, start_time: string, end_time?: string, interrupted?: boolean, compaction?: Compaction, };
+export type Turn = { request_id: string, response_id?: string, request?: Array<Message>, opaque_request?: Array<OpaqueItem>, response?: AgentResponse, work: Array<WorkStep>, model?: string, params?: UniversalParams, start_time: string, end_time?: string, interrupted?: boolean, compaction?: Compaction, };

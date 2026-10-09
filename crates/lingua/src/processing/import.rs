@@ -25,6 +25,7 @@ use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
+pub use crate::universal::trajectory::OpaqueItem;
 use crate::universal::Message;
 use crate::universal::{
     AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
@@ -46,14 +47,6 @@ pub(crate) fn is_instruction(message: &Message) -> bool {
 pub struct ImportOptions {
     #[serde(default)]
     pub preserve_unsupported: bool,
-}
-
-/// Source data retained without interpreting it as a conversational message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OpaqueItem {
-    /// Position in the source array, or None when the payload itself is opaque.
-    pub index: Option<usize>,
-    pub value: Value,
 }
 
 #[derive(Default)]
@@ -261,6 +254,7 @@ fn try_parse_mixed_messages_for_import(
             import.opaque.push(OpaqueItem {
                 index: Some(index),
                 value: item.clone(),
+                is_metadata: false,
             });
             continue;
         }
@@ -317,6 +311,7 @@ fn try_parse_mixed_messages_for_import(
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
+                    is_metadata: true,
                 });
             }
         }
@@ -329,6 +324,7 @@ fn try_parse_mixed_messages_for_import(
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
+                    is_metadata: false,
                 });
             }
             continue;
@@ -431,11 +427,26 @@ enum LenientTextContentPartCompat {
 
 #[cfg(feature = "openai")]
 #[derive(Deserialize)]
-struct AttachmentImageCompat {
-    #[serde(alias = "image")]
-    image_url: ImageAttachment,
-    #[serde(flatten)]
-    part: openai::InputContent,
+#[serde(untagged)]
+enum AttachmentImageCompat {
+    Responses {
+        #[serde(alias = "image")]
+        image_url: ImageAttachment,
+        #[serde(flatten)]
+        part: openai::InputContent,
+    },
+    ChatCompletions {
+        image_url: AttachmentImageUrlCompat,
+        #[serde(flatten)]
+        part: openai::ChatCompletionRequestMessageContentPart,
+    },
+}
+
+#[cfg(feature = "openai")]
+#[derive(Deserialize)]
+struct AttachmentImageUrlCompat {
+    url: ImageAttachment,
+    detail: Option<openai::Detail>,
 }
 
 #[cfg(feature = "openai")]
@@ -452,21 +463,31 @@ enum ImageAttachment {
 
 #[cfg(feature = "openai")]
 fn try_parse_attachment_image(item: &Value) -> Option<UserContentPart> {
-    let AttachmentImageCompat { image_url, part } =
-        AttachmentImageCompat::deserialize(item).ok()?;
-    if part.input_content_type != openai::InputItemContentListType::InputImage
-        || part.prompt_cache_breakpoint.is_some()
-    {
-        return None;
-    }
+    let (image_url, detail) = match AttachmentImageCompat::deserialize(item).ok()? {
+        AttachmentImageCompat::Responses { image_url, part }
+            if part.input_content_type == openai::InputItemContentListType::InputImage
+                && part.prompt_cache_breakpoint.is_none() =>
+        {
+            (
+                image_url,
+                part.detail.map(|detail| serde_json::json!(detail)),
+            )
+        }
+        AttachmentImageCompat::ChatCompletions { image_url, part }
+            if part.content_part_type == openai::PurpleType::ImageUrl
+                && part.prompt_cache_breakpoint.is_none() =>
+        {
+            (
+                image_url.url,
+                image_url.detail.map(|detail| serde_json::json!(detail)),
+            )
+        }
+        _ => return None,
+    };
     let ImageAttachment::Braintrust { content_type, .. } = &image_url;
-    let provider_options = part
-        .detail
-        .map(|detail| crate::universal::message::ProviderOptions {
-            options: [("detail".to_string(), serde_json::json!(detail))]
-                .into_iter()
-                .collect(),
-        });
+    let provider_options = detail.map(|detail| crate::universal::message::ProviderOptions {
+        options: [("detail".to_string(), detail)].into_iter().collect(),
+    });
     Some(UserContentPart::Image {
         image: serde_json::to_value(&image_url).ok()?,
         media_type: Some(content_type.clone()),
@@ -916,15 +937,16 @@ fn import_span_messages(
     };
     let parse = |value: Value, field: &str, import: &mut MessageImport| {
         if options.preserve_unsupported && is_opaque_item(&value) {
-            import.opaque.push(OpaqueItem { index: None, value });
+            import.opaque.push(OpaqueItem {
+                index: None,
+                value,
+                is_metadata: false,
+            });
             return Vec::new();
         }
         let errors_before = import.errors.len();
         let warnings_before = import.warnings.len();
         let messages = try_converting_to_messages(&value, import);
-        for warning in &mut import.warnings[warnings_before..] {
-            *warning = format!("{field}: {warning}");
-        }
         if messages.is_empty() && import.opaque.is_empty() {
             if expect_messages && import.errors.len() == errors_before {
                 import
@@ -932,8 +954,18 @@ fn import_span_messages(
                     .push(format!("Unsupported {field} message format"));
             }
             if options.preserve_unsupported {
-                import.opaque.push(OpaqueItem { index: None, value });
+                import.opaque.push(OpaqueItem {
+                    index: None,
+                    value,
+                    is_metadata: false,
+                });
             }
+        }
+        if options.preserve_unsupported && !import.opaque.is_empty() {
+            import.warnings.extend(import.errors.drain(errors_before..));
+        }
+        for warning in &mut import.warnings[warnings_before..] {
+            *warning = format!("{field}: {warning}");
         }
         messages
     };

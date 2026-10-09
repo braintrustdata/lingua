@@ -1,0 +1,19 @@
+{
+  "expectedMessageCount": 4,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "Describe the attached image.",
+    "test-image-key",
+    "example.png",
+    "image/png",
+    "test-detail-image-key",
+    "\"detail\":\"high\"",
+    "Use one sentence.",
+    "The image shows a blue square."
+  ]
+}

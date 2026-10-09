@@ -1710,6 +1710,44 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_strips_sampling_for_new_claude_models() {
+        use crate::providers::anthropic::generated::CreateMessageParams;
+
+        for model in ["claude-haiku-5-5", "claude-future-6"] {
+            for payload in [
+                json!({
+                    "model": "gpt-4o-mini",
+                    "messages": [{"role": "user", "content": "Say hi."}],
+                    "max_completion_tokens": 1024,
+                    "temperature": 0.7,
+                    "top_p": 0.9
+                }),
+                json!({
+                    "model": "gpt-4o-mini",
+                    "input": "Say hi.",
+                    "max_output_tokens": 1024,
+                    "temperature": 0.7,
+                    "top_p": 0.9
+                }),
+            ] {
+                let result =
+                    transform_request(to_bytes(&payload), ProviderFormat::Anthropic, Some(model))
+                        .unwrap();
+                let output: CreateMessageParams =
+                    crate::serde_json::from_slice(result.as_bytes()).unwrap();
+                assert_eq!(output.model, model);
+                assert_eq!(output.max_tokens, 1024);
+                assert_eq!(output.messages.len(), 1);
+                assert_eq!(output.temperature, None);
+                assert_eq!(output.top_p, None);
+                assert_eq!(output.top_k, None);
+                assert!(output.thinking.is_none());
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_transform_request_openai_system_role_to_anthropic_top_level_system() {
         let payload = json!({
             "model": "claude-haiku-4-5-20251001",

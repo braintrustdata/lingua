@@ -88,13 +88,47 @@ fn is_anthropic_claude_model(model: &str) -> bool {
 /// Transforms required for specific Anthropic model families.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelTransform {
-    /// Strip deprecated sampling parameters (Opus 4.7+ doesn't support them)
+    /// Strip sampling parameters unless a legacy model supports them.
     StripSamplingParams,
 }
 
 use ModelTransform::*;
 
-const OPUS_4_7_OR_LATER_TRANSFORMS: &[ModelTransform] = &[StripSamplingParams];
+const FIXED_SAMPLING_TRANSFORMS: &[ModelTransform] = &[StripSamplingParams];
+
+/// Sampling is opt-in for known legacy Claude versions. New families and versions
+/// default to omission, independently of their thinking capabilities.
+fn strips_sampling_params(model: &str) -> bool {
+    let Some((start, _)) = model.match_indices("claude-").find(|(start, _)| {
+        *start == 0 || matches!(model.as_bytes()[start - 1], b'.' | b'/' | b':' | b'@')
+    }) else {
+        return false;
+    };
+    let mut parts = model[start + "claude-".len()..].split(['-', '.', '/', ':', '@']);
+    let Some(family) = parts.next() else {
+        return false;
+    };
+    let Some(version) = parts.next().filter(|part| !part.is_empty()) else {
+        return false;
+    };
+
+    // Claude 1/2/3 use version-first names, e.g. claude-3-5-sonnet.
+    if matches!(family, "1" | "2" | "3" | "instant") {
+        return false;
+    }
+    let major = version.parse::<u32>().ok();
+    // Eight-digit release dates and Bedrock suffixes are not minor versions.
+    let minor = parts
+        .next()
+        .filter(|part| part.len() != 8)
+        .and_then(|part| part.parse::<u32>().ok());
+    !matches!(
+        (family, major, minor),
+        ("opus", Some(4), None | Some(0 | 1 | 5 | 6))
+            | ("sonnet", Some(4), None | Some(0 | 5 | 6))
+            | ("haiku", Some(4), Some(5))
+    )
+}
 
 fn is_opus_4_7_or_later(model: &str) -> bool {
     OPUS_4_7_OR_LATER_RE.is_match(model)
@@ -111,8 +145,8 @@ fn is_unsupported_mid_conversation_system_model(model: &str) -> bool {
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
     let lower = model.to_ascii_lowercase();
-    if is_opus_4_7_or_later(&lower) {
-        return OPUS_4_7_OR_LATER_TRANSFORMS;
+    if strips_sampling_params(&lower) {
+        return FIXED_SAMPLING_TRANSFORMS;
     }
 
     &[]
@@ -139,6 +173,52 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_sampling_policy_defaults_to_strip_for_new_claude_models() {
+        for model in [
+            "claude-haiku-5-5",
+            "CLAUDE-HAIKU-5.5",
+            "claude-haiku-5-5-20261001",
+            "us.anthropic.claude-haiku-5-5-v1:0",
+            "publishers/anthropic/models/claude-haiku-5-5@20261001",
+            "claude-mythos-5",
+            "claude-future-6",
+            "claude-sonnet-6",
+            "claude-opus-4-100",
+            "claude-haiku-4-6",
+        ] {
+            let mut obj = object_with_sampling_params();
+            obj.insert("max_tokens".into(), Value::from(1024));
+            apply_model_transforms(model, &mut obj);
+            assert_eq!(obj.len(), 1, "sampling parameters survived for {model}");
+            assert_eq!(obj["max_tokens"], Value::from(1024));
+        }
+        // Sampling policy must not imply a thinking capability.
+        assert!(!supports_adaptive_thinking("claude-haiku-5-5"));
+        assert!(!supports_output_config_effort("claude-haiku-5-5"));
+    }
+
+    #[test]
+    fn test_sampling_policy_preserves_legacy_and_non_claude_models() {
+        for model in [
+            "claude-opus-4.6",
+            "claude-sonnet-4-6",
+            "claude-haiku-4-5-20251001",
+            "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "publishers/anthropic/models/claude-sonnet-4-5@20250929",
+            "claude-3-5-sonnet-20241022",
+            "claude-instant-1.2",
+            "gpt-5.5",
+            "not-claude-haiku-5-5",
+            "notclaude-haiku-5-5",
+        ] {
+            let mut obj = object_with_sampling_params();
+            let original = obj.clone();
+            apply_model_transforms(model, &mut obj);
+            assert_eq!(obj, original, "sampling parameters changed for {model}");
+        }
+    }
 
     fn object_with_sampling_params() -> Map<String, Value> {
         let mut obj = Map::new();
