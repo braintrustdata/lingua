@@ -679,6 +679,60 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  anthropicSonnet5AdaptiveThinkingDisplaySummarizedParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: "claude-sonnet-5",
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "user",
+          content:
+            "A fair coin is flipped until either HHT or HTH first appears. What is the probability that HHT appears first, and what is the expected number of flips until stopping? Derive both results using state equations.",
+        },
+      ],
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: "high" },
+    },
+    google: null,
+    bedrock: null,
+    "bedrock-anthropic": {
+      model: "us.anthropic.claude-sonnet-5",
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "user",
+          content:
+            "A fair coin is flipped until either HHT or HTH first appears. What is the probability that HHT appears first, and what is the expected number of flips until stopping? Derive both results using state equations.",
+        },
+      ],
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: "high" },
+    },
+  },
+
+  anthropicOpus5AdaptiveThinkingDisplaySummarizedParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: "claude-opus-5",
+      max_tokens: 4096,
+      messages: [{ role: "user", content: "What is 17 times 23?" }],
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: "high" },
+    },
+    google: null,
+    bedrock: null,
+    "bedrock-anthropic": {
+      model: "us.anthropic.claude-opus-5",
+      max_tokens: 4096,
+      messages: [{ role: "user", content: "What is 17 times 23?" }],
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: "high" },
+    },
+  },
+
   anthropicOpus5DisabledThinkingHighEffortParam: {
     "chat-completions": null,
     responses: null,
