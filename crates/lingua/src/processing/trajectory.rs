@@ -153,6 +153,16 @@ impl PreparedSpan {
         })
     }
 
+    fn release_payload(&mut self) {
+        self.input = Vec::new();
+        self.input_keys = Vec::new();
+        self.output = Vec::new();
+        self.interruption_offsets = Vec::new();
+        self.usage = None;
+        self.tool_result = None;
+        self.source.error = None;
+    }
+
     fn current_input(&self, initial_request: bool) -> impl Iterator<Item = &RequestMessage> {
         self.input.iter().filter(move |input| {
             (initial_request || input.current || input.context)

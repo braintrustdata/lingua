@@ -32,7 +32,9 @@ use crate::universal::{
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use serde::{Deserialize, Serialize};
-pub use span::{import_span, import_span_with_options, ImportedSpan, SpanContext};
+pub use span::{
+    import_span, import_span_with_options, ImportedSpan, SpanContext, TRAJECTORY_METADATA_FIELDS,
+};
 
 pub(crate) fn is_instruction(message: &Message) -> bool {
     matches!(

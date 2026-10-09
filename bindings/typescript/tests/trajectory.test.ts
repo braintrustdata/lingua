@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import fixture from "../../../crates/lingua/src/processing/trajectory/fixtures/responses-tool-cycle.json";
 
-test.each(["node", "browser"])("%s entry point assembles a streamed trajectory", async (target) => {
+async function loadWasm(target: string) {
   const entry =
     target === "node"
       ? await import("@braintrust/lingua")
@@ -12,7 +12,11 @@ test.each(["node", "browser"])("%s entry point assembles a streamed trajectory",
       readFileSync(new URL("../../lingua-wasm/web/lingua_bg.wasm", import.meta.url)),
     );
   }
-  const lingua = entry.getWasm();
+  return entry.getWasm();
+}
+
+test.each(["node", "browser"])("%s entry point assembles a streamed trajectory", async (target) => {
+  const lingua = await loadWasm(target);
   const stream = new lingua.TrajectoryStream(
     fixture.spans.map(({ input: _input, output: _output, ...header }) =>
       lingua.import_span(header),
@@ -46,6 +50,31 @@ test.each(["node", "browser"])("%s entry point assembles a streamed trajectory",
             work: [{ id: "call" }, { id: "tool" }],
           },
         ],
+      },
+    ]);
+  } finally {
+    stream.free();
+    collector.free();
+  }
+});
+
+test.each(["node", "browser"])("%s entry point preserves constructor import failures", async (target) => {
+  const lingua = await loadWasm(target);
+  const stream = new lingua.TrajectoryStream([], false, [
+    { root_span_id: "root", span_id: "broken", message: "Invalid header" },
+  ]);
+  const collector = new lingua.TrajectoryCollector();
+  try {
+    for (const event of stream.finish()) {
+      collector.push(event);
+    }
+    expect(collector.isComplete()).toBe(true);
+    expect(collector.snapshot()).toMatchObject([
+      {
+        turns: [],
+        metadata: {
+          import_failures: [{ span_id: "broken", message: "Invalid header" }],
+        },
       },
     ]);
   } finally {

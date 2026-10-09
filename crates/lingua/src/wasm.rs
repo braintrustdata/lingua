@@ -510,11 +510,20 @@ pub struct TrajectoryStream {
 }
 
 #[wasm_bindgen]
+pub fn trajectory_metadata_fields() -> Vec<String> {
+    crate::processing::import::TRAJECTORY_METADATA_FIELDS
+        .iter()
+        .map(|field| (*field).to_string())
+        .collect()
+}
+
+#[wasm_bindgen]
 impl TrajectoryStream {
     #[wasm_bindgen(constructor)]
     pub fn new(
         headers: Vec<ImportedSpan>,
         exclude_system: bool,
+        failures: Option<js_sys::Array>,
     ) -> Result<TrajectoryStream, JsValue> {
         Ok(Self {
             inner: crate::processing::trajectory::TrajectoryStream::with_failures(
@@ -522,7 +531,11 @@ impl TrajectoryStream {
                     .into_iter()
                     .map(|span| span.inner.header_only())
                     .collect(),
-                Vec::new(),
+                failures
+                    .map(|failures| serde_wasm_bindgen::from_value(failures.into()))
+                    .transpose()
+                    .map_err(|error| JsValue::from_str(&error.to_string()))?
+                    .unwrap_or_default(),
                 exclude_system,
             )
             .map_err(|error| JsValue::from_str(&error))?,
@@ -538,6 +551,14 @@ impl TrajectoryStream {
         let events = self
             .inner
             .push(span.inner)
+            .map_err(|error| JsValue::from_str(&error))?;
+        serialize_to_js(&events, "trajectory events")
+    }
+
+    pub fn fail(&mut self, id: &str, message: String) -> Result<JsValue, JsValue> {
+        let events = self
+            .inner
+            .fail(id, message)
             .map_err(|error| JsValue::from_str(&error))?;
         serialize_to_js(&events, "trajectory events")
     }

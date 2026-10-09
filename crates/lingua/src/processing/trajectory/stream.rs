@@ -46,6 +46,11 @@ pub enum TrajectoryEvent {
         end_time: Option<DateTime<Utc>>,
         model: Option<String>,
     },
+    EndTime {
+        scope: TrajectoryScope,
+        id: String,
+        end_time: Option<DateTime<Utc>>,
+    },
     Interrupted {
         scope: TrajectoryScope,
         id: String,
@@ -102,22 +107,17 @@ struct CompletedTurn {
     id: String,
     start: DateTime<Utc>,
     position: usize,
-    response: Option<usize>,
     end_time: Option<DateTime<Utc>>,
     unfinished: bool,
     model: Option<String>,
 }
 
 impl CompletedTurn {
-    fn response_event(&self, spans: &[PreparedSpan], scope: TrajectoryScope) -> TrajectoryEvent {
-        let response = self.response.map(|index| &spans[index]);
-        TrajectoryEvent::Response {
-            scope,
-            id: self.id.clone(),
-            response_id: response.map(|span| span.id.clone()),
-            response: response.map(|span| Box::new(span.response())),
-            end_time: if self.unfinished { None } else { self.end_time },
-            model: self.model.clone(),
+    fn end_time(&self) -> Option<DateTime<Utc>> {
+        if self.unfinished {
+            None
+        } else {
+            self.end_time
         }
     }
 }
@@ -226,47 +226,6 @@ fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) 
         }
     }
     roles
-}
-
-fn resolve_task_roles(
-    spans: &[PreparedSpan],
-    owners: &HashMap<usize, Ownership>,
-    parents: &[Option<usize>],
-    roles: &mut [Role],
-) {
-    let tasks: HashSet<_> = roles
-        .iter()
-        .enumerate()
-        .filter_map(|(index, role)| {
-            let Role::Task { fallback } = role else {
-                return None;
-            };
-            let span = &spans[index];
-            (span.has_request(true) && (*fallback || span.output.is_empty())).then_some(index)
-        })
-        .collect();
-    let mut wrappers = HashSet::new();
-    for &index in &tasks {
-        let owner = &owners[&index];
-        let mut parent = parents[index];
-        while let Some(index) = parent {
-            let ancestor = &owners[&index];
-            if owner.tool != ancestor.tool || owner.compaction != ancestor.compaction {
-                break;
-            }
-            if tasks.contains(&index) {
-                wrappers.insert(index);
-            }
-            parent = parents[index];
-        }
-    }
-    for (index, role) in roles.iter_mut().enumerate() {
-        if matches!(role, Role::Task { .. })
-            && (!tasks.contains(&index) || wrappers.contains(&index))
-        {
-            *role = Role::Ignored;
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -446,14 +405,17 @@ pub struct TrajectoryStream {
     owners: HashMap<usize, Ownership>,
     parents: Vec<Option<usize>>,
     roles: Vec<Role>,
-    scopes: BTreeMap<ScopeKey, Vec<usize>>,
+    remaining: BTreeMap<ScopeKey, usize>,
     states: BTreeMap<ScopeKey, TurnState>,
     task_boundaries: HashSet<ScopeKey>,
+    boundary_tasks: BTreeMap<ScopeKey, Vec<usize>>,
+    task_children: Vec<Vec<usize>>,
+    task_resolved: Vec<bool>,
+    initial_events: Vec<TrajectoryEvent>,
     resumed: HashSet<usize>,
     order: Vec<usize>,
     cursor: usize,
     exclude_system: bool,
-    initialized: bool,
     finished: bool,
     failures: Vec<ImportFailure>,
 }
@@ -483,16 +445,6 @@ impl TrajectoryStream {
                 return Err(format!("Duplicate trajectory span {}", span.id));
             }
         }
-        let mut order: Vec<_> = (0..spans.len()).collect();
-        order.sort_by(|a, b| {
-            let left = &spans[*a];
-            let right = &spans[*b];
-            (left.kind() != "task")
-                .cmp(&(right.kind() != "task"))
-                .then(left.start.cmp(&right.start))
-                .then(left.source.exec_counter.cmp(&right.source.exec_counter))
-                .then(left.id.cmp(&right.id))
-        });
         let by_span_id: HashMap<_, _> = spans
             .iter()
             .enumerate()
@@ -530,33 +482,127 @@ impl TrajectoryStream {
         }
         let roles = classify_headers(&spans, &owners);
         let ready = roles.iter().map(|role| *role == Role::Ignored).collect();
-        Ok(Self {
+        let mut task_children = vec![Vec::new(); spans.len()];
+        let task_resolved = roles
+            .iter()
+            .map(|role| !matches!(role, Role::Task { .. }))
+            .collect();
+        for (index, role) in roles.iter().enumerate() {
+            if !matches!(role, Role::Task { .. }) {
+                continue;
+            }
+            let key = ScopeKey::new(&spans[index], &owners[&index]);
+            let mut parent = parents[index];
+            while let Some(ancestor) = parent {
+                if ScopeKey::new(&spans[ancestor], &owners[&ancestor]) != key {
+                    break;
+                }
+                if matches!(roles[ancestor], Role::Task { .. }) {
+                    task_children[ancestor].push(index);
+                    break;
+                }
+                parent = parents[ancestor];
+            }
+        }
+        for children in &mut task_children {
+            children.sort_by(|a, b| {
+                spans[*a]
+                    .start
+                    .cmp(&spans[*b].start)
+                    .then(
+                        spans[*a]
+                            .source
+                            .exec_counter
+                            .cmp(&spans[*b].source.exec_counter),
+                    )
+                    .then(spans[*a].id.cmp(&spans[*b].id))
+            });
+        }
+        let mut stream = Self {
             ready,
             spans,
             by_id,
-            order,
+            order: Vec::new(),
             failures,
             owners,
             parents,
             roles,
-            scopes: BTreeMap::new(),
+            remaining: BTreeMap::new(),
             states: BTreeMap::new(),
             task_boundaries: HashSet::new(),
+            boundary_tasks: BTreeMap::new(),
+            task_children,
+            task_resolved,
+            initial_events: Vec::new(),
             resumed: HashSet::new(),
             cursor: 0,
             exclude_system,
-            initialized: false,
             finished: false,
-        })
+        };
+        let mut events = Vec::new();
+        stream.initialize(&mut events)?;
+        stream.initial_events = events;
+        Ok(stream)
+    }
+
+    pub fn needs_payload(&self, id: &str) -> bool {
+        self.by_id.get(id).is_some_and(|&index| !self.ready[index])
     }
 
     pub fn pending_ids(&self, limit: usize) -> Vec<String> {
-        self.order
-            .iter()
-            .filter(|index| !self.ready[**index])
-            .take(limit)
-            .map(|index| self.spans[*index].id.clone())
-            .collect()
+        let mut pending = Vec::new();
+        let mut seen = HashSet::new();
+        let mut blocked = false;
+        for &index in &self.order[self.cursor..] {
+            let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+            let boundary_tasks = self.pending_boundary_tasks(&key);
+            if blocked {
+                if matches!(self.roles[index], Role::Task { .. }) {
+                    continue;
+                }
+                if self.ready[index] {
+                    break;
+                }
+            }
+            blocked |= !self.task_resolved[index]
+                && self.task_children[index]
+                    .iter()
+                    .any(|child| !self.task_resolved[*child]);
+            let mut dependencies = vec![index];
+            if let Some(tasks) = boundary_tasks {
+                dependencies.extend(tasks.iter().rev().copied());
+                blocked = true;
+            }
+            while let Some(index) = dependencies.pop() {
+                if pending.len() == limit {
+                    return pending;
+                }
+                if !seen.insert(index) {
+                    continue;
+                }
+                let unresolved: Vec<_> = self.task_children[index]
+                    .iter()
+                    .copied()
+                    .filter(|child| !self.task_resolved[*child])
+                    .collect();
+                if !self.task_resolved[index] && !unresolved.is_empty() {
+                    dependencies.extend(unresolved.into_iter().rev());
+                } else if !self.ready[index] {
+                    pending.push(self.spans[index].id.clone());
+                }
+            }
+        }
+        pending
+    }
+
+    fn pending_boundary_tasks(&self, key: &ScopeKey) -> Option<&[usize]> {
+        if self.task_boundaries.contains(key) {
+            return None;
+        }
+        self.boundary_tasks
+            .get(key)
+            .map(Vec::as_slice)
+            .filter(|tasks| tasks.iter().any(|index| !self.task_resolved[*index]))
     }
 
     pub fn push(&mut self, span: ImportedSpan) -> Result<Vec<TrajectoryEvent>> {
@@ -564,6 +610,87 @@ impl TrajectoryStream {
     }
 
     pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
+        let index = self.pending_index(&span)?;
+        self.spans[index] = span;
+        self.ready[index] = true;
+        if !self.task_resolved[index] {
+            self.resolve_task(index);
+        }
+        self.drain()
+    }
+
+    fn resolve_task(&mut self, index: usize) {
+        let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+        let mut current = Some(index);
+        while let Some(index) = current {
+            if ScopeKey::new(&self.spans[index], &self.owners[&index]) != key {
+                break;
+            }
+            if self.task_resolved[index] {
+                current = self.parents[index];
+                continue;
+            }
+            if let Role::Task { fallback } = self.roles[index] {
+                if !self.ready[index]
+                    || self.task_children[index]
+                        .iter()
+                        .any(|child| !self.task_resolved[*child])
+                {
+                    break;
+                }
+                self.task_resolved[index] = true;
+                let span = &self.spans[index];
+                if span.has_request(true) && (fallback || span.output.is_empty()) {
+                    if span.source.turn.is_some() && span.output.is_empty() {
+                        self.task_boundaries.insert(key.clone());
+                    }
+                    let mut parent = self.parents[index];
+                    while let Some(ancestor) = parent {
+                        if ScopeKey::new(&self.spans[ancestor], &self.owners[&ancestor]) != key {
+                            break;
+                        }
+                        if matches!(self.roles[ancestor], Role::Task { .. }) {
+                            self.roles[ancestor] = Role::Ignored;
+                            self.task_resolved[ancestor] = true;
+                            self.ready[ancestor] = true;
+                            self.spans[ancestor].release_payload();
+                        }
+                        parent = self.parents[ancestor];
+                    }
+                } else {
+                    self.roles[index] = Role::Ignored;
+                    self.spans[index].release_payload();
+                }
+            }
+            current = self.parents[index];
+        }
+    }
+
+    pub fn fail(&mut self, id: &str, message: String) -> Result<Vec<TrajectoryEvent>> {
+        if self.finished {
+            return Err("Trajectory stream has finished".to_string());
+        }
+        let index = *self
+            .by_id
+            .get(id)
+            .ok_or_else(|| format!("Unknown trajectory span {id}"))?;
+        if self.ready[index] {
+            return Err(format!("Trajectory span {id} was already loaded"));
+        }
+        self.failures.push(ImportFailure {
+            root_span_id: self.spans[index].root_span_id.clone(),
+            span_id: id.to_string(),
+            message,
+        });
+        self.roles[index] = Role::Ignored;
+        self.task_resolved[index] = true;
+        self.ready[index] = true;
+        self.spans[index].release_payload();
+        self.resolve_task(index);
+        self.drain()
+    }
+
+    fn pending_index(&self, span: &PreparedSpan) -> Result<usize> {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
         }
@@ -608,9 +735,7 @@ impl TrajectoryStream {
         {
             return Err(format!("Trajectory structure changed for span {}", span.id));
         }
-        self.spans[index] = span;
-        self.ready[index] = true;
-        self.drain()
+        Ok(index)
     }
 
     fn scope(&self, key: &ScopeKey) -> TrajectoryScope {
@@ -621,7 +746,7 @@ impl TrajectoryStream {
     }
 
     fn initialize(&mut self, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
-        resolve_task_roles(&self.spans, &self.owners, &self.parents, &mut self.roles);
+        let mut scope_indices = BTreeMap::<_, Vec<_>>::new();
         for (index, span) in self.spans.iter().enumerate() {
             let role = self.roles[index];
             if role == Role::Ignored {
@@ -629,16 +754,10 @@ impl TrajectoryStream {
             }
             let owner = &self.owners[&index];
             let key = ScopeKey::new(span, owner);
-            if matches!(role, Role::Task { .. })
-                && span.source.turn.is_some()
-                && span.output.is_empty()
-            {
-                self.task_boundaries.insert(key.clone());
-            }
-            self.scopes.entry(key).or_default().push(index);
+            scope_indices.entry(key).or_default().push(index);
         }
         let mut order_times = HashMap::new();
-        for indices in self.scopes.values() {
+        for indices in scope_indices.values() {
             let mut llms: Vec<_> = indices
                 .iter()
                 .copied()
@@ -662,7 +781,7 @@ impl TrajectoryStream {
                     .min();
             }
         }
-        self.order = self.scopes.values().flatten().copied().collect();
+        self.order = scope_indices.values().flatten().copied().collect();
         self.order.sort_by(|a, b| {
             order_times
                 .get(a)
@@ -676,6 +795,12 @@ impl TrajectoryStream {
                 )
                 .then(self.spans[*a].id.cmp(&self.spans[*b].id))
         });
+        for &index in &self.order {
+            if self.roles[index] == (Role::Task { fallback: false }) {
+                let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+                self.boundary_tasks.entry(key).or_default().push(index);
+            }
+        }
         let mut scopes: BTreeMap<TrajectoryScope, Option<String>> = BTreeMap::new();
         for span in &self.spans {
             scopes.insert(
@@ -695,7 +820,7 @@ impl TrajectoryStream {
                 None,
             );
         }
-        for key in self.scopes.keys() {
+        for key in scope_indices.keys() {
             scopes.insert(
                 self.scope(key),
                 key.tool
@@ -726,25 +851,52 @@ impl TrajectoryStream {
                 scope,
             });
         }
-        self.initialized = true;
+        for (index, role) in self.roles.iter().enumerate() {
+            if *role == Role::Ignored {
+                self.ready[index] = true;
+                self.spans[index].release_payload();
+            }
+        }
+        self.remaining = scope_indices
+            .into_iter()
+            .map(|(scope, indices)| (scope, indices.len()))
+            .collect();
         Ok(())
     }
 
     fn drain(&mut self) -> Result<Vec<TrajectoryEvent>> {
-        let mut events = Vec::new();
-        if !self.initialized {
-            if self.spans.iter().enumerate().any(|(index, _)| {
-                matches!(self.roles[index], Role::Task { .. }) && !self.ready[index]
-            }) {
-                return Ok(events);
-            }
-            self.initialize(&mut events)?;
-        }
+        let mut events = std::mem::take(&mut self.initial_events);
         while let Some(&index) = self.order.get(self.cursor) {
-            if !self.ready[index] {
+            let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+            if !self.ready[index]
+                || !self.task_resolved[index]
+                || self.pending_boundary_tasks(&key).is_some()
+            {
                 break;
             }
-            self.advance(index, &mut events)?;
+            if self.roles[index] != Role::Ignored {
+                self.advance(index, &mut events)?;
+            }
+            let remaining = self
+                .remaining
+                .get_mut(&key)
+                .ok_or_else(|| format!("Missing scope for span {}", self.spans[index].id))?;
+            *remaining = remaining.checked_sub(1).ok_or_else(|| {
+                format!("Scope already completed for span {}", self.spans[index].id)
+            })?;
+            if *remaining == 0 {
+                if let Some(mut state) = self.states.remove(&key) {
+                    self.end_turn(&key, &mut state, &mut events)?;
+                    if let Some((candidate, _)) = state.candidate {
+                        self.spans[candidate].release_payload();
+                    }
+                } else if self.roles[index] != Role::Ignored {
+                    return Err(format!(
+                        "Missing turn state for span {}",
+                        self.spans[index].id
+                    ));
+                }
+            }
             self.cursor += 1;
         }
         Ok(events)
@@ -857,7 +1009,6 @@ impl TrajectoryStream {
             id: id.clone(),
             start: self.spans[self.by_id[id]].start,
             position: state.position,
-            response,
             end_time: state.end_time,
             unfinished: state.unfinished,
             model: state
@@ -865,7 +1016,14 @@ impl TrajectoryStream {
                 .clone()
                 .or_else(|| state.candidate_model.clone()),
         };
-        events.push(completed.response_event(&self.spans, scope));
+        events.push(TrajectoryEvent::Response {
+            scope,
+            id: completed.id.clone(),
+            response_id: response.map(|index| self.spans[index].id.clone()),
+            response: response.map(|index| Box::new(self.spans[index].response())),
+            end_time: completed.end_time(),
+            model: completed.model.clone(),
+        });
         if let Some(explicit) = &state.explicit {
             state
                 .completed
@@ -882,13 +1040,18 @@ impl TrajectoryStream {
         let key = ScopeKey::new(span, owner);
         let scope = self.scope(&key);
         let mut state = self.states.remove(&key).unwrap_or_default();
+        let previous_candidate = state.candidate.map(|(index, _)| index);
         if self.resumed.contains(&index) {
             if let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start) {
                 events.extend(self.work(&scope, &target.id, index, target.position)?);
                 target.position += 1;
                 target.end_time = target.end_time.max(span.source.end);
                 target.unfinished |= span.source.end.is_none();
-                events.push(target.response_event(&self.spans, scope));
+                events.push(TrajectoryEvent::EndTime {
+                    scope,
+                    id: target.id.clone(),
+                    end_time: target.end_time(),
+                });
                 if !span.input_keys.is_empty() {
                     state.history = merge_history(
                         &state.history,
@@ -897,6 +1060,7 @@ impl TrajectoryStream {
                     )
                     .0;
                 }
+                self.spans[index].release_payload();
                 self.states.insert(key, state);
                 return Ok(());
             }
@@ -1020,6 +1184,21 @@ impl TrajectoryStream {
         if let Some(explicit) = explicit.filter(|_| new_turn || state.explicit.is_none()) {
             state.explicit = Some(explicit.to_string());
         }
+        let candidate = state.candidate.map(|(index, _)| index);
+        if let Some(previous) = previous_candidate.filter(|previous| Some(*previous) != candidate) {
+            self.spans[previous].release_payload();
+        }
+        let span = &mut self.spans[index];
+        if candidate == Some(index) {
+            span.input = Vec::new();
+            span.interruption_offsets = Vec::new();
+            span.tool_result = None;
+            if !span.standalone_request {
+                span.input_keys = Vec::new();
+            }
+        } else {
+            span.release_payload();
+        }
         self.states.insert(key, state);
         Ok(())
     }
@@ -1032,9 +1211,6 @@ impl TrajectoryStream {
             return Err("Trajectory stream has unresolved spans".to_string());
         }
         let mut events = self.drain()?;
-        for (key, mut state) in std::mem::take(&mut self.states) {
-            self.end_turn(&key, &mut state, &mut events)?;
-        }
         let mut failures = std::mem::take(&mut self.failures);
         failures.extend(
             self.spans
@@ -1157,6 +1333,13 @@ impl TrajectoryCollector {
                 turn.response = response.map(|response| *response);
                 turn.end_time = end_time;
                 turn.model = model;
+            }
+            TrajectoryEvent::EndTime {
+                scope,
+                id,
+                end_time,
+            } => {
+                self.turn(&scope, &id)?.turn.end_time = end_time;
             }
             TrajectoryEvent::Interrupted { scope, id } => {
                 self.turn(&scope, &id)?.turn.interrupted = Some(true)

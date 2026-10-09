@@ -216,6 +216,25 @@ fn check_fixture(fixture: &ImportFixture) {
             .collect();
         assert_eq!(worker_responses, fixture.worker_responses);
     }
+    for sources in [
+        fixture.spans.clone(),
+        fixture.spans.iter().rev().cloned().collect(),
+    ] {
+        let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
+        let mut collector = TrajectoryCollector::default();
+        for source in sources {
+            let span = import_span_with_options(source, fixture.import_options).unwrap();
+            if stream.needs_payload(span.header.id.as_deref().unwrap()) {
+                collect(&mut collector, stream.push(span).unwrap());
+            }
+        }
+        collect(&mut collector, stream.finish().unwrap());
+        assert_eq!(
+            Some(serde_json::to_value(collector.snapshot().unwrap()).unwrap()),
+            snapshot,
+            "Import result depends on payload arrival order",
+        );
+    }
 }
 
 fn run_fixture(
@@ -1163,6 +1182,22 @@ import_fixture!(
     "fixtures/task-boundary-with-child.json"
 );
 import_fixture!(
+    task_boundary_after_llm,
+    "fixtures/task-boundary-after-llm.json"
+);
+
+#[test]
+fn task_dependencies_allow_non_task_prefetch() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/task-boundary-after-llm.json")).unwrap();
+    let stream = stream_from_sources(fixture.spans).unwrap();
+    assert_eq!(
+        stream.pending_ids(4),
+        ["request", "first", "retry", "answer"]
+    );
+}
+
+import_fixture!(
     analysis_without_conversation,
     "fixtures/analysis-without-conversation.json"
 );
@@ -1705,6 +1740,51 @@ fn malformed_timing_preserves_healthy_turns_and_reports_failure() {
     assert_eq!(
         result[0].metadata["import_failures"][0]["span_id"],
         "broken"
+    );
+}
+
+#[test]
+fn failed_payload_does_not_block_later_turns() {
+    let mut broken = span("broken", 1, json!([]), json!([]));
+    broken
+        .other
+        .insert("metadata".into(), crate::serde_json::json!({"model": {}}));
+    let sources = vec![
+        broken,
+        span(
+            "healthy",
+            2,
+            json!([{"role":"user", "content":"Hello"}]),
+            json!([]),
+        ),
+    ];
+    let mut stream = stream_from_sources(sources.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    collect(
+        &mut collector,
+        stream
+            .fail("broken", "Invalid payload".to_string())
+            .unwrap(),
+    );
+    collect(
+        &mut collector,
+        stream
+            .push(import_span(sources[1].clone()).unwrap())
+            .unwrap(),
+    );
+    collect(&mut collector, stream.finish().unwrap());
+    let result = collector.snapshot().unwrap();
+    assert_eq!(result[0].turns.len(), 1);
+    assert_eq!(result[0].turns[0].request_id, "healthy");
+    assert_eq!(
+        result[0].metadata["import_failures"],
+        crate::serde_json::json!([
+            {
+                "span_id": "broken",
+                "message": "Invalid metadata.model: invalid type: map, expected a string"
+            },
+            {"span_id": "broken", "message": "Invalid payload"}
+        ])
     );
 }
 

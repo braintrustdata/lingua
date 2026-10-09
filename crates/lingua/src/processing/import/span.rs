@@ -11,6 +11,15 @@ use std::borrow::Cow;
 
 type Result<T> = std::result::Result<T, String>;
 
+pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
+    "turn_id",
+    "tool_call_id",
+    "model",
+    "trajectory_role",
+    "request_kind",
+    "compaction",
+];
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpanContext {
     pub id: Option<String>,
@@ -21,7 +30,7 @@ pub struct SpanContext {
     #[serde(default)]
     pub kind: String,
     pub name: Option<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_default")]
     pub exec_counter: i64,
     #[serde(default)]
     pub scorer: bool,
@@ -111,7 +120,7 @@ struct Attributes {
     kind: Option<String>,
     name: Option<String>,
     purpose: Option<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_default")]
     exec_counter: i64,
 }
 
