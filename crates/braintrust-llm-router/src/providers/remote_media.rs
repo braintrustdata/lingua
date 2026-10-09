@@ -11,8 +11,8 @@ use lingua::providers::openai::generated::{
 };
 use lingua::universal::message::{AudioFormat, Message, UserContent, UserContentPart};
 use lingua::util::media::{
-    media_block_to_url, parse_base64_data_url, parse_file_metadata_from_url, FileMetadata,
-    MediaBlock,
+    infer_mime_type_from_reference, media_block_to_url, parse_base64_data_url,
+    parse_file_metadata_from_url, FileMetadata, MediaBlock,
 };
 use lingua::{ProviderFormat, TransformError};
 
@@ -27,6 +27,25 @@ use super::json_selection::{
 
 const MAX_REMOTE_MEDIA_BYTES: usize = 5 * 1024 * 1024;
 const MAX_REMOTE_PDF_BYTES: usize = 20 * 1024 * 1024;
+const MAX_REMOTE_AUDIO_BYTES: usize = 20 * 1024 * 1024;
+
+fn remote_media_limits(url: &str) -> (Option<&'static [&'static str]>, usize) {
+    if pdf_url_metadata(url).is_some() {
+        return (Some(&["application/pdf"]), MAX_REMOTE_PDF_BYTES);
+    }
+    if infer_mime_type_from_reference(None, Some(url)).is_some_and(|mime| {
+        matches!(
+            normalized_media_type(&mime).as_str(),
+            "audio/wav" | "audio/mpeg"
+        )
+    }) {
+        return (
+            Some(&["audio/wav", "audio/x-wav", "audio/mpeg", "audio/mp3"]),
+            MAX_REMOTE_AUDIO_BYTES,
+        );
+    }
+    (None, MAX_REMOTE_MEDIA_BYTES)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct RemoteMediaPolicy {
@@ -296,15 +315,11 @@ async fn fetch_remote_media_as_base64(
     url: &str,
     additional_ca_bundle: Option<&str>,
 ) -> Result<MediaBlock> {
-    let is_pdf = pdf_url_metadata(url).is_some();
+    let (allowed_types, max_bytes) = remote_media_limits(url);
     lingua::util::media::convert_media_to_base64_with_additional_ca_bundle(
         url,
-        is_pdf.then_some(&["application/pdf"][..]),
-        Some(if is_pdf {
-            MAX_REMOTE_PDF_BYTES
-        } else {
-            MAX_REMOTE_MEDIA_BYTES
-        }),
+        allowed_types,
+        Some(max_bytes),
         additional_ca_bundle,
     )
     .await
@@ -574,6 +589,31 @@ mod tests {
 
     fn openai_spec(model: &str) -> ModelSpec {
         spec(model, ProviderFormat::ChatCompletions)
+    }
+
+    #[test]
+    fn audio_attachment_downloads_allow_full_recordings_without_expanding_image_limits() {
+        for url in [
+            "https://example.com/conversation.wav",
+            "https://example.com/conversation.mp3",
+            "https://example.com/opaque-key?X-Amz-Expires=3600&response-content-type=audio%2Fwav",
+            "https://example.com/opaque-key?X-Amz-Expires=3600&response-content-disposition=attachment%3B%20filename%3D%22conversation.wav%22",
+        ] {
+            let (allowed, limit) = remote_media_limits(url);
+            assert!(allowed.unwrap().contains(&"audio/wav"));
+            assert!(limit >= 120 * 24_000 * 2 * 2 + 44);
+            assert_eq!(limit, 20 * 1024 * 1024);
+        }
+        for url in [
+            "https://example.com/image.png",
+            "https://example.com/opaque-key",
+        ] {
+            assert_eq!(remote_media_limits(url), (None, 5 * 1024 * 1024));
+        }
+        assert_eq!(
+            remote_media_limits("https://example.com/file.pdf"),
+            (Some(&["application/pdf"][..]), 20 * 1024 * 1024)
+        );
     }
 
     #[tokio::test]
