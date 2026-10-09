@@ -344,6 +344,8 @@ struct ResponsesOutputItemAddedEvent {
 #[derive(Debug, Deserialize, Default)]
 #[serde(tag = "type")]
 enum ResponsesOutputItemAddedItem {
+    #[serde(rename = "message")]
+    Message,
     #[serde(rename = "function_call")]
     FunctionCall {
         id: Option<String>,
@@ -361,6 +363,29 @@ enum ResponsesOutputItemAddedItem {
     Other,
 }
 
+pub(crate) fn responses_message_output_index(event: &Value) -> Result<Option<u32>, TransformError> {
+    let added: ResponsesOutputItemAddedEvent =
+        serde_json::from_value(event.clone()).map_err(|error| {
+            TransformError::DeserializationFailed(format!(
+                "Responses output_item.added event: {error}"
+            ))
+        })?;
+    let item = added.item.ok_or_else(|| {
+        TransformError::DeserializationFailed(
+            "Responses output_item.added is missing item".to_string(),
+        )
+    })?;
+    if matches!(item, ResponsesOutputItemAddedItem::Message) {
+        added.output_index.map(Some).ok_or_else(|| {
+            TransformError::DeserializationFailed(
+                "Responses message output_item.added is missing output_index".to_string(),
+            )
+        })
+    } else {
+        Ok(None)
+    }
+}
+
 impl ResponsesOutputItemAddedItem {
     fn tool_call_start(&self) -> Option<(&str, &str, bool)> {
         match self {
@@ -374,7 +399,7 @@ impl ResponsesOutputItemAddedItem {
                 name.as_deref().unwrap_or(""),
                 true,
             )),
-            Self::Other => None,
+            Self::Message | Self::Other => None,
         }
     }
 
@@ -383,7 +408,7 @@ impl ResponsesOutputItemAddedItem {
         let (id, call_id, name, custom) = match self {
             Self::FunctionCall { id, call_id, name } => (id, call_id, name, false),
             Self::CustomToolCall { id, call_id, name } => (id, call_id, name, true),
-            Self::Other => return Ok(None),
+            Self::Message | Self::Other => return Ok(None),
         };
         let missing = |field: &str| {
             TransformError::SerializationFailed(format!(

@@ -99,6 +99,7 @@ pub struct StreamTransformSession {
     anthropic_next_content_block_index: u32,
     anthropic_content_block_index_map: BTreeMap<(AnthropicContentBlockKind, u32), u32>,
     responses_message_started: bool,
+    responses_source_message_index: Option<u32>,
     responses_output_index_states: BTreeMap<u32, ResponsesOutputIndexState>,
     // Tool items are finalized response-wide: providers such as Anthropic key
     // tool blocks by content-block index while the terminal event uses choice 0.
@@ -133,6 +134,7 @@ impl StreamTransformSession {
             anthropic_next_content_block_index: 0,
             anthropic_content_block_index_map: BTreeMap::new(),
             responses_message_started: false,
+            responses_source_message_index: None,
             responses_output_index_states: BTreeMap::new(),
             responses_tool_items: BTreeMap::new(),
             responses_reasoning_items: BTreeMap::new(),
@@ -160,6 +162,17 @@ impl StreamTransformSession {
                 data: step.result.into_bytes(),
                 event_type: step.event_type,
             }]);
+        }
+
+        if let Some(index) = step.responses_message_output_index {
+            if self.responses_source_message_index.is_some() {
+                return Err(TransformError::UnsupportedMapping {
+                    source_format: ProviderFormat::Responses,
+                    target_format: self.target_format,
+                    feature: "multiple assistant message output items",
+                });
+            }
+            self.responses_source_message_index = Some(index);
         }
 
         let result = self.normalize_source_stream_result(&step)?;
@@ -3739,6 +3752,93 @@ mod tests {
             args_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
             json!(0)
         );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_rejects_second_responses_message_before_its_text() {
+        for phase in [Some("commentary"), None] {
+            let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+            let mut first_item = json!({
+                "type": "message", "id": "msg_first", "role": "assistant",
+                "status": "in_progress", "content": []
+            });
+            if let Some(phase) = phase {
+                first_item["phase"] = json!(phase);
+            }
+            session
+                .push(to_bytes(&json!({
+                    "type": "response.output_item.added", "output_index": 0,
+                    "item": first_item
+                })))
+                .expect("first message should be accepted");
+            let first = session
+                .push(to_bytes(&json!({
+                    "type": "response.output_text.delta", "output_index": 0,
+                    "item_id": "msg_first", "content_index": 0,
+                    "delta": "{\"status\":\"ok\"}"
+                })))
+                .expect("first message text should be emitted");
+            let first_text: Value = crate::serde_json::from_slice(&first[0].data).unwrap();
+            assert_eq!(
+                first_text["choices"][0]["delta"]["content"],
+                "{\"status\":\"ok\"}"
+            );
+
+            let mut second_item = json!({
+                "type": "message", "id": "msg_second", "role": "assistant",
+                "status": "in_progress", "content": []
+            });
+            if phase.is_some() {
+                second_item["phase"] = json!("final_answer");
+            }
+            let error = session
+                .push(to_bytes(&json!({
+                    "type": "response.output_item.added", "output_index": 1,
+                    "item": second_item
+                })))
+                .expect_err("a second Responses message cannot be one Chat Completions answer");
+            assert!(matches!(
+                error,
+                TransformError::UnsupportedMapping {
+                    source_format: ProviderFormat::Responses,
+                    target_format: ProviderFormat::ChatCompletions,
+                    feature: "multiple assistant message output items",
+                }
+            ));
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_rejects_second_responses_message_after_reasoning_item() {
+        let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+        session
+            .push(to_bytes(&json!({
+                "type": "response.output_item.added", "output_index": 0,
+                "item": {"type": "reasoning", "id": "rs_first", "summary": []}
+            })))
+            .expect("reasoning item should be accepted");
+        for (index, id) in [(1, "msg_first"), (2, "msg_second")] {
+            let result = session.push(to_bytes(&json!({
+                "type": "response.output_item.added", "output_index": index,
+                "item": {"type": "message", "id": id, "role": "assistant",
+                         "status": "in_progress", "content": []}
+            })));
+            if index == 1 {
+                result.expect("first message after reasoning should be accepted");
+            } else {
+                let error = result.expect_err("second message should be rejected");
+                assert!(matches!(
+                    error,
+                    TransformError::UnsupportedMapping {
+                        source_format: ProviderFormat::Responses,
+                        target_format: ProviderFormat::ChatCompletions,
+                        feature: "multiple assistant message output items",
+                    }
+                ));
+            }
+        }
     }
 
     #[test]

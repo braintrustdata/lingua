@@ -1265,6 +1265,46 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesRoutedStrictJsonSchemaParam: {
+    "chat-completions": {
+      model: "gpt-5.4",
+      messages: [{ role: "user", content: "Return the status as JSON." }],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "status_response",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: { status: { type: "string" } },
+            required: ["status"],
+            additionalProperties: false,
+          },
+        },
+      },
+    },
+    responses: {
+      model: "gpt-5.4",
+      input: [{ role: "user", content: "Return the status as JSON." }],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "status_response",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: { status: { type: "string" } },
+            required: ["status"],
+            additionalProperties: false,
+          },
+        },
+      },
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   textFormatJsonSchemaParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

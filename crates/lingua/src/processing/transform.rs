@@ -19,6 +19,8 @@ use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter}
 use crate::processing::normalize_json_lone_surrogate_escapes;
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
+#[cfg(feature = "openai")]
+use crate::providers::openai::responses_adapter::responses_message_output_index;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
@@ -75,6 +77,15 @@ pub enum TransformError {
 
     #[error("Streaming not implemented: {0}")]
     StreamingNotImplemented(String),
+
+    #[error(
+        "Unsupported mapping: cannot convert {feature} from {source_format:?} to {target_format:?}"
+    )]
+    UnsupportedMapping {
+        source_format: ProviderFormat,
+        target_format: ProviderFormat,
+        feature: &'static str,
+    },
 }
 
 impl TransformError {
@@ -205,6 +216,7 @@ pub(crate) struct StreamTransformStep {
     pub(crate) universal: Option<UniversalStreamChunk>,
     pub(crate) event_type: Option<String>,
     pub(crate) is_passthrough: bool,
+    pub(crate) responses_message_output_index: Option<u32>,
 }
 
 // ============================================================================
@@ -573,6 +585,47 @@ fn merge_responses_output_parts_for_chat_completions(messages: Vec<Message>) -> 
     merged
 }
 
+fn reject_multiple_responses_text_messages(
+    messages: &[Message],
+    source_format: ProviderFormat,
+    target_format: ProviderFormat,
+) -> Result<(), TransformError> {
+    if source_format != ProviderFormat::Responses
+        || !matches!(
+            target_format,
+            ProviderFormat::ChatCompletions | ProviderFormat::Google
+        )
+    {
+        return Ok(());
+    }
+
+    let text_messages = messages
+        .iter()
+        .filter(|message| match message {
+            Message::Assistant {
+                content: AssistantContent::String(_),
+                ..
+            } => true,
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } => parts
+                .iter()
+                .any(|part| matches!(part, AssistantContentPart::Text(_))),
+            _ => false,
+        })
+        .take(2)
+        .count();
+    if text_messages > 1 {
+        return Err(TransformError::UnsupportedMapping {
+            source_format,
+            target_format,
+            feature: "multiple assistant message output items",
+        });
+    }
+    Ok(())
+}
+
 /// Transform a response payload from one format to another.
 ///
 /// # Arguments
@@ -604,6 +657,11 @@ pub fn transform_response(
     }
 
     let mut universal_resp = source_adapter.response_to_universal(response)?;
+    reject_multiple_responses_text_messages(
+        &universal_resp.messages,
+        source_format,
+        target_format,
+    )?;
     if source_format == ProviderFormat::Responses
         && matches!(
             target_format,
@@ -810,7 +868,9 @@ fn merge_assistant_stream_deltas(deltas: Vec<UniversalStreamDelta>) -> Universal
 fn response_to_stream_chunk(
     response: UniversalResponse,
     source_format: ProviderFormat,
+    target_format: ProviderFormat,
 ) -> Result<UniversalStreamChunk, TransformError> {
+    reject_multiple_responses_text_messages(&response.messages, source_format, target_format)?;
     let finish_reason = response.finish_reason.as_ref().map(ToString::to_string);
     let assistant_deltas = response
         .messages
@@ -871,11 +931,29 @@ pub(crate) fn transform_stream_chunk_step(
     let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
     let source_is_native_stream = matches!(detection.kind, DetectKind::Stream);
+    #[cfg(feature = "openai")]
+    let message_output_index = if source_format == ProviderFormat::Responses
+        && matches!(
+            target_format,
+            ProviderFormat::ChatCompletions | ProviderFormat::Google
+        )
+        && event_type.as_deref() == Some("response.output_item.added")
+    {
+        responses_message_output_index(&chunk)?
+    } else {
+        None
+    };
+    #[cfg(not(feature = "openai"))]
+    let message_output_index = None;
     let universal = match detection.kind {
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
             let response = source_adapter.response_to_universal(chunk)?;
-            Some(response_to_stream_chunk(response, source_format)?)
+            Some(response_to_stream_chunk(
+                response,
+                source_format,
+                target_format,
+            )?)
         }
         DetectKind::Request => {
             unreachable!("stream detection never falls back to request payloads")
@@ -890,6 +968,7 @@ pub(crate) fn transform_stream_chunk_step(
             universal,
             event_type,
             is_passthrough: true,
+            responses_message_output_index: message_output_index,
         });
     }
 
@@ -913,6 +992,7 @@ pub(crate) fn transform_stream_chunk_step(
         universal,
         event_type: None,
         is_passthrough: false,
+        responses_message_output_index: message_output_index,
     })
 }
 // ============================================================================
@@ -2298,6 +2378,53 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_responses_two_message_items_rejects_chat_completions() {
+        let payload = json!({
+            "id": "resp_two_messages",
+            "object": "response",
+            "model": "gpt-5.4",
+            "status": "completed",
+            "output": [
+                {"type": "message", "id": "msg_first", "role": "assistant",
+                 "status": "completed", "phase": "commentary",
+                 "content": [{"type": "output_text", "text": "{\"status\":\"ok\"}"}]},
+                {"type": "message", "id": "msg_second", "role": "assistant",
+                 "status": "completed", "phase": "final_answer",
+                 "content": [{"type": "output_text", "text": "{\"status\":\"ok\"}"}]}
+            ]
+        });
+
+        let error = transform_response(to_bytes(&payload), ProviderFormat::ChatCompletions)
+            .expect_err("two sequential Responses messages cannot become one Chat answer");
+        assert!(matches!(
+            error,
+            TransformError::UnsupportedMapping {
+                source_format: ProviderFormat::Responses,
+                target_format: ProviderFormat::ChatCompletions,
+                feature: "multiple assistant message output items",
+            }
+        ));
+
+        let error = transform_stream_chunk(to_bytes(&payload), ProviderFormat::ChatCompletions)
+            .expect_err("full-response stream fallback should reject the same ambiguity");
+        assert!(matches!(
+            error,
+            TransformError::UnsupportedMapping {
+                source_format: ProviderFormat::Responses,
+                target_format: ProviderFormat::ChatCompletions,
+                feature: "multiple assistant message output items",
+            }
+        ));
+
+        let passthrough = transform_response(to_bytes(&payload), ProviderFormat::Responses)
+            .expect("same-format Responses should preserve both items")
+            .result;
+        assert!(passthrough.is_passthrough());
+        assert_eq!(passthrough.into_bytes(), to_bytes(&payload));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_stream_chunk_preserves_all_response_reasoning_signatures() {
         let payload = json!({
             "id": "resp_123",
@@ -2577,7 +2704,12 @@ mod tests {
             finish_reasons: Vec::new(),
         };
 
-        let chunk = response_to_stream_chunk(response, ProviderFormat::Responses).unwrap();
+        let chunk = response_to_stream_chunk(
+            response,
+            ProviderFormat::Responses,
+            ProviderFormat::ChatCompletions,
+        )
+        .unwrap();
         assert_eq!(chunk.served_service_tier, Some(ServedServiceTier::Priority));
         let output = crate::providers::openai::responses_adapter::ResponsesAdapter
             .stream_from_universal(&chunk)

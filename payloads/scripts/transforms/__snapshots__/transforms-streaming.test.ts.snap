@@ -6803,6 +6803,46 @@ data: [DONE]
 "
 `;
 
+exports[`streaming: chat-completions → bedrock > responsesRoutedStrictJsonSchemaParam > streaming 1`] = `
+"data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\`\`\`json\\n{\\n  \\"status","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\": \\"ready","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\",\\n  \\"message\\": \\"I","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"'m here","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ready to help\\",\\n  \\"timestamp","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\": \\"2024-01-01","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"T00:00:00Z\\"","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n}\\n\`\`\`\\n\\nWould","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" you like me","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" to check","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" the status of something","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" specific?","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk","usage":{"completion_tokens":66,"prompt_tokens":13,"total_tokens":79}}
+
+data: [DONE]
+
+"
+`;
+
 exports[`streaming: chat-completions → bedrock > safetyIdentifierParam > streaming 1`] = `
 "data: {"choices":[],"object":"chat.completion.chunk"}
 
