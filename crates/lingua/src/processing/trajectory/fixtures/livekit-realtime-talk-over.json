@@ -643,8 +643,7 @@
           "id": "9435c3e0c1e908ea",
           "speaker": "agent",
           "step_ids": [
-            "a556b8a695186997",
-            "faff84610970ab26"
+            "a556b8a695186997"
           ],
           "selections": [
             {
@@ -652,7 +651,17 @@
               "channel_index": 1,
               "start_offset_ms": 14255.0,
               "end_offset_ms": 18555.0
-            },
+            }
+          ],
+          "interrupted": false
+        },
+        {
+          "id": "9435c3e0c1e908ea",
+          "speaker": "agent",
+          "step_ids": [
+            "faff84610970ab26"
+          ],
+          "selections": [
             {
               "recording_id": "call-0000",
               "channel_index": 1,

@@ -1,4 +1,5 @@
 use super::*;
+use crate::universal::{UserContent, UserContentPart};
 
 #[cfg(test)]
 mod tests;
@@ -77,6 +78,8 @@ struct TurnState {
     position: usize,
     end_time: Option<DateTime<Utc>>,
     unfinished: bool,
+    /// Words of the user turn task that started the current turn, until an LLM call joins it.
+    task_words: Option<String>,
 }
 
 impl TurnState {
@@ -120,6 +123,34 @@ impl CompletedTurn {
             model: self.model.clone(),
         }
     }
+}
+
+/// Lowercase words of the user messages, so text split across messages still matches.
+pub(super) fn user_words(messages: &[Message]) -> String {
+    let mut words = Vec::new();
+    for message in messages {
+        let Message::User { content } = message else {
+            continue;
+        };
+        let parts: Vec<&str> = match content {
+            UserContent::String(text) => vec![text],
+            UserContent::Array(parts) => parts
+                .iter()
+                .filter_map(|part| match part {
+                    UserContentPart::Text(text) => Some(text.text.as_str()),
+                    _ => None,
+                })
+                .collect(),
+        };
+        for part in parts {
+            words.extend(
+                part.split(|c: char| !c.is_alphanumeric())
+                    .filter(|word| !word.is_empty())
+                    .map(str::to_lowercase),
+            );
+        }
+    }
+    words.join(" ")
 }
 
 /// Aligns message hashes greedily in occurrence order, preserving omitted history.
@@ -624,11 +655,17 @@ impl TrajectoryStream {
     fn initialize(&mut self, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
         resolve_task_roles(&self.spans, &self.owners, &self.parents, &mut self.roles);
         let is_step: Vec<_> = self.roles.iter().map(|role| role.can_request()).collect();
+        let is_conversation: Vec<_> = self
+            .roles
+            .iter()
+            .map(|role| *role == Role::Conversation)
+            .collect();
         let mut voice_calls = voice::voice_calls(
             &self.spans,
             &self.parents,
             &self.owners,
             &is_step,
+            &is_conversation,
             &mut self.failures,
         );
         for (index, span) in self.spans.iter().enumerate() {
@@ -933,7 +970,27 @@ impl TrajectoryStream {
         };
         let previous = state.candidate.map(|(index, _)| &self.spans[index]);
         let observation = observe(&evidence, &state, previous);
-        let boundary = decide(&state, &observation);
+        let mut boundary = decide(&state, &observation);
+        // A LiveKit user turn logs the user's messages joined. LLM calls that hear them bring the
+        // same words as separate, fresh messages; the first one takes over the task's request
+        // instead of starting a second turn for the same words.
+        let mut takes_over_task = false;
+        if boundary == BoundaryAction::NewTurn
+            && explicit.is_none()
+            && self.roles[index] == Role::Conversation
+        {
+            if let Some(task_words) = &state.task_words {
+                let words = user_words(&self.request(
+                    span,
+                    observation.request_filter.as_deref(),
+                    observation.initial_request,
+                ));
+                if !words.is_empty() && format!(" {task_words} ").contains(&format!(" {words} ")) {
+                    takes_over_task = true;
+                    boundary = BoundaryAction::AttachRequest;
+                }
+            }
+        }
         let response_rule = decide_response(&evidence, boundary, previous);
         let new_turn = boundary == BoundaryAction::NewTurn;
         let initial_request = observation.initial_request;
@@ -959,16 +1016,20 @@ impl TrajectoryStream {
                 .compaction
                 .and_then(|index| self.spans[index].source.end);
             state.unfinished = false;
+            let request = if self.roles[index].can_request() {
+                self.request(span, request_filter, initial_request)
+            } else {
+                Vec::new()
+            };
+            state.task_words = (matches!(self.roles[index], Role::Task { .. })
+                && explicit.is_some())
+            .then(|| user_words(&request));
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
                 id: span.id.clone(),
                 turn: Box::new(Turn {
                     request_id: span.id.clone(),
-                    request: Some(if self.roles[index].can_request() {
-                        self.request(span, request_filter, initial_request)
-                    } else {
-                        Vec::new()
-                    }),
+                    request: Some(request),
                     opaque_request: if self.roles[index].can_request() {
                         span.opaque_input.clone()
                     } else {
@@ -1000,10 +1061,15 @@ impl TrajectoryStream {
             }
             state.request_found = true;
             state.request_model = span.source.model.clone();
+            let id = state.id.clone().unwrap();
             events.push(TrajectoryEvent::Request {
                 scope: scope.clone(),
-                id: state.id.clone().unwrap(),
-                request_id: span.id.clone(),
+                request_id: if takes_over_task {
+                    id.clone()
+                } else {
+                    span.id.clone()
+                },
+                id,
                 request: self.request(span, request_filter, initial_request),
                 opaque_request: span.opaque_input.clone(),
             });
@@ -1023,6 +1089,9 @@ impl TrajectoryStream {
             }
         } else {
             events.extend(self.work(&scope, id, index, state.position)?);
+        }
+        if self.roles[index] == Role::Conversation && observation.conversation.has_request() {
+            state.task_words = None;
         }
         state.position += 1;
         state.unfinished =

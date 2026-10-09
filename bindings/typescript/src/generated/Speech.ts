@@ -8,6 +8,7 @@ export type Speech = {
  */
 id: string, speaker: Speaker, 
 /**
- * Ids of the trajectory steps that this speech belongs to.
+ * Ids of the trajectory steps that this speech belongs to: for one utterance, the LLM call
+ * that produced agent speech or answered user speech.
  */
 step_ids: Array<string>, selections: Array<AudioSelection>, interrupted?: boolean, };

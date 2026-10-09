@@ -57,7 +57,8 @@ pub struct Speech {
     /// Id of the span that logged this speech.
     pub id: String,
     pub speaker: Speaker,
-    /// Ids of the trajectory steps that this speech belongs to.
+    /// Ids of the trajectory steps that this speech belongs to: for one utterance, the LLM call
+    /// that produced agent speech or answered user speech.
     pub step_ids: Vec<String>,
     pub selections: Vec<AudioSelection>,
     #[ts(optional)]
