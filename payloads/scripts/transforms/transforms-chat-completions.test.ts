@@ -1,8 +1,11 @@
 import { describe, test, expect } from "vitest";
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
 import OpenAI from "openai";
 import {
   TRANSFORM_PAIRS,
   STREAMING_PAIRS,
+  TRANSFORMS_DIR,
   getTransformableCases,
   getStreamingTransformableCases,
   getResponsePath,
@@ -16,6 +19,12 @@ import {
 
 const TIMEOUT = 30000;
 const getServer = useTransformTestServer();
+const errorsPath = join(TRANSFORMS_DIR, "transform_errors.json");
+const transformErrors: Record<string, Record<string, string>> = existsSync(
+  errorsPath
+)
+  ? JSON.parse(readFileSync(errorsPath, "utf-8"))
+  : {};
 
 // These tests exercise the source=chat-completions path: captured provider
 // responses are transformed back into OpenAI chat completions format, then
@@ -29,9 +38,13 @@ for (const pair of TRANSFORM_PAIRS.filter(
     for (const caseName of getTransformableCases(pair)) {
       const path = getResponsePath(pair.source, pair.target, caseName);
       const skipReason = getFixtureSkipReason(path);
+      const expectedError =
+        transformErrors[`${pair.source}_to_${pair.target}`]?.[caseName];
 
       describe(caseName, () => {
-        if (skipReason) {
+        if (expectedError) {
+          test.skip(`${pairLabel} / ${caseName}: ${expectedError}`, () => {});
+        } else if (skipReason) {
           registerSkippedFixtureTest(pairLabel, caseName, skipReason);
         } else {
           test(

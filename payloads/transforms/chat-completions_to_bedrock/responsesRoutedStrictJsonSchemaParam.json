@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "```json\n{\n  \"status\": \"ready\",\n  \"message\": \"I'm available and ready to help\"\n}\n```"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 13,
+    "outputTokens": 33,
+    "totalTokens": 46,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 829
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "dc460df5-2727-42fc-a8be-50f05c142619",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

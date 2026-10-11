@@ -1,0 +1,28 @@
+{
+  "model": "gpt-5.4",
+  "input": [
+    {
+      "role": "user",
+      "content": "Return the status as JSON."
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "status_response",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -8,7 +8,8 @@
     "chatCompletionsUrlBackedAudioFileParam": "OpenAI Responses input_file does not support audio files",
     "chatCompletionsUrlBackedVideoFileParam": "OpenAI Responses input_file does not support video files",
     "chatCompletionsGcsBackedVideoFileParam": "OpenAI Responses input_file does not support video files",
-    "googleToolCallThoughtSignatureReplayParam": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls"
+    "googleToolCallThoughtSignatureReplayParam": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls",
+    "openAIMultipleReasoningSignaturesReplayParam": "The captured Responses result contains separate commentary and final_answer assistant messages; converting both to one Chat Completions answer would discard their message boundary"
   },
   "chat-completions_to_anthropic": {
     "chatCompletionsInputAudioParam": "Anthropic does not support OpenAI input_audio",

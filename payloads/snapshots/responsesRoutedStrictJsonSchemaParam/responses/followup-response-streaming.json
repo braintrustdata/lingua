@@ -1,0 +1,519 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_072721c57b3664fb006ac94877ef2487d291f74d2bcc1c2378",
+      "object": "response",
+      "created_at": 1791576183,
+      "status": "in_progress",
+      "access_programs": null,
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-2026-03-05",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "none",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": null,
+          "name": "status_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_072721c57b3664fb006ac94877ef2487d291f74d2bcc1c2378",
+      "object": "response",
+      "created_at": 1791576183,
+      "status": "in_progress",
+      "access_programs": null,
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-2026-03-05",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "none",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": null,
+          "name": "status_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "{\"",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "V3Iv8Zfr2PzCBm",
+    "output_index": 0,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "status",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "IRufQvRexD",
+    "output_index": 0,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\":\"",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "Qp0HkthxS30Cr",
+    "output_index": 0,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Please",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "a95EcfAX69",
+    "output_index": 0,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " tell",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "nrm6YP0AYmx",
+    "output_index": 0,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " me",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "Yrug57sLyw9MI",
+    "output_index": 0,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "qGBIIONnWXRt",
+    "output_index": 0,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " task",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "cbOVpLGVeLa",
+    "output_index": 0,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "ZPPsxBhQoTDYK",
+    "output_index": 0,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " goal",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "ycRYCKARvsZ",
+    "output_index": 0,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "pDjRCwOTbHSi",
+    "output_index": 0,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " want",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "CVD2cVhC3ri",
+    "output_index": 0,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " help",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "r0uKWwzIfz0",
+    "output_index": 0,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " with",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "3D19ACVqWVB",
+    "output_index": 0,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " next",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "4ta1QvQ7jm2",
+    "output_index": 0,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".\"",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "48QXNm2nGpm95f",
+    "output_index": 0,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "}",
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "obfuscation": "JtJJuB49y6pAUqU",
+    "output_index": 0,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "logprobs": [],
+    "output_index": 0,
+    "sequence_number": 21,
+    "text": "{\"status\":\"Please tell me the task or goal you want help with next.\"}"
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "{\"status\":\"Please tell me the task or goal you want help with next.\"}"
+    },
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"status\":\"Please tell me the task or goal you want help with next.\"}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_072721c57b3664fb006ac94877ef2487d291f74d2bcc1c2378",
+      "object": "response",
+      "created_at": 1791576183,
+      "status": "completed",
+      "access_programs": null,
+      "background": false,
+      "completed_at": 1791576184,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-2026-03-05",
+      "moderation": null,
+      "output": [
+        {
+          "id": "msg_072721c57b3664fb006ac94878986887d2b97f210bd8557db0",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "{\"status\":\"Please tell me the task or goal you want help with next.\"}"
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "none",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": null,
+          "name": "status_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 58,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 25,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 83
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 24
+  }
+]

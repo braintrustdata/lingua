@@ -1,0 +1,47 @@
+{
+  "model": "gpt-5.4",
+  "input": [
+    {
+      "role": "user",
+      "content": "Return the status as JSON."
+    },
+    {
+      "id": "msg_072721c57b3664fb006ac948778f6c87d29f685c3197094312",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"status\":\"ok\"}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "status_response",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}
