@@ -6,6 +6,62 @@ This spec maps the `message-audio` SDK contract (braintrust-sdk-javascript `docs
 
 **Implemented here:** the Trajectory types (`VoiceCall.messages`, `VoiceMessage` and its enums), the regenerated TypeScript bindings, and the builder: typed import, `VoiceCall.messages`, derived `speech` and `step_ids`, and the failures and warnings below, with fixtures built from the SDK examples. The builder was written from this spec by a second engineer; see "Implementation decisions". Traces without `voice.messages` keep #486 behavior. **Not implemented:** the app side (`TRAJECTORY_METADATA_FIELDS` lives in the app and needs the new keys after #486 is rebased).
 
+## Schema at a glance
+
+Input keys read (full contract and examples: SDK `docs/voice-schema/message-audio/README.md`, "Schema at a glance"):
+
+```ts
+// Call span (the span with audio.recordings or voice.messages)
+metadata["audio.recordings"]?: LoggedRecording[]             // existing #486 parse
+metadata["voice.origin_unix_ms"]: number                     // unix ms; required when voice.messages is present
+metadata["voice.messages"]: Record<MessageId, {
+  role: "user" | "assistant"; seq: number; committed: boolean
+  state: "complete" | "interrupted" | "unplayed" | "open"
+  text?: string; text_status: "final" | "partial" | "missing" | "not_captured"
+  text_source?: "stt" | "realtime_input_transcription" | "tts_input" | "playout_aligned" | "realtime_output_transcript"
+  generated_text?: string
+  start_ms?: number; end_ms?: number; end_of_turn_ms?: number; transcript_final_ms?: number; interrupted_at_ms?: number // call ms
+  timing_source?: "vad_events" | "provider_events" | "local_receipt" | "playout_events"
+  provider_audio_end_ms?: number                             // ms from the item's own audio start
+  selections: LoggedSelection[]                              // existing #486 struct; segment ms
+  produced_by_span_id?: string                               // span_id of an LLM span
+  // turn_span_id, source_ids: accepted, ignored
+}>
+// LLM span
+metadata["voice.context_message_ids"]?: (MessageId | null)[]
+metadata["voice.output_message_id"]?: MessageId
+```
+
+Trajectory output added (`universal/trajectory.rs`, bindings `VoiceCall.ts`, `VoiceMessage.ts`). R = recorded as logged, I = inferred by Lingua.
+
+```ts
+type VoiceCall = { id: string; recordings: AudioRecording[]; speech: Speech[]  // existing; speech is I (derived from messages)
+                   messages?: VoiceMessage[] }                                   // I: order by start_time, then seq
+type VoiceMessage = {
+  id: string                          // R: voice.messages key
+  speaker: "user" | "agent"           // R: from role
+  seq: bigint                         // R
+  committed: boolean                  // R
+  state: VoiceMessageState            // R
+  text?: string                       // R
+  text_status: VoiceTextStatus        // R
+  text_source?: VoiceTextSource       // R
+  generated_text?: string             // R
+  start_time?: string; end_time?: string; end_of_turn_time?: string // R: origin + *_ms, as ISO wall clock
+  transcript_final_time?: string; interrupted_time?: string          // R: same conversion
+  timing_source?: VoiceTimingSource   // R
+  provider_audio_end_ms?: number      // R: unchanged number
+  selections: AudioSelection[]        // R: { recording_id, channel_index?, start_offset_ms, end_offset_ms }
+  step_ids: string[]                  // agent R (produced_by_span_id, as the row id); user I (first hearing LLM span)
+  request_id?: string                 // I: user only; Turn.request_id of the turn containing the hearing step
+}
+type VoiceMessageState = "complete" | "interrupted" | "unplayed" | "open"
+type VoiceTextStatus = "final" | "partial" | "missing" | "not_captured"
+type VoiceTextSource = "stt" | "realtime_input_transcription" | "tts_input" | "playout_aligned" | "realtime_output_transcript"
+type VoiceTimingSource = "vad_events" | "provider_events" | "local_receipt" | "playout_events"
+// Speech (derived, one per message with selections): { id: message id, speaker, step_ids, selections, interrupted: state == "interrupted" }
+```
+
 ## Input keys
 
 All keys are span `metadata`. Every key below must be added to `TRAJECTORY_METADATA_FIELDS` so headers carry them and the app's header query fetches them.

@@ -16,7 +16,7 @@ id: string, speaker: Speaker, seq: bigint,
  */
 committed: boolean, state: VoiceMessageState, text?: string, text_status: VoiceTextStatus, text_source?: VoiceTextSource, 
 /**
- * Full generated text of interrupted agent speech.
+ * Full generated agent text, present only when it differs from `text`.
  */
 generated_text?: string, start_time?: string, end_time?: string, timing_source?: VoiceTimingSource, end_of_turn_time?: string, transcript_final_time?: string, interrupted_time?: string, 
 /**
@@ -28,6 +28,7 @@ provider_audio_end_ms?: number, selections: Array<AudioSelection>,
  */
 step_ids: Array<string>, 
 /**
- * Request id of the turn whose request includes this message.
+ * Request id of the turn whose request, response or work includes the step that heard this
+ * user message.
  */
 request_id?: string, };

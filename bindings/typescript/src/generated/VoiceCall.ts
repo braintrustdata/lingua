@@ -4,7 +4,8 @@ import type { Speech } from "./Speech";
 import type { VoiceMessage } from "./VoiceMessage";
 
 /**
- * Audio of a voice call. Speech is ordered by span start and can overlap.
+ * Audio of a voice call. Speech is ordered by span start, or by message order when the call has
+ * `messages`, and can overlap.
  */
 export type VoiceCall = { 
 /**
