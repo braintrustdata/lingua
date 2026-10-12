@@ -90,7 +90,6 @@ The SDK's zod schema rejects every per-message field rule below, at both failure
   - a selection on the wrong channel for the role, or one that refers to a missing recording;
   - commit and playback contradictions:
     - a `committed: false` user entry that is not complete or has text;
-    - a `committed: false` agent entry that is not `unplayed`/`interrupted`;
     - an `unplayed` entry with selections or `interrupted_at_ms`, or one with no generated text (no `text` while `text_status` is not `not_captured`).
 - **Warning** (the message is kept as logged):
   - a role-mismatched field: `generated_text`, `interrupted_at_ms`, `provider_audio_end_ms` or `produced_by_span_id` on a user message, or `end_of_turn_ms`/`transcript_final_ms` on an agent message;
@@ -154,6 +153,11 @@ The SDK examples, and therefore the fixtures `voice-message-audio-cascaded.json`
 - Realtime `item_rt_a1.provider_audio_end_ms` is 2900, equal to the played position.
 
 `VoiceTimingSource` gains `LocalReceipt`.
+
+Later alignment on the same day:
+
+- Uncommitted agent speech may have any state. A played message that LiveKit skips for having no forwarded text stays `committed: false` with state `complete` or `interrupted`, so the builder no longer fails it.
+- A realtime user message from a plugin whose session `chatCtx` holds no user audio items keeps a minted `vad_<seq>` id and is not listed in any `voice.context_message_ids`, so its `step_ids` stay empty. This is a known limitation, not a warning case beyond the existing "heard by no LLM span" warning.
 
 ## Implementation decisions
 

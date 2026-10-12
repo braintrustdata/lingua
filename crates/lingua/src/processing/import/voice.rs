@@ -123,11 +123,6 @@ impl LoggedVoiceMessage {
         if !self.committed && user && (self.state != Complete || self.text.is_some()) {
             return Err("is uncommitted user speech that is not complete or has text".to_string());
         }
-        if !self.committed && !user && !matches!(self.state, Unplayed | Interrupted) {
-            return Err(
-                "is uncommitted agent speech that is not unplayed or interrupted".to_string(),
-            );
-        }
         if self.state == Unplayed
             && (!self.selections.is_empty()
                 || self.interrupted_at_ms.is_some()
