@@ -177,7 +177,7 @@ pub struct AudioRecording {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Speech {
-    /// Id of the span that logged this speech.
+    /// Id of the span that logged this speech, or its utterance id in a call timeline.
     pub id: String,
     pub speaker: Speaker,
     /// Ids of the trajectory steps that this speech belongs to: for one utterance, the LLM call

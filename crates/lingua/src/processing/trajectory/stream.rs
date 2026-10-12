@@ -487,6 +487,7 @@ pub struct TrajectoryStream {
     initialized: bool,
     finished: bool,
     failures: Vec<ImportFailure>,
+    warnings: Vec<ImportFailure>,
 }
 
 impl TrajectoryStream {
@@ -567,6 +568,7 @@ impl TrajectoryStream {
             by_id,
             order,
             failures,
+            warnings: Vec::new(),
             owners,
             parents,
             roles,
@@ -667,6 +669,7 @@ impl TrajectoryStream {
             &is_step,
             &is_conversation,
             &mut self.failures,
+            &mut self.warnings,
         );
         for (index, span) in self.spans.iter().enumerate() {
             let role = self.roles[index];
@@ -1139,19 +1142,34 @@ impl TrajectoryStream {
                     message: failure.message,
                 }),
         );
-        let mut warnings: Vec<_> = self
+        let mut warnings: BTreeMap<&str, (&str, Vec<&str>)> = BTreeMap::new();
+        for (_, span) in self
             .spans
             .iter()
             .enumerate()
             .filter(|(index, span)| !self.owners[index].skipped && !span.warnings.is_empty())
-            .map(|(_, span)| span)
-            .collect();
-        warnings.sort_by(|a, b| a.id.cmp(&b.id));
-        for span in warnings {
+        {
+            warnings.insert(
+                &span.id,
+                (
+                    &span.root_span_id,
+                    span.warnings.iter().map(String::as_str).collect(),
+                ),
+            );
+        }
+        for warning in &self.warnings {
+            let (_, messages) = warnings
+                .entry(&warning.span_id)
+                .or_insert((&warning.root_span_id, Vec::new()));
+            if !messages.contains(&warning.message.as_str()) {
+                messages.push(&warning.message);
+            }
+        }
+        for (span_id, (root_span_id, messages)) in warnings {
             events.push(TrajectoryEvent::Warning {
-                root_span_id: span.root_span_id.clone(),
-                span_id: span.id.clone(),
-                message: span.warnings.join("; "),
+                root_span_id: root_span_id.to_string(),
+                span_id: span_id.to_string(),
+                message: messages.join("; "),
             });
         }
         events.push(TrajectoryEvent::Done);
