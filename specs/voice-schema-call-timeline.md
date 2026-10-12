@@ -123,3 +123,38 @@ pub struct VoiceEvent { pub seq: u32, pub at_ms: f64, pub basis: TimeBasis,
 2. Speech, selections and channel resolution. Add fixtures `call-timeline-cascaded-tool-barge-in.json` and `call-timeline-realtime-missing-transcript.json`, built from the SDK examples.
 3. Turn windows and `step_ids`, then warnings.
 4. In the app: the schema, then the strip.
+
+## Implementation decisions
+
+The builder in this PR was written from this spec by an engineer who did not write it. These are the points the spec left open and how the builder settles them. They are now part of the contract; "Essential" ones change what customers see.
+
+### Essential (changes customer-visible output)
+
+1. **Input keys / Import (call span).** Does a versioned call span without `audio.recordings` produce a `VoiceCall`? The SDK README says the call span is "the session span when there is no recording", but the Lingua spec doesn't say. **Choice:** yes. It gets a call with `recordings: []`, speech with no selections, and `events`.
+2. **Failures (`timeline_version` not 1, conflicting chunk).** After the failure, what happens to the call? **Choice:** the call is still emitted with its recordings, `speech: []` and no `events`. Its turn spans are still ignored, so there is no fallback to the #486 path.
+3. **Failures (conflicting duplicate `chunk_index`).** Should the whole timeline fail, or only that chunk? **Choice:** the whole timeline is dropped, with failure `Conflicting voice timeline chunk N` on the later row in (start, id) order.
+4. **Input keys ("turn spans are ignored, with one warning").** Does "ignored" cover `turn.id` for trajectory turn grouping too? Which spans belong to the call? What does the warning say? **Choice:** turn spans are ignored only in `voice_calls`, and `turn.id` still shapes trajectory turns. A turn span belongs to the call when its first selection's `recording_span_id` points at the call. One warning per call: `turn span voice metadata is ignored for a timeline call`.
+5. **§1 Speech interval ("same speaker's next speech_start after it").** Is "after" measured by `seq` or by `at_ms`? **Choice:** the next same-speaker start in speech order (`at_ms`, then `seq`). The `unclosed speech <id>` warning fires for every unclosed speech, including speech closed by `call_end` or the last `at_ms`.
+6. **§1 Speech.** What about duplicate `speech_start` or `speech_end` events for one `utterance_id`? **Choice:** the first in `seq` order wins, and later ones are ignored without a warning.
+7. **§2 Selections ("each ready recording").** Readiness depends on `state`, which #486 didn't parse, and the possible values aren't listed. **Choice:** `state` is parsed as `ready | <other>`. A missing `state` counts as ready. A recording with no `timeline` or no `duration_ms` yields no selections. Zero-length intersections yield nothing.
+8. **§2 Channel.** What if `sources` exists but has no boundary for the speaker, or has several? What does the warning say? **Choice:** the first matching source wins. With no match, the 0/1 fallback applies, as when `sources` is missing. Warning: `recording <id> has no <user|agent> source; using channel N`, deduplicated. Unknown boundary values parse as `other` and are ignored, not treated as an import failure.
+9. **§3 Turns, unlisted caller utterance before the first `end_of_turn`.** The warning text isn't given. **Choice:** `speech <id> is before the first end of turn`.
+10. **§3 Responses.** `in_reply_to` can be empty, or name utterances that are in no turn (unknown or pre-turn). **Choice:** an empty array counts as absent, so the window fallback applies. Unknown ids are skipped. If no turn resolves, the response is unlinked with warning `response <id> is not linked to a turn`. The same text covers the spec's "before the first `end_of_turn` and without `in_reply_to`" case. Multi-turn warning: `response <id> replies to several turns`.
+11. **§4 Agent speech.** What if `speech_start.response_id` matches no `response_start`? What is the "turn window" for agent speech without a `response_id`? **Choice:** with no match, `step_ids` is empty and there is no warning. Without a `response_id`, the window containing the agent `speech_start.seq` is used, with that turn's responses as resolved by `in_reply_to` or window. For several `response_start` events with one `response_id`, the first wins.
+12. **Failures: `seq` gap.** A missing first chunk (first `seq` > 0) isn't covered by "gap after seq N". **Choice:** added warning `timeline gap before seq N`.
+13. **Failures: `basis: audio` with no recording.** Does "treated as local" rewrite the events, and how often does it warn? **Choice:** events stay verbatim, with one warning per call: `audio basis without a recording is treated as local`. "No recording" means `audio.recordings` is empty.
+14. **Failures: `voice.pipeline`.** The warning text isn't given. **Choice:** `Missing metadata.voice.pipeline`, only on spans with `voice.timeline_version`, and `Invalid metadata.voice.pipeline: <serde error>` on any span. Both are import warnings on the call span.
+15. **Failures: rows without a versioned call span.** Which span gets the warning? **Choice:** once per (root, `call_span_id`), on the first row in (start, id) order.
+16. **Failures: unknown `span_id`.** Which `span_id`s are checked? **Choice:** only `response_start.span_id`, since that is the only link Lingua makes. `tool_call` and `tool_result` span ids aren't checked. One warning per span id.
+17. **Warnings: placement and wire format.** Where do derivation warnings go? **Choice:** into the existing `metadata.import_warnings` on the call span's row, joined with `; ` alongside that span's other warnings, with identical messages deduplicated. This needed a new warnings channel in `TrajectoryStream`.
+
+### Minor (no customer-visible change)
+
+1. **Input keys: `TRAJECTORY_METADATA_FIELDS`.** The constant doesn't exist in lingua on this base; it lives in the consuming app. **Choice:** nothing added in lingua. The keys reach the typed header (`SpanVoice`), so `voice_calls` stays header-only.
+2. **Input keys: `voice.timeline_origin_unix_ms` and `voice.server_vad_silence_ms`.** These are parsed (bad types are import failures) but never used, because derivation runs on the call clock.
+3. **Input keys: wrong JSON type for `voice.timeline_version` (for example `"1"`).** **Choice:** import failure `Invalid metadata.voice.timeline_version`, like other typed metadata, rather than "unsupported voice timeline version".
+4. **Import: timeline rows.** Rows are recognized by `metadata["voice.timeline"]` alone. Span name, type and parent aren't checked.
+5. **Import: identical retries.** "Identical" means equal `voice.timeline` objects and equal `voice.events`. Duplicate `seq` values across different chunks are kept, in stable chunk order, with no warning.
+6. **§2 Selections: recordings with different `origin_unix_ms`.** Assumed to share one call clock, with no check.
+7. **Recorded: a versioned call with no rows.** `events: []` and the in-progress warning.
+8. **Speech.id doc comment.** Updated to "or its utterance id in a call timeline", and bindings regenerated (`Speech.ts`).
