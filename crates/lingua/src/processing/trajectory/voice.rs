@@ -1,8 +1,10 @@
 use super::{ImportFailure, Ownership, PreparedSpan};
-use crate::processing::import::LoggedSelection;
-use crate::universal::trajectory::{AudioRecording, AudioSelection, Speaker, Speech, VoiceCall};
+use crate::processing::import::{LoggedSelection, LoggedSpeech};
+use crate::universal::trajectory::{
+    AudioRecording, AudioSelection, Speaker, Speech, SpeechState, VoiceCall,
+};
 use chrono::{DateTime, Duration, Utc};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 struct Utterance<'a> {
     span: &'a PreparedSpan,
@@ -12,10 +14,13 @@ struct Utterance<'a> {
 
 /// Builds each trace's voice calls from span headers, keyed by root span id.
 ///
-/// A call is a span that logged recordings. Speech comes from LiveKit `user_turn` and
-/// `assistant_turn` spans, one per utterance when the turn logs speaking spans. Agent speech
-/// links to the LLM call that produced it and user speech to the LLM call that answered it;
-/// without speaking spans, speech links to the steps among the turn span and its children.
+/// A call is a span that logged `voice.call` or recordings. Each span with `voice.speech` is one
+/// utterance and names the steps it links to. For a speaker with no such spans in a trace, speech
+/// comes from LiveKit `user_turn` and `assistant_turn` spans, one per utterance when the turn
+/// logs speaking spans.
+/// Agent speech links to the LLM call that produced it and user speech to the LLM call that
+/// answered it; without speaking spans, speech links to the steps among the turn span and its
+/// children.
 pub(super) fn voice_calls(
     spans: &[PreparedSpan],
     parents: &[Option<usize>],
@@ -41,12 +46,13 @@ pub(super) fn voice_calls(
     };
 
     let mut calls: HashMap<String, Vec<VoiceCall>> = HashMap::new();
+    let mut origins: HashMap<String, DateTime<Utc>> = HashMap::new();
     for &index in &order {
         let span = &spans[index];
         let Some(voice) = &span.source.voice else {
             continue;
         };
-        if voice.recordings.is_empty() {
+        if voice.recordings.is_empty() && voice.call.is_none() {
             continue;
         }
         let mut recordings = Vec::new();
@@ -69,6 +75,20 @@ pub(super) fn voice_calls(
                 duration_ms: recording.duration_ms,
             });
         }
+        if let Some(origin) = voice
+            .call
+            .as_ref()
+            .map(|call| call.origin_unix_ms)
+            .or_else(|| {
+                voice
+                    .recordings
+                    .iter()
+                    .find_map(|recording| Some(recording.timeline.as_ref()?.origin_unix_ms))
+            })
+            .and_then(|origin| DateTime::from_timestamp_millis(origin as i64))
+        {
+            origins.insert(span.id.clone(), origin);
+        }
         calls
             .entry(span.root_span_id.clone())
             .or_default()
@@ -79,6 +99,124 @@ pub(super) fn voice_calls(
             });
     }
 
+    let neutral: Vec<_> = order
+        .iter()
+        .copied()
+        .filter(|index| {
+            spans[*index]
+                .source
+                .voice
+                .as_ref()
+                .is_some_and(|voice| voice.speech.is_some())
+        })
+        .collect();
+    for &index in &neutral {
+        let span = &spans[index];
+        let voice = span.source.voice.as_ref().unwrap();
+        let logged = voice.speech.as_ref().unwrap();
+        let row_id = |span_id: &str| {
+            row_ids
+                .get(&(&span.root_span_id, &span_id.to_string()))
+                .map(|id| id.to_string())
+        };
+        // The call is the nearest ancestor that logged `voice.call` or recordings; it may not be
+        // logged yet.
+        let Some(call_id) = std::iter::successors(Some(index), |child| parents[*child])
+            .map(|ancestor| &spans[ancestor].id)
+            .find(|id| {
+                calls
+                    .get(&span.root_span_id)
+                    .is_some_and(|calls| calls.iter().any(|call| &call.id == *id))
+            })
+        else {
+            continue;
+        };
+        let call = calls
+            .get_mut(&span.root_span_id)
+            .and_then(|calls| calls.iter_mut().find(|call| &call.id == call_id))
+            .unwrap();
+        let resolves = voice.selections.iter().all(|selection| {
+            row_id(&selection.recording_span_id).is_some_and(|id| id == call.id)
+                && call
+                    .recordings
+                    .iter()
+                    .any(|recording| recording.id == selection.recording_id)
+        });
+        if !resolves {
+            fail(span, "Speech refers to a missing recording".to_string());
+            continue;
+        }
+        let mut linked = |span_ids: &[&String]| {
+            let mut ids = Vec::new();
+            for span_id in span_ids {
+                match row_id(span_id) {
+                    Some(id) => ids.push(id),
+                    None => fail(span, format!("Speech refers to a missing span {span_id}")),
+                }
+            }
+            ids
+        };
+        let named: Vec<_> = match logged.speaker {
+            Speaker::Agent => logged.produced_by.iter().collect(),
+            Speaker::User => logged.heard_by.iter().collect(),
+        };
+        let mut step_ids = linked(&named);
+        let interrupted_by = linked(&logged.interrupted_by.iter().collect::<Vec<_>>()).pop();
+        if step_ids.is_empty() {
+            step_ids = linked(&logged.turn_id.iter().collect::<Vec<_>>())
+                .first()
+                .and_then(|turn| order.iter().copied().find(|step| spans[*step].id == *turn))
+                .map(|turn| {
+                    order
+                        .iter()
+                        .copied()
+                        .filter(|step| {
+                            is_step[*step] && (*step == turn || parents[*step] == Some(turn))
+                        })
+                        .map(|step| spans[step].id.clone())
+                        .collect()
+                })
+                .unwrap_or_default();
+        }
+        let LoggedSpeech {
+            speaker,
+            state,
+            timing_source,
+            end_of_turn_ms,
+            transcript,
+            ..
+        } = logged;
+        call.speech.push(Speech {
+            id: span.id.clone(),
+            speaker: *speaker,
+            step_ids,
+            selections: voice.selections.iter().map(audio_selection).collect(),
+            interrupted: match (speaker, state) {
+                (_, SpeechState::Interrupted) => Some(true),
+                (Speaker::Agent, _) => Some(false),
+                (Speaker::User, _) => None,
+            },
+            state: Some(*state),
+            interrupted_by,
+            transcript_source: transcript.as_ref().map(|transcript| transcript.source),
+            timing_source: Some(*timing_source),
+            end_of_turn_time: end_of_turn_ms
+                .zip(origins.get(&call.id))
+                .map(|(ms, origin)| *origin + Duration::microseconds((ms * 1000.0) as i64)),
+            start_time: Some(span.start),
+            end_time: span.source.end,
+        });
+    }
+
+    // Speech spans replace the LiveKit name rules per trace and speaker, so an integration can
+    // move one speaker at a time.
+    let neutral_speakers: HashSet<_> = neutral
+        .iter()
+        .map(|index| {
+            let speaker = spans[*index].source.voice.as_ref().unwrap().speech.as_ref();
+            (&spans[*index].root_span_id, speaker.unwrap().speaker)
+        })
+        .collect();
     let is_utterance = |index: usize, speaking_name: &str| {
         spans[index].source.name.as_deref() == Some(speaking_name)
             && spans[index]
@@ -97,6 +235,9 @@ pub(super) fn voice_calls(
             ("task", Some("assistant_turn")) => (Speaker::Agent, "livekit.agent_speaking"),
             _ => continue,
         };
+        if neutral_speakers.contains(&(&span.root_span_id, speaker)) {
+            continue;
+        }
         let Some(first) = voice.selections.first() else {
             continue;
         };
@@ -226,16 +367,15 @@ pub(super) fn voice_calls(
                 id: utterance_span.id.clone(),
                 speaker,
                 step_ids,
-                selections: selections
-                    .iter()
-                    .map(|selection| AudioSelection {
-                        recording_id: selection.recording_id.clone(),
-                        channel_index: selection.channel_index,
-                        start_offset_ms: selection.start_offset_ms,
-                        end_offset_ms: selection.end_offset_ms,
-                    })
-                    .collect(),
+                selections: selections.iter().map(audio_selection).collect(),
                 interrupted: voice.interrupted,
+                state: None,
+                interrupted_by: None,
+                transcript_source: None,
+                timing_source: None,
+                end_of_turn_time: None,
+                start_time: None,
+                end_time: None,
             });
         }
     }
@@ -263,4 +403,13 @@ pub(super) fn voice_calls(
         call.speech.sort_by_cached_key(|speech| start(speech));
     }
     calls
+}
+
+fn audio_selection(selection: &LoggedSelection) -> AudioSelection {
+    AudioSelection {
+        recording_id: selection.recording_id.clone(),
+        channel_index: selection.channel_index,
+        start_offset_ms: selection.start_offset_ms,
+        end_offset_ms: selection.end_offset_ms,
+    }
 }

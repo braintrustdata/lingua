@@ -1,3 +1,4 @@
+use crate::universal::trajectory::{Speaker, SpeechState, TimingSource, TranscriptSource};
 use serde::{Deserialize, Serialize};
 
 /// Voice metadata logged on a span, kept on its header so the trajectory can place speech on audio.
@@ -11,6 +12,48 @@ pub struct SpanVoice {
     pub selections: Vec<LoggedSelection>,
     /// `metadata["contrib.livekit.interrupted"]`
     pub interrupted: Option<bool>,
+    /// `metadata["voice.speech"]`
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub speech: Option<LoggedSpeech>,
+    /// `metadata["voice.call"]`
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub call: Option<LoggedCall>,
+}
+
+/// The span a voice call's speech hangs under, logged whether or not audio was captured.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LoggedCall {
+    pub framework: String,
+    pub pipeline: String,
+    /// The clock for every call-relative millisecond field in the call.
+    pub origin_unix_ms: f64,
+}
+
+/// One utterance, logged on its own span. Span ids refer to spans in the same trace and offsets
+/// are milliseconds on the call's recording timeline.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LoggedSpeech {
+    pub speaker: Speaker,
+    pub turn_id: Option<String>,
+    pub state: SpeechState,
+    pub timing_source: TimingSource,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub heard_by: Vec<String>,
+    pub produced_by: Option<String>,
+    pub interrupted_by: Option<String>,
+    pub played_ms: Option<f64>,
+    pub provider_played_ms: Option<f64>,
+    pub end_of_turn_ms: Option<f64>,
+    pub transcript: Option<LoggedTranscript>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LoggedTranscript {
+    pub source: TranscriptSource,
+    #[serde(rename = "final")]
+    pub is_final: bool,
+    pub available_ms: Option<f64>,
+    pub confidence: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
