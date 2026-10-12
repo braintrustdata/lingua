@@ -41,8 +41,8 @@ pub struct VoiceCall {
     pub events: Option<Vec<VoiceEvent>>,
 }
 
-/// One observation from a call timeline. `at_ms` is on the call clock: milliseconds since the
-/// recordings' `origin_unix_ms`.
+/// One observation from a call timeline. `seq` is emission order; `at_ms` is when it happened on
+/// the call clock, milliseconds since the recordings' `origin_unix_ms`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 pub struct VoiceEvent {
     pub seq: u32,
@@ -88,6 +88,7 @@ pub enum MissingEvidence {
     SpeechEnd,
     Audio,
     ToolResult,
+    Timeline,
 }
 
 #[skip_serializing_none]
@@ -118,6 +119,11 @@ pub enum VoiceEventDetail {
         text: Option<String>,
         #[ts(optional)]
         message_id: Option<String>,
+    },
+    Message {
+        speaker: Speaker,
+        message_id: String,
+        utterance_ids: Vec<String>,
     },
     EndOfTurn {
         utterance_ids: Vec<String>,
