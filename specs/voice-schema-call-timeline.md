@@ -79,7 +79,8 @@ All seven keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays head
     - → each `tool_call` / `tool_result` pair
     - → first agent `speech_start`
   - **Overlap:** the intersection of caller and agent speech intervals.
-- **Transcripts:** they stay in `events`. Text without a transcript stays absent.
+- **Transcripts:** they stay in `events`. Text without a transcript stays absent. Lingua takes each transcript's `utterance_id` as given, because the SDK already attached it. STT finals attach to the open or most recently ended utterance of the uncommitted turn; provider (realtime) finals attach FIFO to the oldest committed utterance without a final. Lingua does not re-attach.
+- **Message matching:** a `message` event maps utterances to a chat item id for matching conversation messages. An utterance with no final never gets a `message`. Lingua then matches nothing for it and adds no warning beyond the `missing` event already in the log.
 
 ## Failures and warnings
 
@@ -87,6 +88,8 @@ All seven keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays head
 | --- | --- |
 | `voice.events` does not parse | Import failure on that row |
 | `voice.timeline_version` is not 1 | Failure `unsupported voice timeline version` |
+| `voice.pipeline` missing or not a known value | Warning; field ignored |
+| `voice.timeline` row whose call span lacks `voice.timeline_version` | Warning `timeline rows without a versioned call span`; rows ignored |
 | Conflicting duplicate `chunk_index` | Failure |
 | `seq` gap | Warning `timeline gap after seq N` |
 | No chunk with `final: true` | Warning `call timeline is in progress or the session crashed`; open speech closes by the rules above |
