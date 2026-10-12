@@ -5,13 +5,59 @@
 The SDK contract is in braintrust-sdk-javascript `docs/voice-schema/call-timeline/README.md`. In this option, integrations log an append-only event log in `voice.timeline` child rows. Lingua groups caller utterances into turns, builds `VoiceCall.speech` and links speech to steps. It copies the log into `VoiceCall.events`.
 
 **Implemented in this PR:**
+
 - the `VoiceEvent` types, including `message` and `missing{timeline}`, and `VoiceCall.events`
 - regenerated TypeScript bindings
 - a test that reads the SDK example logs into `VoiceEvent` without dropping fields
-
 - the builder: typed import of `voice.timeline` rows and call-span keys, `VoiceCall.events`, derived `speech` (selections, `interrupted`, `step_ids`) and the failures and warnings below, with fixtures built from the SDK examples. It was written from this spec by a second engineer; see "Implementation decisions".
 
 **Not implemented:** the app side (`TRAJECTORY_METADATA_FIELDS` lives in the app and needs the new keys after #486 is rebased).
+
+## Schema at a glance
+
+**Input keys read** (full contract and field meanings: SDK README "Schema at a glance"):
+
+```ts
+// call span metadata
+"voice.timeline_version": 1                                  // required; any other value fails
+"voice.pipeline": "cascaded" | "realtime" | "half_cascade"   // required; validated, not carried
+"voice.timeline_origin_unix_ms"?: number                     // unix ms; parsed, unused
+"voice.server_vad_silence_ms"?: number                       // ms; parsed, unused
+"audio.recordings"?: { id; state?; attachment: { span_id; ref }; duration_ms?;
+  sources?: { channel_index; boundary }[]; timeline?: { origin_unix_ms; recording_start_offset_ms } }[]
+// voice.timeline row metadata
+"voice.timeline": { call_span_id: string; chunk_index: number; final: boolean }
+"voice.events": VoiceEvent[]                                 // same shape as the SDK zod, parsed verbatim
+```
+
+**Trajectory output** (`crates/lingua/src/universal/trajectory.rs`, bindings in `bindings/typescript/src/generated/`):
+
+```ts
+type VoiceCall = {
+  id: string                    // recorded: call span id
+  recordings: AudioRecording[]  // recorded: call span's audio.recordings (as #486)
+  speech: Speech[]              // inferred from the timeline
+  events?: VoiceEvent[]         // recorded: the log in seq order; absent for #486 turn-span calls
+}
+type Speech = {
+  id: string                    // recorded: utterance_id
+  speaker: "user" | "agent"     // recorded: speech_start.speaker
+  step_ids: string[]            // inferred: turn windows / in_reply_to, response_id -> response_start.span_id row id
+  selections: AudioSelection[]  // inferred: [speech_start.at_ms, end] clipped to each ready recording
+  interrupted?: boolean         // recorded: speech_end.interrupted
+}
+type AudioRecording = { id: string; attachment_span_id: string; attachment_pointer: string; start_time?: string; duration_ms?: number }
+  // recorded: attachment.span_id -> row id, attachment.ref; start_time = origin_unix_ms + recording_start_offset_ms (ISO)
+type AudioSelection = { recording_id: string; channel_index?: number; start_offset_ms: number; end_offset_ms: number }
+  // inferred: offsets relative to the recording; channel from recordings[].sources
+type VoiceEvent = { seq: number; at_ms: number; basis: TimeBasis } & ( /* 11 kinds, tagged by "kind" */ )
+type TimeBasis = "audio" | "local" | "provider"
+type TranscriptSource = "stt" | "provider" | "playout"
+type ToolOutcome = "ok" | "error" | "cancelled"
+type MissingEvidence = "transcript" | "speech_end" | "audio" | "tool_result" | "timeline"
+```
+
+Speech end is inferred when `speech_end` is absent (next same-speaker start, `call_end`, or the last `at_ms`). Turns, latencies and overlaps are not stored on `VoiceCall`.
 
 ## Input keys
 
@@ -25,7 +71,7 @@ The SDK contract is in braintrust-sdk-javascript `docs/voice-schema/call-timelin
 | `voice.timeline` | `voice.timeline` rows | Object `{call_span_id, chunk_index, final}` |
 | `voice.events` | same rows | `Vec<VoiceEvent>` |
 
-All seven keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays header-only. For a versioned call, `audio.selections`, `turn.id` and `contrib.livekit.interrupted` on its turn spans are ignored, with one warning.
+All seven keys belong in the app's `TRAJECTORY_METADATA_FIELDS` (the constant is not in Lingua), so `voice_calls` stays header-only. For a versioned call, `audio.selections`, `turn.id` and `contrib.livekit.interrupted` on its turn spans are ignored, with one warning.
 
 ## Import
 
@@ -81,8 +127,8 @@ All seven keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays head
     - → each `tool_call` / `tool_result` pair
     - → first agent `speech_start`
   - **Overlap:** the intersection of caller and agent speech intervals.
-- **Transcripts:** they stay in `events`. Text without a transcript stays absent. Lingua takes each transcript's `utterance_id` as given, because the SDK already attached it. STT finals attach to the open or most recently ended utterance of the uncommitted turn; provider (realtime) finals attach FIFO to the oldest committed `end_of_turn` group without a final, assuming one provider input item per group. The text goes on the group's first utterance, and the other utterances in the group are covered, not missing. Lingua does not re-attach.
-- **Message matching:** a `message` event maps utterances to a chat item id for matching conversation messages. An utterance with no final never gets a `message`. Lingua then matches nothing for it and adds no warning beyond the `missing` event already in the log.
+- **Transcripts:** they stay in `events`. Text without a transcript stays absent. Lingua takes each transcript's `utterance_id` as given, because the SDK already attached it. STT finals attach to the open or most recently ended utterance of the uncommitted turn; provider (realtime) finals carry `message_id` and attach through the `message` that mapped it, or FIFO to the oldest committed `end_of_turn` group without a final when there is no item id, assuming one provider input item per group. The text goes on the group's first utterance, and the other utterances in the group are covered, not missing. Lingua does not re-attach.
+- **Message matching:** a `message` event maps utterances to a chat item id for matching conversation messages. Realtime caller `message` events are emitted at the entry of the answering generation (LiveKit decision E), so an utterance with no final still has one (`item_u2` in the realtime fixture). Lingua copies `message` events and derives nothing from them; a missing transcript adds no warning beyond the `missing` event already in the log.
 
 ## Failures and warnings
 
@@ -111,7 +157,7 @@ pub struct VoiceEvent { pub seq: u32, pub at_ms: f64, pub basis: TimeBasis,
                         #[serde(flatten)] pub detail: VoiceEventDetail }  // tagged by `kind`
 ```
 
-- **Not in this PR:** `VoiceCall.pipeline` (an enum from `voice.pipeline`) would be added together with the builder. Until then, `voice.pipeline` is validated but not carried.
+- **Not in this PR:** `VoiceCall.pipeline` (an enum from `voice.pipeline`). The builder validates `voice.pipeline` but does not carry it.
 - **`Speech.id`:** this becomes an utterance id for timeline calls. #22036 uses it only as a key; the doc comment would read "span id or utterance id".
 
 ## How #22034 and #22036 consume it
@@ -136,6 +182,7 @@ The SDK capture table was checked against `@livekit/agents` 1.9.2. That review c
 - **Preemptive generations (cascaded):** these carry `in_reply_to` from the `onPreemptiveGeneration` snapshot. §3 already prefers it over the window.
 - **Cascaded `end_of_turn`:** emitted when the reply is scheduled (the user commit), dated at the `onEndOfTurn` resolve time. That is why it follows the turn-1 transcript in `seq` in the cascaded fixture. Turns that LiveKit drops after `onEndOfTurn` (AMD `skipReply`, non-interruptible speech, `StopResponse`) emit no `end_of_turn`, and their utterances fall back to "the turn open at their start" (§3).
 - **Realtime `end_of_turn`:** excludes caller utterances still open at `_realtimeGenerationTaskImpl` entry.
+- **Realtime caller `message` (decision E):** emitted at `_realtimeGenerationTaskImpl` entry from the `chatCtx` diff, after `end_of_turn`, even without a transcript. The realtime fixture now maps `u1` → `item_u1` at 3600 and `u2` → `item_u2` at 8600, and the late `u1` final carries `message_id: item_u1`. Speech and `step_ids` are unchanged.
 - **Handoff:** `voice.pipeline` is the pipeline at call start. A handoff that changes the LLM type is out of MVP scope.
 
 ## Implementation decisions
