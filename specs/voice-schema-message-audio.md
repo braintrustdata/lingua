@@ -63,7 +63,7 @@ Sketch for `processing/trajectory/voice.rs`, run from the same `initialize` hook
    - **Agent:** `[produced_by_span_id]` when that span is a Conversation step in this trace. Otherwise empty, with a warning.
    - **User:** the earliest-starting Conversation LLM span whose `voice.context_message_ids` contains `id`. Ties go by `(start, exec_counter, id)`, which is the stream's order. If no span contains the id, `step_ids` is empty: uncommitted, still open, or never heard.
 4. **`request_id`:** the `Turn.request_id` of the turn whose request or work contains the user's step. It is unset for agent messages and unheard user messages. This needs the collected turns, so it runs in `TrajectoryCollector::snapshot` rather than in `initialize`.
-5. **Order:** sort by `start_time`, then `seq`. Messages without a `start_time` sort by `seq` after the latest earlier-`seq` message that has one.
+5. **Order:** sort by `start_time`, then `seq`. Gaps in `seq` are expected: the SDK never writes tool-only speech, which has no text and no audio. Messages without a `start_time` sort by `seq` after the latest earlier-`seq` message that has one.
 6. **`speech`:** derived for backward compatibility. Each message with at least one selection becomes `Speech { id: message id, speaker, step_ids, selections, interrupted: state == Interrupted }`. #486's span-name and `contrib.livekit.interrupted` rules run only when a call has no `voice.messages`.
 
 ## Recorded vs inferred
@@ -81,7 +81,7 @@ Errors go through `import_failures`, warnings through `import_warnings`, followi
 
 - **Failure** (on the merged row):
   - `voice.messages` present without `voice.origin_unix_ms`;
-  - a malformed message: wrong types, unknown enum value, `text` present while `text_status` is `missing`/`not_captured`, `text` absent while `text_status` is `final`/`partial`, a selection on the wrong channel for the role, or a `committed: false` entry that is not complete user speech without text;
+  - a malformed message: wrong types, unknown enum value, `text` present while `text_status` is `missing`/`not_captured`, `text` absent while `text_status` is `final`/`partial`, a selection on the wrong channel for the role, a `committed: false` user entry that is not complete or has text, a `committed: false` agent entry that is not `unplayed`/`interrupted`, or an `unplayed` entry with selections, `interrupted_at_ms` or no generated text;
   - a selection that refers to a missing recording.
 - **Warning:**
   - a call has `voice.messages` but no LLM span in the trace carries `voice.context_message_ids`, so user messages cannot be linked;
