@@ -1883,6 +1883,61 @@ import_fixture!(
     livekit_realtime_split_user_turn,
     "fixtures/livekit-realtime-split-user-turn.json"
 );
+import_fixture!(
+    call_timeline_cascaded_tool_barge_in,
+    "fixtures/call-timeline-cascaded-tool-barge-in.json"
+);
+import_fixture!(
+    call_timeline_realtime_missing_transcript,
+    "fixtures/call-timeline-realtime-missing-transcript.json"
+);
+
+#[test]
+fn call_timeline_diagnostics() {
+    let base: ImportFixture = serde_json::from_str(include_str!(
+        "fixtures/call-timeline-cascaded-tool-barge-in.json"
+    ))
+    .unwrap();
+    let recordings = base.voice_calls.as_ref().unwrap()[0]["recordings"].clone();
+
+    let mut fixture = base.clone();
+    fixture.spans[0].other["metadata"]["voice.timeline_version"] = crate::serde_json::json!(2);
+    fixture.import_failures = vec![crate::serde_json::json!({
+        "span_id": "call-span", "message": "unsupported voice timeline version 2"
+    })];
+    fixture.voice_calls =
+        Some(json!([{"id": "call-span", "recordings": recordings, "speech": []}]));
+    check_fixture(&fixture);
+
+    let mut fixture = base.clone();
+    let metadata = fixture.spans[0].other["metadata"].as_object_mut().unwrap();
+    metadata.remove("voice.timeline_version");
+    metadata.remove("voice.pipeline");
+    fixture.import_warnings = vec![crate::serde_json::json!({
+        "span_id": "timeline-0", "message": "timeline rows without a versioned call span"
+    })];
+    fixture.voice_calls =
+        Some(json!([{"id": "call-span", "recordings": recordings, "speech": []}]));
+    check_fixture(&fixture);
+
+    let mut fixture = base.clone();
+    fixture.spans.pop();
+    fixture.spans[0].other["metadata"]
+        .as_object_mut()
+        .unwrap()
+        .remove("voice.pipeline");
+    fixture.import_warnings = vec![crate::serde_json::json!({
+        "span_id": "call-span",
+        "message": "Missing metadata.voice.pipeline; call timeline is in progress or the session crashed; unclosed speech u2"
+    })];
+    let calls = fixture.voice_calls.as_mut().unwrap();
+    calls[0]["events"].as_array_mut().unwrap().truncate(14);
+    let speech = calls[0]["speech"].as_array_mut().unwrap();
+    speech.truncate(3);
+    speech[2]["step_ids"] = json!(["llm-1", "llm-2"]);
+    speech[2]["selections"][0]["end_offset_ms"] = json!(7900.0);
+    check_fixture(&fixture);
+}
 
 #[test]
 fn resumed_calls_use_their_parent_tasks_turn_ids() {

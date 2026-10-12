@@ -4,7 +4,7 @@ import type { Speaker } from "./Speaker";
 
 export type Speech = { 
 /**
- * Id of the span that logged this speech.
+ * Id of the span that logged this speech, or its utterance id in a call timeline.
  */
 id: string, speaker: Speaker, 
 /**

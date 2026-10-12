@@ -1,4 +1,4 @@
-use super::voice::SpanVoice;
+use super::voice::{SpanVoice, VoicePipeline};
 use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
@@ -134,6 +134,18 @@ struct Metadata {
     audio_selections: Option<json::Value>,
     #[serde(rename = "contrib.livekit.interrupted")]
     livekit_interrupted: Option<json::Value>,
+    #[serde(rename = "voice.timeline_version")]
+    voice_timeline_version: Option<json::Value>,
+    #[serde(rename = "voice.pipeline")]
+    voice_pipeline: Option<json::Value>,
+    #[serde(rename = "voice.timeline_origin_unix_ms")]
+    voice_timeline_origin_unix_ms: Option<json::Value>,
+    #[serde(rename = "voice.server_vad_silence_ms")]
+    voice_server_vad_silence_ms: Option<json::Value>,
+    #[serde(rename = "voice.timeline")]
+    voice_timeline: Option<json::Value>,
+    #[serde(rename = "voice.events")]
+    voice_events: Option<json::Value>,
 }
 
 fn metadata_field<T: serde::de::DeserializeOwned>(
@@ -228,7 +240,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         mut opaque_input,
         mut opaque_output,
         errors: message_errors,
-        warnings,
+        warnings: message_warnings,
     } = import_span_messages(
         span.input,
         span.output,
@@ -289,6 +301,20 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
                 _ => None,
             },
         });
+    let mut warnings = Vec::new();
+    let pipeline = match metadata.voice_pipeline.map(VoicePipeline::deserialize) {
+        Some(Ok(pipeline)) => Some(pipeline),
+        Some(Err(error)) => {
+            warnings.push(format!("Invalid metadata.voice.pipeline: {error}"));
+            None
+        }
+        None => {
+            if metadata.voice_timeline_version.is_some() {
+                warnings.push("Missing metadata.voice.pipeline".to_string());
+            }
+            None
+        }
+    };
     let voice = SpanVoice {
         recordings: metadata_field(metadata.audio_recordings, "audio.recordings", &mut errors)
             .unwrap_or_default(),
@@ -299,9 +325,28 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             "contrib.livekit.interrupted",
             &mut errors,
         ),
+        timeline_version: metadata_field(
+            metadata.voice_timeline_version,
+            "voice.timeline_version",
+            &mut errors,
+        ),
+        pipeline,
+        timeline_origin_unix_ms: metadata_field(
+            metadata.voice_timeline_origin_unix_ms,
+            "voice.timeline_origin_unix_ms",
+            &mut errors,
+        ),
+        server_vad_silence_ms: metadata_field(
+            metadata.voice_server_vad_silence_ms,
+            "voice.server_vad_silence_ms",
+            &mut errors,
+        ),
+        timeline: metadata_field(metadata.voice_timeline, "voice.timeline", &mut errors),
+        events: metadata_field(metadata.voice_events, "voice.events", &mut errors)
+            .unwrap_or_default(),
     };
-    source.header.voice =
-        (!voice.recordings.is_empty() || !voice.selections.is_empty()).then_some(voice);
+    source.header.voice = (!voice.is_empty()).then_some(voice);
+    warnings.extend(message_warnings);
     source.header.model = model.or(source.header.model);
     source.header.start = start;
     source.header.end = end;

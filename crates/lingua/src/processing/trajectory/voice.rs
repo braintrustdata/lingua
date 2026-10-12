@@ -1,8 +1,11 @@
 use super::{ImportFailure, Ownership, PreparedSpan};
-use crate::processing::import::LoggedSelection;
-use crate::universal::trajectory::{AudioRecording, AudioSelection, Speaker, Speech, VoiceCall};
+use crate::processing::import::{LoggedSelection, RecordingState, SourceBoundary, SpanVoice};
+use crate::universal::trajectory::{
+    AudioRecording, AudioSelection, Speaker, Speech, TimeBasis, VoiceCall, VoiceEvent,
+    VoiceEventDetail,
+};
 use chrono::{DateTime, Duration, Utc};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 struct Utterance<'a> {
     span: &'a PreparedSpan,
@@ -16,6 +19,9 @@ struct Utterance<'a> {
 /// `assistant_turn` spans, one per utterance when the turn logs speaking spans. Agent speech
 /// links to the LLM call that produced it and user speech to the LLM call that answered it;
 /// without speaking spans, speech links to the steps among the turn span and its children.
+///
+/// A call span with `voice.timeline_version` instead builds its speech from the `voice.timeline`
+/// rows logged under it, and its turn spans are ignored.
 pub(super) fn voice_calls(
     spans: &[PreparedSpan],
     parents: &[Option<usize>],
@@ -23,6 +29,7 @@ pub(super) fn voice_calls(
     is_step: &[bool],
     is_conversation: &[bool],
     failures: &mut Vec<ImportFailure>,
+    warnings: &mut Vec<ImportFailure>,
 ) -> HashMap<String, Vec<VoiceCall>> {
     let mut order: Vec<_> = (0..spans.len())
         .filter(|index| !owners[index].skipped)
@@ -32,13 +39,23 @@ pub(super) fn voice_calls(
         .iter()
         .map(|span| ((&span.root_span_id, &span.span_id), &span.id))
         .collect();
-    let mut fail = |span: &PreparedSpan, message: String| {
-        failures.push(ImportFailure {
-            root_span_id: span.root_span_id.clone(),
-            span_id: span.id.clone(),
-            message,
-        })
-    };
+    let mut fail = |span: &PreparedSpan, message: String| failures.push(diagnostic(span, message));
+    let mut warn = |span: &PreparedSpan, message: String| warnings.push(diagnostic(span, message));
+    let mut timeline_rows: BTreeMap<_, Vec<_>> = BTreeMap::new();
+    for &index in &order {
+        if let Some(chunk) = spans[index]
+            .source
+            .voice
+            .as_ref()
+            .and_then(|voice| voice.timeline.as_ref())
+        {
+            timeline_rows
+                .entry((&spans[index].root_span_id, &chunk.call_span_id))
+                .or_default()
+                .push(&spans[index]);
+        }
+    }
+    let mut timeline_calls = HashSet::new();
 
     let mut calls: HashMap<String, Vec<VoiceCall>> = HashMap::new();
     for &index in &order {
@@ -46,7 +63,7 @@ pub(super) fn voice_calls(
         let Some(voice) = &span.source.voice else {
             continue;
         };
-        if voice.recordings.is_empty() {
+        if voice.recordings.is_empty() && voice.timeline_version.is_none() {
             continue;
         }
         let mut recordings = Vec::new();
@@ -69,15 +86,40 @@ pub(super) fn voice_calls(
                 duration_ms: recording.duration_ms,
             });
         }
+        let mut call = VoiceCall {
+            id: span.id.clone(),
+            recordings,
+            speech: Vec::new(),
+            events: None,
+        };
+        if let Some(version) = voice.timeline_version {
+            timeline_calls.insert(span.id.clone());
+            let rows = timeline_rows
+                .remove(&(&span.root_span_id, &span.span_id))
+                .unwrap_or_default();
+            if version != 1 {
+                fail(
+                    span,
+                    format!("unsupported voice timeline version {version}"),
+                );
+            } else {
+                build_timeline(
+                    &mut call, span, voice, &rows, &row_ids, &mut fail, &mut warn,
+                );
+            }
+        }
         calls
             .entry(span.root_span_id.clone())
             .or_default()
-            .push(VoiceCall {
-                id: span.id.clone(),
-                recordings,
-                speech: Vec::new(),
-            });
+            .push(call);
     }
+    for rows in timeline_rows.values() {
+        warn(
+            rows[0],
+            "timeline rows without a versioned call span".to_string(),
+        );
+    }
+    let mut ignored_calls = BTreeSet::new();
 
     let is_utterance = |index: usize, speaking_name: &str| {
         spans[index].source.name.as_deref() == Some(speaking_name)
@@ -112,6 +154,10 @@ pub(super) fn voice_calls(
         else {
             continue;
         };
+        if timeline_calls.contains(&call.id) {
+            ignored_calls.insert(call.id.clone());
+            continue;
+        }
         let recording_starts: HashMap<_, _> = call
             .recordings
             .iter()
@@ -239,8 +285,18 @@ pub(super) fn voice_calls(
             });
         }
     }
+    for call in spans.iter().filter(|span| ignored_calls.contains(&span.id)) {
+        warn(
+            call,
+            "turn span voice metadata is ignored for a timeline call".to_string(),
+        );
+    }
     let starts: HashMap<_, _> = spans.iter().map(|span| (&span.id, span.start)).collect();
-    for call in calls.values_mut().flatten() {
+    for call in calls
+        .values_mut()
+        .flatten()
+        .filter(|call| !timeline_calls.contains(&call.id))
+    {
         let recording_starts: HashMap<_, _> = call
             .recordings
             .iter()
@@ -263,4 +319,349 @@ pub(super) fn voice_calls(
         call.speech.sort_by_cached_key(|speech| start(speech));
     }
     calls
+}
+
+fn diagnostic(span: &PreparedSpan, message: String) -> ImportFailure {
+    ImportFailure {
+        root_span_id: span.root_span_id.clone(),
+        span_id: span.id.clone(),
+        message,
+    }
+}
+
+/// Builds a timeline call's events and speech from its `voice.timeline` rows.
+fn build_timeline(
+    call: &mut VoiceCall,
+    span: &PreparedSpan,
+    voice: &SpanVoice,
+    rows: &[&PreparedSpan],
+    row_ids: &HashMap<(&String, &String), &String>,
+    fail: &mut impl FnMut(&PreparedSpan, String),
+    warn: &mut impl FnMut(&PreparedSpan, String),
+) {
+    let mut chunks = BTreeMap::new();
+    for row in rows {
+        let Some(row_voice) = &row.source.voice else {
+            continue;
+        };
+        let Some(chunk) = &row_voice.timeline else {
+            continue;
+        };
+        match chunks.get(&chunk.chunk_index) {
+            None => {
+                chunks.insert(chunk.chunk_index, row_voice);
+            }
+            Some(other)
+                if other.timeline == row_voice.timeline && other.events == row_voice.events => {}
+            Some(_) => {
+                fail(
+                    row,
+                    format!("Conflicting voice timeline chunk {}", chunk.chunk_index),
+                );
+                return;
+            }
+        }
+    }
+    let mut events: Vec<VoiceEvent> = chunks
+        .values()
+        .flat_map(|chunk| chunk.events.iter().cloned())
+        .collect();
+    events.sort_by_key(|event| event.seq);
+    if let Some(first) = events.first().filter(|first| first.seq > 0) {
+        warn(span, format!("timeline gap before seq {}", first.seq));
+    }
+    for pair in events.windows(2) {
+        if pair[1].seq > pair[0].seq + 1 {
+            warn(span, format!("timeline gap after seq {}", pair[0].seq));
+        }
+    }
+    if !chunks.values().any(|chunk| {
+        chunk
+            .timeline
+            .as_ref()
+            .is_some_and(|timeline| timeline.is_final)
+    }) {
+        warn(
+            span,
+            "call timeline is in progress or the session crashed".to_string(),
+        );
+    }
+    if voice.recordings.is_empty() && events.iter().any(|event| event.basis == TimeBasis::Audio) {
+        warn(
+            span,
+            "audio basis without a recording is treated as local".to_string(),
+        );
+    }
+    call.speech = timeline_speech(span, voice, call, &events, row_ids, warn);
+    call.events = Some(events);
+}
+
+struct TimelineSpeech<'a> {
+    start: &'a VoiceEvent,
+    speaker: Speaker,
+    utterance_id: &'a str,
+    response_id: Option<&'a str>,
+}
+
+fn timeline_speech(
+    span: &PreparedSpan,
+    voice: &SpanVoice,
+    call: &VoiceCall,
+    events: &[VoiceEvent],
+    row_ids: &HashMap<(&String, &String), &String>,
+    warn: &mut impl FnMut(&PreparedSpan, String),
+) -> Vec<Speech> {
+    let mut starts: Vec<TimelineSpeech> = Vec::new();
+    let mut ends = HashMap::new();
+    let mut end_of_turns = Vec::new();
+    let mut response_starts = Vec::new();
+    for event in events {
+        match &event.detail {
+            VoiceEventDetail::SpeechStart {
+                speaker,
+                utterance_id,
+                response_id,
+            } => {
+                if starts
+                    .iter()
+                    .all(|start| start.utterance_id != utterance_id)
+                {
+                    starts.push(TimelineSpeech {
+                        start: event,
+                        speaker: *speaker,
+                        utterance_id,
+                        response_id: response_id.as_deref(),
+                    });
+                }
+            }
+            VoiceEventDetail::SpeechEnd { utterance_id, .. } => {
+                ends.entry(utterance_id.as_str()).or_insert(event);
+            }
+            VoiceEventDetail::EndOfTurn { utterance_ids } => {
+                end_of_turns.push((event.seq, utterance_ids));
+            }
+            VoiceEventDetail::ResponseStart {
+                response_id,
+                span_id,
+                in_reply_to,
+            } => response_starts.push((event.seq, response_id, span_id, in_reply_to)),
+            _ => {}
+        }
+    }
+    let mut unmatched_ends = BTreeSet::new();
+    for utterance_id in ends.keys() {
+        if starts
+            .iter()
+            .all(|start| start.utterance_id != *utterance_id)
+        {
+            unmatched_ends.insert(*utterance_id);
+        }
+    }
+    for utterance_id in unmatched_ends {
+        warn(span, format!("speech_end without a start {utterance_id}"));
+    }
+    starts.sort_by(|a, b| {
+        a.start
+            .at_ms
+            .total_cmp(&b.start.at_ms)
+            .then(a.start.seq.cmp(&b.start.seq))
+    });
+
+    // Turn k holds the events after the k-th `end_of_turn`.
+    let window = |seq: u32| {
+        end_of_turns
+            .iter()
+            .filter(|(turn_seq, _)| *turn_seq < seq)
+            .count()
+            .checked_sub(1)
+    };
+    let mut utterance_turns = HashMap::new();
+    for (turn, (_, utterance_ids)) in end_of_turns.iter().enumerate() {
+        for utterance_id in utterance_ids.iter() {
+            utterance_turns.entry(utterance_id.as_str()).or_insert(turn);
+        }
+    }
+    for speech in &starts {
+        if speech.speaker != Speaker::User || utterance_turns.contains_key(speech.utterance_id) {
+            continue;
+        }
+        match window(speech.start.seq) {
+            Some(turn) => {
+                utterance_turns.insert(speech.utterance_id, turn);
+            }
+            None => warn(
+                span,
+                format!(
+                    "speech {} is before the first end of turn",
+                    speech.utterance_id
+                ),
+            ),
+        }
+    }
+    let mut missing_spans = BTreeSet::new();
+    let mut turn_steps = vec![Vec::new(); end_of_turns.len()];
+    let mut response_steps = HashMap::new();
+    for (seq, response_id, span_id, in_reply_to) in response_starts {
+        let step = row_ids.get(&(&span.root_span_id, span_id)).copied();
+        if step.is_none() && missing_spans.insert(span_id) {
+            warn(span, format!("timeline refers to a missing span {span_id}"));
+        }
+        response_steps.entry(response_id.as_str()).or_insert(step);
+        let turns: BTreeSet<_> = match in_reply_to.as_deref().filter(|ids| !ids.is_empty()) {
+            Some(ids) => ids
+                .iter()
+                .filter_map(|id| utterance_turns.get(id.as_str()).copied())
+                .collect(),
+            None => window(seq).into_iter().collect(),
+        };
+        if turns.len() > 1 {
+            warn(
+                span,
+                format!("response {response_id} replies to several turns"),
+            );
+        }
+        if turns.is_empty() {
+            warn(
+                span,
+                format!("response {response_id} is not linked to a turn"),
+            );
+        }
+        for turn in turns {
+            if let Some(step) = step.filter(|step| !turn_steps[turn].contains(step)) {
+                turn_steps[turn].push(step);
+            }
+        }
+    }
+
+    let call_end = events.iter().find_map(|event| {
+        matches!(event.detail, VoiceEventDetail::CallEnd { .. }).then_some(event.at_ms)
+    });
+    let last_at = events.iter().map(|event| event.at_ms).reduce(f64::max);
+    let mut speech = Vec::new();
+    for (position, utterance) in starts.iter().enumerate() {
+        let end = ends.get(utterance.utterance_id);
+        let end_ms = match end {
+            Some(end) => end.at_ms,
+            None => {
+                warn(span, format!("unclosed speech {}", utterance.utterance_id));
+                let next = starts[position + 1..]
+                    .iter()
+                    .find(|next| next.speaker == utterance.speaker)
+                    .map(|next| next.start.at_ms);
+                next.or(call_end)
+                    .or(last_at)
+                    .unwrap_or(utterance.start.at_ms)
+            }
+        };
+        let interrupted = end.and_then(|end| match &end.detail {
+            VoiceEventDetail::SpeechEnd { interrupted, .. } => *interrupted,
+            _ => None,
+        });
+        let step_ids = match (utterance.speaker, utterance.response_id) {
+            (Speaker::Agent, Some(response_id)) => response_steps
+                .get(response_id)
+                .copied()
+                .flatten()
+                .into_iter()
+                .cloned()
+                .collect(),
+            (Speaker::Agent, None) => window(utterance.start.seq)
+                .map(|turn| turn_steps[turn].iter().copied().cloned().collect())
+                .unwrap_or_default(),
+            (Speaker::User, _) => utterance_turns
+                .get(utterance.utterance_id)
+                .map(|turn| turn_steps[*turn].iter().copied().cloned().collect())
+                .unwrap_or_default(),
+        };
+        speech.push(Speech {
+            id: utterance.utterance_id.to_string(),
+            speaker: utterance.speaker,
+            step_ids,
+            selections: selections(
+                span,
+                voice,
+                call,
+                utterance.speaker,
+                utterance.start.at_ms,
+                end_ms,
+                warn,
+            ),
+            interrupted,
+        });
+    }
+    speech
+}
+
+/// Clips `[start_ms, end_ms]` on the call clock to each ready recording of the call.
+fn selections(
+    span: &PreparedSpan,
+    voice: &SpanVoice,
+    call: &VoiceCall,
+    speaker: Speaker,
+    start_ms: f64,
+    end_ms: f64,
+    warn: &mut impl FnMut(&PreparedSpan, String),
+) -> Vec<AudioSelection> {
+    let mut selections = Vec::new();
+    for recording in &voice.recordings {
+        if recording.state == Some(RecordingState::Other)
+            || call.recordings.iter().all(|other| other.id != recording.id)
+        {
+            continue;
+        }
+        let (Some(timeline), Some(duration_ms)) = (&recording.timeline, recording.duration_ms)
+        else {
+            continue;
+        };
+        let recording_start = timeline.recording_start_offset_ms;
+        let start = start_ms.max(recording_start);
+        let end = end_ms.min(recording_start + duration_ms);
+        if end <= start {
+            continue;
+        }
+        let source = recording.sources.as_ref().and_then(|sources| {
+            sources.iter().find(|source| {
+                matches!(
+                    (speaker, source.boundary),
+                    (
+                        Speaker::User,
+                        SourceBoundary::SessionInput
+                            | SourceBoundary::TransportInput
+                            | SourceBoundary::ModelInput
+                    ) | (
+                        Speaker::Agent,
+                        SourceBoundary::LocalAudioOutput | SourceBoundary::TransportOutput
+                    )
+                )
+            })
+        });
+        let channel_index = match source {
+            Some(source) => source.channel_index,
+            None => {
+                let channel_index = match speaker {
+                    Speaker::User => 0,
+                    Speaker::Agent => 1,
+                };
+                warn(
+                    span,
+                    format!(
+                        "recording {} has no {} source; using channel {channel_index}",
+                        recording.id,
+                        match speaker {
+                            Speaker::User => "user",
+                            Speaker::Agent => "agent",
+                        }
+                    ),
+                );
+                channel_index
+            }
+        };
+        selections.push(AudioSelection {
+            recording_id: recording.id.clone(),
+            channel_index: Some(channel_index),
+            start_offset_ms: start - recording_start,
+            end_offset_ms: end - recording_start,
+        });
+    }
+    selections
 }
