@@ -141,3 +141,33 @@ The SDK's zod schema rejects every per-message field rule below, at both failure
 2. Build messages and `step_ids` in `trajectory/voice.rs`, and derive `speech`.
 3. Fill `request_id` in `snapshot`.
 4. Add fixtures `voice-message-audio-cascaded.json` and `voice-message-audio-realtime.json`, built from the SDK examples, to `trajectory/fixtures`, and register them with `import_fixture!`.
+
+## Implementation decisions
+
+The builder in this PR was written from this spec by an engineer who did not write it. These are the points the spec left open and how the builder settles them. They are now part of the contract; "Essential" ones change what customers see.
+
+### Essential (changes customer-visible output)
+
+- **Input keys / `TRAJECTORY_METADATA_FIELDS`.** Q: the spec says to add the keys to `TRAJECTORY_METADATA_FIELDS`, but that constant does not exist on this base. Chose: parse the keys in `import/span.rs` `Metadata` only, like `audio.recordings`. If the app's header query uses an allow-list elsewhere, it must add the four keys, or `voice_calls` will lack messages in production.
+- **Failures: missing `voice.origin_unix_ms`.** Q: "the message is dropped" is per message; what happens to the call? Chose: one failure on the call span, every message dropped, and the call keeps `messages: []` and empty `speech`. The #486 speech rules still do not run, because `voice.messages` is present.
+- **Failures: wrong channel.** Q: which channel is right for each role? The Lingua spec does not say. Chose the SDK README rule: user is channel 0 and assistant is channel 1. `audio.recordings[].sources[].boundary` is not consulted. A selection with no `channel_index` counts as the wrong channel, so its message is dropped.
+- **Failures: missing recording.** Q: what does "#486 validation, same `recording_span_id`" compare against? Chose: `recording_span_id` must equal the call span's own `span_id`, and `recording_id` must be in that span's `audio.recordings`. A call with messages but no recordings therefore drops every message that has selections.
+- **`speech.interrupted` for user messages.** Q: is `interrupted` `false` or omitted for user speech? Chose the literal rule `interrupted: state == Interrupted` for every message, so derived user speech has `interrupted: false`. #486 omitted the field for user speech.
+- **`speech` order.** Q: does derived `speech` keep #486's audio-start sort? Chose: `speech` follows the `messages` order (start time, then seq), with no re-sort by first selection.
+- **`request_id` lookup.** Q: does "request or work contains the step" include `Turn.response_id`? Chose: match `request_id`, `response_id`, or any `work[].id`. With the example traces, both hearing steps are in `work`, so the fixtures do not exercise the response-only case.
+- **Agent `step_ids` without `produced_by_span_id`.** Q: does "otherwise empty, with a warning" also warn when the field is absent, for example on cancelled or unplayed speech? Chose: absent gives empty with no warning. Present but not a Conversation span gives empty with a warning.
+- **`step_ids` value.** Q: is a step id the span's `span_id` or its row `id`? Chose the row `id`, matching `Turn`/`WorkStep` ids. `produced_by_span_id` and `voice.context_message_ids` are resolved through `(root_span_id, span_id)`.
+
+### Minor (diagnostics or internals only)
+
+- **Where validation runs.** Per-message failures and warnings are produced at import (`import/span.rs`) and reported on the call span. Cross-span warnings are produced in `trajectory/voice.rs`. Warnings for one span are joined with "; " into one `import_warnings` entry, as existing span warnings are.
+- **Unknown fields in a message.** Ignored, not rejected. The spec only names `turn_span_id` and `source_ids`.
+- **Failure precedence.** A message that breaks several rules reports only the first: parse, text state, selections, commit, then unplayed.
+- **No-hearer warning.** It fires only when the call has at least one message, not for an empty `voice.messages` map. When it fires, the per-message "heard by no LLM span" warning is suppressed, to avoid repeating the same cause.
+- **Which spans can hear.** Only spans with the Conversation role count as hearers. An LLM span with `voice.context_message_ids` in another role, such as analysis, is ignored.
+- **Unheard user warning.** It applies to `committed && state != open` only, so uncommitted `vad_*` entries never warn.
+- **`output_message_id` vs `produced_by_span_id`.** This warns only when both sides exist and disagree. Both directions are checked, and the warning is reported on the LLM span. An `output_message_id` naming a message that is not in any call of the trace does not warn. A Conversation producer with no `output_message_id` does not warn.
+- **`context_message_ids` length.** "Parsed input message count" is the number of `Message`s that import produced from `input`, system messages included. The check runs only when `input` is present on the imported row, so header-only imports skip it, and the stream reports it from the full row.
+- **Clock-origin warning.** This is checked on the call span for every recording with a `timeline`, whenever `voice.origin_unix_ms` is present, even without `voice.messages`.
+- **Time conversion.** `origin + ms` is truncated to microseconds, like #486's recording `start_time`.
+- **Order tiebreak.** The sort key is `(start_time or the latest start among earlier-seq messages, seq)`, so untimed messages with no earlier timed message sort first.
