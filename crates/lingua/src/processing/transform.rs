@@ -19,6 +19,10 @@ use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter}
 use crate::processing::normalize_json_lone_surrogate_escapes;
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
+#[cfg(feature = "openai")]
+use crate::providers::openai::responses_adapter::{
+    responses_text_message_event, ResponsesTextMessageEvent,
+};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
@@ -205,6 +209,8 @@ pub(crate) struct StreamTransformStep {
     pub(crate) universal: Option<UniversalStreamChunk>,
     pub(crate) event_type: Option<String>,
     pub(crate) is_passthrough: bool,
+    #[cfg(feature = "openai")]
+    pub(crate) responses_text_message_event: Option<ResponsesTextMessageEvent>,
 }
 
 // ============================================================================
@@ -871,6 +877,15 @@ pub(crate) fn transform_stream_chunk_step(
     let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
     let source_is_native_stream = matches!(detection.kind, DetectKind::Stream);
+    #[cfg(feature = "openai")]
+    let responses_text_message_event = if source_is_native_stream
+        && source_format == ProviderFormat::Responses
+        && target_format == ProviderFormat::ChatCompletions
+    {
+        Some(responses_text_message_event(chunk.clone())?)
+    } else {
+        None
+    };
     let universal = match detection.kind {
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
@@ -890,6 +905,8 @@ pub(crate) fn transform_stream_chunk_step(
             universal,
             event_type,
             is_passthrough: true,
+            #[cfg(feature = "openai")]
+            responses_text_message_event,
         });
     }
 
@@ -913,6 +930,8 @@ pub(crate) fn transform_stream_chunk_step(
         universal,
         event_type: None,
         is_passthrough: false,
+        #[cfg(feature = "openai")]
+        responses_text_message_event,
     })
 }
 // ============================================================================

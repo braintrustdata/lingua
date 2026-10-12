@@ -99,6 +99,15 @@ const openAIMultipleReasoningSignaturesReplayAssistantMessage: ChatCompletionAss
 // OpenAI Responses API and Chat Completions API parameter test cases
 // Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
+const structuredOutputProgressPrompt =
+  "Send a brief progress update, then return the final answer as JSON with status ok.";
+const structuredOutputProgressSchema = {
+  type: "object" as const,
+  properties: { status: { type: "string" as const } },
+  required: ["status"],
+  additionalProperties: false,
+};
+
 export const paramsCases: TestCaseCollection = {
   googleInlineAudioParam: {
     "chat-completions": null,
@@ -1344,6 +1353,36 @@ export const paramsCases: TestCaseCollection = {
         },
       },
     },
+    bedrock: null,
+  },
+
+  responsesStructuredOutputProgressMessageParam: {
+    "chat-completions": {
+      model: "gpt-5.4",
+      messages: [{ role: "user", content: structuredOutputProgressPrompt }],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "status",
+          schema: structuredOutputProgressSchema,
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: "gpt-5.4",
+      input: [{ role: "user", content: structuredOutputProgressPrompt }],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "status",
+          schema: structuredOutputProgressSchema,
+          strict: true,
+        },
+      },
+    },
+    anthropic: null,
+    google: null,
     bedrock: null,
   },
 

@@ -28,7 +28,7 @@ use crate::providers::openai::convert::{
 };
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, InputParam, Instructions,
-    OutputItemType, Prompt, ServiceTier,
+    MessagePhase, OutputItemType, Prompt, ServiceTier,
 };
 use crate::providers::openai::params::{
     OpenAIReasoning, OpenAIResponsesExtrasView, OpenAIResponsesParams,
@@ -344,6 +344,8 @@ struct ResponsesOutputItemAddedEvent {
 #[derive(Debug, Deserialize, Default)]
 #[serde(tag = "type")]
 enum ResponsesOutputItemAddedItem {
+    #[serde(rename = "message")]
+    Message { phase: Option<MessagePhase> },
     #[serde(rename = "function_call")]
     FunctionCall {
         id: Option<String>,
@@ -374,7 +376,7 @@ impl ResponsesOutputItemAddedItem {
                 name.as_deref().unwrap_or(""),
                 true,
             )),
-            Self::Other => None,
+            Self::Message { .. } | Self::Other => None,
         }
     }
 
@@ -383,7 +385,7 @@ impl ResponsesOutputItemAddedItem {
         let (id, call_id, name, custom) = match self {
             Self::FunctionCall { id, call_id, name } => (id, call_id, name, false),
             Self::CustomToolCall { id, call_id, name } => (id, call_id, name, true),
-            Self::Other => return Ok(None),
+            Self::Message { .. } | Self::Other => return Ok(None),
         };
         let missing = |field: &str| {
             TransformError::SerializationFailed(format!(
@@ -396,6 +398,76 @@ impl ResponsesOutputItemAddedItem {
             name.clone().ok_or_else(|| missing("name"))?,
             custom,
         )))
+    }
+}
+
+#[derive(Debug)]
+pub(crate) enum ResponsesTextMessageEvent {
+    MessageAdded {
+        output_index: u32,
+        phase: Option<MessagePhase>,
+    },
+    MessageDone {
+        output_index: u32,
+        phase: Option<MessagePhase>,
+    },
+    TextDelta {
+        output_index: u32,
+    },
+    Completed,
+    Other,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+enum ResponsesTextMessageEventView {
+    #[serde(rename = "response.output_item.added")]
+    OutputItemAdded(ResponsesOutputItemAddedEvent),
+    #[serde(rename = "response.output_item.done")]
+    OutputItemDone(ResponsesOutputItemAddedEvent),
+    #[serde(rename = "response.output_text.delta")]
+    OutputTextDelta { output_index: u32 },
+    #[serde(rename = "response.completed")]
+    Completed,
+    #[serde(other)]
+    Other,
+}
+
+pub(crate) fn responses_text_message_event(
+    payload: Value,
+) -> Result<ResponsesTextMessageEvent, TransformError> {
+    let event: ResponsesTextMessageEventView = serde_json::from_value(payload).map_err(|e| {
+        TransformError::DeserializationFailed(format!("Responses stream event: {e}"))
+    })?;
+    let message_item = |added: ResponsesOutputItemAddedEvent, done: bool| {
+        let Some(ResponsesOutputItemAddedItem::Message { phase }) = added.item else {
+            return Ok(ResponsesTextMessageEvent::Other);
+        };
+        let output_index = added.output_index.ok_or_else(|| {
+            TransformError::DeserializationFailed(
+                "Responses message item is missing output_index".to_string(),
+            )
+        })?;
+        if done {
+            Ok(ResponsesTextMessageEvent::MessageDone {
+                output_index,
+                phase,
+            })
+        } else {
+            Ok(ResponsesTextMessageEvent::MessageAdded {
+                output_index,
+                phase,
+            })
+        }
+    };
+    match event {
+        ResponsesTextMessageEventView::OutputItemAdded(added) => message_item(added, false),
+        ResponsesTextMessageEventView::OutputItemDone(added) => message_item(added, true),
+        ResponsesTextMessageEventView::OutputTextDelta { output_index } => {
+            Ok(ResponsesTextMessageEvent::TextDelta { output_index })
+        }
+        ResponsesTextMessageEventView::Completed => Ok(ResponsesTextMessageEvent::Completed),
+        ResponsesTextMessageEventView::Other => Ok(ResponsesTextMessageEvent::Other),
     }
 }
 
