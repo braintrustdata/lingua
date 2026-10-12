@@ -26,4 +26,8 @@ transcript_source?: TranscriptSource, timing_source?: TimingSource,
 /**
  * When the agent decided the user had finished speaking.
  */
-end_of_turn_time?: string, };
+end_of_turn_time?: string, 
+/**
+ * Bounds of the utterance from its span; the only timing when no audio was captured.
+ */
+start_time?: string, end_time?: string, };

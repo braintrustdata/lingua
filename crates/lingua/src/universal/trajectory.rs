@@ -76,6 +76,11 @@ pub struct Speech {
     /// When the agent decided the user had finished speaking.
     #[ts(optional)]
     pub end_of_turn_time: Option<DateTime<Utc>>,
+    /// Bounds of the utterance from its span; the only timing when no audio was captured.
+    #[ts(optional)]
+    pub start_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -110,7 +115,7 @@ pub enum TimingSource {
     SpanClock,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum Speaker {
     User,

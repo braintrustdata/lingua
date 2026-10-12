@@ -26,7 +26,8 @@
       "metadata": {
         "voice.call": {
           "framework": "livekit",
-          "pipeline": "cascaded"
+          "pipeline": "cascaded",
+          "origin_unix_ms": 1791830000000
         },
         "audio.recordings": [
           {
@@ -125,6 +126,13 @@
             "recording_span_id": "call",
             "recording_id": "call-0000",
             "start_offset_ms": 300,
+            "end_offset_ms": 700,
+            "channel_index": 0
+          },
+          {
+            "recording_span_id": "call",
+            "recording_id": "call-0000",
+            "start_offset_ms": 1000,
             "end_offset_ms": 2900,
             "channel_index": 0
           }
@@ -700,6 +708,47 @@
           }
         ]
       }
+    },
+    {
+      "id": "r-s5",
+      "span_id": "s5",
+      "root_span_id": "call",
+      "span_parents": [
+        "call"
+      ],
+      "span_attributes": {
+        "name": "speech",
+        "type": "task"
+      },
+      "metrics": {
+        "start": 1791830010.6,
+        "end": 1791830010.9
+      },
+      "output": {
+        "text": "Mm-hm."
+      },
+      "metadata": {
+        "voice.speech": {
+          "speaker": "user",
+          "state": "ignored",
+          "timing_source": "vad",
+          "transcript": {
+            "source": "stt",
+            "final": true,
+            "available_ms": 11000,
+            "confidence": 0.71
+          }
+        },
+        "audio.selections": [
+          {
+            "recording_span_id": "call",
+            "recording_id": "call-0000",
+            "start_offset_ms": 10600,
+            "end_offset_ms": 10900,
+            "channel_index": 0
+          }
+        ]
+      }
     }
   ],
   "turns": [
@@ -754,13 +803,21 @@
               "recording_id": "call-0000",
               "channel_index": 0,
               "start_offset_ms": 300.0,
+              "end_offset_ms": 700.0
+            },
+            {
+              "recording_id": "call-0000",
+              "channel_index": 0,
+              "start_offset_ms": 1000.0,
               "end_offset_ms": 2900.0
             }
           ],
           "state": "complete",
           "transcript_source": "stt",
           "timing_source": "vad",
-          "end_of_turn_time": "2026-10-12T18:33:23.400Z"
+          "end_of_turn_time": "2026-10-12T18:33:23.400Z",
+          "start_time": "2026-10-12T18:33:20.300Z",
+          "end_time": "2026-10-12T18:33:22.900Z"
         },
         {
           "id": "r-s2",
@@ -780,7 +837,9 @@
           "state": "interrupted",
           "interrupted_by": "r-s3",
           "transcript_source": "playback_sync",
-          "timing_source": "playout"
+          "timing_source": "playout",
+          "start_time": "2026-10-12T18:33:25.300Z",
+          "end_time": "2026-10-12T18:33:27.900Z"
         },
         {
           "id": "r-s3",
@@ -799,7 +858,9 @@
           "state": "complete",
           "transcript_source": "stt",
           "timing_source": "vad",
-          "end_of_turn_time": "2026-10-12T18:33:28.800Z"
+          "end_of_turn_time": "2026-10-12T18:33:28.800Z",
+          "start_time": "2026-10-12T18:33:27.600Z",
+          "end_time": "2026-10-12T18:33:28.500Z"
         },
         {
           "id": "r-s4",
@@ -818,7 +879,27 @@
           "interrupted": false,
           "state": "complete",
           "transcript_source": "playback_sync",
-          "timing_source": "playout"
+          "timing_source": "playout",
+          "start_time": "2026-10-12T18:33:29.900Z",
+          "end_time": "2026-10-12T18:33:32.600Z"
+        },
+        {
+          "id": "r-s5",
+          "speaker": "user",
+          "step_ids": [],
+          "selections": [
+            {
+              "recording_id": "call-0000",
+              "channel_index": 0,
+              "start_offset_ms": 10600.0,
+              "end_offset_ms": 10900.0
+            }
+          ],
+          "state": "ignored",
+          "transcript_source": "stt",
+          "timing_source": "vad",
+          "start_time": "2026-10-12T18:33:30.600Z",
+          "end_time": "2026-10-12T18:33:30.900Z"
         }
       ]
     }

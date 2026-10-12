@@ -4,7 +4,7 @@ use crate::universal::trajectory::{
     AudioRecording, AudioSelection, Speaker, Speech, SpeechState, VoiceCall,
 };
 use chrono::{DateTime, Duration, Utc};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 struct Utterance<'a> {
     span: &'a PreparedSpan,
@@ -14,9 +14,10 @@ struct Utterance<'a> {
 
 /// Builds each trace's voice calls from span headers, keyed by root span id.
 ///
-/// A call is a span that logged recordings. When a trace logs `voice.speech`, each such span is
-/// one utterance and names the steps it links to. Otherwise speech comes from LiveKit
-/// `user_turn` and `assistant_turn` spans, one per utterance when the turn logs speaking spans.
+/// A call is a span that logged `voice.call` or recordings. Each span with `voice.speech` is one
+/// utterance and names the steps it links to. For a speaker with no such spans in a trace, speech
+/// comes from LiveKit `user_turn` and `assistant_turn` spans, one per utterance when the turn
+/// logs speaking spans.
 /// Agent speech links to the LLM call that produced it and user speech to the LLM call that
 /// answered it; without speaking spans, speech links to the steps among the turn span and its
 /// children.
@@ -51,7 +52,7 @@ pub(super) fn voice_calls(
         let Some(voice) = &span.source.voice else {
             continue;
         };
-        if voice.recordings.is_empty() {
+        if voice.recordings.is_empty() && voice.call.is_none() {
             continue;
         }
         let mut recordings = Vec::new();
@@ -75,10 +76,16 @@ pub(super) fn voice_calls(
             });
         }
         if let Some(origin) = voice
-            .recordings
-            .iter()
-            .find_map(|recording| recording.timeline.as_ref())
-            .and_then(|timeline| DateTime::from_timestamp_millis(timeline.origin_unix_ms as i64))
+            .call
+            .as_ref()
+            .map(|call| call.origin_unix_ms)
+            .or_else(|| {
+                voice
+                    .recordings
+                    .iter()
+                    .find_map(|recording| Some(recording.timeline.as_ref()?.origin_unix_ms))
+            })
+            .and_then(|origin| DateTime::from_timestamp_millis(origin as i64))
         {
             origins.insert(span.id.clone(), origin);
         }
@@ -112,7 +119,8 @@ pub(super) fn voice_calls(
                 .get(&(&span.root_span_id, &span_id.to_string()))
                 .map(|id| id.to_string())
         };
-        // The call is the nearest ancestor that logged recordings; it may not be logged yet.
+        // The call is the nearest ancestor that logged `voice.call` or recordings; it may not be
+        // logged yet.
         let Some(call_id) = std::iter::successors(Some(index), |child| parents[*child])
             .map(|ancestor| &spans[ancestor].id)
             .find(|id| {
@@ -195,9 +203,20 @@ pub(super) fn voice_calls(
             end_of_turn_time: end_of_turn_ms
                 .zip(origins.get(&call.id))
                 .map(|(ms, origin)| *origin + Duration::microseconds((ms * 1000.0) as i64)),
+            start_time: Some(span.start),
+            end_time: span.source.end,
         });
     }
 
+    // Speech spans replace the LiveKit name rules per trace and speaker, so an integration can
+    // move one speaker at a time.
+    let neutral_speakers: HashSet<_> = neutral
+        .iter()
+        .map(|index| {
+            let speaker = spans[*index].source.voice.as_ref().unwrap().speech.as_ref();
+            (&spans[*index].root_span_id, speaker.unwrap().speaker)
+        })
+        .collect();
     let is_utterance = |index: usize, speaking_name: &str| {
         spans[index].source.name.as_deref() == Some(speaking_name)
             && spans[index]
@@ -206,7 +225,7 @@ pub(super) fn voice_calls(
                 .as_ref()
                 .is_some_and(|voice| !voice.selections.is_empty())
     };
-    for &index in order.iter().filter(|_| neutral.is_empty()) {
+    for &index in &order {
         let span = &spans[index];
         let Some(voice) = &span.source.voice else {
             continue;
@@ -216,6 +235,9 @@ pub(super) fn voice_calls(
             ("task", Some("assistant_turn")) => (Speaker::Agent, "livekit.agent_speaking"),
             _ => continue,
         };
+        if neutral_speakers.contains(&(&span.root_span_id, speaker)) {
+            continue;
+        }
         let Some(first) = voice.selections.first() else {
             continue;
         };
@@ -352,6 +374,8 @@ pub(super) fn voice_calls(
                 transcript_source: None,
                 timing_source: None,
                 end_of_turn_time: None,
+                start_time: None,
+                end_time: None,
             });
         }
     }

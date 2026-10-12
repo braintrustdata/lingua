@@ -15,6 +15,18 @@ pub struct SpanVoice {
     /// `metadata["voice.speech"]`
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub speech: Option<LoggedSpeech>,
+    /// `metadata["voice.call"]`
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub call: Option<LoggedCall>,
+}
+
+/// The span a voice call's speech hangs under, logged whether or not audio was captured.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LoggedCall {
+    pub framework: String,
+    pub pipeline: String,
+    /// The clock for every call-relative millisecond field in the call.
+    pub origin_unix_ms: f64,
 }
 
 /// One utterance, logged on its own span. Span ids refer to spans in the same trace and offsets

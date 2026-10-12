@@ -136,6 +136,8 @@ struct Metadata {
     livekit_interrupted: Option<json::Value>,
     #[serde(rename = "voice.speech")]
     voice_speech: Option<json::Value>,
+    #[serde(rename = "voice.call")]
+    voice_call: Option<json::Value>,
 }
 
 fn metadata_field<T: serde::de::DeserializeOwned>(
@@ -302,10 +304,13 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             &mut errors,
         ),
         speech: metadata_field(metadata.voice_speech, "voice.speech", &mut errors),
+        call: metadata_field(metadata.voice_call, "voice.call", &mut errors),
     };
-    source.header.voice =
-        (!voice.recordings.is_empty() || !voice.selections.is_empty() || voice.speech.is_some())
-            .then_some(voice);
+    source.header.voice = (!voice.recordings.is_empty()
+        || !voice.selections.is_empty()
+        || voice.speech.is_some()
+        || voice.call.is_some())
+    .then_some(voice);
     source.header.model = model.or(source.header.model);
     source.header.start = start;
     source.header.end = end;

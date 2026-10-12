@@ -2315,3 +2315,56 @@ import_fixture!(
     voice_speech_spans_realtime_barge_in,
     "fixtures/voice-speech-spans-realtime-barge-in.json"
 );
+import_fixture!(
+    voice_speech_spans_cascaded_no_audio,
+    "fixtures/voice-speech-spans-cascaded-no-audio.json"
+);
+
+#[test]
+fn speech_spans_replace_livekit_speech_per_speaker() {
+    let mut fixture: ImportFixture = serde_json::from_str(include_str!(
+        "fixtures/livekit-realtime-split-user-turn.json"
+    ))
+    .unwrap();
+    let call = &fixture.spans[0];
+    let span_id = call.other["span_id"].clone();
+    let root_span_id = call.other["root_span_id"].clone();
+    let start = call.other["metrics"]["start"].as_f64().unwrap() + 1.0;
+    fixture.spans.push(
+        serde_json::from_value(json!({
+            "id": "neutral-user-speech",
+            "span_id": "neutral-user-speech",
+            "root_span_id": root_span_id,
+            "span_parents": [span_id],
+            "span_attributes": {"name": "speech", "type": "task"},
+            "metrics": {"start": start, "end": start + 0.5},
+            "metadata": {"voice.speech": {
+                "speaker": "user",
+                "state": "ignored",
+                "timing_source": "span_clock",
+            }},
+        }))
+        .unwrap(),
+    );
+    let trajectories = run_fixture(&fixture, 16, true, &[]);
+    let speech = &trajectories[0].voice_calls.as_ref().unwrap()[0].speech;
+    let users: Vec<_> = speech
+        .iter()
+        .filter(|speech| speech.speaker == crate::universal::Speaker::User)
+        .map(|speech| speech.id.as_str())
+        .collect();
+    assert_eq!(users, ["neutral-user-speech"]);
+    let expected_agents = fixture.voice_calls.as_ref().unwrap()[0]["speech"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|speech| speech["speaker"] == "agent")
+        .count();
+    assert_eq!(
+        speech
+            .iter()
+            .filter(|speech| speech.speaker == crate::universal::Speaker::Agent)
+            .count(),
+        expected_agents
+    );
+}

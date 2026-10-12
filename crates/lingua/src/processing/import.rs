@@ -35,7 +35,7 @@ use crate::universal::{
 use serde::{Deserialize, Serialize};
 pub use span::{import_span, import_span_with_options, ImportedSpan, SpanContext};
 pub use voice::{
-    LoggedAttachment, LoggedRecording, LoggedSelection, LoggedSpeech, LoggedTimeline,
+    LoggedAttachment, LoggedCall, LoggedRecording, LoggedSelection, LoggedSpeech, LoggedTimeline,
     LoggedTranscript, SpanVoice,
 };
 
