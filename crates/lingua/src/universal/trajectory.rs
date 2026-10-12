@@ -63,6 +63,51 @@ pub struct Speech {
     pub selections: Vec<AudioSelection>,
     #[ts(optional)]
     pub interrupted: Option<bool>,
+    #[ts(optional)]
+    pub state: Option<SpeechState>,
+    /// Id of the user speech that interrupted this agent speech.
+    #[ts(optional)]
+    pub interrupted_by: Option<String>,
+    /// Where the speech's text came from; absent when no transcript was logged.
+    #[ts(optional)]
+    pub transcript_source: Option<TranscriptSource>,
+    #[ts(optional)]
+    pub timing_source: Option<TimingSource>,
+    /// When the agent decided the user had finished speaking.
+    #[ts(optional)]
+    pub end_of_turn_time: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum SpeechState {
+    Complete,
+    Interrupted,
+    /// The call or process ended before the speech did.
+    Incomplete,
+    /// The agent heard the speech but did not respond to it.
+    Ignored,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TranscriptSource {
+    Stt,
+    ProviderTranscription,
+    TtsInput,
+    ModelOutput,
+    PlaybackSync,
+}
+
+/// Which evidence placed the speech on the call timeline.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TimingSource {
+    AudioSamples,
+    Vad,
+    ProviderVad,
+    Playout,
+    SpanClock,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]

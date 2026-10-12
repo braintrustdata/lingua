@@ -34,7 +34,10 @@ use crate::universal::{
 };
 use serde::{Deserialize, Serialize};
 pub use span::{import_span, import_span_with_options, ImportedSpan, SpanContext};
-pub use voice::{LoggedAttachment, LoggedRecording, LoggedSelection, LoggedTimeline, SpanVoice};
+pub use voice::{
+    LoggedAttachment, LoggedRecording, LoggedSelection, LoggedSpeech, LoggedTimeline,
+    LoggedTranscript, SpanVoice,
+};
 
 pub(crate) fn is_instruction(message: &Message) -> bool {
     matches!(

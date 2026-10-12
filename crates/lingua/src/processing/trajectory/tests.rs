@@ -2306,3 +2306,12 @@ fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
     assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
     assert_eq!(result[0]["turns"][0]["response_id"], "done");
 }
+
+import_fixture!(
+    voice_speech_spans_cascaded_barge_in,
+    "fixtures/voice-speech-spans-cascaded-barge-in.json"
+);
+import_fixture!(
+    voice_speech_spans_realtime_barge_in,
+    "fixtures/voice-speech-spans-realtime-barge-in.json"
+);
