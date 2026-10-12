@@ -421,15 +421,6 @@
           },
           {
             "seq": 2,
-            "at_ms": 3400,
-            "basis": "local",
-            "kind": "end_of_turn",
-            "utterance_ids": [
-              "u1"
-            ]
-          },
-          {
-            "seq": 3,
             "at_ms": 3450,
             "basis": "local",
             "kind": "transcript",
@@ -438,6 +429,15 @@
             "final": true,
             "text": "Hi, can I move my Thursday cleaning to Friday morning?",
             "source": "stt"
+          },
+          {
+            "seq": 3,
+            "at_ms": 3400,
+            "basis": "local",
+            "kind": "end_of_turn",
+            "utterance_ids": [
+              "u1"
+            ]
           },
           {
             "seq": 4,
@@ -745,24 +745,24 @@
           "utterance_id": "u1"
         },
         {
-          "at_ms": 3400.0,
-          "basis": "local",
-          "kind": "end_of_turn",
-          "seq": 2,
-          "utterance_ids": [
-            "u1"
-          ]
-        },
-        {
           "at_ms": 3450.0,
           "basis": "local",
           "final": true,
           "kind": "transcript",
-          "seq": 3,
+          "seq": 2,
           "source": "stt",
           "speaker": "user",
           "text": "Hi, can I move my Thursday cleaning to Friday morning?",
           "utterance_id": "u1"
+        },
+        {
+          "at_ms": 3400.0,
+          "basis": "local",
+          "kind": "end_of_turn",
+          "seq": 3,
+          "utterance_ids": [
+            "u1"
+          ]
         },
         {
           "at_ms": 3450.0,

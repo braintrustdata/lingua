@@ -134,6 +134,8 @@ The SDK capture table was checked against `@livekit/agents` 1.9.2. That review c
 - **Realtime `end_of_turn`:** LiveKit has no commit event when server turn detection is on, so the SDK emits it at `_realtimeGenerationTaskImpl` entry. In the realtime fixture that is 3600 for `u1` (it was 3400). The turn windows and `step_ids` are unchanged.
 - **`truncate`:** LiveKit derives `audio_end_ms` from the same `playbackPosition`, so the realtime fixture's truncate is at 7900 with 2900, equal to `played_ms`.
 - **Preemptive generations (cascaded):** these carry `in_reply_to` from the `onPreemptiveGeneration` snapshot. §3 already prefers it over the window.
+- **Cascaded `end_of_turn`:** emitted when the reply is scheduled (the user commit), dated at the `onEndOfTurn` resolve time. That is why it follows the turn-1 transcript in `seq` in the cascaded fixture. Turns that LiveKit drops after `onEndOfTurn` (AMD `skipReply`, non-interruptible speech, `StopResponse`) emit no `end_of_turn`, and their utterances fall back to "the turn open at their start" (§3).
+- **Realtime `end_of_turn`:** excludes caller utterances still open at `_realtimeGenerationTaskImpl` entry.
 - **Handoff:** `voice.pipeline` is the pipeline at call start. A handoff that changes the LLM type is out of MVP scope.
 
 ## Implementation decisions

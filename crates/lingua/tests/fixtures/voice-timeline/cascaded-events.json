@@ -17,15 +17,6 @@
   },
   {
     "seq": 2,
-    "at_ms": 3400,
-    "basis": "local",
-    "kind": "end_of_turn",
-    "utterance_ids": [
-      "u1"
-    ]
-  },
-  {
-    "seq": 3,
     "at_ms": 3450,
     "basis": "local",
     "kind": "transcript",
@@ -34,6 +25,15 @@
     "final": true,
     "text": "Hi, can I move my Thursday cleaning to Friday morning?",
     "source": "stt"
+  },
+  {
+    "seq": 3,
+    "at_ms": 3400,
+    "basis": "local",
+    "kind": "end_of_turn",
+    "utterance_ids": [
+      "u1"
+    ]
   },
   {
     "seq": 4,
