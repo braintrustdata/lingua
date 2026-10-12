@@ -117,7 +117,7 @@ pub struct VoiceEvent { pub seq: u32, pub at_ms: f64, pub basis: TimeBasis,
 ## How #22034 and #22036 consume it
 
 - **Unchanged:** the voice bar reads `recordings`, `speech[].selections` and `speech[].step_ids`. Play-from-message, highlighting and overlap preference work as before.
-- **New, optional:** a latency and overlap strip computed from `events` as in §5, with `missing` badges and truncate-versus-played markers. `trajectory-schema.ts` must accept `voice_calls[].events`.
+- **New, optional:** a latency and overlap strip computed from `events` as in §5, with `missing` badges and truncate markers. A truncate value that differs from `played_ms` appears only from integrations that observe the provider independently (Pipecat); with LiveKit the two values are equal. `trajectory-schema.ts` must accept `voice_calls[].events`.
 
 ## Implementation order
 
@@ -125,6 +125,16 @@ pub struct VoiceEvent { pub seq: u32, pub at_ms: f64, pub basis: TimeBasis,
 2. Speech, selections and channel resolution. Add fixtures `call-timeline-cascaded-tool-barge-in.json` and `call-timeline-realtime-missing-transcript.json`, built from the SDK examples.
 3. Turn windows and `step_ids`, then warnings.
 4. In the app: the schema, then the strip.
+
+## LiveKit 1.9.2 alignment (2026-10-12)
+
+The SDK capture table was checked against `@livekit/agents` 1.9.2. That review changed the inputs Lingua sees; the builder rules themselves are unchanged.
+
+- **Agent `utterance_id`:** `<SpeechHandle.id>/<n>` in both pipelines, and `response_id` is `SpeechHandle.id`. Tool continuations get their own handle (`speech_2/0` follows the `speech_1` tool call). The realtime output item id arrives through a later agent `message`. Agent `Speech.id` in both fixtures is therefore `speech_2/0` / `speech_4/0`.
+- **Realtime `end_of_turn`:** LiveKit has no commit event when server turn detection is on, so the SDK emits it at `_realtimeGenerationTaskImpl` entry. In the realtime fixture that is 3600 for `u1` (it was 3400). The turn windows and `step_ids` are unchanged.
+- **`truncate`:** LiveKit derives `audio_end_ms` from the same `playbackPosition`, so the realtime fixture's truncate is at 7900 with 2900, equal to `played_ms`.
+- **Preemptive generations (cascaded):** these carry `in_reply_to` from the `onPreemptiveGeneration` snapshot. §3 already prefers it over the window.
+- **Handoff:** `voice.pipeline` is the pipeline at call start. A handoff that changes the LLM type is out of MVP scope.
 
 ## Implementation decisions
 
