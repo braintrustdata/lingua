@@ -4,7 +4,7 @@
 
 This spec maps the `message-audio` SDK contract (braintrust-sdk-javascript `docs/voice-schema/message-audio/README.md`) into `Trajectory.voice_calls`.
 
-**Implemented here:** the Trajectory types (`VoiceCall.messages`, `VoiceMessage` and its enums) and the regenerated TypeScript bindings. **Sketched:** import and building. Nothing populates `messages` yet, and existing #486 behavior is unchanged.
+**Implemented here:** the Trajectory types (`VoiceCall.messages`, `VoiceMessage` and its enums), the regenerated TypeScript bindings, and the builder: typed import, `VoiceCall.messages`, derived `speech` and `step_ids`, and the failures and warnings below, with fixtures built from the SDK examples. The builder was written from this spec by a second engineer; see "Implementation decisions". Traces without `voice.messages` keep #486 behavior. **Not implemented:** the app side (`TRAJECTORY_METADATA_FIELDS` lives in the app and needs the new keys after #486 is rebased).
 
 ## Input keys
 
@@ -20,7 +20,7 @@ All keys are span `metadata`. Every key below must be added to `TRAJECTORY_METAD
 
 **Merge semantics.** The SDK writes each message's whole current entry on every update, and Braintrust's `mergeDicts` deep-merges objects and replaces arrays. Lingua therefore sees one merged entry per message, and **validates only that merged row**. It never sees or checks intermediate writes, and it does not check forward-only transitions; those are the SDK's responsibility.
 
-Typed import structs, sketched for `processing/import/voice.rs`:
+Typed import structs (implemented in `processing/import/voice.rs`):
 
 ```rust
 #[derive(Deserialize)]
@@ -50,7 +50,7 @@ These extend `SpanVoice` with `origin_unix_ms`, `messages`, `context_message_ids
 
 ## Building `VoiceCall.messages`
 
-Sketch for `processing/trajectory/voice.rs`, run from the same `initialize` hook #486 uses:
+Build algorithm (implemented in `processing/trajectory/voice.rs`), run from the same `initialize` hook #486 uses:
 
 1. **Call.** The call is the span with `audio.recordings` (as today) or with `voice.messages`. A call with messages but no recordings still gets a `VoiceCall` with empty `recordings`.
 2. **Messages.** For each `(id, message)`:
