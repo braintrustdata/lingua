@@ -65,8 +65,8 @@
             "text_status": "final",
             "text_source": "realtime_input_transcription",
             "start_ms": 300,
-            "end_ms": 2900,
-            "timing_source": "provider_events",
+            "end_ms": 3400,
+            "timing_source": "local_receipt",
             "end_of_turn_ms": 3600,
             "transcript_final_ms": 4300,
             "selections": [
@@ -74,7 +74,7 @@
                 "recording_span_id": "r-root",
                 "recording_id": "call-0000",
                 "start_offset_ms": 300,
-                "end_offset_ms": 2900,
+                "end_offset_ms": 3400,
                 "channel_index": 0
               }
             ],
@@ -96,7 +96,7 @@
             "end_ms": 7900,
             "timing_source": "playout_events",
             "interrupted_at_ms": 7900,
-            "provider_audio_end_ms": 2600,
+            "provider_audio_end_ms": 2900,
             "selections": [
               {
                 "recording_span_id": "r-root",
@@ -121,15 +121,15 @@
             "text_status": "missing",
             "text_source": "realtime_input_transcription",
             "start_ms": 7600,
-            "end_ms": 8500,
-            "timing_source": "provider_events",
+            "end_ms": 9000,
+            "timing_source": "local_receipt",
             "end_of_turn_ms": 9050,
             "selections": [
               {
                 "recording_span_id": "r-root",
                 "recording_id": "call-0000",
                 "start_offset_ms": 7600,
-                "end_offset_ms": 8500,
+                "end_offset_ms": 9000,
                 "channel_index": 0
               }
             ],
@@ -224,10 +224,6 @@
       },
       "input": [
         {
-          "role": "system",
-          "content": "You are Molar, the receptionist for a fictional dental clinic."
-        },
-        {
           "role": "user",
           "content": ""
         }
@@ -253,7 +249,6 @@
         "contrib.livekit.response_id": "resp_1",
         "contrib.livekit.input_scope": "realtime_session_context",
         "voice.context_message_ids": [
-          null,
           "item_rt_u1"
         ]
       }
@@ -303,10 +298,6 @@
       },
       "input": [
         {
-          "role": "system",
-          "content": "You are Molar, the receptionist for a fictional dental clinic."
-        },
-        {
           "role": "user",
           "content": "Hi, can I move my Thursday cleaning to Friday morning?"
         },
@@ -341,7 +332,6 @@
         "contrib.livekit.response_id": "resp_2",
         "contrib.livekit.input_scope": "realtime_session_context",
         "voice.context_message_ids": [
-          null,
           "item_rt_u1",
           "item_rt_fc1",
           "item_rt_fco1"
@@ -405,10 +395,6 @@
       },
       "input": [
         {
-          "role": "system",
-          "content": "You are Molar, the receptionist for a fictional dental clinic."
-        },
-        {
           "role": "user",
           "content": "Hi, can I move my Thursday cleaning to Friday morning?"
         },
@@ -461,7 +447,6 @@
         "contrib.livekit.response_id": "resp_3",
         "contrib.livekit.input_scope": "realtime_session_context",
         "voice.context_message_ids": [
-          null,
           "item_rt_u1",
           "item_rt_fc1",
           "item_rt_fco1",
@@ -513,10 +498,6 @@
         "end": 1791830012.5
       },
       "input": [
-        {
-          "role": "system",
-          "content": "You are Molar, the receptionist for a fictional dental clinic."
-        },
         {
           "role": "user",
           "content": "Hi, can I move my Thursday cleaning to Friday morning?"
@@ -579,7 +560,6 @@
         "contrib.livekit.response_id": "resp_4",
         "contrib.livekit.input_scope": "realtime_session_context",
         "voice.context_message_ids": [
-          null,
           "item_rt_u1",
           "item_rt_fc1",
           "item_rt_fco1",
@@ -627,13 +607,13 @@
         {
           "committed": true,
           "end_of_turn_time": "2026-10-12T18:33:23.600Z",
-          "end_time": "2026-10-12T18:33:22.900Z",
+          "end_time": "2026-10-12T18:33:23.400Z",
           "id": "item_rt_u1",
           "request_id": "r-llm1",
           "selections": [
             {
               "channel_index": 0,
-              "end_offset_ms": 2900.0,
+              "end_offset_ms": 3400.0,
               "recording_id": "call-0000",
               "start_offset_ms": 300.0
             }
@@ -648,7 +628,7 @@
           "text": "Hi, can I move my Thursday cleaning to Friday morning?",
           "text_source": "realtime_input_transcription",
           "text_status": "final",
-          "timing_source": "provider_events",
+          "timing_source": "local_receipt",
           "transcript_final_time": "2026-10-12T18:33:24.300Z"
         },
         {
@@ -657,7 +637,7 @@
           "generated_text": "I have nine thirty or eleven on Friday. Which would you like?",
           "id": "item_rt_a1",
           "interrupted_time": "2026-10-12T18:33:27.900Z",
-          "provider_audio_end_ms": 2600.0,
+          "provider_audio_end_ms": 2900.0,
           "selections": [
             {
               "channel_index": 1,
@@ -681,13 +661,13 @@
         {
           "committed": true,
           "end_of_turn_time": "2026-10-12T18:33:29.050Z",
-          "end_time": "2026-10-12T18:33:28.500Z",
+          "end_time": "2026-10-12T18:33:29Z",
           "id": "item_rt_u2",
           "request_id": "r-llm3",
           "selections": [
             {
               "channel_index": 0,
-              "end_offset_ms": 8500.0,
+              "end_offset_ms": 9000.0,
               "recording_id": "call-0000",
               "start_offset_ms": 7600.0
             }
@@ -701,7 +681,7 @@
           ],
           "text_source": "realtime_input_transcription",
           "text_status": "missing",
-          "timing_source": "provider_events"
+          "timing_source": "local_receipt"
         },
         {
           "committed": true,
@@ -744,7 +724,7 @@
           "selections": [
             {
               "channel_index": 0,
-              "end_offset_ms": 2900.0,
+              "end_offset_ms": 3400.0,
               "recording_id": "call-0000",
               "start_offset_ms": 300.0
             }
@@ -776,7 +756,7 @@
           "selections": [
             {
               "channel_index": 0,
-              "end_offset_ms": 8500.0,
+              "end_offset_ms": 9000.0,
               "recording_id": "call-0000",
               "start_offset_ms": 7600.0
             }

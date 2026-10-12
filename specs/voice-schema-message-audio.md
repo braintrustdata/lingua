@@ -57,6 +57,8 @@ Build algorithm (implemented in `processing/trajectory/voice.rs`), run from the 
    - `speaker`: `user` stays `User`, `assistant` becomes `Agent`.
    - Times: `*_time = origin + *_ms`, using `voice.origin_unix_ms`.
    - Copy `text`, `text_status`, `text_source`, `generated_text`, `state`, `committed`, `seq`, `timing_source` and `provider_audio_end_ms` unchanged.
+     - `timing_source` includes `local_receipt` (LiveKit realtime: local receipt of payload-less provider speech events, with silence padding unless the SDK subtracted it).
+     - `provider_audio_end_ms` is the truncate point the integration **sent** to the provider. For LiveKit it always equals the played position. Lingua does not compare it with `interrupted_time`.
    - Copy selections into `AudioSelection` (#486 validation applies: known recording and the same `recording_span_id`).
    - A user message may have several selections (merged speech fragments); the times are their outer bounds as logged.
 3. **`step_ids`:**
@@ -141,6 +143,17 @@ The SDK's zod schema rejects every per-message field rule below, at both failure
 2. Build messages and `step_ids` in `trajectory/voice.rs`, and derive `speech`.
 3. Fill `request_id` in `snapshot`.
 4. Add fixtures `voice-message-audio-cascaded.json` and `voice-message-audio-realtime.json`, built from the SDK examples, to `trajectory/fixtures`, and register them with `import_fixture!`.
+
+## LiveKit 1.9.2 alignment (2026-10-12)
+
+The SDK examples, and therefore the fixtures `voice-message-audio-cascaded.json` and `voice-message-audio-realtime.json`, follow the LiveKit 1.9.2 capture rules in the SDK README:
+
+- Cascaded `voice.context_message_ids` start with the real instructions item `lk.agent_task.instructions`, not `null`.
+- Realtime LLM spans list no instructions entry, and `input` has one message per session chat item (no system message).
+- Realtime user bounds are `local_receipt`: `item_rt_u1` 300–3400 and `item_rt_u2` 7600–9000, including server-VAD silence.
+- Realtime `item_rt_a1.provider_audio_end_ms` is 2900, equal to the played position.
+
+`VoiceTimingSource` gains `LocalReceipt`.
 
 ## Implementation decisions
 

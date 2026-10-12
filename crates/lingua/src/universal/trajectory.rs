@@ -106,6 +106,7 @@ pub enum VoiceTextStatus {
 pub enum VoiceTimingSource {
     VadEvents,
     ProviderEvents,
+    LocalReceipt,
     PlayoutEvents,
 }
 
