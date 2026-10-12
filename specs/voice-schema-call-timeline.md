@@ -9,7 +9,9 @@ The SDK contract is in braintrust-sdk-javascript `docs/voice-schema/call-timelin
 - regenerated TypeScript bindings
 - a test that reads the SDK example logs into `VoiceEvent` without dropping fields
 
-**Sketched below:** everything else. `VoiceCall.events` is always `None` today.
+- the builder: typed import of `voice.timeline` rows and call-span keys, `VoiceCall.events`, derived `speech` (selections, `interrupted`, `step_ids`) and the failures and warnings below, with fixtures built from the SDK examples. It was written from this spec by a second engineer; see "Implementation decisions".
+
+**Not implemented:** the app side (`TRAJECTORY_METADATA_FIELDS` lives in the app and needs the new keys after #486 is rebased).
 
 ## Input keys
 
