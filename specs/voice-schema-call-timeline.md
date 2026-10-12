@@ -79,7 +79,7 @@ All seven keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays head
     - → each `tool_call` / `tool_result` pair
     - → first agent `speech_start`
   - **Overlap:** the intersection of caller and agent speech intervals.
-- **Transcripts:** they stay in `events`. Text without a transcript stays absent. Lingua takes each transcript's `utterance_id` as given, because the SDK already attached it. STT finals attach to the open or most recently ended utterance of the uncommitted turn; provider (realtime) finals attach FIFO to the oldest committed utterance without a final. Lingua does not re-attach.
+- **Transcripts:** they stay in `events`. Text without a transcript stays absent. Lingua takes each transcript's `utterance_id` as given, because the SDK already attached it. STT finals attach to the open or most recently ended utterance of the uncommitted turn; provider (realtime) finals attach FIFO to the oldest committed `end_of_turn` group without a final, assuming one provider input item per group. The text goes on the group's first utterance, and the other utterances in the group are covered, not missing. Lingua does not re-attach.
 - **Message matching:** a `message` event maps utterances to a chat item id for matching conversation messages. An utterance with no final never gets a `message`. Lingua then matches nothing for it and adds no warning beyond the `missing` event already in the log.
 
 ## Failures and warnings
