@@ -244,17 +244,14 @@ impl StreamTransformSession {
                 match self.responses_message_items.get(output_index).copied() {
                     Some(true) => return Ok(true),
                     Some(false) if self.responses_answer_item == Some(*output_index) => {}
-                    Some(false) => {
+                    None if self.responses_message_items.is_empty() => {
+                        // Preserve streams that contain only text delta events.
+                    }
+                    _ => {
                         return Err(TransformError::ToUniversalFailed(format!(
                             "unsupported mapping: Responses text delta for output_index {output_index} has no selected answer message"
                         )));
                     }
-                    None if !self.responses_message_items.is_empty() => {
-                        return Err(TransformError::ToUniversalFailed(format!(
-                            "unsupported mapping: Responses text delta for output_index {output_index} has no selected answer message"
-                        )));
-                    }
-                    None => {} // Preserve streams that contain only text delta events.
                 }
             }
             ResponsesTextMessageEvent::Completed
