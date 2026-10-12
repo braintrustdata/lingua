@@ -114,7 +114,7 @@ Errors go through `import_failures`, warnings through `import_warnings`, followi
         { "recording_id": "call-0000", "channel_index": 0, "start_offset_ms": 300, "end_offset_ms": 1250 },
         { "recording_id": "call-0000", "channel_index": 0, "start_offset_ms": 1650, "end_offset_ms": 2900 }
       ] },
-    { "id": "item_a1", "speaker": "agent", "seq": 1, "state": "interrupted", "generated_text": "I have nine thirty or eleven on Friday. Which would you like?",
+    { "id": "item_a1", "speaker": "agent", "seq": 2, "committed": true, "state": "interrupted", "text_status": "final", "text_source": "playout_aligned", "generated_text": "I have nine thirty or eleven on Friday. Which would you like?",
       "text": "I have nine thirty or eleven on Fri", "timing_source": "playout_events", "step_ids": ["c-llm2"],
       "selections": [{ "recording_id": "call-0000", "channel_index": 1, "start_offset_ms": 5300, "end_offset_ms": 7900 }] }
   ],
