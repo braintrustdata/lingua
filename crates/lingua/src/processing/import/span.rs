@@ -1,4 +1,4 @@
-use super::voice::SpanVoice;
+use super::voice::{LoggedVoiceMessage, SpanVoice};
 use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
@@ -9,6 +9,7 @@ use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
+use std::collections::BTreeMap;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -134,6 +135,14 @@ struct Metadata {
     audio_selections: Option<json::Value>,
     #[serde(rename = "contrib.livekit.interrupted")]
     livekit_interrupted: Option<json::Value>,
+    #[serde(rename = "voice.origin_unix_ms")]
+    voice_origin_unix_ms: Option<json::Value>,
+    #[serde(rename = "voice.messages")]
+    voice_messages: Option<json::Value>,
+    #[serde(rename = "voice.context_message_ids")]
+    voice_context_message_ids: Option<json::Value>,
+    #[serde(rename = "voice.output_message_id")]
+    voice_output_message_id: Option<json::Value>,
 }
 
 fn metadata_field<T: serde::de::DeserializeOwned>(
@@ -162,6 +171,7 @@ pub fn import_span(span: Span) -> Result<ImportedSpan> {
 }
 
 pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Result<ImportedSpan> {
+    let has_input = span.input.is_some();
     let mut source = SpanFields::deserialize(&json::Value::Object(std::mem::take(&mut span.other)))
         .map_err(|error| format!("Invalid span fields: {error}"))?;
     let mut errors = Vec::new();
@@ -228,7 +238,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         mut opaque_input,
         mut opaque_output,
         errors: message_errors,
-        warnings,
+        mut warnings,
     } = import_span_messages(
         span.input,
         span.output,
@@ -289,9 +299,74 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
                 _ => None,
             },
         });
+    let recordings: Vec<super::voice::LoggedRecording> =
+        metadata_field(metadata.audio_recordings, "audio.recordings", &mut errors)
+            .unwrap_or_default();
+    let origin_unix_ms = metadata_field::<f64>(
+        metadata.voice_origin_unix_ms,
+        "voice.origin_unix_ms",
+        &mut errors,
+    );
+    let messages = metadata_field::<BTreeMap<String, json::Value>>(
+        metadata.voice_messages,
+        "voice.messages",
+        &mut errors,
+    )
+    .map(|messages| {
+        if origin_unix_ms.is_none() {
+            errors.push("metadata.voice.messages requires metadata.voice.origin_unix_ms".into());
+            return BTreeMap::new();
+        }
+        let mut valid = BTreeMap::new();
+        for (id, message) in messages {
+            let message = LoggedVoiceMessage::deserialize(message)
+                .map_err(|error| error.to_string())
+                .and_then(|message| {
+                    let checked = message.validate(source.header.span_id.as_deref(), &recordings);
+                    checked.map(|checked| (message, checked))
+                });
+            match message {
+                Ok((message, message_warnings)) => {
+                    warnings.extend(
+                        message_warnings
+                            .into_iter()
+                            .map(|warning| format!("Voice message {id} {warning}")),
+                    );
+                    valid.insert(id, message);
+                }
+                Err(error) => errors.push(format!("Invalid voice message {id}: {error}")),
+            }
+        }
+        valid
+    });
+    if let Some(origin_unix_ms) = origin_unix_ms {
+        for recording in &recordings {
+            if let Some(timeline) = &recording.timeline {
+                if (timeline.origin_unix_ms - origin_unix_ms).abs() > 1.0 {
+                    warnings.push(format!(
+                        "Recording {} has a different clock origin than metadata.voice.origin_unix_ms",
+                        recording.id
+                    ));
+                }
+            }
+        }
+    }
+    let context_message_ids = metadata_field::<Vec<Option<String>>>(
+        metadata.voice_context_message_ids,
+        "voice.context_message_ids",
+        &mut errors,
+    );
+    if let Some(ids) = &context_message_ids {
+        if has_input && ids.len() != input.len() {
+            warnings.push(format!(
+                "metadata.voice.context_message_ids has {} ids for {} input messages",
+                ids.len(),
+                input.len()
+            ));
+        }
+    }
     let voice = SpanVoice {
-        recordings: metadata_field(metadata.audio_recordings, "audio.recordings", &mut errors)
-            .unwrap_or_default(),
+        recordings,
         selections: metadata_field(metadata.audio_selections, "audio.selections", &mut errors)
             .unwrap_or_default(),
         interrupted: metadata_field(
@@ -299,9 +374,22 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             "contrib.livekit.interrupted",
             &mut errors,
         ),
+        origin_unix_ms,
+        messages,
+        context_message_ids,
+        output_message_id: metadata_field(
+            metadata.voice_output_message_id,
+            "voice.output_message_id",
+            &mut errors,
+        ),
     };
-    source.header.voice =
-        (!voice.recordings.is_empty() || !voice.selections.is_empty()).then_some(voice);
+    source.header.voice = (!voice.recordings.is_empty()
+        || !voice.selections.is_empty()
+        || voice.origin_unix_ms.is_some()
+        || voice.messages.is_some()
+        || voice.context_message_ids.is_some()
+        || voice.output_message_id.is_some())
+    .then_some(voice);
     source.header.model = model.or(source.header.model);
     source.header.start = start;
     source.header.end = end;

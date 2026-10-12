@@ -28,13 +28,98 @@ pub struct Trajectory {
     pub voice_calls: Option<Vec<VoiceCall>>,
 }
 
-/// Audio of a voice call. Speech is ordered by span start and can overlap.
+/// Audio of a voice call. Speech is ordered by span start, or by message order when the call has
+/// `messages`, and can overlap.
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct VoiceCall {
     /// Id of the span that logged the recordings.
     pub id: String,
     pub recordings: Vec<AudioRecording>,
     pub speech: Vec<Speech>,
+    /// Spoken or heard messages from `metadata["voice.messages"]`, ordered by start time, then
+    /// creation order. When present, `speech` is derived from these.
+    #[ts(optional)]
+    pub messages: Option<Vec<VoiceMessage>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct VoiceMessage {
+    /// Conversation message id, like a LiveKit chat item id.
+    pub id: String,
+    pub speaker: Speaker,
+    pub seq: u64,
+    /// Whether the message entered the agent's conversation context.
+    pub committed: bool,
+    pub state: VoiceMessageState,
+    #[ts(optional)]
+    pub text: Option<String>,
+    pub text_status: VoiceTextStatus,
+    #[ts(optional)]
+    pub text_source: Option<VoiceTextSource>,
+    /// Full generated agent text, present only when it differs from `text`.
+    #[ts(optional)]
+    pub generated_text: Option<String>,
+    #[ts(optional)]
+    pub start_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub timing_source: Option<VoiceTimingSource>,
+    #[ts(optional)]
+    pub end_of_turn_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub transcript_final_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub interrupted_time: Option<DateTime<Utc>>,
+    /// Realtime provider truncation point, in ms from the start of the item's own audio.
+    #[ts(optional)]
+    pub provider_audio_end_ms: Option<f64>,
+    pub selections: Vec<AudioSelection>,
+    /// The LLM step that produced agent speech, or the first LLM step that heard user speech.
+    pub step_ids: Vec<String>,
+    /// Request id of the turn whose request, response or work includes the step that heard this
+    /// user message.
+    #[ts(optional)]
+    pub request_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceMessageState {
+    Complete,
+    Interrupted,
+    Unplayed,
+    Open,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceTextStatus {
+    Final,
+    Partial,
+    Missing,
+    NotCaptured,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceTimingSource {
+    VadEvents,
+    ProviderEvents,
+    LocalReceipt,
+    PlayoutEvents,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceTextSource {
+    Stt,
+    RealtimeInputTranscription,
+    TtsInput,
+    PlayoutAligned,
+    RealtimeOutputTranscript,
 }
 
 #[skip_serializing_none]
@@ -54,7 +139,8 @@ pub struct AudioRecording {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Speech {
-    /// Id of the span that logged this speech.
+    /// Id of the span that logged this speech, or the voice message id when the call has
+    /// `messages`.
     pub id: String,
     pub speaker: Speaker,
     /// Ids of the trajectory steps that this speech belongs to: for one utterance, the LLM call

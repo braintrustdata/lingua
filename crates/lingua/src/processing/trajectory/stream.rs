@@ -1,4 +1,5 @@
 use super::*;
+use crate::universal::trajectory::Speaker;
 use crate::universal::{UserContent, UserContentPart};
 
 #[cfg(test)]
@@ -487,6 +488,7 @@ pub struct TrajectoryStream {
     initialized: bool,
     finished: bool,
     failures: Vec<ImportFailure>,
+    warnings: Vec<ImportFailure>,
 }
 
 impl TrajectoryStream {
@@ -567,6 +569,7 @@ impl TrajectoryStream {
             by_id,
             order,
             failures,
+            warnings: Vec::new(),
             owners,
             parents,
             roles,
@@ -667,6 +670,7 @@ impl TrajectoryStream {
             &is_step,
             &is_conversation,
             &mut self.failures,
+            &mut self.warnings,
         );
         for (index, span) in self.spans.iter().enumerate() {
             let role = self.roles[index];
@@ -1139,19 +1143,24 @@ impl TrajectoryStream {
                     message: failure.message,
                 }),
         );
-        let mut warnings: Vec<_> = self
-            .spans
-            .iter()
-            .enumerate()
-            .filter(|(index, span)| !self.owners[index].skipped && !span.warnings.is_empty())
-            .map(|(_, span)| span)
-            .collect();
-        warnings.sort_by(|a, b| a.id.cmp(&b.id));
-        for span in warnings {
+        let mut warnings: BTreeMap<_, (_, Vec<_>)> = BTreeMap::new();
+        for (index, span) in self.spans.iter().enumerate() {
+            if !self.owners[&index].skipped && !span.warnings.is_empty() {
+                warnings.insert(&span.id, (&span.root_span_id, span.warnings.clone()));
+            }
+        }
+        for warning in &self.warnings {
+            warnings
+                .entry(&warning.span_id)
+                .or_insert_with(|| (&warning.root_span_id, Vec::new()))
+                .1
+                .push(warning.message.clone());
+        }
+        for (span_id, (root_span_id, messages)) in warnings {
             events.push(TrajectoryEvent::Warning {
-                root_span_id: span.root_span_id.clone(),
-                span_id: span.id.clone(),
-                message: span.warnings.join("; "),
+                root_span_id: root_span_id.clone(),
+                span_id: span_id.clone(),
+                message: messages.join("; "),
             });
         }
         events.push(TrajectoryEvent::Done);
@@ -1320,6 +1329,27 @@ impl TrajectoryCollector {
                 })
                 .collect::<Result<Vec<_>>>()?;
             trajectory.turns.push(turn);
+        }
+        // A user voice message belongs to the turn whose request or work holds the step that heard it.
+        for message in trajectory
+            .voice_calls
+            .iter_mut()
+            .flatten()
+            .flat_map(|call| call.messages.iter_mut().flatten())
+            .filter(|message| message.speaker == Speaker::User)
+        {
+            let Some(step) = message.step_ids.first() else {
+                continue;
+            };
+            message.request_id = trajectory
+                .turns
+                .iter()
+                .find(|turn| {
+                    &turn.request_id == step
+                        || turn.response_id.as_ref() == Some(step)
+                        || turn.work.iter().any(|work| &work.id == step)
+                })
+                .map(|turn| turn.request_id.clone());
         }
         visiting.remove(scope);
         Ok(trajectory)

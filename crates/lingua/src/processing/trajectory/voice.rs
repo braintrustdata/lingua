@@ -1,8 +1,10 @@
 use super::{ImportFailure, Ownership, PreparedSpan};
-use crate::processing::import::LoggedSelection;
-use crate::universal::trajectory::{AudioRecording, AudioSelection, Speaker, Speech, VoiceCall};
+use crate::processing::import::{LoggedRole, LoggedSelection};
+use crate::universal::trajectory::{
+    AudioRecording, AudioSelection, Speaker, Speech, VoiceCall, VoiceMessage, VoiceMessageState,
+};
 use chrono::{DateTime, Duration, Utc};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 struct Utterance<'a> {
     span: &'a PreparedSpan,
@@ -23,6 +25,7 @@ pub(super) fn voice_calls(
     is_step: &[bool],
     is_conversation: &[bool],
     failures: &mut Vec<ImportFailure>,
+    warnings: &mut Vec<ImportFailure>,
 ) -> HashMap<String, Vec<VoiceCall>> {
     let mut order: Vec<_> = (0..spans.len())
         .filter(|index| !owners[index].skipped)
@@ -46,7 +49,7 @@ pub(super) fn voice_calls(
         let Some(voice) = &span.source.voice else {
             continue;
         };
-        if voice.recordings.is_empty() {
+        if voice.recordings.is_empty() && voice.messages.is_none() {
             continue;
         }
         let mut recordings = Vec::new();
@@ -76,6 +79,7 @@ pub(super) fn voice_calls(
                 id: span.id.clone(),
                 recordings,
                 speech: Vec::new(),
+                messages: None,
             });
     }
 
@@ -112,6 +116,9 @@ pub(super) fn voice_calls(
         else {
             continue;
         };
+        if call.messages.is_some() {
+            continue;
+        }
         let recording_starts: HashMap<_, _> = call
             .recordings
             .iter()
@@ -240,7 +247,11 @@ pub(super) fn voice_calls(
         }
     }
     let starts: HashMap<_, _> = spans.iter().map(|span| (&span.id, span.start)).collect();
-    for call in calls.values_mut().flatten() {
+    for call in calls
+        .values_mut()
+        .flatten()
+        .filter(|call| call.messages.is_none())
+    {
         let recording_starts: HashMap<_, _> = call
             .recordings
             .iter()
@@ -262,5 +273,190 @@ pub(super) fn voice_calls(
         };
         call.speech.sort_by_cached_key(|speech| start(speech));
     }
+    voice_messages(spans, &order, is_conversation, &mut calls, warnings);
     calls
+}
+
+/// Builds `messages` and the derived `speech` of each call that logged `voice.messages`.
+///
+/// Agent messages link to the LLM step that produced them, user messages to the first LLM step
+/// whose context includes them.
+fn voice_messages(
+    spans: &[PreparedSpan],
+    order: &[usize],
+    is_conversation: &[bool],
+    calls: &mut HashMap<String, Vec<VoiceCall>>,
+    warnings: &mut Vec<ImportFailure>,
+) {
+    let mut warn = |span: &PreparedSpan, message: String| {
+        warnings.push(ImportFailure {
+            root_span_id: span.root_span_id.clone(),
+            span_id: span.id.clone(),
+            message,
+        })
+    };
+    let by_span_id: HashMap<_, _> = order
+        .iter()
+        .map(|index| {
+            (
+                (&spans[*index].root_span_id, &spans[*index].span_id),
+                *index,
+            )
+        })
+        .collect();
+    let voice = |index: usize| spans[index].source.voice.as_ref();
+    let mut hearers: Vec<_> = order
+        .iter()
+        .copied()
+        .filter(|index| {
+            is_conversation[*index]
+                && voice(*index).is_some_and(|voice| voice.context_message_ids.is_some())
+        })
+        .collect();
+    hearers.sort_by_key(|index| {
+        let span = &spans[*index];
+        (span.start, span.source.exec_counter, &span.id)
+    });
+    let mut producers = BTreeMap::new();
+    for &index in order {
+        let span = &spans[index];
+        let Some(logged) = voice(index).and_then(|voice| voice.messages.as_ref()) else {
+            continue;
+        };
+        let call_hearers: Vec<_> = hearers
+            .iter()
+            .copied()
+            .filter(|hearer| spans[*hearer].root_span_id == span.root_span_id)
+            .collect();
+        if !logged.is_empty() && call_hearers.is_empty() {
+            let message = "Voice messages cannot be linked to LLM steps: no LLM span logged metadata.voice.context_message_ids";
+            warn(span, message.to_string());
+        }
+        // Import keeps no messages when the origin is missing.
+        let origin = voice(index).and_then(|voice| voice.origin_unix_ms);
+        let time =
+            |ms: Option<f64>| DateTime::from_timestamp_micros(((origin? + ms?) * 1000.0) as i64);
+        let mut messages = Vec::new();
+        for (id, message) in logged {
+            let step_ids = match (message.role, &message.produced_by_span_id) {
+                (LoggedRole::Assistant, None) => Vec::new(),
+                (LoggedRole::Assistant, Some(producer)) => {
+                    match by_span_id
+                        .get(&(&span.root_span_id, producer))
+                        .filter(|step| is_conversation[**step])
+                    {
+                        Some(&step) => {
+                            producers.insert((&span.root_span_id, producer), id);
+                            vec![spans[step].id.clone()]
+                        }
+                        None => {
+                            warn(span, format!("Voice message {id} is produced by span {producer}, which is not an LLM step in this trace"));
+                            Vec::new()
+                        }
+                    }
+                }
+                (LoggedRole::User, _) => call_hearers
+                    .iter()
+                    .find(|hearer| {
+                        voice(**hearer)
+                            .and_then(|voice| voice.context_message_ids.as_ref())
+                            .is_some_and(|ids| ids.iter().flatten().any(|heard| heard == id))
+                    })
+                    .map(|hearer| vec![spans[*hearer].id.clone()])
+                    .unwrap_or_default(),
+            };
+            if message.role == LoggedRole::User
+                && message.committed
+                && message.state != VoiceMessageState::Open
+                && step_ids.is_empty()
+                && !call_hearers.is_empty()
+            {
+                warn(span, format!("Voice message {id} was heard by no LLM span"));
+            }
+            messages.push(VoiceMessage {
+                id: id.clone(),
+                speaker: match message.role {
+                    LoggedRole::User => Speaker::User,
+                    LoggedRole::Assistant => Speaker::Agent,
+                },
+                seq: message.seq,
+                committed: message.committed,
+                state: message.state,
+                text: message.text.clone(),
+                text_status: message.text_status,
+                text_source: message.text_source,
+                generated_text: message.generated_text.clone(),
+                start_time: time(message.start_ms),
+                end_time: time(message.end_ms),
+                timing_source: message.timing_source,
+                end_of_turn_time: time(message.end_of_turn_ms),
+                transcript_final_time: time(message.transcript_final_ms),
+                interrupted_time: time(message.interrupted_at_ms),
+                provider_audio_end_ms: message.provider_audio_end_ms,
+                selections: message
+                    .selections
+                    .iter()
+                    .map(|selection| AudioSelection {
+                        recording_id: selection.recording_id.clone(),
+                        channel_index: selection.channel_index,
+                        start_offset_ms: selection.start_offset_ms,
+                        end_offset_ms: selection.end_offset_ms,
+                    })
+                    .collect(),
+                step_ids,
+                request_id: None,
+            });
+        }
+        // Messages without a start time follow the latest earlier-seq message that has one.
+        messages.sort_by_key(|message| message.seq);
+        let mut previous_start = None;
+        let mut keys = HashMap::new();
+        for message in &messages {
+            previous_start = message.start_time.or(previous_start);
+            keys.insert(message.id.clone(), (previous_start, message.seq));
+        }
+        messages.sort_by_key(|message| keys[&message.id]);
+        let Some(call) = calls
+            .get_mut(&span.root_span_id)
+            .and_then(|calls| calls.iter_mut().find(|call| call.id == span.id))
+        else {
+            continue;
+        };
+        call.speech = messages
+            .iter()
+            .filter(|message| !message.selections.is_empty())
+            .map(|message| Speech {
+                id: message.id.clone(),
+                speaker: message.speaker,
+                step_ids: message.step_ids.clone(),
+                selections: message.selections.clone(),
+                interrupted: Some(message.state == VoiceMessageState::Interrupted),
+            })
+            .collect();
+        call.messages = Some(messages);
+    }
+    for &index in order {
+        let span = &spans[index];
+        let Some(output) = voice(index).and_then(|voice| voice.output_message_id.as_ref()) else {
+            continue;
+        };
+        let producer = order.iter().find_map(|call| {
+            let message = voice(*call)?
+                .messages
+                .as_ref()?
+                .get(output)
+                .filter(|_| spans[*call].root_span_id == span.root_span_id)?;
+            Some(message.produced_by_span_id.as_ref())
+        });
+        if producer.is_some_and(|producer| producer != Some(&span.span_id)) {
+            warn(span, format!("metadata.voice.output_message_id {output} disagrees with that message's produced_by_span_id"));
+        }
+    }
+    for ((root_span_id, producer), id) in producers {
+        let step = by_span_id[&(root_span_id, producer)];
+        let output = voice(step).and_then(|voice| voice.output_message_id.as_ref());
+        if output.is_some_and(|output| output != id) {
+            warn(&spans[step], format!("Voice message {id} is produced by this span, but metadata.voice.output_message_id disagrees"));
+        }
+    }
 }
