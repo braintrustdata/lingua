@@ -1883,6 +1883,18 @@ import_fixture!(
     livekit_realtime_split_user_turn,
     "fixtures/livekit-realtime-split-user-turn.json"
 );
+import_fixture!(
+    voice_message_audio_cascaded,
+    "fixtures/voice-message-audio-cascaded.json"
+);
+import_fixture!(
+    voice_message_audio_realtime,
+    "fixtures/voice-message-audio-realtime.json"
+);
+import_fixture!(
+    voice_message_audio_invalid_entries,
+    "fixtures/voice-message-audio-invalid-entries.json"
+);
 
 #[test]
 fn resumed_calls_use_their_parent_tasks_turn_ids() {
