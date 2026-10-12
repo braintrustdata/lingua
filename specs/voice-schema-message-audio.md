@@ -79,11 +79,22 @@ Sketch for `processing/trajectory/voice.rs`, run from the same `initialize` hook
 
 Errors go through `import_failures`, warnings through `import_warnings`, following the existing #486 style. Nothing falls back silently.
 
-- **Failure** (on the merged row):
+The SDK's zod schema rejects every per-message field rule below, at both failure and warning level. Lingua is more lenient: it keeps messages that have only warning-level problems, so one bad field does not hide the rest of a call.
+
+- **Failure** (on the merged row; the message is dropped):
   - `voice.messages` present without `voice.origin_unix_ms`;
-  - a malformed message: wrong types, unknown enum value, `text` present while `text_status` is `missing`/`not_captured`, `text` absent while `text_status` is `final`/`partial`, a selection on the wrong channel for the role, a `committed: false` user entry that is not complete or has text, a `committed: false` agent entry that is not `unplayed`/`interrupted`, or an `unplayed` entry with selections, `interrupted_at_ms` or no generated text;
-  - a selection that refers to a missing recording.
-- **Warning:**
+  - a message that does not parse: wrong types or an unknown enum value;
+  - a contradictory text state: `text` present while `text_status` is `missing`/`not_captured`, or absent while it is `final`/`partial`;
+  - a selection on the wrong channel for the role, or one that refers to a missing recording;
+  - commit and playback contradictions:
+    - a `committed: false` user entry that is not complete or has text;
+    - a `committed: false` agent entry that is not `unplayed`/`interrupted`;
+    - an `unplayed` entry with selections or `interrupted_at_ms`, or one with no generated text (no `text` while `text_status` is not `not_captured`).
+- **Warning** (the message is kept as logged):
+  - a role-mismatched field: `generated_text`, `interrupted_at_ms`, `provider_audio_end_ms` or `produced_by_span_id` on a user message, or `end_of_turn_ms`/`transcript_final_ms` on an agent message;
+  - a user message with state `interrupted` or `unplayed`;
+  - an `interrupted` agent message without `interrupted_at_ms`;
+  - `end_ms` earlier than `start_ms`;
   - a call has `voice.messages` but no LLM span in the trace carries `voice.context_message_ids`, so user messages cannot be linked;
   - `produced_by_span_id` is not a Conversation span in the trace;
   - `voice.output_message_id` and `produced_by_span_id` disagree;
