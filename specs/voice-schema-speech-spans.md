@@ -57,6 +57,8 @@ Each `voice.speech` span is one `Speech`.
 
 **Agent text:** Lingua does not read text from speech spans. The SDK contract puts spoken text (`playback_sync`) in `output.text` and generated text in `planned_text`, so `transcript_source` on agent speech is `playback_sync` when spoken text exists, and `tts_input`/`model_output` when only the planned text was logged.
 
+**Timing sources:** Lingua copies `timing_source` without judging it. LiveKit 1.9 realtime caller speech is always `span_clock`, because its speech events carry no provider ms; `provider_vad` comes only from integrations that see raw provider events.
+
 **Not used by Lingua:** `played_ms`, `provider_played_ms`, `transcript.final`, `transcript.available_ms` and `confidence`. They stay on the span.
 
 ## Precedence during rollout
@@ -99,7 +101,7 @@ Lingua does not check `timing_source: audio_samples` without selections, or `pla
 | Fixture or test | Covers |
 | --- | --- |
 | `voice-speech-spans-cascaded-barge-in.json` | Cascaded call: tool calls, a two-fragment user utterance, a barge-in and an ignored backchannel parented to the call span |
-| `voice-speech-spans-realtime-barge-in.json` | The realtime equivalent, with a missing transcript |
+| `voice-speech-spans-realtime-barge-in.json` | The LiveKit realtime equivalent: caller bounds from local event receipt (`timing_source: span_clock`, end includes server-VAD silence), end of turn at generation start, a missing transcript, and a backchannel after the agent finished |
 | `voice-speech-spans-cascaded-no-audio.json` | The cascaded call with `audio.*` removed: calls come from `voice.call`, speech has bounds and no selections |
 | `speech_spans_replace_livekit_speech_per_speaker` | Adds one user speech span to a LiveKit fixture: user speech comes only from it, agent speech still from LiveKit names |
 
