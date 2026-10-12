@@ -16,13 +16,14 @@ The SDK contract is in braintrust-sdk-javascript `docs/voice-schema/call-timelin
 | Key | Row | Read as |
 | --- | --- | --- |
 | `voice.timeline_version` | call span | `u32`. Lingua takes the timeline path only when it is `1`. Any other value fails as unsupported. |
-| `voice.pipeline` | call span | `cascaded \| realtime \| half_cascade`. Recorded only, in `VoiceCall`. |
+| `voice.pipeline` | call span | `cascaded \| realtime \| half_cascade`. Validated only; not yet carried on `VoiceCall` (see Trajectory changes). `half_cascade` uses realtime caller events and cascaded agent playout. |
 | `voice.timeline_origin_unix_ms` | call span, only when there is no recording | `f64` |
+| `voice.server_vad_silence_ms` | call span, optional | `f64`. Not used in derivation, because the SDK already subtracted it from caller `speech_end`; it explains `local` caller end times. |
 | `audio.recordings` | call span | As in #486, plus `sources[{channel_index, boundary}]` |
 | `voice.timeline` | `voice.timeline` rows | Object `{call_span_id, chunk_index, final}` |
 | `voice.events` | same rows | `Vec<VoiceEvent>` |
 
-All six keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays header-only. For a versioned call, `audio.selections`, `turn.id` and `contrib.livekit.interrupted` on its turn spans are ignored, with one warning.
+All seven keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays header-only. For a versioned call, `audio.selections`, `turn.id` and `contrib.livekit.interrupted` on its turn spans are ignored, with one warning.
 
 ## Import
 
@@ -58,7 +59,9 @@ All six keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays header
 
 - **Turn `k`** is the window of events with `seq` after `end_of_turn[k].seq` and before `end_of_turn[k+1].seq`; the last window runs to the end of the log.
 - **Utterances:** `end_of_turn[k].utterance_ids`. If a caller utterance appears in no `end_of_turn`, it joins the turn window that contains its `speech_start.seq`. Before the first `end_of_turn`, there is no turn; such utterances keep empty `step_ids` and get a warning.
-- **Responses:** every `response_start` in the window, whether or not `in_reply_to` is set. If `in_reply_to` names utterances outside the turn, Lingua warns `in_reply_to disagrees with turn window`.
+- **Responses:** for each `response_start`:
+  - **With `in_reply_to`:** `in_reply_to` wins. The response belongs to the turn holding those utterances, wherever it falls in `seq`. The SDK must set it on preemptive generations, which start before their turn's `end_of_turn`. If it names utterances from more than one turn, the response links to each of them, with a warning.
+  - **Without `in_reply_to`:** the response belongs to the window that contains its `seq`. This is only a fallback.
 
 ### 4. `step_ids`
 
@@ -90,7 +93,8 @@ All six keys go into `TRAJECTORY_METADATA_FIELDS`, so `voice_calls` stays header
 | `speech_end` without a start | Warning; ignored |
 | Unclosed speech | Warning; closed by the rules above |
 | Unknown `span_id` | Warning; link dropped |
-| `in_reply_to` disagrees with the window | Warning |
+| `in_reply_to` spans several turns | Warning |
+| `response_start` before the first `end_of_turn` and without `in_reply_to` | Warning; unlinked |
 | `basis: audio` with no recording | Treated as `local`, with a warning |
 
 ## Trajectory changes
@@ -102,7 +106,7 @@ pub struct VoiceEvent { pub seq: u32, pub at_ms: f64, pub basis: TimeBasis,
                         #[serde(flatten)] pub detail: VoiceEventDetail }  // tagged by `kind`
 ```
 
-- **Later, not in this PR:** `VoiceCall.pipeline` would carry `voice.pipeline` once the builder exists.
+- **Not in this PR:** `VoiceCall.pipeline` (an enum from `voice.pipeline`) would be added together with the builder. Until then, `voice.pipeline` is validated but not carried.
 - **`Speech.id`:** this becomes an utterance id for timeline calls. #22036 uses it only as a key; the doc comment would read "span id or utterance id".
 
 ## How #22034 and #22036 consume it
