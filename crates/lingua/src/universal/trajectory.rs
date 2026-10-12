@@ -29,12 +29,129 @@ pub struct Trajectory {
 }
 
 /// Audio of a voice call. Speech is ordered by span start and can overlap.
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct VoiceCall {
     /// Id of the span that logged the recordings.
     pub id: String,
     pub recordings: Vec<AudioRecording>,
     pub speech: Vec<Speech>,
+    /// The call's timeline events in `seq` order, when the integration logged a timeline.
+    #[ts(optional)]
+    pub events: Option<Vec<VoiceEvent>>,
+}
+
+/// One observation from a call timeline. `at_ms` is on the call clock: milliseconds since the
+/// recordings' `origin_unix_ms`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct VoiceEvent {
+    pub seq: u32,
+    pub at_ms: f64,
+    pub basis: TimeBasis,
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub detail: VoiceEventDetail,
+}
+
+/// How a timeline timestamp was obtained.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TimeBasis {
+    /// From sample positions on the recording.
+    Audio,
+    /// From the local wall clock when a hook ran.
+    Local,
+    /// From a provider-reported time converted to the call clock.
+    Provider,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TranscriptSource {
+    Stt,
+    Provider,
+    Playout,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolOutcome {
+    Ok,
+    Error,
+    Cancelled,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum MissingEvidence {
+    Transcript,
+    SpeechEnd,
+    Audio,
+    ToolResult,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum VoiceEventDetail {
+    SpeechStart {
+        speaker: Speaker,
+        utterance_id: String,
+        #[ts(optional)]
+        response_id: Option<String>,
+    },
+    SpeechEnd {
+        speaker: Speaker,
+        utterance_id: String,
+        #[ts(optional)]
+        interrupted: Option<bool>,
+        #[ts(optional)]
+        played_ms: Option<f64>,
+    },
+    Transcript {
+        speaker: Speaker,
+        utterance_id: String,
+        #[serde(rename = "final")]
+        is_final: bool,
+        source: TranscriptSource,
+        #[ts(optional)]
+        text: Option<String>,
+        #[ts(optional)]
+        message_id: Option<String>,
+    },
+    EndOfTurn {
+        utterance_ids: Vec<String>,
+    },
+    ResponseStart {
+        response_id: String,
+        span_id: String,
+        #[ts(optional)]
+        in_reply_to: Option<Vec<String>>,
+    },
+    ToolCall {
+        response_id: String,
+        tool_call_id: String,
+        name: String,
+        span_id: String,
+    },
+    ToolResult {
+        tool_call_id: String,
+        span_id: String,
+        outcome: ToolOutcome,
+    },
+    Truncate {
+        utterance_id: String,
+        audio_end_ms: f64,
+    },
+    Missing {
+        evidence: MissingEvidence,
+        reason: String,
+        #[ts(optional)]
+        utterance_id: Option<String>,
+    },
+    CallEnd {
+        reason: String,
+    },
 }
 
 #[skip_serializing_none]

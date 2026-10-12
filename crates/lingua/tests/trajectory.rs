@@ -1,4 +1,8 @@
-use lingua::{serde_json, universal::Work, Trajectory, UniversalParams};
+use lingua::{
+    serde_json,
+    universal::{VoiceEvent, Work},
+    Trajectory, UniversalParams,
+};
 
 #[test]
 fn trajectory_preserves_json_values_and_provider_params() {
@@ -80,4 +84,26 @@ fn params_without_extras_remain_compatible() {
     assert_eq!(params.temperature, Some(0.5));
     let serialized = serde_json::to_value(&params).unwrap();
     assert!(!serialized.as_object().unwrap().contains_key("extras"));
+}
+
+#[test]
+fn voice_events_read_sdk_timeline_examples_without_dropping_fields() {
+    for source in [
+        include_str!("fixtures/voice-timeline/cascaded-events.json"),
+        include_str!("fixtures/voice-timeline/realtime-events.json"),
+    ] {
+        let events: Vec<VoiceEvent> = serde_json::from_str(source).unwrap();
+        let logged: Vec<serde_json::Map<String, serde_json::Value>> =
+            serde_json::from_str(source).unwrap();
+        assert_eq!(events.len(), logged.len());
+        for (event, logged) in events.iter().zip(&logged) {
+            let serde_json::Value::Object(written) = serde_json::to_value(event).unwrap() else {
+                panic!("event did not serialize to an object");
+            };
+            assert_eq!(
+                written.keys().collect::<Vec<_>>(),
+                logged.keys().collect::<Vec<_>>()
+            );
+        }
+    }
 }

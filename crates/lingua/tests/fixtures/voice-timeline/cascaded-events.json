@@ -1,0 +1,227 @@
+[
+  {
+    "seq": 0,
+    "at_ms": 300,
+    "basis": "audio",
+    "kind": "speech_start",
+    "speaker": "user",
+    "utterance_id": "u1"
+  },
+  {
+    "seq": 1,
+    "at_ms": 2900,
+    "basis": "audio",
+    "kind": "speech_end",
+    "speaker": "user",
+    "utterance_id": "u1"
+  },
+  {
+    "seq": 2,
+    "at_ms": 3400,
+    "basis": "local",
+    "kind": "end_of_turn",
+    "utterance_ids": [
+      "u1"
+    ]
+  },
+  {
+    "seq": 3,
+    "at_ms": 3450,
+    "basis": "local",
+    "kind": "transcript",
+    "speaker": "user",
+    "utterance_id": "u1",
+    "final": true,
+    "text": "Hi, can I move my Thursday cleaning to Friday morning?",
+    "message_id": "item_u1",
+    "source": "stt"
+  },
+  {
+    "seq": 4,
+    "at_ms": 3450,
+    "basis": "local",
+    "kind": "response_start",
+    "response_id": "r1",
+    "span_id": "llm-1",
+    "in_reply_to": [
+      "u1"
+    ]
+  },
+  {
+    "seq": 5,
+    "at_ms": 4100,
+    "basis": "local",
+    "kind": "tool_call",
+    "response_id": "r1",
+    "tool_call_id": "call_1",
+    "name": "find_slots",
+    "span_id": "tool-1"
+  },
+  {
+    "seq": 6,
+    "at_ms": 4600,
+    "basis": "local",
+    "kind": "tool_result",
+    "tool_call_id": "call_1",
+    "span_id": "tool-1",
+    "outcome": "ok"
+  },
+  {
+    "seq": 7,
+    "at_ms": 4600,
+    "basis": "local",
+    "kind": "response_start",
+    "response_id": "r2",
+    "span_id": "llm-2",
+    "in_reply_to": [
+      "u1"
+    ]
+  },
+  {
+    "seq": 8,
+    "at_ms": 5300,
+    "basis": "audio",
+    "kind": "speech_start",
+    "speaker": "agent",
+    "utterance_id": "a1",
+    "response_id": "r2"
+  },
+  {
+    "seq": 9,
+    "at_ms": 7600,
+    "basis": "audio",
+    "kind": "speech_start",
+    "speaker": "user",
+    "utterance_id": "u2"
+  },
+  {
+    "seq": 10,
+    "at_ms": 7900,
+    "basis": "audio",
+    "kind": "speech_end",
+    "speaker": "agent",
+    "utterance_id": "a1",
+    "interrupted": true,
+    "played_ms": 2600
+  },
+  {
+    "seq": 11,
+    "at_ms": 7900,
+    "basis": "local",
+    "kind": "transcript",
+    "speaker": "agent",
+    "utterance_id": "a1",
+    "final": true,
+    "text": "I have nine thirty or eleven on Fri",
+    "message_id": "item_a1",
+    "source": "playout"
+  },
+  {
+    "seq": 12,
+    "at_ms": 8500,
+    "basis": "audio",
+    "kind": "speech_end",
+    "speaker": "user",
+    "utterance_id": "u2"
+  },
+  {
+    "seq": 13,
+    "at_ms": 8600,
+    "basis": "local",
+    "kind": "transcript",
+    "speaker": "user",
+    "utterance_id": "u2",
+    "final": true,
+    "text": "Nine thirty works.",
+    "message_id": "item_u2",
+    "source": "stt"
+  },
+  {
+    "seq": 14,
+    "at_ms": 8700,
+    "basis": "local",
+    "kind": "end_of_turn",
+    "utterance_ids": [
+      "u2"
+    ]
+  },
+  {
+    "seq": 15,
+    "at_ms": 8700,
+    "basis": "local",
+    "kind": "response_start",
+    "response_id": "r3",
+    "span_id": "llm-3",
+    "in_reply_to": [
+      "u2"
+    ]
+  },
+  {
+    "seq": 16,
+    "at_ms": 9000,
+    "basis": "local",
+    "kind": "tool_call",
+    "response_id": "r3",
+    "tool_call_id": "call_2",
+    "name": "reschedule",
+    "span_id": "tool-2"
+  },
+  {
+    "seq": 17,
+    "at_ms": 9400,
+    "basis": "local",
+    "kind": "tool_result",
+    "tool_call_id": "call_2",
+    "span_id": "tool-2",
+    "outcome": "ok"
+  },
+  {
+    "seq": 18,
+    "at_ms": 9400,
+    "basis": "local",
+    "kind": "response_start",
+    "response_id": "r4",
+    "span_id": "llm-4",
+    "in_reply_to": [
+      "u2"
+    ]
+  },
+  {
+    "seq": 19,
+    "at_ms": 9900,
+    "basis": "audio",
+    "kind": "speech_start",
+    "speaker": "agent",
+    "utterance_id": "a2",
+    "response_id": "r4"
+  },
+  {
+    "seq": 20,
+    "at_ms": 12600,
+    "basis": "audio",
+    "kind": "speech_end",
+    "speaker": "agent",
+    "utterance_id": "a2",
+    "interrupted": false,
+    "played_ms": 2700
+  },
+  {
+    "seq": 21,
+    "at_ms": 12600,
+    "basis": "local",
+    "kind": "transcript",
+    "speaker": "agent",
+    "utterance_id": "a2",
+    "final": true,
+    "text": "Done — you're booked Friday at nine thirty.",
+    "message_id": "item_a2",
+    "source": "playout"
+  },
+  {
+    "seq": 22,
+    "at_ms": 13000,
+    "basis": "local",
+    "kind": "call_end",
+    "reason": "participant_disconnected"
+  }
+]

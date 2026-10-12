@@ -76,6 +76,7 @@ pub(super) fn voice_calls(
                 id: span.id.clone(),
                 recordings,
                 speech: Vec::new(),
+                events: None,
             });
     }
 
