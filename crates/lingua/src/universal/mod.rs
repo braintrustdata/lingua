@@ -47,6 +47,6 @@ pub use trajectory::{
     Agent, AgentResponse, AudioRecording, AudioSelection, Compaction, EvidenceField, EvidencePart,
     Finding, FindingEvidence, FindingSeverity, LLMAnalysis, OpaqueItem, Scope, Section, Speaker,
     Speech, ToolResult, Trajectory, Turn, VoiceCall, VoiceMessage, VoiceMessageState,
-    VoiceTextSource, VoiceTextStatus, Work, WorkStep,
+    VoiceTextSource, VoiceTextStatus, VoiceTimingSource, Work, WorkStep,
 };
 pub use transform::{extract_system_messages, flatten_consecutive_messages};

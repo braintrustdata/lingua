@@ -4,6 +4,7 @@ import type { Speaker } from "./Speaker";
 import type { VoiceMessageState } from "./VoiceMessageState";
 import type { VoiceTextSource } from "./VoiceTextSource";
 import type { VoiceTextStatus } from "./VoiceTextStatus";
+import type { VoiceTimingSource } from "./VoiceTimingSource";
 
 export type VoiceMessage = { 
 /**
@@ -17,7 +18,7 @@ committed: boolean, state: VoiceMessageState, text?: string, text_status: VoiceT
 /**
  * Full generated text of interrupted agent speech.
  */
-generated_text?: string, start_time?: string, end_time?: string, end_of_turn_time?: string, transcript_final_time?: string, interrupted_time?: string, 
+generated_text?: string, start_time?: string, end_time?: string, timing_source?: VoiceTimingSource, end_of_turn_time?: string, transcript_final_time?: string, interrupted_time?: string, 
 /**
  * Realtime provider truncation point, in ms from the start of the item's own audio.
  */

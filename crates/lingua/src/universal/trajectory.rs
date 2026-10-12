@@ -65,6 +65,8 @@ pub struct VoiceMessage {
     #[ts(optional)]
     pub end_time: Option<DateTime<Utc>>,
     #[ts(optional)]
+    pub timing_source: Option<VoiceTimingSource>,
+    #[ts(optional)]
     pub end_of_turn_time: Option<DateTime<Utc>>,
     #[ts(optional)]
     pub transcript_final_time: Option<DateTime<Utc>>,
@@ -97,6 +99,14 @@ pub enum VoiceTextStatus {
     Partial,
     Missing,
     NotCaptured,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceTimingSource {
+    VadEvents,
+    ProviderEvents,
+    PlayoutEvents,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]

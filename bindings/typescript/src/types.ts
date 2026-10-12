@@ -68,6 +68,7 @@ export type { VoiceMessage } from "./generated/VoiceMessage";
 export type { VoiceMessageState } from "./generated/VoiceMessageState";
 export type { VoiceTextSource } from "./generated/VoiceTextSource";
 export type { VoiceTextStatus } from "./generated/VoiceTextStatus";
+export type { VoiceTimingSource } from "./generated/VoiceTimingSource";
 export type { UniversalUsage } from "./generated/UniversalUsage";
 export type { InputTokenDetails } from "./generated/InputTokenDetails";
 export type { OutputTokenDetails } from "./generated/OutputTokenDetails";

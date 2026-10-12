@@ -15,8 +15,10 @@ All keys are span `metadata`. Every key below must be added to `TRAJECTORY_METAD
 | `audio.recordings` | call span | existing `LoggedRecording` (#486) |
 | `voice.origin_unix_ms` | call span | `f64`, required when `voice.messages` is present |
 | `voice.messages` | call span | `BTreeMap<String, LoggedVoiceMessage>` |
-| `voice.context_message_ids` | LLM span | `Vec<Option<String>>` |
-| `voice.output_message_id` | LLM span | `String` |
+| `voice.context_message_ids` | LLM span | `Vec<Option<String>>`, optional |
+| `voice.output_message_id` | LLM span | `String`, optional |
+
+**Merge semantics.** The SDK writes each message's whole current entry on every update, and Braintrust's `mergeDicts` deep-merges objects and replaces arrays. Lingua therefore sees one merged entry per message, and **validates only that merged row**. It never sees or checks intermediate writes, and it does not check forward-only transitions; those are the SDK's responsibility.
 
 Typed import structs, sketched for `processing/import/voice.rs`:
 
@@ -29,19 +31,18 @@ struct LoggedVoiceMessage {
     state: VoiceMessageState,
     text: Option<String>,
     text_status: VoiceTextStatus,
-    text_source: Option<VoiceTextSource>,
+    text_source: Option<VoiceTextSource>,   // may be present without text
     generated_text: Option<String>,
     start_ms: Option<f64>,
     end_ms: Option<f64>,
-    timing_source: Option<LoggedTimingSource>,
+    timing_source: Option<VoiceTimingSource>,
     end_of_turn_ms: Option<f64>,
     transcript_final_ms: Option<f64>,
     interrupted_at_ms: Option<f64>,
     provider_audio_end_ms: Option<f64>,
     selections: Vec<LoggedSelection>,       // existing #486 struct
     produced_by_span_id: Option<String>,
-    turn_span_id: Option<String>,
-    source_ids: Option<BTreeMap<String, String>>,
+    // `turn_span_id` and `source_ids` are SDK debugging aids: accepted, not parsed or stored.
 }
 ```
 
@@ -55,8 +56,9 @@ Sketch for `processing/trajectory/voice.rs`, run from the same `initialize` hook
 2. **Messages.** For each `(id, message)`:
    - `speaker`: `user` stays `User`, `assistant` becomes `Agent`.
    - Times: `*_time = origin + *_ms`, using `voice.origin_unix_ms`.
-   - Copy `text`, `text_status`, `text_source`, `generated_text`, `state`, `committed`, `seq` and `provider_audio_end_ms` unchanged.
+   - Copy `text`, `text_status`, `text_source`, `generated_text`, `state`, `committed`, `seq`, `timing_source` and `provider_audio_end_ms` unchanged.
    - Copy selections into `AudioSelection` (#486 validation applies: known recording and the same `recording_span_id`).
+   - A user message may have several selections (merged speech fragments); the times are their outer bounds as logged.
 3. **`step_ids`:**
    - **Agent:** `[produced_by_span_id]` when that span is a Conversation step in this trace. Otherwise empty, with a warning.
    - **User:** the earliest-starting Conversation LLM span whose `voice.context_message_ids` contains `id`. Ties go by `(start, exec_counter, id)`, which is the stream's order. If no span contains the id, `step_ids` is empty: uncommitted, still open, or never heard.
@@ -66,25 +68,26 @@ Sketch for `processing/trajectory/voice.rs`, run from the same `initialize` hook
 
 ## Recorded vs inferred
 
-- **Recorded:** everything the SDK logged in `voice.messages`, with times converted to wall clock.
+- **Recorded:** everything the SDK logged in `voice.messages` except `turn_span_id` and `source_ids`, which are intentionally omitted. Times are converted to wall clock.
 - **Inferred:**
   - user `step_ids` and `request_id`;
   - message order;
   - the derived `speech`.
-- **Not stored; for the app to compute:** overlaps, latencies (response latency, end-of-turn delay, transcript lag), and "transcript after reply" (`transcript_final_time` later than the user step's start).
+- **Not stored; computed by the app:** overlaps, latencies (response latency, end-of-turn delay, transcript lag), and "transcript after reply" (`transcript_final_time` later than the user step's start). Lingua stores no derived flags.
 
 ## Failures and warnings
 
 Errors go through `import_failures`, warnings through `import_warnings`, following the existing #486 style. Nothing falls back silently.
 
-- **Failure:**
+- **Failure** (on the merged row):
   - `voice.messages` present without `voice.origin_unix_ms`;
-  - a malformed message: wrong types, unknown enum value, `text` present while `text_status` is `missing`/`not_captured`, or a selection on the wrong channel for the role;
+  - a malformed message: wrong types, unknown enum value, `text` present while `text_status` is `missing`/`not_captured`, `text` absent while `text_status` is `final`/`partial`, a selection on the wrong channel for the role, or a `committed: false` entry that is not complete user speech without text;
   - a selection that refers to a missing recording.
 - **Warning:**
+  - a call has `voice.messages` but no LLM span in the trace carries `voice.context_message_ids`, so user messages cannot be linked;
   - `produced_by_span_id` is not a Conversation span in the trace;
   - `voice.output_message_id` and `produced_by_span_id` disagree;
-  - `voice.context_message_ids` length differs from the parsed input message count;
+  - `voice.context_message_ids` length differs from the parsed input message count. This is checked only when the span has `input`; with content capture off there is none;
   - recording `timeline.origin_unix_ms` differs from `voice.origin_unix_ms` by more than 1 ms (unknown clock offset);
   - a committed, non-open user message is heard by no LLM span.
 
@@ -95,7 +98,7 @@ Errors go through `import_failures`, warnings through `import_warnings`, followi
   - key play buttons by `VoiceMessage.id` with `request_id`, which removes the "user speech maps to the turn owning the step" lookup in `getSpeechKeys`;
   - show `generated_text` vs `text` for interrupted agent speech;
   - badge `text_status` `missing`/`not_captured` and `committed: false`;
-  - show transcript lag from `transcript_final_time`.
+  - compute and show the derived latencies.
 - The app zod schema `app/utils/preprocessors/trajectory-schema.ts` needs `messages` added to its voice-call schema once the app validates `voice_calls`.
 
 ## Expected output for the cascaded example (abridged)
@@ -106,9 +109,14 @@ Errors go through `import_failures`, warnings through `import_warnings`, followi
   "recordings": [{ "id": "call-0000", "attachment_span_id": "c-root", "attachment_pointer": "/input/audio/call-0000", "start_time": "2026-10-12T…", "duration_ms": 13000 }],
   "messages": [
     { "id": "item_u1", "speaker": "user", "seq": 0, "committed": true, "state": "complete", "text_status": "final", "text_source": "stt",
-      "step_ids": ["c-llm1"], "request_id": "c-ut1", "selections": [{ "recording_id": "call-0000", "channel_index": 0, "start_offset_ms": 300, "end_offset_ms": 2900 }] },
+      "timing_source": "vad_events", "step_ids": ["c-llm1"], "request_id": "c-ut1",
+      "selections": [
+        { "recording_id": "call-0000", "channel_index": 0, "start_offset_ms": 300, "end_offset_ms": 1250 },
+        { "recording_id": "call-0000", "channel_index": 0, "start_offset_ms": 1650, "end_offset_ms": 2900 }
+      ] },
     { "id": "item_a1", "speaker": "agent", "seq": 1, "state": "interrupted", "generated_text": "I have nine thirty or eleven on Friday. Which would you like?",
-      "text": "I have nine thirty or eleven on Fri", "step_ids": ["c-llm2"], "selections": ["…channel 1, 5300–7900"] }
+      "text": "I have nine thirty or eleven on Fri", "timing_source": "playout_events", "step_ids": ["c-llm2"],
+      "selections": [{ "recording_id": "call-0000", "channel_index": 1, "start_offset_ms": 5300, "end_offset_ms": 7900 }] }
   ],
   "speech": ["derived: item_u1 → [c-llm1], item_a1 → [c-llm2] interrupted, item_u2 → [c-llm3], item_a2 → [c-llm4]"]
 }
