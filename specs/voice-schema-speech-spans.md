@@ -50,10 +50,12 @@ Each `voice.speech` span is one `Speech`.
 
 **Inferred:**
 
-- **The call:** the nearest ancestor, or the span itself, that is a call. The parent may be a turn or, for ignored speech, the call span.
+- **The call:** the nearest ancestor, or the span itself, that is a call. The parent may be a turn or, for ignored speech and agent speech with no turn (greetings), the call span.
 - **`interrupted`:** `true` for state `interrupted`, `false` for any other agent speech, absent for user speech.
 - **`step_ids` fallback:** when no link was logged, the turn named by `turn_id` and its direct step children. Ignored speech without `turn_id` gets no steps.
 - **Order:** by the earliest selection start, falling back to the span start.
+
+**Agent text:** Lingua does not read text from speech spans. The SDK contract puts spoken text (`playback_sync`) in `output.text` and generated text in `planned_text`, so `transcript_source` on agent speech is `playback_sync` when spoken text exists, and `tts_input`/`model_output` when only the planned text was logged.
 
 **Not used by Lingua:** `played_ms`, `provider_played_ms`, `transcript.final`, `transcript.available_ms` and `confidence`. They stay on the span.
 
@@ -65,7 +67,7 @@ Each `voice.speech` span is one `Speech`.
 - If it has any agent speech span, `assistant_turn` speech is skipped.
 - Traces without `voice.speech` are unchanged.
 
-An integration can therefore emit speech spans for one speaker first. Once one speech span for a speaker is emitted, though, every utterance of that speaker in the trace must be a speech span.
+A `voice.speech` key that fails to parse is reported on its span and does not count toward precedence, so one malformed span cannot hide the LiveKit speech of that speaker. An integration can therefore emit speech spans for one speaker first. Once one speech span for a speaker is emitted, though, every utterance of that speaker in the trace must be a speech span.
 
 ## Failures
 
