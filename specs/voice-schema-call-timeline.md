@@ -182,7 +182,8 @@ The SDK capture table was checked against `@livekit/agents` 1.9.2. That review c
 - **Preemptive generations (cascaded):** these carry `in_reply_to` from the `onPreemptiveGeneration` snapshot. §3 already prefers it over the window.
 - **Cascaded `end_of_turn`:** emitted when the reply is scheduled (the user commit), dated at the `onEndOfTurn` resolve time. That is why it follows the turn-1 transcript in `seq` in the cascaded fixture. Turns that LiveKit drops after `onEndOfTurn` (AMD `skipReply`, non-interruptible speech, `StopResponse`) emit no `end_of_turn`, and their utterances fall back to "the turn open at their start" (§3).
 - **Realtime `end_of_turn`:** excludes caller utterances still open at `_realtimeGenerationTaskImpl` entry.
-- **Realtime caller `message` (decision E):** emitted at `_realtimeGenerationTaskImpl` entry from the `chatCtx` diff, after `end_of_turn`, even without a transcript. The realtime fixture now maps `u1` → `item_u1` at 3600 and `u2` → `item_u2` at 8600, and the late `u1` final carries `message_id: item_u1`. Speech and `step_ids` are unchanged.
+- **Realtime caller `message` (decision E):** emitted at `_realtimeGenerationTaskImpl` entry from the `chatCtx` diff, after `end_of_turn`, even without a transcript. The realtime fixture now maps `u1` → `item_u1` at 3600 and `u2` → `item_u2` at 9000, and the late `u1` final carries `message_id: item_u1`. Speech and `step_ids` are unchanged.
+- **Realtime caller speech end:** the realtime fixture gives no `voice.server_vad_silence_ms`, so caller `speech_end` is the receipt time including the 500 ms server-VAD padding (`u1` 3400, `u2` 9000), and turn 2 runs `end_of_turn`/generation 9000, `reschedule` 9300–9700, final audio 9700–12500. Caller selections end at the padded times.
 - **Handoff:** `voice.pipeline` is the pipeline at call start. A handoff that changes the LLM type is out of MVP scope.
 
 ## Implementation decisions
