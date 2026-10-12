@@ -4,6 +4,54 @@
 
 This spec covers how Lingua builds `Trajectory.voice_calls` when integrations log one `speech` span per utterance with `metadata["voice.speech"]` under a call span with `metadata["voice.call"]`. The SDK-side contract and the example traces are in braintrust-sdk-javascript `docs/voice-schema/speech-spans/`. The fixtures here use the same rows.
 
+## Schema at a glance
+
+**Input keys read** (span metadata; field meanings, clocks and the full row shapes are in the SDK README's "Schema at a glance"):
+
+```ts
+"voice.call"?: {                         // call span -> LoggedCall
+  framework: string; pipeline: string    // read as strings, not validated, not used
+  origin_unix_ms: number                 // unix ms; clock for end_of_turn_ms
+}
+"audio.recordings"?: {                   // call span -> LoggedRecording, unchanged from #486
+  id: string; attachment: { span_id: string; ref: string }; duration_ms?: number
+  timeline?: { origin_unix_ms: number; recording_start_offset_ms: number } // unix ms; segment start in call ms
+}[]
+"audio.selections"?: {                   // speech span -> LoggedSelection, unchanged from #486
+  recording_id: string; recording_span_id: string; channel_index?: number
+  start_offset_ms: number; end_offset_ms: number                           // ms from the segment start
+}[]
+"voice.speech"?: {                       // speech span -> LoggedSpeech
+  speaker: "user" | "agent"; turn_id?: string
+  state: SpeechState; timing_source: TimingSource
+  heard_by?: string[]; produced_by?: string; interrupted_by?: string        // span ids
+  played_ms?: number; provider_played_ms?: number; end_of_turn_ms?: number // durations; end_of_turn_ms in call ms
+  transcript?: { source: TranscriptSource; final: boolean; available_ms?: number; confidence?: number }
+}
+```
+
+**Trajectory output** (`Trajectory.voice_calls?: VoiceCall[]`; only `Speech` changes):
+
+```ts
+VoiceCall = { id: string; recordings: AudioRecording[]; speech: Speech[] } // unchanged; id = call span row id
+Speech = {
+  id: string                             // recorded: speech span row id
+  speaker: Speaker                       // recorded
+  step_ids: string[]                     // recorded: row ids of produced_by / heard_by; inferred fallback: turn_id's turn + its step children
+  selections: AudioSelection[]           // recorded: audio.selections; [] without audio
+  interrupted?: boolean                  // inferred: state == "interrupted"; false for other agent speech
+  state?: SpeechState                    // new, recorded: "complete" | "interrupted" | "incomplete" | "ignored"
+  interrupted_by?: string                // new, recorded: row id of voice.speech.interrupted_by
+  transcript_source?: TranscriptSource   // new, recorded: "stt" | "provider_transcription" | "tts_input" | "model_output" | "playback_sync"
+  timing_source?: TimingSource           // new, recorded: "audio_samples" | "vad" | "provider_vad" | "playout" | "span_clock"
+  end_of_turn_time?: string              // new, recorded: voice.call.origin_unix_ms + end_of_turn_ms (RFC 3339)
+  start_time?: string                    // new, recorded: span metrics.start
+  end_time?: string                      // new, recorded: span metrics.end
+}
+```
+
+The new fields are set only on speech built from `voice.speech`; speech built from LiveKit span names leaves them absent.
+
 ## Input keys
 
 | Key | Where | Read into |
@@ -75,7 +123,7 @@ A `voice.speech` key that fails to parse is reported on its span and does not co
 
 | Condition | Result |
 | --- | --- |
-| Malformed `voice.speech` or `voice.call`, including an unknown enum value | `Invalid metadata.voice.speech: …` (or `voice.call`) on the span; nothing is built from that key |
+| Malformed `voice.speech` (including an unknown enum value) or `voice.call` (missing field or wrong type; `framework` and `pipeline` are not checked against their enums) | `Invalid metadata.voice.speech: …` (or `voice.call`) on the span; nothing is built from that key |
 | A selection naming another call span or an unknown recording | Import failure `Speech refers to a missing recording`; the speech is skipped |
 | A link (`heard_by`, `produced_by`, `interrupted_by`, `turn_id`) naming a span missing from the trace | Import failure `Speech refers to a missing span <id>`; that link is dropped and the speech is kept |
 | No ancestor call span yet | Speech skipped silently (call still in progress, as in #486) |
