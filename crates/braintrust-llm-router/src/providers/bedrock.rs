@@ -994,7 +994,7 @@ mod tests {
             params: Default::default(),
         };
 
-        inline_remote_media_with_fetch(&mut request, RemoteMediaPolicy::BEDROCK, |_url| {
+        inline_remote_media_with_fetch(&mut request, RemoteMediaPolicy::BEDROCK, |_url, _| {
             Box::pin(async {
                 panic!("fetch should not be called for additional_tools messages");
             })
