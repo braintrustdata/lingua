@@ -21,7 +21,8 @@ struct Utterance<'a> {
 /// without speaking spans, speech links to the steps among the turn span and its children.
 ///
 /// A call span with `voice.timeline_version` instead builds its speech from the `voice.timeline`
-/// rows logged under it, and its turn spans are ignored.
+/// rows logged under it, and its turn spans are ignored. A call span with `voice.points_version`
+/// does the same from the `voice.points` logged on it and on the spans under it.
 pub(super) fn voice_calls(
     spans: &[PreparedSpan],
     parents: &[Option<usize>],
@@ -56,6 +57,37 @@ pub(super) fn voice_calls(
         }
     }
     let mut timeline_calls = HashSet::new();
+    let points_calls: HashSet<usize> = order
+        .iter()
+        .copied()
+        .filter(|index| {
+            spans[*index]
+                .source
+                .voice
+                .as_ref()
+                .is_some_and(|voice| voice.points_version.is_some())
+        })
+        .collect();
+    let mut point_owners: HashMap<usize, Vec<&PreparedSpan>> = HashMap::new();
+    for &index in &order {
+        if spans[index]
+            .source
+            .voice
+            .as_ref()
+            .is_none_or(|voice| voice.points.is_empty())
+        {
+            continue;
+        }
+        match std::iter::successors(Some(index), |child| parents[*child])
+            .find(|ancestor| points_calls.contains(ancestor))
+        {
+            Some(call) => point_owners.entry(call).or_default().push(&spans[index]),
+            None => warn(
+                &spans[index],
+                "voice points without a versioned call span".to_string(),
+            ),
+        }
+    }
 
     let mut calls: HashMap<String, Vec<VoiceCall>> = HashMap::new();
     for &index in &order {
@@ -63,7 +95,10 @@ pub(super) fn voice_calls(
         let Some(voice) = &span.source.voice else {
             continue;
         };
-        if voice.recordings.is_empty() && voice.timeline_version.is_none() {
+        if voice.recordings.is_empty()
+            && voice.timeline_version.is_none()
+            && voice.points_version.is_none()
+        {
             continue;
         }
         let mut recordings = Vec::new();
@@ -105,6 +140,16 @@ pub(super) fn voice_calls(
             } else {
                 build_timeline(
                     &mut call, span, voice, &rows, &row_ids, &mut fail, &mut warn,
+                );
+            }
+        } else if let Some(version) = voice.points_version {
+            timeline_calls.insert(span.id.clone());
+            if version != 1 {
+                fail(span, format!("unsupported voice points version {version}"));
+            } else {
+                let owners = point_owners.remove(&index).unwrap_or_default();
+                build_points(
+                    &mut call, span, voice, &owners, &row_ids, &mut fail, &mut warn,
                 );
             }
         }
@@ -392,7 +437,143 @@ fn build_timeline(
             "audio basis without a recording is treated as local".to_string(),
         );
     }
-    call.speech = timeline_speech(span, voice, call, &events, row_ids, warn);
+    call.speech = timeline_speech(span, voice, call, &events, row_ids, &HashSet::new(), warn);
+    call.events = Some(events);
+}
+
+/// The span kinds that may own each point, by role: who observed the fact, not which operation
+/// was running when it happened.
+fn point_owner_allowed(kind: &str, role: &str) -> bool {
+    match kind {
+        "end_of_turn" => role == "user_turn",
+        "response_start" => role == "llm",
+        "tool_call" | "tool_result" => role == "tool",
+        "truncate" => role == "assistant_turn",
+        "call_end" => role == "call",
+        _ => matches!(role, "user_turn" | "assistant_turn" | "call"),
+    }
+}
+
+/// Builds a points call's events and speech from the `voice.points` on its spans.
+///
+/// Each point becomes a timeline event: its key is its `seq`, and the owner span supplies the
+/// `span_id` of `response_start`, `tool_call` and `tool_result` and the tool `name`. Speech is then
+/// built as for a timeline, except that a caller utterance whose `user_turn` holds no
+/// `end_of_turn` was never committed and links to no step.
+fn build_points(
+    call: &mut VoiceCall,
+    span: &PreparedSpan,
+    voice: &SpanVoice,
+    owners: &[&PreparedSpan],
+    row_ids: &HashMap<(&String, &String), &String>,
+    fail: &mut impl FnMut(&PreparedSpan, String),
+    warn: &mut impl FnMut(&PreparedSpan, String),
+) {
+    let mut points: BTreeMap<u32, (&PreparedSpan, &crate::serde_json::Value)> = BTreeMap::new();
+    let mut events = Vec::new();
+    let mut open_turns = Vec::new();
+    for &owner in owners {
+        let role = if owner.id == span.id {
+            "call"
+        } else {
+            match (owner.kind(), owner.source.name.as_deref()) {
+                ("task", Some(name @ ("user_turn" | "assistant_turn"))) => name,
+                (kind, _) => kind,
+            }
+        };
+        let mut turn = (Vec::new(), false);
+        for (key, point) in &owner.source.voice.as_ref().unwrap().points {
+            let Some(seq) = key
+                .parse::<u32>()
+                .ok()
+                .filter(|seq| seq.to_string() == *key)
+            else {
+                warn(owner, format!("voice point key {key} is not a seq"));
+                continue;
+            };
+            match points.get(&seq) {
+                Some((_, other)) if *other == point => continue,
+                Some(_) => {
+                    fail(owner, format!("Conflicting voice point {seq}"));
+                    return;
+                }
+                None => {
+                    points.insert(seq, (owner, point));
+                }
+            }
+            let mut point = point.clone();
+            let Some(fields) = point.as_object_mut() else {
+                warn(owner, format!("voice point {seq} is not an object"));
+                continue;
+            };
+            let kind = fields
+                .get("kind")
+                .and_then(|kind| kind.as_str())
+                .unwrap_or_default()
+                .to_string();
+            if !point_owner_allowed(&kind, role) {
+                warn(
+                    owner,
+                    format!("voice point {seq} ({kind}) on a {role} span"),
+                );
+            }
+            fields.insert("seq".to_string(), seq.into());
+            if matches!(
+                kind.as_str(),
+                "response_start" | "tool_call" | "tool_result"
+            ) {
+                fields.insert("span_id".to_string(), owner.span_id.clone().into());
+            }
+            if kind == "tool_call" {
+                let name = owner.source.name.clone().unwrap_or_default();
+                fields.insert("name".to_string(), name.into());
+            }
+            match crate::serde_json::from_value::<VoiceEvent>(point) {
+                Ok(event) => {
+                    if role == "user_turn" {
+                        match &event.detail {
+                            VoiceEventDetail::SpeechStart {
+                                speaker: Speaker::User,
+                                utterance_id,
+                                ..
+                            } => turn.0.push(utterance_id.clone()),
+                            VoiceEventDetail::EndOfTurn { .. } => turn.1 = true,
+                            _ => {}
+                        }
+                    }
+                    events.push(event);
+                }
+                Err(error) => warn(owner, format!("invalid voice point {seq}: {error}")),
+            }
+        }
+        if !turn.1 {
+            open_turns.extend(turn.0);
+        }
+    }
+    events.sort_by_key(|event| event.seq);
+    if let Some(first) = events.first().filter(|first| first.seq > 0) {
+        warn(span, format!("points gap before seq {}", first.seq));
+    }
+    for pair in events.windows(2) {
+        if pair[1].seq > pair[0].seq + 1 {
+            warn(span, format!("points gap after seq {}", pair[0].seq));
+        }
+    }
+    let call_end = events
+        .iter()
+        .find(|event| matches!(event.detail, VoiceEventDetail::CallEnd { .. }));
+    match call_end {
+        None => warn(
+            span,
+            "call points are in progress or the session crashed".to_string(),
+        ),
+        Some(end) if events.last().is_some_and(|last| last.seq > end.seq) => {
+            warn(span, "voice points after call_end".to_string())
+        }
+        Some(_) => {}
+    }
+    let uncommitted: HashSet<&str> = open_turns.iter().map(String::as_str).collect();
+    call.speech = timeline_speech(span, voice, call, &events, row_ids, &uncommitted, warn);
     call.events = Some(events);
 }
 
@@ -409,6 +590,7 @@ fn timeline_speech(
     call: &VoiceCall,
     events: &[VoiceEvent],
     row_ids: &HashMap<(&String, &String), &String>,
+    uncommitted: &HashSet<&str>,
     warn: &mut impl FnMut(&PreparedSpan, String),
 ) -> Vec<Speech> {
     let mut starts: Vec<TimelineSpeech> = Vec::new();
@@ -444,7 +626,7 @@ fn timeline_speech(
                 response_id,
                 span_id,
                 in_reply_to,
-            } => response_starts.push((event.seq, response_id, span_id, in_reply_to)),
+            } => response_starts.push((event.seq, event.at_ms, response_id, span_id, in_reply_to)),
             _ => {}
         }
     }
@@ -482,7 +664,10 @@ fn timeline_speech(
         }
     }
     for speech in &starts {
-        if speech.speaker != Speaker::User || utterance_turns.contains_key(speech.utterance_id) {
+        if speech.speaker != Speaker::User
+            || utterance_turns.contains_key(speech.utterance_id)
+            || uncommitted.contains(speech.utterance_id)
+        {
             continue;
         }
         match window(speech.start.seq) {
@@ -500,13 +685,17 @@ fn timeline_speech(
     }
     let mut missing_spans = BTreeSet::new();
     let mut turn_steps = vec![Vec::new(); end_of_turns.len()];
-    let mut response_steps = HashMap::new();
-    for (seq, response_id, span_id, in_reply_to) in response_starts {
+    // A speech handle can run several generations (LiveKit cascaded tool replies reuse it).
+    let mut response_steps: HashMap<&str, Vec<_>> = HashMap::new();
+    for (seq, at_ms, response_id, span_id, in_reply_to) in response_starts {
         let step = row_ids.get(&(&span.root_span_id, span_id)).copied();
         if step.is_none() && missing_spans.insert(span_id) {
             warn(span, format!("timeline refers to a missing span {span_id}"));
         }
-        response_steps.entry(response_id.as_str()).or_insert(step);
+        response_steps
+            .entry(response_id.as_str())
+            .or_default()
+            .push((at_ms, step));
         let turns: BTreeSet<_> = match in_reply_to.as_deref().filter(|ids| !ids.is_empty()) {
             Some(ids) => ids
                 .iter()
@@ -558,10 +747,17 @@ fn timeline_speech(
             _ => None,
         });
         let step_ids = match (utterance.speaker, utterance.response_id) {
+            // The handle's latest generation that started before playback.
             (Speaker::Agent, Some(response_id)) => response_steps
                 .get(response_id)
-                .copied()
-                .flatten()
+                .and_then(|starts| {
+                    starts
+                        .iter()
+                        .rev()
+                        .find(|(at_ms, _)| *at_ms <= utterance.start.at_ms)
+                        .or(starts.first())
+                })
+                .and_then(|(_, step)| *step)
                 .into_iter()
                 .cloned()
                 .collect(),
