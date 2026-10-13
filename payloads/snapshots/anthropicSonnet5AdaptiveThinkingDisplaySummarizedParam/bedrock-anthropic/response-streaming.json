@@ -1,0 +1,3226 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-5",
+      "id": "msg_bdrk_cogimpbejoilczqmabncpiqdycxmai4ehp7mdz7os7cgcm27nvxa",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "container": null,
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 66,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2,
+        "service_tier": "standard"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "thinking",
+      "thinking": "",
+      "signature": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "m set"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ting up states"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " based on rec"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ent flip"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " history"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " to track prog"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ress toward either"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HHT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " or HTH, def"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ining states like start, H, T"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", HH, and HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " dep"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ending on the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " tr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ailing s"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "equence of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " flips.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "From"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " state"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " T"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", flipping H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " g"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ives su"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ffix TH, and since the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " last character is H, that"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " eff"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ectively resets prog"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ress to a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " single"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H in ter"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ms of matching either"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " pattern going"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " forward.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "'m red"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "efining states as"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " longest su"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ffix of the s"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "equence so"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " far that matches a prefix"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " of either"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "T or HTH:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " empty, H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", HH, H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "T,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " with H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HT and HTH as abs"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "orbing end"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " states. From"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " emp"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ty, fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ipping H mo"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ves to state H while"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " flipping T ke"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "eps it"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " at empty since"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " T"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " is"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "n't a pr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "efix of either target. From state"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H, flipping H moves"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " to HH and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " flipping T moves to H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "T, and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I'm now"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " working out what"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " happens from HH when"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " another"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H is flipped.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Chec"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "king the su"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ffixes of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HHH, since"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HH it"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "self do"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "esn't match a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " prefix of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " either p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "attern but HH does, fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ipping H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " from"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " state HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " lo"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ops back to HH,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " while flipping T from H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H complet"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "es HHT,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " a win"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ". From HT, flipping"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H complet"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "es HTH, a win,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " while flipping T leads to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HTT, whose suff"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ixes don't match"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " any"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " valid prefix,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " so I need to determine where that"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " trans"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ition go"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "es.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "'m now set"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ting up the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Markov chain over"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " states S, H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", HH, HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " with H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HTH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " as absorbing states"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", and solving for p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " since it"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " trans"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "itions to it"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "self with prob"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ability 1/2 and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " to the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " win state"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " with probability 1/2,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " sol"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ving gives p_HH ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " 1, meaning once"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " you h"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "it HH you're"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " guaranteed to e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ventually win—"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " want"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " to double"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " check this"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " makes sense.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Then I compute p_HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " in"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " terms of p_S"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", p_H in terms of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " p_HH and p_H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "T, and p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_S in terms of p_"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " it"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "self, fin"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ding that"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " p_S equ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "als p_H, let"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ting me substitute and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " solve for the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " final prob"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ability.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Sol"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ving the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " equation g"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ives p_S = p_H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " = 2/3, p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_HT = 1/3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", consistent with p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_HH = 1, conf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "irming HHT app"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ears first two"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "-thirds of the time."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "\n\nNow I'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "m setting up expected-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "flip"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " equations for each"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " state, star"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ting with the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " absorbing states and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the equ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ation for e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_HH.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Expan"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ding e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_HH gives e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_HH = 2."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Then e_HT dep"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ends on e_S"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", and e_H depends on"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " both e_HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " and e_HT, which"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I'm"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " substituting through"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " to get e_S"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " 2 + e_H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", then"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " pl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ugging e_H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " back"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " in terms of e_HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " e_S to solve the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " system"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ".\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Solving the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " equation 0"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ".75 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "e_S = 4"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ".5 gives e_S"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " = 6"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", so the expected number of fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ips is 6. This matches"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " with"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " what"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I recall about the classic H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HT vs HTH probl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "em, where H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "HT has prob"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ability 2/3 of occ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "urring first.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "For"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H with"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H le"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ading to HHH, I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " check"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " that H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " is a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " valid prefix state"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", conf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "irming that trans"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ition. Now"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I'm"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " re-de"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "riving the equ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ations for e_HH, e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_HT, and e_H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " make sure the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "_S="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "6 result"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " hol"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ds up"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " without subst"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "itution errors.\n\n"
+    }
+  },
+  {
+    "type": "ping"
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Working"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " through the algebra, subst"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ituting e_H back"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " into the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " equ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ation for e_S gives "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "0.75 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "e_S = 4"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ".5, so e_S ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " 6,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " confirming the ear"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "lier result. This matches the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " known Penney's game out"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "come where HHT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " beats HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H with probability 2/3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ", so"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "'m confident in both"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2/3 probability and the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " exp"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ected "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "6 fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ips.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "signature_delta",
+      "signature": "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"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "# Set"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ting Up States"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\nSince both"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " target"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " patterns have"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " length 3, I'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ll track the **long"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "est suffix of fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ips"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " so far that mat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ches a prefix of either H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HT or HTH**."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " The relevant prefixes"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " are:\n\n- **H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HT**: ε, H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ", HH, HHT  "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- **HTH**:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " ε, H, HT,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HTH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\nThis"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " gives transient states **"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "S**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " (empty/"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "start), **H**, **H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H**, **HT**,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " pl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "us absorbing states **H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HT** ("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "win) and **HTH**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " (lo"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ss).\n\n## Transition"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Diagram\n\n**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "From S:**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ip H → state"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " H; flip T → stay"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " at S (T mat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ches no prefix)\n\n**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "From H:** flip H →"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HH; flip T → H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "T\n\n**From HH:**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " flip H → st"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ay"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HH (suffix \"H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HH\" →"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " longest val"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "id prefix is \"HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\"); flip T → **H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HT** (absorbed"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " win)\n\n**From HT:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "** flip H → **HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H** (absorbed,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " lo"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ss); flip T → S"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " (suffix \"HTT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\" → \""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "T\" is not a valid pr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "efix,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " so re"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "set to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " S)\n\n$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "$\n\\begin{array}"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "{c|c"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "c}\n "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "& H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " &"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " T \\\\\\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "hline\nS & H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " & S \\\\\nH & H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H & HT \\\\\nH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H & HH & \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "text{HHT ("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "win)} \\\\\nHT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " & \\text{HTH ("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "lose)} & S \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\\n\\end{array}"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n$$\n\n## Part"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " 1: Probability HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "T Appears First\n\nLet"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " $p_X$ = prob"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ability of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HHT win"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ning starting from state $X$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ". Boundary values"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ": $p_{HHT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "}=1,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\ p_{HTH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "}=0$.\n\n**State"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HH:**\n$$p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "_{HH} = \\t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "frac12 p_{"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HH} + \\tfr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ac12(1) \\implies"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " p_{HH} = "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "1$$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n(Once at"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HH, any run"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " of H's ke"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "eps you there"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ";"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " first T gu"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "arantees H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HT.)\n\n**State H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "T:**\n$$p_"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "{HT} = \\tf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "rac12(0) + \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12 p_"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "S = \\tfrac12"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " p_S$$\n\n**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "State H:**\n$$p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "_H = \\tfrac"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "12 p_{HH}"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " + \\tfrac12 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "p_{HT} = \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12(1)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " + \\tfrac12 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "p_{HT} = \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12 + \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12 p_"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "{HT}$$\n\n**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "State S:**\n$$p"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "max_tokens",
+      "stop_sequence": null,
+      "stop_details": null,
+      "container": null
+    },
+    "usage": {
+      "input_tokens": 66,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 4096,
+      "output_tokens_details": {
+        "thinking_tokens": 3369
+      }
+    }
+  },
+  {
+    "type": "message_stop",
+    "amazon-bedrock-invocationMetrics": {
+      "inputTokenCount": 66,
+      "outputTokenCount": 4096,
+      "invocationLatency": 36219,
+      "firstByteLatency": 1093
+    }
+  }
+]

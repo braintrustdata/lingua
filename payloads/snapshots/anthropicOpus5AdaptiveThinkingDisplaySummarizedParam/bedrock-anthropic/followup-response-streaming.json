@@ -1,0 +1,727 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-opus-5",
+      "id": "msg_bdrk_fgyxo7dlzf2qwvnzofgofxr6mqxlltatac7525atsuw6k4nxrnga",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "container": null,
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 118,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4,
+        "service_tier": "standard"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "thinking",
+      "thinking": "",
+      "signature": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "The"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " question"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " \"what should"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I do next\" is vague since"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " I don't act"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ually know their"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " bro"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ader context or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " goal,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " so I should"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " be"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " up"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "front about that and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " ask a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " clarifying question rather than"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " guess"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ing bl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "indly.\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "signature_delta",
+      "signature": "CAISpwYK5AIIEhABGAIqQFxyyBJfDcxPhYxStesI+6/geM28k/qU74QLu0r1YeORVzA6KZ6ckyJ3wBeq9CH7QEc5WpcZ/X8QKozedFdEWooyDGNsYXVkZS1ob25leTgBQgh0aGlua2luZ1oMOTgyNTM0MzkzMjk2qAGnjJ/WBsIBRggIEAAaGALaigNPNwV0qQQmrQX6XQNPNwVQKQQmrSABMgQScc8lOgQ4MyOKQgQ4MyOKSgQ4MyOKUABaBNkF4VZgBGgBcADaAaABChZwcmVmaXhfYmVmb3JlX2Jsb2NrX3YxEiCtGeEuQXg1MwezQE7XaphTDEi+4XtOYBudGTp9i770siJAnW33MfUcyU8IQAVRVLk9iBWjC3bS8yJe8vJNSTtRAAGNLD84pRVn7xM2DwXva846BF4LRtjK7PS15/Bo7l5HzzIgwsATyGqckuIvlm89hhd2j4t6RMkCrcwJe/oeCYr7Th9IAxIMEbH12NK8O/RFtQ0AGgz6F+rkFKqbuNp8IgEiMONuyAMnufYm+NYofPC/i/LI+CQGRxe5+4NovCen0vAQGDv3jttctUOizm0z8BgTXirvAvlyiLH23vp66pGvbj6IVVbWJEUDeK0BEUZri6+O+SIJw0xFyoK5EQH2wGwRZYp173jAAsP2uwed03vn7lCS5EmebtbR2F+Zb6lIhjgbNBbyGMK39MlUbahKM5A8QKPpr8KpeER+Sk5mEHXj/YBVYytUrd9qPDCDWLNNXcvCahPWl+q7h4V0asabpRe8bNV62eRzlO+tQbr30GKiCiQRuXpGxnn2laGpPsci+WEAoos9WWG9l9GJ6F7goyj8QW+JJ/UUKPZI5BmSoftch7Nh/mrZKagUlaR+HqAANSZ9iKlHpUd0merKM+rJg6WJinY0sSKWyHiEGDgoGmYxmQ9GUIrLMA2gomCx/3G96RevEjLgvyR8WjicmB1R4y7EPIcuWgFOuV5kb4qVX+yTmrOdjb1atA+5g2tyofleADD0xJSZIt5V+9J1dTNJ6T8hVILJHiy37HWBjiuLbAScoTGGG5JtUUHoYPJh3GPm7cve4MwYAQ=="
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "That depends on"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " what you're working"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " on — I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " only"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " have the mult"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "iplication probl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "em to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " go on."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " A few poss"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ibilities:\n\n- **If"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " this"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " is"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " hom"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ework or a probl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "em set:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "** move"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " on to the next problem, or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ell me the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " full"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " question"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " and I can"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " help you work"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " through it.\n- **If "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "391 is a step"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " in a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " bigger calculation:**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " share"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " rest and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " I'll help"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " you finish it.\n- **"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "If you're practicing mental"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " math:** try the same"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " trick on another p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "air,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " like 18"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " × 24"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " 16"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " × 27 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "— split"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " the second"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " number into"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ens and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " ones, multiply separ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ately, then"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " add.\n- **If you were"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " checking my"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " work:** 391 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "÷ 17 = "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "23, so"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " it"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " holds up.\n\nWhat's the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " act"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ual context?"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " I can give"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " you something more useful with"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " bit more to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " go on."
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null,
+      "container": null
+    },
+    "usage": {
+      "input_tokens": 118,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 341,
+      "output_tokens_details": {
+        "thinking_tokens": 117
+      }
+    }
+  },
+  {
+    "type": "message_stop",
+    "amazon-bedrock-invocationMetrics": {
+      "inputTokenCount": 118,
+      "outputTokenCount": 341,
+      "invocationLatency": 5756,
+      "firstByteLatency": 956
+    }
+  }
+]

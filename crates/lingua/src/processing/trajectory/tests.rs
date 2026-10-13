@@ -216,6 +216,25 @@ fn check_fixture(fixture: &ImportFixture) {
             .collect();
         assert_eq!(worker_responses, fixture.worker_responses);
     }
+    for sources in [
+        fixture.spans.clone(),
+        fixture.spans.iter().rev().cloned().collect(),
+    ] {
+        let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
+        let mut collector = TrajectoryCollector::default();
+        for source in sources {
+            let span = import_span_with_options(source, fixture.import_options).unwrap();
+            if stream.needs_payload(span.header.id.as_deref().unwrap()) {
+                collect(&mut collector, stream.push(span).unwrap());
+            }
+        }
+        collect(&mut collector, stream.finish().unwrap());
+        assert_eq!(
+            Some(serde_json::to_value(collector.snapshot().unwrap()).unwrap()),
+            snapshot,
+            "Import result depends on payload arrival order",
+        );
+    }
 }
 
 fn run_fixture(
@@ -855,9 +874,31 @@ fn best_effort_import_preserves_unsupported_items_and_diagnostics() {
     .unwrap();
     assert!(!imported.input.is_empty());
     assert!(!imported.output.is_empty());
-    assert_eq!(imported.errors, strict.errors);
+    assert!(imported.errors.is_empty());
+    assert_eq!(
+        imported.warnings,
+        [
+            "input: Unsupported message item at index 0",
+            "output: Unsupported message item at index 1",
+        ]
+    );
     assert_eq!(imported.opaque_input.len(), 1);
     assert_eq!(imported.opaque_output.len(), 1);
+    let trajectories = assemble(std::slice::from_ref(&imported), &[], false).unwrap();
+    let turn = &trajectories[0].turns[0];
+    assert_eq!(turn.request.as_ref().unwrap().len(), 1);
+    let response = turn.response.as_ref().unwrap();
+    assert!(response.response.is_some());
+    assert_eq!(
+        response.opaque_input[0].value,
+        imported.opaque_input[0].value
+    );
+    assert_eq!(
+        response.opaque_output[0].value,
+        imported.opaque_output[0].value
+    );
+    assert_eq!(response.opaque_output[0].index, Some(1));
+    assert!(!trajectories[0].metadata.contains_key("import_failures"));
 }
 
 fn check_preserved_metadata_fixture(fixture: &str) {
@@ -874,7 +915,10 @@ fn check_preserved_metadata_fixture(fixture: &str) {
     assert_eq!(imported.opaque_input.len(), 1);
     assert_eq!(imported.opaque_input[0].index, Some(0));
     assert_eq!(imported.opaque_input[0].value, source.input.unwrap()[0]);
+    assert!(imported.opaque_input[0].is_metadata);
     check_fixture(&fixture);
+    let trajectories = run_fixture(&fixture, 1, false, &[]);
+    assert!(trajectories[0].turns[0].opaque_request[0].is_metadata);
 }
 
 #[test]
@@ -950,13 +994,23 @@ fn preserves_custom_content_without_inventing_messages() {
     .unwrap();
     assert!(imported.input.is_empty());
     assert!(imported.output.is_empty());
-    assert!(!imported.errors.is_empty());
+    assert!(imported.errors.is_empty());
+    assert!(!imported.warnings.is_empty());
     assert_eq!(imported.opaque_input.len(), 3);
     for (index, item) in imported.opaque_input.iter().enumerate() {
         assert_eq!(item.index, Some(index));
         assert_eq!(item.value, original_input["messages"][index]);
     }
     assert_eq!(imported.opaque_output[0].value, original_output);
+    let trajectories = assemble(&[imported], &[], false).unwrap();
+    let turn = &trajectories[0].turns[0];
+    assert!(turn.request.as_ref().unwrap().is_empty());
+    assert_eq!(turn.opaque_request.len(), 3);
+    let Work::AgentResponse(response) = &turn.work[0].work else {
+        panic!("Expected agent response");
+    };
+    assert_eq!(response.opaque_output[0].value, original_output);
+    assert!(!trajectories[0].metadata.contains_key("import_failures"));
 }
 
 macro_rules! import_fixture {
@@ -966,6 +1020,43 @@ macro_rules! import_fixture {
             check_import_fixture(include_str!($file));
         }
     };
+}
+
+#[test]
+fn structured_json_survives_trajectory_streaming() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/structured-json-payloads.json")).unwrap();
+    check_fixture(&fixture);
+    for batch_size in [1, 16] {
+        let trajectories = run_fixture(&fixture, batch_size, false, &[]);
+        let turn = &trajectories[0].turns[0];
+        assert_eq!(
+            turn.opaque_request[0].value,
+            *fixture.spans[0].input.as_ref().unwrap()
+        );
+        assert_eq!(turn.opaque_request[0].index, None);
+        assert!(!turn.opaque_request[0].is_metadata);
+        let Work::AgentResponse(draft) = &turn.work[0].work else {
+            panic!("Expected agent response")
+        };
+        assert_eq!(draft.opaque_input[0].value, turn.opaque_request[0].value);
+        assert!(draft.opaque_output.is_empty());
+        let Work::LLMAnalysis(analysis) = &turn.work[1].work else {
+            panic!("Expected analysis")
+        };
+        assert_eq!(
+            analysis.opaque_input[0].value,
+            *fixture.spans[1].input.as_ref().unwrap()
+        );
+        assert_eq!(
+            analysis.opaque_output[0].value,
+            *fixture.spans[1].output.as_ref().unwrap()
+        );
+        assert_eq!(
+            turn.response.as_ref().unwrap().opaque_input[0].value,
+            *fixture.spans[2].input.as_ref().unwrap()
+        );
+    }
 }
 
 import_fixture!(
@@ -1090,6 +1181,22 @@ import_fixture!(
     task_boundary_with_child,
     "fixtures/task-boundary-with-child.json"
 );
+import_fixture!(
+    task_boundary_after_llm,
+    "fixtures/task-boundary-after-llm.json"
+);
+
+#[test]
+fn task_dependencies_allow_non_task_prefetch() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/task-boundary-after-llm.json")).unwrap();
+    let stream = stream_from_sources(fixture.spans).unwrap();
+    assert_eq!(
+        stream.pending_ids(4),
+        ["request", "first", "retry", "answer"]
+    );
+}
+
 import_fixture!(
     analysis_without_conversation,
     "fixtures/analysis-without-conversation.json"
@@ -1633,6 +1740,51 @@ fn malformed_timing_preserves_healthy_turns_and_reports_failure() {
     assert_eq!(
         result[0].metadata["import_failures"][0]["span_id"],
         "broken"
+    );
+}
+
+#[test]
+fn failed_payload_does_not_block_later_turns() {
+    let mut broken = span("broken", 1, json!([]), json!([]));
+    broken
+        .other
+        .insert("metadata".into(), crate::serde_json::json!({"model": {}}));
+    let sources = vec![
+        broken,
+        span(
+            "healthy",
+            2,
+            json!([{"role":"user", "content":"Hello"}]),
+            json!([]),
+        ),
+    ];
+    let mut stream = stream_from_sources(sources.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    collect(
+        &mut collector,
+        stream
+            .fail("broken", "Invalid payload".to_string())
+            .unwrap(),
+    );
+    collect(
+        &mut collector,
+        stream
+            .push(import_span(sources[1].clone()).unwrap())
+            .unwrap(),
+    );
+    collect(&mut collector, stream.finish().unwrap());
+    let result = collector.snapshot().unwrap();
+    assert_eq!(result[0].turns.len(), 1);
+    assert_eq!(result[0].turns[0].request_id, "healthy");
+    assert_eq!(
+        result[0].metadata["import_failures"],
+        crate::serde_json::json!([
+            {
+                "span_id": "broken",
+                "message": "Invalid metadata.model: invalid type: map, expected a string"
+            },
+            {"span_id": "broken", "message": "Invalid payload"}
+        ])
     );
 }
 

@@ -146,18 +146,60 @@ function isAnthropicMessage(
   );
 }
 
-function loadServiceAccountKey(): ServiceAccountKey {
+function parseServiceAccountKey(
+  raw: string,
+  source: string
+): ServiceAccountKey {
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    // JSON parser errors may include fragments of the private key.
+    throw new Error(`Invalid service account JSON in ${source}`);
+  }
+  if (!isRecord(value)) {
+    throw new Error(
+      `Invalid service account JSON in ${source}: expected object`
+    );
+  }
+  const { client_email, private_key, token_uri } = value;
+  if (typeof client_email !== "string" || client_email.length === 0) {
+    throw new Error(
+      `Invalid service account JSON in ${source}: client_email must be a non-empty string`
+    );
+  }
+  if (typeof private_key !== "string" || private_key.length === 0) {
+    throw new Error(
+      `Invalid service account JSON in ${source}: private_key must be a non-empty string`
+    );
+  }
+  if (typeof token_uri !== "string" || token_uri.length === 0) {
+    throw new Error(
+      `Invalid service account JSON in ${source}: token_uri must be a non-empty string`
+    );
+  }
+  return { client_email, private_key, token_uri };
+}
+
+export function loadServiceAccountKey(): ServiceAccountKey {
+  const credentialJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (credentialJson !== undefined) {
+    return parseServiceAccountKey(
+      credentialJson,
+      "GOOGLE_SERVICE_ACCOUNT_JSON"
+    );
+  }
   const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (!credPath) {
     throw new Error(
-      "GOOGLE_APPLICATION_CREDENTIALS environment variable is required"
+      "GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS environment variable is required"
     );
   }
   const resolvedPath = isAbsolute(credPath)
     ? credPath
     : resolve(process.cwd(), credPath);
   const raw = readFileSync(resolvedPath, "utf-8");
-  return JSON.parse(raw);
+  return parseServiceAccountKey(raw, "GOOGLE_APPLICATION_CREDENTIALS file");
 }
 
 function createSignedJwt(key: ServiceAccountKey): string {

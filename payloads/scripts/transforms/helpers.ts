@@ -368,6 +368,13 @@ function getTransformCandidateCases(
     if (filter && !caseName.includes(filter)) return false;
     const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
     const testCase = allTestCases[caseName];
+    // An explicit null opts out of Vertex capture; absent entries use the default model.
+    if (
+      pair.target === "vertex-anthropic" &&
+      testCase?.["vertex-anthropic"] === null
+    ) {
+      return false;
+    }
     return sourceCase != null && !testCase?.expect;
   });
 }

@@ -1,0 +1,41 @@
+{
+  "import_options": { "preserve_unsupported": true },
+  "spans": [
+    {
+      "id": "draft", "span_id": "draft", "root_span_id": "root",
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 1, "end": 2 },
+      "metadata": { "turn_id": "turn" },
+      "input": { "message": "Summarize the notes", "meeting_context": [{ "text": "A synthetic note" }] },
+      "output": "Preparing a summary."
+    },
+    {
+      "id": "analysis", "span_id": "analysis", "root_span_id": "root",
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 2, "end": 3 },
+      "metadata": { "turn_id": "turn", "trajectory_role": "analysis" },
+      "input": { "candidate": "A synthetic summary" },
+      "output": { "safe": true }
+    },
+    {
+      "id": "final", "span_id": "final", "root_span_id": "root",
+      "span_attributes": { "type": "llm" },
+      "metrics": { "start": 3, "end": 4 },
+      "metadata": { "turn_id": "turn" },
+      "input": { "message": "Summarize the notes", "meeting_context": [{ "text": "A synthetic note" }] },
+      "output": "The summary is ready."
+    }
+  ],
+  "turns": [{
+    "request_id": "draft",
+    "response_id": "final",
+    "response_text": "The summary is ready.",
+    "work_ids": ["draft", "analysis"],
+    "user_texts": []
+  }],
+  "import_warnings": [
+    { "span_id": "analysis", "message": "input: Unsupported input message format; output: Unsupported output message format" },
+    { "span_id": "draft", "message": "input: Unsupported input message format" },
+    { "span_id": "final", "message": "input: Unsupported input message format" }
+  ]
+}

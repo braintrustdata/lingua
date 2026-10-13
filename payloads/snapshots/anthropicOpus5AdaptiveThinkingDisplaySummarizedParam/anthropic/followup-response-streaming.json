@@ -1,0 +1,555 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-opus-5",
+      "id": "msg_011Cfq6Q6cNEC3JpDZWDUfPv",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "container": null,
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 139,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4,
+        "service_tier": "standard",
+        "inference_geo": "global"
+      },
+      "diagnostics": null
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "thinking",
+      "thinking": "",
+      "signature": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "This \""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "what"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " should I do next\""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " question"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " is v"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ague without"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " knowing their"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " context, so I should ask a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " clarifying question rather than"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " guess—maybe they're"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " doing homework, practicing"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " mental math, or working"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " on something"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " bigger."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "signature_delta",
+      "signature": "CAISlgcKjQMIEhgCKkD7Uwg7b157CuDoU/yDmvKQCHs5EQjIokFCPPtdDzTN6GtjDvYEEu9+TnAhH2zlOR0b8u6JMwDMKC6LVRB/ydHLMg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTWaAQ8KDWNsYXVkZS1vcHVzLTWoAaeMn9YGwgFGCAgQABoYAtqKA083BXSpBCatBUdTA083BVApBCatIAEyBBJxzyU6BDgzI4pCBDgzI4pKBDgzI4pQAFoE2QXhVmAEaAFwANoBoAEKFnByZWZpeF9iZWZvcmVfYmxvY2tfdjESIJcQMFo2aYwb+nD7arvScEmA6aG/urTfksGQ2wDIyqjBIkCdbfcx9RzJTwhABVFUuT2IFaMLdtLzIl7y8k1JO1EAAY0sPzilFWfvEzYPBe9rzjoEXgtG2Mrs9LXn8GjuXkfPMiDCwBPIapyS4i+Wbz2GF3aPi3pEyQKtzAl7+h4JivtOH0gDEgxIY20BXrbe6CzmBkEaDCzERRaRJZeT9GJljyIwuqcCK/O6kFKjL/Rnop12jSRnZafVbaPWHtQOlhFF0eTKVj4ddLuo7bsjH78LKo+BKrUDmesNbXNGVqwLrOoR+OoynfgIEPvFW89IYHISydXltzCzP1+6JqQ9m0ar2Ls75zq7+d7OBYvmFVuAmpl6viPg5+ZqSweWU44C9Vxr5YOxW00gZ6OxUlpbM0+W+PNExxukOB/usf3WfqtVhoevx0crVXJVjPF4Wun/K85b+YTkGTpvYrcA5ZjDhltfsTB9xnB77+OzUIQu+3dfAVYqE3/nDATpD82Vv2gdbVh3FhmmqOsn5B8ScJJY+V2uKEpWCmSdBIvjYIYqoiDwJ7VRXeemnRJPUZtVMTnKYlfy6N9ytIbVDFD8cWNsVO9gEoTLXrNu10byyoI8dwzTy0XyKdxhY/vrQzuM57Ncx2SV5NcoVqeON4Xwmw15Brtch9xtJ1wLnNjOoEyhUswVeQ9XL3Hdcgf0LW98mQOp4pRK2dWjqsn/Tou01XZQ7IrstYKqc6ltHMedcMr5t9gi/eoL+0xBLHzFPwctjYUVdoB/dCYoOMB1EXSrF9d6+Qo1ikhmHHZlM/bznuCsBDvNUH8NZo7u4nu9UK8JBTNgC8H1lrxe2h4s1Rv657qdH/CzWkaiHE149N/BU4EYAQ=="
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "I'm not sure what"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " you're working to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ward — that"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " was"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " just"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " a stand"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "alone ar"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ithmetic question"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " so I don't have context"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " what com"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "es next.\n\nA few gu"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "esses,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " tell me if"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " any"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " fit:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n- **Part"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " of a bigger calculation"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "?** Share"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " the full"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " problem and I'll help you"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " work through it.\n- **"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "Practicing mental math?**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " can give"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " you more problems,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " or show"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ricks for squ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ring numbers, multipl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ying by 11, et"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "c.\n- **Hom"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ework or a wor"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ksheet?** Pa"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ste the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " next question."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- **Something else entir"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ely?"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "** Just tell me what you"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "'re up"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " to.\n\nWhat's the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " situation?"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null,
+      "container": null
+    },
+    "usage": {
+      "input_tokens": 139,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 309,
+      "output_tokens_details": {
+        "thinking_tokens": 128
+      }
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

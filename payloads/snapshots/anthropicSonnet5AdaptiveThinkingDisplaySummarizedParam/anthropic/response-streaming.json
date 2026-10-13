@@ -1,0 +1,2627 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-5",
+      "id": "msg_011Cfq6VgFptEJbXxEzo6JTA",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "container": null,
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 66,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 7,
+        "service_tier": "standard",
+        "inference_geo": "global"
+      },
+      "diagnostics": null
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "thinking",
+      "thinking": "",
+      "signature": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I'm set"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ting up states t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "racking the flip history need"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ed to reach HHT or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HTH, def"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ining progress states like Start,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " H, T, HH, and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HT to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " model the Markov chain for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " computing the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " probability and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " expected number of flips."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Setting up equations for p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(∅),"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " p(H), p(HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "), p(HT)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " as prob"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "abilities HHT appears"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " first from"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " each state:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " p(H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H)=1 since"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " any"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " T"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " from"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " there"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " wins imm"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ediately, p(HT)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "=½p(∅) since"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " an H there"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " means"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HTH wins."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Substituting into"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " p(H)=½"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "p(HH)+½p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(HT) gives p("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H)=½+"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "¼p(∅), and since"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " p(∅)=p("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "H), I can solve for p"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(∅) directly."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Solving "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "3/4 p(∅"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ") = 1/2 g"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ives p(∅) = "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2/3, so"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HHT be"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ats H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "TH first two"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "-thirds of the time."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Now I'm set"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ting up anal"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ogous equations for expected wa"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "iting times"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " e(X) from each state,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " star"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ting with e(∅)="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2+e(H)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " and e(H)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " depending on e(HH)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " and e(HT)."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "Working"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " through e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(HT)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " = 1 + 1/"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2 e(∅), I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " substitute back"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " into e(H),"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " getting e(H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ") = 2.5 +"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " 1/4 e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "∅), then"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " solve"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(∅) = 4."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "5 + "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "1/4 e(∅"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "), giving e(∅)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " = 6"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "So the expected number of flips"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " is 6. Let me s"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "anity check this against known wa"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "iting-time results for single pat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "terns like HHT and"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " HTH, then verify e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "(HH)=2 direct"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ly by consid"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ering what happens from state HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " after one more flip."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "I also"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " check"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " e(HT)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " and e(H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ") using"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " the same recursive relation"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "ships, and they all come"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " out consistent with e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "∅)=6."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " So the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " final answers h"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "old: P(HHT first"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": ")"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " = 2/3, and E"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "[flips] = 6."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "signature_delta",
+      "signature": "EqYgCsQCCBIYAipAZ/laUHtwAfjXNTc6s88UcttWCk32dx1wq/Uz1R3/TQhcm5xc3QepDGw7+PoSfVfW69sdLNlEwOkMEKUdVVh5FjIPY2xhdWRlLXNvbm5ldC01OABCCHRoaW5raW5nWiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTWaAREKD2NsYXVkZS1zb25uZXQtNagBgo2f1gbCAToIBBAAGgwC2ooDTzcFmNAEJq0gATIEEnHPJToEODMjikIEODMjikoEODMjilAAWgTZBeFWYAJoAXAA2gFgChZwcmVmaXhfYmVmb3JlX2Jsb2NrX3YxEiD6T4jRRAvtaSCNhj8UeBFG6ku5md77SCkaXPMoud/slCIAMiDCwBPIapyS4i+Wbz2GF3aPi3pEyQKtzAl7+h4JivtOH0gDEgxuWO9m617HNIBIK78aDHivM845WpJ/D7izjSIwi15dgwiIVQI/uMBtX0Q4+Dqe/eMnVZaKdluL3HOhG9UdA8872Gv+wviWLEiUOpDjKo4dd04FwwxzbIHFJFAyfFS1ODzR5Pe7rvq0re43HwOvRC9tIqgcVoFmgoNSZtXsglBcbLR+4J8QpuD5TezGdJO8O53UCpSsfED1o0UrlmXriz/h1Og4DkNRgfk4XhPpeQXYVDS5z2s/A8KyEa4tC30KEsaO5NgBO/w8z8TS+hMR/YFMXxBHEgcvFVzZw4kJ1O1xMRA9MQV84GaBysPNfzlSDyX+73Z2pc6muNQ774Z5qt5r2nWlfhdVqSyn7OsO8L9CWcQIpi7t3JaygE71C7ON6fGTTBoNdVY6b25Y0wvsJxEtDBJqplw12rEynTDZecRd5fkTZFVfhAreILNh/8jnaGBzoK5lyo500ACkc5ZCk5t9LDeH2hV8HojNylC7nxfay27UOvCHgPGXFTXypGqrcCwYLstbSYrc4hwYRH8/oZlXX3tguoSJ90XrZ4fj6aVHtxgE0GEg2OaMtaZX1TOPLxjQGUylVY4JhBY4xKjjxWG75eCVghexLu/IpvBmYBSnLS62t8GW2Jptr3MxEadm3d2OGb2NIcDUPbCK5rnWe+mJ3PWMWg+AFn6NnquX96CbyHImZvhnr7KjPxZ0svSD6L7MpjJa5cGiApVIpZSKXhs2c7T2IpnbroxmB9TzXC/+8p+M9CMrJ6urN4c1JVt3mqMLN5/47o0FVnAavVI+aqTs6bw9XXyliJfN/Nx+VdoOGjg+dbC9nkxHR9+KZRq2r45nXm1rksbUTNiqdX0sCfs54+TGPynCD9KjkS7qxvKl8p0pda2Lk4/KZhDPm+wm+5KEycfq44cPG1xwwaEnQhbed0YIj8gTWc528IVC0z9LH+qfO4V+5SAylhmY02ujThx4jTfyj0GL1P3Brw/GIIZqyPWVZbkHuSwOQYFmucSB/V4ZxpESJFnS2PqO21Jz98mWxa0uMS5cPEVZOywetuE6wlewoK/giYxT39aIkaLSrQ1wj9ato9wvo9eHlq5eHUC0MKU2/URBXJdnt2iNDJjuKr+2t3EbM3NuDFMk3UqMk5YeBdevht2r9CQnMtvvhs7HuSw4rbjtOMtfCANLFq4q/pF24+XVUjiiRpMSGFOJ/Qv+2bZZY7ETmMDxjhUHRjGFWQMEEGqFDYcEWgbWmF0vZWv8fGPulaJtsOGBIfCPWtaiQLLi16gCXx/3UuxV5eGSDN/Oza6dFxSVvlUdHfy8Y48+9f8KNJ8xvm13nYLPatBvCFGJWRelaf9Vm7TRfgLTpZgZPrN1JKkE1/fMUBUmIYgpiUErHfsa5B2xljqYdmiHlRaYUJi40Y4GyIYbC1PJ3vzRgfI0SaTNtNp5RS/1ukuG9b1Wc9BcioDmVdglqsPKIWcCR3DQ1JAC4n/gFzGYZ99mRPQveFNgthAYzu5WaRx6iCl4UZZj+QPafg1FAnMLnOQbQALcelfzsihFuZkn+0lOAE2DfZoxgxv1s6Yr2X4PAHmeTt7Ya+qDQuHEHF+oY0PosV5dZHlqrNrfYT9klXwt0uzAaJi9hsEZb3GndNkpWUYlKGnb8FX7BsDZHv5G3OUzh/hMRPC4MA/q9YNGD2/VESypwYo47FqNsFErHBvIJXFkbYAVMI2juI9jUWJPKJ83UkVS19AOJYcdZiwI1DiDI71rtsVd8g8/GitQPup1bOkBqKusbRRzDL1SY0d2LuwzNpXMV7CY+3SPnNM35VAPGIncP4b357+4bt8qK0cQrAq6KN4oRlIcJpvoxa31D5W6Vcx03W+kQWhPZFfB/VNjxyQYERzr37Lb1c4H0VDWlwvpRo1jnZBNvD3N9ojffd7aXFOhkhk6W4dnbnqg2hnpWySYrKieDTpa1ISwp2ZNLlyLuQoMaLE2p7KujqKtoaZJWZ5Pss5nlZxEcxP8hvP1RGOGsehvjvUqL0bANwQF3nlR6lOklb1DruAaj12bYaejJY7NsNFR/DkAPpedD/Tzk1h04g2MuSd12Jky39o6suGl/Nm+nhoj5BP6TIMessvo5YD7mN2yaKyiFhS1yrrPk9B12G2olYd0O+fgj+527zwErfU9SN27dl7wJVnuBilerTZLvNMiiF39PCcrD+zOOt5fvLvlEOChgg4AjQuHBt78ELJSjxJiKPi28HxZDo6F/oOZw3+9w6HanSteOlfE7ZwJXiLFTwgqG+9x6vA+CN+LVbrjzp4JRqTpIB/9jNunjbCPFU8gupCtiPEPo5Zt+ZvG4+uGhH6Reyx9mDeq9XNG6nD/m5Q9vB7Faiy4Tuccxm/14G1ahGQB3qJkxK9P5lqqoPeFm7Uogh9Np7HO1gWvrSJRQrzvnwLQr7bf8aRVhTk2HgCzbK1ZV0UIvye083Gc/WPoFWxYxAQoDhmvd+c+pot044oEmVWriYq4MjvvwtbUPV+ytDyedtme5iliFCZ5zfIfU19se829o0DYoc6BWTI8/A1N2lWastX8/6novMeFN4xMYm9d265uRlA505SclJtQ1QhHluabs6P2LUK+BSxkUAcn+2b+gG91+XkfGkrPepuQjG1xNn/2UdFrEDBLcfp1aGZe5g7IIeFU2JA9IExy36ptrVr1YS/7I56RsBrIWaPcK3mllQ0o87I1YThPsiLZbW1PH3hvpA+eIzg/zNpGRj0rI1z86TxqL2GMcHzWv1mgtjFm5z1Aj0UT4jOQkYB0VeGSTluKfOZ7eAgqDLvIeNATimluLdSuJfYepydDgT39eIwxBJyvn95yHlEAw/8zUcdDbmMDle8292WIbbeRRdAyi8oEgbYUSmBhmZswi6x4j0UapjDSZ4W2NUy0RZtDT2Zzj1AixetmDOzlEPrfMEghGUvgaKDJGu30x608ehuvz/DqWJZf7ZSePknduL0nPTVJOTeLDa+ai0My33kHuBF17oRdqNqsiBbkoTlwlB9avp6nUhHIF5+EWIsJip4x/8d20S+P4XaFXKQ0pObW7JIcLQhb7OHieRJ62qUmI4YGn5SbXcKrltP/IwIItd4bKtm1jEukm0LLxgmszURmeRFnNuaGRQiwscABxxFRueKPTu9DT18xsbe52s+guWrlME5H3FSPLZMfQHamP4+BsCW/NluarGgDCoDfjCZ/ltezre5wQcYWx/5wjlcFyctpoNyRa4Vx8dRrYEV1B/tEMxj+5X+OXE/Z0iRUnBgCV9tEThVEKqrUMmvZgXm6zuJ8TU7yr9O7iKl8t7oXfTmf6eLQjjRgVMD2abMbZAvBnrPJK6aSunc7Rmr5nflOHgYRbUd81Otk1KK/3gl0ZOpPhdH+J6npOpnurQLJ5bLQD4uSgFzq4TT9G/5oLtVec0FJ20Cbh6/p7ZubUrbKTOS8iqW/zgCkuLvcfuJtDo7/NkowoGHhcCg3Z9kjNk2+6lTECZ8eYp+AbG+LGYEDvdB/EW1H6jElVgGPzs7Tlf9CbD3QDQbfzBLztkKPGJELMhfB5l2FCYaWAU6FOyuJGfYjdOrwLGtlRs3YJlvydyWYuRW+1nIvDL7CK97mYCoVVy+cX2eCtEp6GmaoLwYyt9HBW8RrGMVGRpFojw5vVN8a3Pv28Sai40fhCmMNqtCvabPQgbFRz8ZOqd1Btemxm+0Pcf7u/IW5LgRojwoGkCQ1JK2BkfVBR0sCQryiJm4YmJeCNxvpqyxjRRUFkQHHCeKaxtTiO/giQ0khe9SWaZm4vquGZB25tIskxUGcAStoSYEDjlbAj8a0Lq32wUUSlTxKhXAFaCx9bJDej5owWxQPlFQxR1s9DXRPWzNFMqE/dsChLV/pWLQmzf2zDEpSu2wJTVeJ6Z2eYbp5dY/yCnaeOIRPtq5Qj9WnHJQmaAIxfO++TxY4oNMuU14pD86NvWoh/GG32OYU4MAK4S/bJHJEDcvkZPWRXZzlG8MO2xajAY/P5N7ViqIzezLtevQjNMDq2/TLRzleUBshZ7iubmwqOdJOES50htV//prWvI3kCnZD7nem/6HWwTX6g8mkTOtMbNO2Uf809dJKyzWzwAX1JbCNxYCJM6LBa7OHsFnUnZHQKNvy3OfLQTB8cXRJmBjqiYkSMd6yPk+xO4ilMiZdLkd/8s8sjtV2NMrZY3RSGw+B5/jxxQYn3h5phnooy2g27DXbJBaQ06UJLAJTjRtVverje00nhMxjKDqVC0A4CxRr5RksQDBB58hl3hkYo6xSQVKznsd9tLJ8GRcP6wACa/2buBuTBDHXsAN1TevCGQwCVVJktAnr9nWPbvYuBHd4RJrIltaK9TF0Jy+ZQc76MvMO9m3xhYjCTCEKInlJ5ZGsuUuv4yxMH8ySdV7aSQE65s7ZA34N1mVQOGNaUh5EW9CClscq2mYnSBEiuGgvF501L1CPop8o7GQhjDgCJoQJK1QDaVSGJ5zZ09+JS6XHadq0l9RrBG78msYoo9dtCwkIwuDrWZj0Uzf8xCgbrwxFB665GitXd/2KQ93BVa+iCAbxjsQsjvLsFzRJwjTDDegHJ0+0Hsd6+K3nwOV0uhSRF2f33moapGavcACjaLAetecrnQIV4ZASa/IRdawpqMowyHy4WI4GUCFkRKaHG/jIUqFCkZMxf/KFXPAfAr2IyUiqgN/Z+w8T36SNKR6Fly4FalrVT89wUUwKmd1W24W53u45GWL7AsLXGP2g0fsmvDtwHCGthuyvDiNMPk+/AiCePLZXAJJizJ+Ge6QsV9LwqZv7kyWCKoYEIQJ0jYvwB9W7FAMHbtYkHjUQRT+zRPYKd8TNvKHuX9g9tvUPhf2NB0XBOu2USLbDGCRzvG74Z43wOFRIBk8pU3GKW4nTzXwUqJF66F4AZFyfsyBzwpG0VqE84I8UHXEXLcAHNy6hjGyXFn1YrASqC5EhfONoEuiMEcr40S16f84k8SivZbUFq74L2ZDXZfto2EpH+f/dVkw2QBy3D2Bs3nvpufkumwfuKZZozFMVTY9oFyylaUJnjFriknALdE95NYHsqub7i/5Ok+qWYQIm7PFqRpFHiBDR34qKGAE="
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "##"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Setting Up States"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\nSince both"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " patterns beg"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "in with H, I track the \""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "prog"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ress\" to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ward complet"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ing"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " either pattern using"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " the relevant suffix of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " recent flips."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " The use"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ful states are:\n\n- **"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "∅**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ": No"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " prog"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ress (start"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ", or last flip was"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " T with n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "othing use"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ful before it)\n- **H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "**: Last flip was"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " H (first"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " progress)\n- **HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "**: Last two flips were"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HH\n- **HT**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ": Last two flips were H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "T\n\n**Transit"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ions:**\n- From "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "∅: H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " →"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " state"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " H; T → st"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ay in"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " ∅\n- From H:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " H → state HH; T →"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " state HT\n- From HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ": H → st"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ay in HH; T → **"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HHT occurs (st"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "op)**\n- From HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ": H → **"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HTH occurs (st"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "op)**; T → state "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "∅ (since \"TT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\" su"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ffix gives no progress)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\nThe"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " process"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " star"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ts in state ∅."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n## Part"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " 1: Probability H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HT App"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ears First\n\nLet $p("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "X)$ ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " probability that HHT appears"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " before HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H, starting from state $X"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "$.\n\n**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "Equations:**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n$$p(\\empty"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "set) = \\tfrac"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "12 p(H) + \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12 p("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\emptyset)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " \\implies p(\\empt"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "yset) = p(H)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "$$\n\n$$p(H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H) = \\tfrac"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "12 p(HH) +"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " \\tfrac12 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(1) \\implies p("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HH) = 1$$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n(T"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " from"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " HH imm"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ediately g"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ives HHT, a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " win)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n$$p(HT)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = \\tfrac12 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(0) + \\tfr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ac12 p(\\empt"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "yset)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "$$\n(H from HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " immediately gives HTH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ", a loss)\n\n$$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "p(H) = \\tf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "rac12 p(HH"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ") + \\tfrac12"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " p(HT) = \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12(1)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " + \\tfrac12\\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "left(\\tfrac12"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " p(\\emptyset"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ")\\right)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = \\tfrac12 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "+ \\tfrac14 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "p(\\emptyset)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "$$\n\n**Solving:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "** Since $p(\\em"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ptyset) = p(H"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ")$:\n$$p("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\emptyset) = \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12 + \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac14 p("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\emptyset) \\impl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ies \\tfrac34 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "p(\\emptyset)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = \\tfrac12 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\implies p(\\empt"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "yset) = \\bo"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "xed{\\tfrac"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "23}$$\n\n**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "P"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(HHT app"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ears first) = 2/3"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "**\n\n## Part 2:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Expected Number of Fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ips\n\nLet $e(X"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ")$ = expected number of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " additional flips from state $X"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "$ until stopping."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n**Equations:**\n$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "$e(\\emptyset"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ") = "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "1 + \\tfrac"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "12 e(H) + \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12 e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\emptyset) \\impl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ies e(\\emptyset"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ") = 2 + e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H)$$\n\n$$e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(HH) = 1 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "+ \\tfrac12 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "e(HH) + \\t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "frac12(0) \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "implies e(HH) ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " 2$$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n$$e(HT) ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " 1 + \\tfr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ac12(0) + \\t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "frac12 e(\\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "emptyset) \\implies"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " e(HT) = 1"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " + \\tfrac12"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " e(\\emptyset"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ")$$\n\n$$e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H) = 1 + \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12 e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "HH) + \\tfr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ac12 e(HT)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = 1 + \\tf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "rac12(2) + \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12\\left("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "1 + \\tfrac"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "12 e(\\empty"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "set)\\right)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = \\tfrac52 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "+ \\tfrac14 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "e(\\emptyset)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "$$\n\n**Solving:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "** Substitute into"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " $e(\\emptyset"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ") = 2 + e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H)$:\n$$e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(\\emptyset) ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " 2 + \\tfr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ac52 + \\tfr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ac14 e(\\empt"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "yset) = \\tfr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ac92 + \\tfr"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ac14 e(\\empt"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "yset)$$\n$$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\tfrac34 e"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "(\\emptyset) ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " \\tfrac92 \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "implies e(\\empty"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "set) = 6$$"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n**E[number"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " of flips] = 6."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "**\n\n##"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Verification\n\nWith $e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\emptyset)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "=6$:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " \n- $e(HT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ") = 1 + \\t"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "frac12(6) ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " 4$\n- $e("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "H) = 1 + \\"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "tfrac12(2)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " + \\tfrac12("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "4) = 4$\n-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " $e(\\emptyset"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ") = 2 + 4"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " = 6$ "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "✓\n\nAll equ"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ations are consistent.\n\n##"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " Summary\n\n$$P("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\\text{HHT first}"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ") = \\frac{2}"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "{3}, \\qquad"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " E[\\text{fl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ips}] = 6$$"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null,
+      "container": null
+    },
+    "usage": {
+      "input_tokens": 66,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 3245,
+      "output_tokens_details": {
+        "thinking_tokens": 1868
+      }
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

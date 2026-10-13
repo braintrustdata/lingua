@@ -11,6 +11,15 @@ use std::borrow::Cow;
 
 type Result<T> = std::result::Result<T, String>;
 
+pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
+    "turn_id",
+    "tool_call_id",
+    "model",
+    "trajectory_role",
+    "request_kind",
+    "compaction",
+];
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpanContext {
     pub id: Option<String>,
@@ -21,7 +30,7 @@ pub struct SpanContext {
     #[serde(default)]
     pub kind: String,
     pub name: Option<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_default")]
     pub exec_counter: i64,
     #[serde(default)]
     pub scorer: bool,
@@ -111,7 +120,7 @@ struct Attributes {
     kind: Option<String>,
     name: Option<String>,
     purpose: Option<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_default")]
     exec_counter: i64,
 }
 
@@ -225,8 +234,16 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         source.span_attributes.kind.as_deref() == Some("llm"),
         options,
     );
-    opaque_input.extend(compaction_input.map(|value| OpaqueItem { index: None, value }));
-    opaque_output.extend(compaction_output.map(|value| OpaqueItem { index: None, value }));
+    opaque_input.extend(compaction_input.map(|value| OpaqueItem {
+        index: None,
+        value,
+        is_metadata: false,
+    }));
+    opaque_output.extend(compaction_output.map(|value| OpaqueItem {
+        index: None,
+        value,
+        is_metadata: false,
+    }));
     errors.extend(message_errors);
     let context_messages = input
         .iter()

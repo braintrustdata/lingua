@@ -368,4 +368,37 @@ mod tests {
 
         assert_flat_invoke_body(transformed);
     }
+
+    #[test]
+    fn anthropic_messages_to_bedrock_preserves_adaptive_thinking_display() {
+        use crate::providers::anthropic::generated::{Thinking, ThinkingDisplayMode, ThinkingType};
+
+        #[derive(Deserialize)]
+        struct ThinkingBodyView {
+            thinking: Option<Thinking>,
+        }
+
+        for model in ["eu.anthropic.claude-sonnet-5", "eu.anthropic.claude-opus-5"] {
+            let input = json!({
+                "model": model,
+                "max_tokens": 1024,
+                "messages": [{"role": "user", "content": "hi"}],
+                "thinking": {"type": "adaptive", "display": "summarized"}
+            });
+
+            let universal = AnthropicAdapter.request_to_universal(input).unwrap();
+            let transformed = BedrockAnthropicAdapter::new()
+                .request_from_universal(&universal)
+                .unwrap();
+
+            let body: ThinkingBodyView = crate::serde_json::from_value(transformed).unwrap();
+            let thinking = body.thinking.expect("thinking should be present");
+            assert_eq!(thinking.thinking_type, ThinkingType::Adaptive, "{model}");
+            assert_eq!(
+                thinking.display,
+                Some(ThinkingDisplayMode::Summarized),
+                "{model}: thinking.display should be preserved"
+            );
+        }
+    }
 }

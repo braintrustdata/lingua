@@ -1,0 +1,17 @@
+{
+  "anthropic_version": "bedrock-2023-05-31",
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 17 times 23?"
+    }
+  ],
+  "thinking": {
+    "type": "adaptive",
+    "display": "summarized"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}

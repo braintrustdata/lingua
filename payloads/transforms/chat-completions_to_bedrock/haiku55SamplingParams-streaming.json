@@ -1,0 +1,53 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "Hi there!"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " How can I help you today"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "?"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "end_turn"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 13,
+        "outputTokens": 14,
+        "totalTokens": 27
+      },
+      "metrics": {
+        "latencyMs": 1159
+      }
+    }
+  }
+]
