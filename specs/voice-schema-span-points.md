@@ -18,10 +18,10 @@ Lingua turns the points back into #490 events and reuses #490's speech builder.
   - `voice.points_version` and `voice.points` import on every span;
   - `build_points` in `processing/trajectory/voice.rs`;
   - two changes to the shared `timeline_speech`;
-  - `VoiceEvent::SpeechEnd.interrupted_by`;
+  - `VoiceEventDetail::SpeechEnd.interrupted_by`;
   - fixtures built from the SDK examples (`span-points-cascaded-backchannel.json`, `span-points-realtime-missing-transcript.json`);
   - `span_points_diagnostics`.
-- **Not done:** app allow-list keys (after #486 is rebased); wasm and TS tests.
+- **Not done:** app allow-list keys (after #486 is rebased); wasm and TS tests. `voice.origin_unix_ms` is not parsed: like #490's `voice.timeline_origin_unix_ms`, nothing reads it yet.
 
 ## Input
 
@@ -82,7 +82,7 @@ Trajectory turns: `ut-1` → `llm-2`, `ut-2` → `llm-4`, and `ut-3` with no res
   - `speech_2/0` → rt-2;
   - `u2` → rt-3, rt-4;
   - `speech_4/0` → rt-4.
-- **Late points:** the late `u1` transcript and the close-time `missing` for `u2` sit on `user_turn` spans that had already ended. The import is the same for every batch size and load order tested (`check_fixture`, plus random arrival orders in `check_fixture_variants`), so a point's arrival relative to its owner's other writes does not matter.
+- **Late points:** the late `u1` transcript and the close-time `missing` for `u2` sit on `user_turn` spans that had already ended. The import is the same for every batch size and span order tested (`check_fixture`, plus random span orders in `check_fixture_variants`). Those runs load complete rows: point-by-point merges are not exercised here, and they rely on Braintrust's keyed merge.
 
 ## Diagnostics test
 
