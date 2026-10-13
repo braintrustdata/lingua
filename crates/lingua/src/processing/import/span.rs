@@ -146,6 +146,10 @@ struct Metadata {
     voice_timeline: Option<json::Value>,
     #[serde(rename = "voice.events")]
     voice_events: Option<json::Value>,
+    #[serde(rename = "voice.points_version")]
+    voice_points_version: Option<json::Value>,
+    #[serde(rename = "voice.points")]
+    voice_points: Option<json::Value>,
 }
 
 fn metadata_field<T: serde::de::DeserializeOwned>(
@@ -309,7 +313,8 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             None
         }
         None => {
-            if metadata.voice_timeline_version.is_some() {
+            if metadata.voice_timeline_version.is_some() || metadata.voice_points_version.is_some()
+            {
                 warnings.push("Missing metadata.voice.pipeline".to_string());
             }
             None
@@ -343,6 +348,13 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         ),
         timeline: metadata_field(metadata.voice_timeline, "voice.timeline", &mut errors),
         events: metadata_field(metadata.voice_events, "voice.events", &mut errors)
+            .unwrap_or_default(),
+        points_version: metadata_field(
+            metadata.voice_points_version,
+            "voice.points_version",
+            &mut errors,
+        ),
+        points: metadata_field(metadata.voice_points, "voice.points", &mut errors)
             .unwrap_or_default(),
     };
     source.header.voice = (!voice.is_empty()).then_some(voice);

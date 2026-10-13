@@ -1891,6 +1891,14 @@ import_fixture!(
     call_timeline_realtime_missing_transcript,
     "fixtures/call-timeline-realtime-missing-transcript.json"
 );
+import_fixture!(
+    span_points_cascaded_backchannel,
+    "fixtures/span-points-cascaded-backchannel.json"
+);
+import_fixture!(
+    span_points_realtime_missing_transcript,
+    "fixtures/span-points-realtime-missing-transcript.json"
+);
 
 #[test]
 fn call_timeline_diagnostics() {
@@ -1937,6 +1945,89 @@ fn call_timeline_diagnostics() {
     speech[2]["step_ids"] = json!(["llm-1", "llm-2"]);
     speech[2]["selections"][0]["end_offset_ms"] = json!(7900.0);
     check_fixture(&fixture);
+}
+
+#[test]
+fn span_points_diagnostics() {
+    let base: ImportFixture = serde_json::from_str(include_str!(
+        "fixtures/span-points-cascaded-backchannel.json"
+    ))
+    .unwrap();
+    let warnings = |fixture: &ImportFixture| {
+        let trajectories = run_fixture(fixture, 1, false, &[]);
+        let metadata = &trajectories[0].metadata;
+        (
+            metadata.get("import_warnings").cloned(),
+            metadata.get("import_failures").cloned(),
+        )
+    };
+    let span = |fixture: &mut ImportFixture, id: &str| -> usize {
+        fixture
+            .spans
+            .iter()
+            .position(|span| span.other["span_id"] == id)
+            .unwrap()
+    };
+
+    // The call span's own point is call_end: without it the call is still open.
+    let mut fixture = base.clone();
+    let call = span(&mut fixture, "call-span");
+    fixture.spans[call].other["metadata"]
+        .as_object_mut()
+        .unwrap()
+        .remove("voice.points");
+    assert_eq!(
+        warnings(&fixture).0,
+        Some(crate::serde_json::json!([{
+            "span_id": "call-span",
+            "message": "call points are in progress or the session crashed"
+        }]))
+    );
+
+    // A lost write on one span shows as a seq gap.
+    let mut fixture = base.clone();
+    let tool = span(&mut fixture, "tool-1");
+    fixture.spans[tool].other["metadata"]
+        .as_object_mut()
+        .unwrap()
+        .remove("voice.points");
+    assert_eq!(
+        warnings(&fixture).0,
+        Some(
+            crate::serde_json::json!([{"span_id": "call-span", "message": "points gap after seq 5"}])
+        )
+    );
+
+    // A point on a span that cannot own it is kept, with a warning.
+    let mut fixture = base.clone();
+    let llm = span(&mut fixture, "llm-1");
+    let turn = span(&mut fixture, "at-1");
+    let point = fixture.spans[llm].other["metadata"]["voice.points"]
+        .as_object_mut()
+        .unwrap()
+        .remove("5")
+        .unwrap();
+    fixture.spans[turn].other["metadata"]["voice.points"]["5"] = point;
+    assert_eq!(
+        warnings(&fixture).0,
+        Some(crate::serde_json::json!([{
+            "span_id": "at-1",
+            "message": "voice point 5 (response_start) on a assistant_turn span"
+        }]))
+    );
+
+    // The same seq with different content on two spans cannot be ordered.
+    let mut fixture = base.clone();
+    let turn = span(&mut fixture, "ut-3");
+    let mut point = fixture.spans[turn].other["metadata"]["voice.points"]["23"].clone();
+    point["at_ms"] = crate::serde_json::json!(10900);
+    fixture.spans[call].other["metadata"]["voice.points"]["23"] = point;
+    assert_eq!(
+        warnings(&fixture).1,
+        Some(
+            crate::serde_json::json!([{"span_id": "ut-3", "message": "Conflicting voice point 23"}])
+        )
+    );
 }
 
 #[test]

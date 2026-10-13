@@ -1,5 +1,7 @@
+use crate::serde_json as json;
 use crate::universal::trajectory::VoiceEvent;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 /// Voice metadata logged on a span, kept on its header so the trajectory can place speech on audio.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -30,6 +32,13 @@ pub struct SpanVoice {
     /// `metadata["voice.events"]`
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<VoiceEvent>,
+    /// `metadata["voice.points_version"]`
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub points_version: Option<u32>,
+    /// `metadata["voice.points"]`, keyed by `seq`. Each point becomes a `VoiceEvent` once its owner
+    /// span is known, so it is kept as JSON here.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub points: BTreeMap<String, json::Value>,
 }
 
 impl SpanVoice {
@@ -38,6 +47,8 @@ impl SpanVoice {
             && self.selections.is_empty()
             && self.timeline_version.is_none()
             && self.timeline.is_none()
+            && self.points_version.is_none()
+            && self.points.is_empty()
     }
 }
 

@@ -108,6 +108,9 @@ pub enum VoiceEventDetail {
         interrupted: Option<bool>,
         #[ts(optional)]
         played_ms: Option<f64>,
+        /// The caller utterance whose speech interrupted this agent speech.
+        #[ts(optional)]
+        interrupted_by: Option<String>,
     },
     Transcript {
         speaker: Speaker,
