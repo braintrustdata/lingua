@@ -188,6 +188,54 @@
   ],
   "perTestCase": [
     {
+      "testCase": "thinkingLevelLowercaseLowParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseLowParam", "source": "Google", "target": "Bedrock Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseLowParam", "source": "Google", "target": "Vertex Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseMediumParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseMediumParam", "source": "Google", "target": "Bedrock Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseMediumParam", "source": "Google", "target": "Vertex Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseHighParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseHighParam", "source": "Google", "target": "Bedrock Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseHighParam", "source": "Google", "target": "Vertex Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseMinimalParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseMinimalParam", "source": "Google", "target": "Bedrock Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "thinkingLevelLowercaseMinimalParam", "source": "Google", "target": "Vertex Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
       "testCase": "toolCallRequest", "source": "ChatCompletions", "target": "Responses",
       "fields": [{ "pattern": "served_service_tier", "reason": "Responses tool-call stream events have no response metadata envelope" }]
     },
