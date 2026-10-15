@@ -1077,6 +1077,29 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesFinalAnswerStreamingParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_MINI_REASONING_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "What are you shopping for today? Reply in one short sentence.",
+        },
+      ],
+      instructions:
+        "If you send a progress message, mark it as commentary. Send the answer as a final answer.",
+      reasoning: { effort: "low" },
+      max_output_tokens: 100,
+      store: false,
+      stream: true,
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   responsesGpt56ReasoningMaxProContextParam: {
     "chat-completions": null,
     responses: {

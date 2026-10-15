@@ -8,11 +8,13 @@ use crate::processing::transform::{
     serialize_stream_value, transform_stream_chunk_step, TransformError, TransformResult,
 };
 #[cfg(feature = "openai")]
+use crate::providers::openai::generated::MessagePhase;
+#[cfg(feature = "openai")]
 use crate::providers::openai::responses_adapter::{
     record_responses_output_items, responses_created_stream_event_from_universal,
     responses_message_item_id, responses_reasoning_item, responses_reasoning_item_id,
     responses_stream_events_from_universal_with_output_index_offset, responses_tool_call_item,
-    ResponsesToolItem,
+    ResponsesTextMessageEvent, ResponsesToolItem,
 };
 use crate::serde_json::Value;
 use crate::universal::{UniversalReasoningSignature, UniversalStreamChunk};
@@ -108,6 +110,10 @@ pub struct StreamTransformSession {
     next_responses_sequence_number: u64,
     responses_tool_call_indexes: BTreeMap<u32, u32>,
     next_responses_tool_call_index: u32,
+    #[cfg(feature = "openai")]
+    responses_message_items: BTreeMap<u32, bool>,
+    #[cfg(feature = "openai")]
+    responses_answer_item: Option<u32>,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
 }
@@ -139,6 +145,10 @@ impl StreamTransformSession {
             next_responses_sequence_number: 0,
             responses_tool_call_indexes: BTreeMap::new(),
             next_responses_tool_call_index: 0,
+            #[cfg(feature = "openai")]
+            responses_message_items: BTreeMap::new(),
+            #[cfg(feature = "openai")]
+            responses_answer_item: None,
             bedrock_tool_call_indexes: BTreeMap::new(),
             next_bedrock_tool_call_index: 0,
         }
@@ -154,6 +164,13 @@ impl StreamTransformSession {
             self.target_format,
             self.allow_full_response_fallback,
         )?;
+
+        #[cfg(feature = "openai")]
+        if let Some(event) = &step.responses_text_message_event {
+            if self.skip_responses_text_message_event(event)? {
+                return Ok(Vec::new());
+            }
+        }
 
         if step.is_passthrough {
             return Ok(vec![StreamOutputChunk {
@@ -180,6 +197,78 @@ impl StreamTransformSession {
             },
         )?;
         self.process_chunks(chunks)
+    }
+
+    #[cfg(feature = "openai")]
+    fn skip_responses_text_message_event(
+        &mut self,
+        event: &ResponsesTextMessageEvent,
+    ) -> Result<bool, TransformError> {
+        match event {
+            ResponsesTextMessageEvent::MessageAdded {
+                output_index,
+                phase,
+            } => {
+                let is_commentary = matches!(phase, Some(MessagePhase::Commentary));
+                if self
+                    .responses_message_items
+                    .insert(*output_index, is_commentary)
+                    .is_some()
+                {
+                    return Err(TransformError::ToUniversalFailed(format!(
+                        "duplicate Responses message output_index {output_index}"
+                    )));
+                }
+                if !is_commentary {
+                    if let Some(previous) = self.responses_answer_item {
+                        return Err(TransformError::ToUniversalFailed(format!(
+                            "unsupported mapping: Responses message items {previous} and {output_index} cannot both become one Chat Completion answer"
+                        )));
+                    }
+                    self.responses_answer_item = Some(*output_index);
+                }
+            }
+            ResponsesTextMessageEvent::MessageDone {
+                output_index,
+                phase: Some(phase),
+            } => {
+                let is_commentary = matches!(phase, MessagePhase::Commentary);
+                if self.responses_message_items.get(output_index).copied() != Some(is_commentary) {
+                    return Err(TransformError::ToUniversalFailed(format!(
+                        "unsupported mapping: Responses message {output_index} phase changed after streaming text"
+                    )));
+                }
+            }
+            ResponsesTextMessageEvent::MessageDone { phase: None, .. } => {}
+            ResponsesTextMessageEvent::TextDelta { output_index } => {
+                match self.responses_message_items.get(output_index).copied() {
+                    Some(true) => return Ok(true),
+                    Some(false) if self.responses_answer_item == Some(*output_index) => {}
+                    None if self.responses_message_items.is_empty() => {
+                        // Preserve streams that contain only text delta events.
+                    }
+                    _ => {
+                        return Err(TransformError::ToUniversalFailed(format!(
+                            "unsupported mapping: Responses text delta for output_index {output_index} has no selected answer message"
+                        )));
+                    }
+                }
+            }
+            ResponsesTextMessageEvent::Completed
+                if self.responses_answer_item.is_none()
+                    && self
+                        .responses_message_items
+                        .values()
+                        .any(|is_commentary| *is_commentary) =>
+            {
+                return Err(TransformError::ToUniversalFailed(
+                    "unsupported mapping: Responses stream has commentary but no final answer message"
+                        .to_string(),
+                ));
+            }
+            ResponsesTextMessageEvent::Completed | ResponsesTextMessageEvent::Other => {}
+        }
+        Ok(false)
     }
 
     fn normalize_source_stream_result(
@@ -3738,6 +3827,102 @@ mod tests {
         assert_eq!(
             args_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
             json!(0)
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_responses_message_phases_select_final_answer() {
+        fn chat_text(events: &[Value]) -> Result<String, TransformError> {
+            let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+            let mut chunks = Vec::new();
+            for event in events {
+                chunks.extend(session.push(to_bytes(event))?);
+            }
+            chunks.extend(session.finish());
+            Ok(chunks
+                .iter()
+                .map(|chunk| crate::serde_json::from_slice::<Value>(&chunk.data).unwrap())
+                .filter_map(|value| {
+                    value
+                        .pointer("/choices/0/delta/content")
+                        .and_then(Value::as_str)
+                        .map(str::to_owned)
+                })
+                .collect())
+        }
+
+        let commentary = json!({
+            "type": "response.output_item.added", "output_index": 0,
+            "item": { "type": "message", "role": "assistant", "phase": "commentary" }
+        });
+        let final_answer = json!({
+            "type": "response.output_item.added", "output_index": 1,
+            "item": { "type": "message", "role": "assistant", "phase": "final_answer" }
+        });
+        let final_done = json!({
+            "type": "response.output_item.done", "output_index": 1,
+            "item": { "type": "message", "role": "assistant", "phase": "final_answer" }
+        });
+        let unphased_answer = json!({
+            "type": "response.output_item.added", "output_index": 0,
+            "item": { "type": "message", "role": "assistant" }
+        });
+        let delta = |output_index, text| {
+            json!({
+                "type": "response.output_text.delta", "output_index": output_index,
+                "delta": text
+            })
+        };
+        let completed = json!({"type": "response.completed", "response": {"status": "completed"}});
+
+        assert_eq!(
+            chat_text(&[
+                commentary.clone(),
+                delta(0, "{\"ok\":true}"),
+                final_answer,
+                delta(1, "{\"ok\":"),
+                delta(1, "true}"),
+                final_done,
+                completed.clone()
+            ])
+            .unwrap(),
+            "{\"ok\":true}"
+        );
+        assert_eq!(
+            chat_text(&[
+                unphased_answer.clone(),
+                delta(0, "{\"ok\":true}"),
+                completed.clone()
+            ])
+            .unwrap(),
+            "{\"ok\":true}"
+        );
+
+        let error = chat_text(&[
+            unphased_answer.clone(),
+            delta(0, "{\"ok\":true}"),
+            json!({"type": "response.output_item.added", "output_index": 1, "item": {"type": "message", "role": "assistant"}}),
+            delta(1, "{\"ok\":true}"),
+        ])
+        .unwrap_err();
+        assert!(
+            matches!(error, TransformError::ToUniversalFailed(ref message) if message.contains("unsupported mapping") && message.contains("message items"))
+        );
+
+        let error = chat_text(&[commentary, delta(0, "progress"), completed]).unwrap_err();
+        assert!(
+            matches!(error, TransformError::ToUniversalFailed(ref message) if message.contains("no final answer"))
+        );
+
+        let error = chat_text(&[
+            unphased_answer,
+            delta(0, "{\"ok\":true}"),
+            json!({"type": "response.output_item.done", "output_index": 0, "item": {"type": "message", "role": "assistant", "phase": "commentary"}}),
+        ])
+        .unwrap_err();
+        assert!(
+            matches!(error, TransformError::ToUniversalFailed(ref message) if message.contains("phase changed"))
         );
     }
 
