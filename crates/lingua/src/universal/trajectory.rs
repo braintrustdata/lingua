@@ -24,7 +24,7 @@ pub struct Trajectory {
     pub metadata: Map<String, Value>,
     #[ts(optional)]
     pub version: Option<String>,
-    /// Audio recordings logged anywhere in the trace, in span order.
+    /// Call recordings logged on the root span, in logged order. Root scope only.
     #[ts(optional)]
     pub recordings: Option<Vec<AudioRecording>>,
 }
@@ -64,9 +64,11 @@ pub struct AudioRecording {
     pub reason: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 pub struct AudioChannel {
-    pub index: u32,
+    #[ts(optional)]
+    pub index: Option<u32>,
     pub boundary: String,
 }
 

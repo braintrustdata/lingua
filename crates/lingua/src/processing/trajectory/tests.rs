@@ -2434,3 +2434,50 @@ fn trajectories_without_voice_have_no_recordings() {
         assert!(trajectory.recordings.is_none());
     }
 }
+
+#[test]
+fn recordings_come_from_the_root_span_only() {
+    let recording = |id: &str| json!([{"id": id, "state": "ready", "attachment": {"span_id": "root", "ref": "/input/audio/x"}}]);
+    let spans: Vec<Span> = serde_json::from_value(json!([
+        {"id": "root", "span_id": "root", "root_span_id": "root",
+         "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 9},
+         "metadata": {"audio.recordings": recording("call")}},
+        {"id": "child", "span_id": "child", "root_span_id": "root", "span_parents": ["root"],
+         "span_attributes": {"type": "task", "name": "clip"}, "metrics": {"start": 1, "end": 2},
+         "metadata": {"audio.recordings": recording("clip")}},
+        {"id": "model", "span_id": "model", "root_span_id": "root", "span_parents": ["root"],
+         "span_attributes": {"type": "llm"}, "metrics": {"start": 3, "end": 4},
+         "input": [{"role": "user", "content": "Hi"}], "output": [{"role": "assistant", "content": "Hello"}]}
+    ]))
+    .unwrap();
+    let mut stream = stream_from_sources(spans.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first().cloned() {
+        let source = spans
+            .iter()
+            .find(|span| span.other["id"].as_str() == Some(id.as_str()))
+            .cloned()
+            .unwrap();
+        collect(
+            &mut collector,
+            stream.push(import_span(source).unwrap()).unwrap(),
+        );
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let trajectory = collector.snapshot().unwrap().remove(0);
+    let ids: Vec<_> = trajectory
+        .recordings
+        .as_ref()
+        .unwrap()
+        .iter()
+        .map(|recording| recording.id.as_str())
+        .collect();
+    assert_eq!(ids, vec!["call"]);
+    assert_eq!(
+        trajectory.metadata.get("import_warnings"),
+        Some(&crate::serde_json::json!([{
+            "span_id": "child",
+            "message": "Ignored metadata.audio.recordings: call recordings are read from the root span only"
+        }]))
+    );
+}
