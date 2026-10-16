@@ -1,5 +1,9 @@
 use super::*;
 use crate::processing::import::{import_span, import_span_with_options, ImportOptions, Span};
+use crate::universal::trajectory::{
+    AudioSelection, CallTimeline, TimelineClock, TimelineEntry, TimelineEntryKind,
+    TimelineEvidence, TimelineLane, TimelineOverlap, TimingSource,
+};
 use crate::universal::{UserContent, UserContentPart};
 use proptest::prelude::*;
 use serde_json::json;
@@ -2432,5 +2436,549 @@ fn trajectories_without_voice_have_no_recordings() {
     collect(&mut collector, stream.finish().unwrap_or_default());
     for trajectory in collector.snapshot().unwrap_or_default() {
         assert!(trajectory.recordings.is_none());
+        assert!(trajectory.timeline.is_none());
     }
+}
+
+const LIVEKIT_TRACE: &str = include_str!("fixtures/voice/livekit-realtime-order-lookup.json");
+const CASCADE_TRACE: &str = include_str!("fixtures/voice/fictional-cascade-turns.json");
+const EDGE_TRACE: &str = include_str!("fixtures/voice/fictional-edge-cases.json");
+
+fn voice_spans(fixture: &str) -> Vec<Span> {
+    let fixture: Value = serde_json::from_str(fixture).unwrap();
+    serde_json::from_value(fixture["spans"].clone()).unwrap()
+}
+
+fn run_voice(
+    spans: &[Span],
+    batch_size: usize,
+    reverse_batches: bool,
+    reverse_headers: bool,
+    failed: &[&str],
+) -> crate::universal::Trajectory {
+    let mut sources = spans.to_vec();
+    if reverse_headers {
+        sources.reverse();
+    }
+    let mut stream = stream_from_sources(sources).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    loop {
+        let mut ids = stream.pending_ids(batch_size);
+        if ids.is_empty() {
+            break;
+        }
+        if reverse_batches {
+            ids.reverse();
+        }
+        for id in ids {
+            let events = if failed.contains(&id.as_str()) {
+                stream.fail(&id, "Payload unavailable".into()).unwrap()
+            } else {
+                let source = spans
+                    .iter()
+                    .find(|span| span.other["id"].as_str() == Some(id.as_str()))
+                    .unwrap();
+                stream.push(import_span(source.clone()).unwrap()).unwrap()
+            };
+            collect(&mut collector, events);
+            for trajectory in collector.snapshot().unwrap() {
+                assert!(trajectory.timeline.is_some());
+            }
+        }
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let mut trajectories = collector.snapshot().unwrap();
+    assert_eq!(trajectories.len(), 1);
+    trajectories.remove(0)
+}
+
+fn voice_timeline(fixture: &str) -> (crate::universal::Trajectory, CallTimeline) {
+    let spans = voice_spans(fixture);
+    let baseline = run_voice(&spans, 1, false, false, &[]);
+    let expected = serde_json::to_value(&baseline).unwrap();
+    for (batch_size, reverse_batches, reverse_headers) in [
+        (16, false, false),
+        (1, false, true),
+        (16, true, true),
+        (usize::MAX, true, false),
+    ] {
+        assert_eq!(
+            serde_json::to_value(run_voice(
+                &spans,
+                batch_size,
+                reverse_batches,
+                reverse_headers,
+                &[]
+            ))
+            .unwrap(),
+            expected,
+            "Timeline depends on load order"
+        );
+    }
+    let timeline = baseline.timeline.clone().unwrap();
+    (baseline, timeline)
+}
+
+fn timeline_entry<'a>(timeline: &'a CallTimeline, id: &str) -> &'a TimelineEntry {
+    timeline
+        .entries
+        .iter()
+        .find(|entry| entry.id == id)
+        .unwrap_or_else(|| panic!("Missing timeline entry {id}"))
+}
+
+fn speech_texts(timeline: &CallTimeline, lane: TimelineLane) -> Vec<Option<&str>> {
+    timeline
+        .entries
+        .iter()
+        .filter(|entry| entry.kind == TimelineEntryKind::Speech && entry.lane == lane)
+        .map(|entry| entry.text.as_deref())
+        .collect()
+}
+
+fn assert_neutral_overlaps(trajectory: &crate::universal::Trajectory) {
+    let wire = serde_json::to_string(trajectory.timeline.as_ref().unwrap()).unwrap();
+    assert!(!wire.contains("interrupt"));
+    assert!(!wire.contains("caus"));
+}
+
+#[test]
+fn voice_timeline_places_livekit_speech_on_the_recording_clock() {
+    let (trajectory, timeline) = voice_timeline(LIVEKIT_TRACE);
+    assert_eq!(timeline.clock, TimelineClock::Recording);
+    assert_eq!(timeline.origin_unix_ms, 1792089428434.0);
+    let source = voice_spans(LIVEKIT_TRACE);
+    let speech_ids: Vec<_> = source
+        .iter()
+        .filter(|span| {
+            matches!(
+                span.other["span_attributes"]["name"].as_str(),
+                Some("user_speech" | "agent_speech")
+            )
+        })
+        .map(|span| span.other["id"].as_str().unwrap())
+        .collect();
+    assert_eq!(speech_ids.len(), 7);
+    for id in &speech_ids {
+        assert_eq!(
+            timeline
+                .entries
+                .iter()
+                .filter(|entry| entry.id == *id)
+                .count(),
+            1
+        );
+        let entry = timeline_entry(&timeline, id);
+        assert_eq!(entry.kind, TimelineEntryKind::Speech);
+        assert_eq!(entry.timing_source, TimingSource::AudioSelection);
+        let span = source
+            .iter()
+            .find(|span| span.other["id"].as_str() == Some(id))
+            .unwrap();
+        let selections: Vec<AudioSelection> =
+            crate::serde_json::from_value(span.other["metadata"]["audio.selections"].clone())
+                .unwrap();
+        assert_eq!(entry.selections, selections);
+    }
+    assert_eq!(
+        timeline
+            .entries
+            .iter()
+            .filter(|entry| entry.kind == TimelineEntryKind::Speech)
+            .count(),
+        7
+    );
+    assert_eq!(
+        speech_texts(&timeline, TimelineLane::User),
+        vec![
+            Some(" Hi, can you tell me where a"),
+            Some(" demo 1042 is"),
+            Some(" Alright, thank you"),
+        ]
+    );
+    assert_eq!(
+        speech_texts(&timeline, TimelineLane::Agent),
+        vec![
+            Some("Hi, how can I help?"),
+            Some(" Sure, I'll check that."),
+            Some(" Order 1042 is in transit and expected to arrive Friday."),
+            Some(" You're welcome."),
+        ]
+    );
+    for entry in timeline
+        .entries
+        .iter()
+        .filter(|entry| entry.lane == TimelineLane::Agent)
+    {
+        assert!(entry.selections.len() >= 3);
+        assert!(entry
+            .selections
+            .iter()
+            .all(|selection| selection.channel_index == Some(1)));
+    }
+    let greeting = timeline_entry(&timeline, "68e031159f3feede");
+    assert_eq!((greeting.start_ms, greeting.end_ms), (1952.0, Some(3911.0)));
+
+    let operations: Vec<_> = timeline
+        .entries
+        .iter()
+        .filter(|entry| entry.kind == TimelineEntryKind::Operation)
+        .map(|entry| (entry.label.as_str(), entry.timing_source))
+        .collect();
+    assert_eq!(operations.len(), 5);
+    assert!(operations.iter().all(|(label, source)| matches!(
+        *label,
+        "llm_response" | "lookup_order"
+    ) && *source == TimingSource::SpanTime));
+    let turn_ids: HashSet<_> = trajectory
+        .turns
+        .iter()
+        .flat_map(|turn| {
+            std::iter::once(turn.request_id.as_str())
+                .chain(turn.response_id.as_deref())
+                .chain(turn.work.iter().map(|step| step.id.as_str()))
+        })
+        .collect();
+    for entry in timeline
+        .entries
+        .iter()
+        .filter(|entry| entry.kind == TimelineEntryKind::Operation)
+    {
+        assert!(turn_ids.contains(entry.id.as_str()), "{}", entry.id);
+    }
+
+    let events: Vec<_> = timeline
+        .entries
+        .iter()
+        .filter(|entry| entry.kind == TimelineEntryKind::FrameworkEvent)
+        .collect();
+    assert_eq!(events.len(), 21);
+    assert!(timeline
+        .entries
+        .iter()
+        .all(|entry| entry.kind != TimelineEntryKind::FrameworkTurn));
+    let speaking = events
+        .iter()
+        .find(|entry| {
+            entry.label == "agent_state_changed"
+                && entry.attributes.get("new_state").map(String::as_str) == Some("speaking")
+        })
+        .unwrap();
+    assert_eq!(speaking.start_ms, 1953.913);
+    assert_eq!(speaking.end_ms, None);
+    assert_eq!(speaking.timing_source, TimingSource::FrameworkEvent);
+    assert_eq!(
+        speaking.attributes.get("old_state").map(String::as_str),
+        Some("listening")
+    );
+
+    let mut expected_links = Vec::new();
+    for span in &source {
+        for link in span.other["metadata"]["links"]
+            .as_array()
+            .into_iter()
+            .flatten()
+        {
+            expected_links.push((
+                span.other["id"].as_str().unwrap().to_string(),
+                link["context"]["spanId"].as_str().unwrap().to_string(),
+                link["attributes"]["braintrust.relationship.type"]
+                    .as_str()
+                    .unwrap()
+                    .to_string(),
+            ));
+        }
+    }
+    let mut actual_links: Vec<_> = timeline
+        .links
+        .iter()
+        .map(|link| {
+            assert_eq!(link.evidence, TimelineEvidence::SpanLink);
+            assert!(link.to.is_some());
+            (
+                link.from.clone(),
+                link.target.clone(),
+                link.relationship.clone(),
+            )
+        })
+        .collect();
+    expected_links.sort();
+    actual_links.sort();
+    assert_eq!(actual_links, expected_links);
+    assert_eq!(actual_links.len(), 18);
+
+    let lookup_model = "d855d11a6e8ee505";
+    let demo_speech = "8bb24c01384ebf11";
+    assert!(!timeline
+        .links
+        .iter()
+        .any(|link| { link.from == lookup_model && link.to.as_deref() == Some(demo_speech) }));
+    assert!(!timeline
+        .gaps
+        .iter()
+        .any(|gap| gap.via.as_deref() == Some(lookup_model) && gap.from == demo_speech));
+
+    assert_eq!(
+        timeline.overlaps,
+        vec![
+            TimelineOverlap {
+                a: demo_speech.into(),
+                b: "62acd8e8ee191cbd".into(),
+                start_ms: 8853.0,
+                end_ms: 9369.0,
+            },
+            TimelineOverlap {
+                a: "2cb6e251a0e3e227".into(),
+                b: "f5e0b9990bdd4e42".into(),
+                start_ms: 18940.0,
+                end_ms: 19729.0,
+            },
+        ]
+    );
+    assert_neutral_overlaps(&trajectory);
+    assert!(trajectory
+        .turns
+        .iter()
+        .all(|turn| turn.interrupted.is_none()));
+
+    let gaps: Vec<_> = timeline
+        .gaps
+        .iter()
+        .map(|gap| {
+            assert_eq!(gap.evidence, TimelineEvidence::SpanLink);
+            (
+                gap.from.as_str(),
+                gap.to.as_str(),
+                gap.gap_ms,
+                gap.via.as_deref(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        gaps,
+        vec![
+            (
+                "8d9f25e48b7888cd",
+                "62acd8e8ee191cbd",
+                1854.0,
+                Some(lookup_model)
+            ),
+            (
+                demo_speech,
+                "3a80360be3632430",
+                3231.0,
+                Some("cf4ad22a4fce2f17")
+            ),
+            (
+                demo_speech,
+                "f5e0b9990bdd4e42",
+                9571.0,
+                Some("fb1ff83447ce40a4")
+            ),
+        ]
+    );
+}
+
+#[test]
+fn voice_timeline_header_state_is_valid_before_speech_loads() {
+    let spans = voice_spans(LIVEKIT_TRACE);
+    let mut stream = stream_from_sources(spans.clone()).unwrap();
+    let first = stream.pending_ids(1).remove(0);
+    let source = spans
+        .iter()
+        .find(|span| span.other["id"].as_str() == Some(first.as_str()))
+        .unwrap();
+    let mut collector = TrajectoryCollector::default();
+    collect(
+        &mut collector,
+        stream.push(import_span(source.clone()).unwrap()).unwrap(),
+    );
+    let timeline = collector.snapshot().unwrap()[0].timeline.clone().unwrap();
+    let speech: Vec<_> = timeline
+        .entries
+        .iter()
+        .filter(|entry| entry.kind == TimelineEntryKind::Speech)
+        .collect();
+    assert_eq!(speech.len(), 7);
+    assert_eq!(
+        speech.iter().filter(|entry| entry.text.is_some()).count(),
+        1
+    );
+    assert_eq!(timeline.overlaps.len(), 2);
+    assert_eq!(timeline.gaps.len(), 3);
+    assert!(timeline_entry(&timeline, &first).text.is_some());
+}
+
+#[test]
+fn voice_timeline_keeps_failed_speech_without_text() {
+    let spans = voice_spans(LIVEKIT_TRACE);
+    let trajectory = run_voice(
+        &spans,
+        4,
+        false,
+        false,
+        &["8bb24c01384ebf11", "62acd8e8ee191cbd"],
+    );
+    let timeline = trajectory.timeline.as_ref().unwrap();
+    assert_eq!(timeline_entry(timeline, "8bb24c01384ebf11").text, None);
+    assert_eq!(timeline_entry(timeline, "62acd8e8ee191cbd").text, None);
+    assert_eq!(
+        timeline_entry(timeline, "8bb24c01384ebf11").end_ms,
+        Some(9369.0)
+    );
+    assert_eq!(
+        trajectory.metadata["import_failures"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+}
+
+#[test]
+fn voice_timeline_uses_cascade_framework_turns() {
+    let (trajectory, timeline) = voice_timeline(CASCADE_TRACE);
+    assert_eq!(timeline.clock, TimelineClock::Recording);
+    let turns: Vec<_> = timeline
+        .entries
+        .iter()
+        .filter(|entry| entry.kind == TimelineEntryKind::FrameworkTurn)
+        .map(|entry| {
+            (
+                entry.id.as_str(),
+                entry.label.as_str(),
+                entry.attributes.get("reply_to").map(String::as_str),
+            )
+        })
+        .collect();
+    assert_eq!(
+        turns,
+        vec![
+            ("row-UT1", "user_turn", None),
+            ("row-AT1", "agent_turn", Some("UT1")),
+            ("row-UT2", "user_turn", None),
+            ("row-AT2", "agent_turn", Some("UT2")),
+            ("row-UT3", "user_turn", None),
+        ]
+    );
+    let replies: Vec<_> = timeline
+        .links
+        .iter()
+        .filter(|link| link.evidence == TimelineEvidence::TurnReplyTo)
+        .map(|link| (link.from.as_str(), link.to.as_deref()))
+        .collect();
+    assert_eq!(
+        replies,
+        vec![("row-AT1", Some("row-UT1")), ("row-AT2", Some("row-UT2"))]
+    );
+    let played = timeline_entry(&timeline, "row-A2");
+    assert_eq!(played.text.as_deref(), Some("Yes, I can change it."));
+    let tts = timeline_entry(&timeline, "row-TT2");
+    assert_eq!(tts.kind, TimelineEntryKind::Operation);
+    assert_eq!(tts.text, None);
+    let wire = serde_json::to_string(&timeline).unwrap();
+    assert!(!wire.contains("What is the new address?"));
+    assert_eq!(
+        timeline.overlaps,
+        vec![TimelineOverlap {
+            a: "row-A2".into(),
+            b: "row-U3".into(),
+            start_ms: 9400.0,
+            end_ms: 9600.0,
+        }]
+    );
+    assert_neutral_overlaps(&trajectory);
+    assert!(trajectory
+        .turns
+        .iter()
+        .all(|turn| turn.interrupted.is_none()));
+    let gaps: Vec<_> = timeline
+        .gaps
+        .iter()
+        .map(|gap| {
+            (
+                gap.from.as_str(),
+                gap.to.as_str(),
+                gap.gap_ms,
+                gap.via.as_deref(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        gaps,
+        vec![
+            ("row-U1", "row-A1", 1800.0, Some("row-M2")),
+            ("row-U2", "row-A2", 800.0, Some("row-M3")),
+        ]
+    );
+}
+
+#[test]
+fn voice_timeline_handles_missing_voice_data() {
+    let (trajectory, timeline) = voice_timeline(EDGE_TRACE);
+    assert_eq!(timeline.clock, TimelineClock::Recording);
+    let untranscribed = timeline_entry(&timeline, "row-V1");
+    assert_eq!(untranscribed.text, None);
+    assert_eq!(untranscribed.timing_source, TimingSource::AudioSelection);
+    let unplaced = timeline_entry(&timeline, "row-V3");
+    assert!(unplaced.selections.is_empty());
+    assert_eq!(unplaced.timing_source, TimingSource::SpanTime);
+    assert_eq!((unplaced.start_ms, unplaced.end_ms), (4000.0, Some(5000.0)));
+    let segmented = timeline_entry(&timeline, "row-V4");
+    assert_eq!(
+        segmented
+            .selections
+            .iter()
+            .map(|selection| selection.recording_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["seg-0", "seg-1"]
+    );
+    assert_eq!(
+        (segmented.start_ms, segmented.end_ms),
+        (5500.0, Some(7500.0))
+    );
+    let missing: Vec<_> = timeline
+        .links
+        .iter()
+        .filter(|link| link.target == "MISSING-SPAN")
+        .collect();
+    assert_eq!(missing.len(), 1);
+    assert_eq!(missing[0].from, "row-L1");
+    assert_eq!(missing[0].to, None);
+    assert!(timeline.gaps.is_empty());
+    assert_eq!(
+        timeline
+            .overlaps
+            .iter()
+            .map(|overlap| (overlap.a.as_str(), overlap.b.as_str()))
+            .collect::<Vec<_>>(),
+        vec![("row-V1", "row-V2"), ("row-V6", "row-V5")]
+    );
+    assert_neutral_overlaps(&trajectory);
+    assert_eq!(
+        trajectory.recordings.as_ref().unwrap()[2].state.as_deref(),
+        Some("pending")
+    );
+}
+
+#[test]
+fn voice_timeline_falls_back_to_span_time_without_a_recording_origin() {
+    let mut spans = voice_spans(EDGE_TRACE);
+    for span in &mut spans {
+        if let Some(metadata) = span.other.get_mut("metadata") {
+            if let Some(metadata) = metadata.as_object_mut() {
+                metadata.remove("audio.recordings");
+            }
+        }
+    }
+    let trajectory = run_voice(&spans, 1, false, false, &[]);
+    let timeline = trajectory.timeline.unwrap();
+    assert_eq!(timeline.clock, TimelineClock::SpanTime);
+    assert_eq!(timeline.origin_unix_ms, 1800000000000.0);
+    assert!(timeline
+        .entries
+        .iter()
+        .all(|entry| entry.timing_source == TimingSource::SpanTime));
+    assert_eq!(timeline_entry(&timeline, "row-V4").selections.len(), 2);
+    assert_eq!(timeline_entry(&timeline, "row-V4").start_ms, 5500.0);
 }
