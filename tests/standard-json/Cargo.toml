@@ -9,3 +9,10 @@ publish = false
 [dependencies]
 lingua = { path = "../../crates/lingua", default-features = false, features = ["openai", "anthropic", "google"] }
 serde_json = "1.0"
+
+[dev-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+
+[[test]]
+name = "import_fixtures"
+path = "../../crates/lingua/tests/import_fixtures.rs"
