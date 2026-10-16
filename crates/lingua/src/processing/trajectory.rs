@@ -1,6 +1,7 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+mod timeline;
 pub use stream::{TrajectoryCollector, TrajectoryEvent, TrajectoryStream};
 
 use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext};

@@ -55,6 +55,12 @@ pub enum TrajectoryEvent {
         scope: TrajectoryScope,
         id: String,
     },
+    /// Words of the speech entry `id` on the scope's timeline, once its payload loads.
+    TimelineText {
+        scope: TrajectoryScope,
+        id: String,
+        text: String,
+    },
     Failure {
         root_span_id: String,
         span_id: String,
@@ -405,6 +411,7 @@ pub struct TrajectoryStream {
     owners: HashMap<usize, Ownership>,
     parents: Vec<Option<usize>>,
     roles: Vec<Role>,
+    speech: Vec<bool>,
     remaining: BTreeMap<ScopeKey, usize>,
     states: BTreeMap<ScopeKey, TurnState>,
     task_boundaries: HashSet<ScopeKey>,
@@ -481,7 +488,16 @@ impl TrajectoryStream {
             }
         }
         let roles = classify_headers(&spans, &owners);
-        let ready = roles.iter().map(|role| *role == Role::Ignored).collect();
+        let speech: Vec<_> = spans
+            .iter()
+            .enumerate()
+            .map(|(index, span)| !owners[&index].skipped && timeline::speech_lane(span).is_some())
+            .collect();
+        let ready = roles
+            .iter()
+            .zip(&speech)
+            .map(|(role, speech)| *role == Role::Ignored && !speech)
+            .collect();
         let mut task_children = vec![Vec::new(); spans.len()];
         let task_resolved = roles
             .iter()
@@ -527,6 +543,7 @@ impl TrajectoryStream {
             owners,
             parents,
             roles,
+            speech,
             remaining: BTreeMap::new(),
             states: BTreeMap::new(),
             task_boundaries: HashSet::new(),
@@ -550,7 +567,22 @@ impl TrajectoryStream {
     }
 
     pub fn pending_ids(&self, limit: usize) -> Vec<String> {
-        let mut pending = Vec::new();
+        let mut speech: Vec<_> = (0..self.spans.len())
+            .filter(|index| {
+                self.speech[*index] && !self.ready[*index] && self.roles[*index] == Role::Ignored
+            })
+            .collect();
+        speech.sort_by(|a, b| {
+            self.spans[*a]
+                .start
+                .cmp(&self.spans[*b].start)
+                .then(self.spans[*a].id.cmp(&self.spans[*b].id))
+        });
+        let mut pending: Vec<_> = speech
+            .into_iter()
+            .take(limit)
+            .map(|index| self.spans[index].id.clone())
+            .collect();
         let mut seen = HashSet::new();
         let mut blocked = false;
         for &index in &self.order[self.cursor..] {
@@ -613,10 +645,25 @@ impl TrajectoryStream {
         let index = self.pending_index(&span)?;
         self.spans[index] = span;
         self.ready[index] = true;
+        let text = self.speech[index]
+            .then(|| timeline::speech_text(&self.spans[index]))
+            .flatten();
+        if self.roles[index] == Role::Ignored {
+            self.spans[index].release_payload();
+        }
         if !self.task_resolved[index] {
             self.resolve_task(index);
         }
-        self.drain()
+        let mut events = self.drain()?;
+        events.extend(text.map(|text| TrajectoryEvent::TimelineText {
+            scope: TrajectoryScope {
+                root_span_id: self.spans[index].root_span_id.clone(),
+                owner_span_id: None,
+            },
+            id: self.spans[index].id.clone(),
+            text,
+        }));
+        Ok(events)
     }
 
     fn resolve_task(&mut self, index: usize) {
@@ -832,8 +879,20 @@ impl TrajectoryStream {
             let recordings = scope
                 .owner_span_id
                 .is_none()
-                .then(|| self.recordings(&scope.root_span_id))
-                .filter(|recordings| !recordings.is_empty());
+                .then(|| self.recordings(&scope.root_span_id));
+            let timeline = recordings.as_ref().and_then(|recordings| {
+                let spans: Vec<_> = self
+                    .spans
+                    .iter()
+                    .enumerate()
+                    .filter(|(index, span)| {
+                        span.root_span_id == scope.root_span_id && !self.owners[index].skipped
+                    })
+                    .map(|(_, span)| span)
+                    .collect();
+                timeline::build(&spans, recordings)
+            });
+            let recordings = recordings.filter(|recordings| !recordings.is_empty());
             events.push(TrajectoryEvent::Start {
                 trajectory: Trajectory {
                     version: Some("1".to_string()),
@@ -854,13 +913,14 @@ impl TrajectoryStream {
                     findings: None,
                     metadata: Default::default(),
                     recordings,
+                    timeline,
                 },
                 scope,
             });
         }
         for (index, role) in self.roles.iter().enumerate() {
             if *role == Role::Ignored {
-                self.ready[index] = true;
+                self.ready[index] = !self.speech[index];
                 self.spans[index].release_payload();
             }
         }
@@ -1235,7 +1295,7 @@ impl TrajectoryStream {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
         }
-        if self.order.iter().any(|index| !self.ready[*index]) {
+        if self.ready.iter().any(|ready| !ready) {
             return Err("Trajectory stream has unresolved spans".to_string());
         }
         let mut events = self.drain()?;
@@ -1371,6 +1431,18 @@ impl TrajectoryCollector {
             }
             TrajectoryEvent::Interrupted { scope, id } => {
                 self.turn(&scope, &id)?.turn.interrupted = Some(true)
+            }
+            TrajectoryEvent::TimelineText { scope, id, text } => {
+                let (trajectory, _) = self
+                    .scopes
+                    .get_mut(&scope)
+                    .ok_or("Unknown trajectory scope")?;
+                let entry = trajectory
+                    .timeline
+                    .as_mut()
+                    .and_then(|timeline| timeline.entries.iter_mut().find(|entry| entry.id == id))
+                    .ok_or("Unknown timeline entry")?;
+                entry.text = Some(text);
             }
             TrajectoryEvent::Failure {
                 root_span_id,

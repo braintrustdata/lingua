@@ -44,8 +44,10 @@ pub use tools::{
     UniversalToolType,
 };
 pub use trajectory::{
-    Agent, AgentResponse, AudioChannel, AudioRecording, AudioSelection, Compaction, EvidenceField,
-    EvidencePart, Finding, FindingEvidence, FindingSeverity, LLMAnalysis, OpaqueItem, Scope,
-    Section, ToolResult, Trajectory, Turn, Work, WorkStep,
+    Agent, AgentResponse, AudioChannel, AudioRecording, AudioSelection, CallTimeline, Compaction,
+    EvidenceField, EvidencePart, Finding, FindingEvidence, FindingSeverity, LLMAnalysis,
+    OpaqueItem, Scope, Section, TimelineClock, TimelineEntry, TimelineEntryKind, TimelineEvidence,
+    TimelineLane, TimelineLink, TimelineOverlap, TimingSource, ToolResult, Trajectory, Turn, Work,
+    WorkStep,
 };
 pub use transform::{extract_system_messages, flatten_consecutive_messages};

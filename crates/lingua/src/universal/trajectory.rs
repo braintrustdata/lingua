@@ -6,6 +6,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use std::collections::BTreeMap;
 use std::vec::Vec;
 use ts_rs::TS;
 
@@ -27,6 +28,9 @@ pub struct Trajectory {
     /// Audio recordings logged anywhere in the trace, in span order.
     #[ts(optional)]
     pub recordings: Option<Vec<AudioRecording>>,
+    /// Observed speech, operations and framework events of a voice call on one clock.
+    #[ts(optional)]
+    pub timeline: Option<CallTimeline>,
 }
 
 #[skip_serializing_none]
@@ -81,6 +85,116 @@ pub struct AudioSelection {
     pub channel_index: Option<u32>,
     pub start_offset_ms: f64,
     pub end_offset_ms: f64,
+}
+
+/// Intervals and instants of a call in milliseconds from `origin_unix_ms`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct CallTimeline {
+    /// Unix milliseconds of time 0: the earliest recording origin, or the earliest span start.
+    pub origin_unix_ms: f64,
+    pub clock: TimelineClock,
+    /// Ordered by start, then id.
+    pub entries: Vec<TimelineEntry>,
+    /// Relationships logged by the trace; never inferred from time.
+    pub links: Vec<TimelineLink>,
+    /// Speech of different lanes sharing time. A fact about time only, not interruption or cause.
+    pub overlaps: Vec<TimelineOverlap>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TimelineClock {
+    /// Time 0 is a recording origin; speech placed by audio selections is in recording time.
+    Recording,
+    /// No recording places itself on the call clock; everything is placed by span times.
+    SpanTime,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct TimelineEntry {
+    /// The span id used by turns and work steps, or `<span id>/events/<n>` for framework events.
+    pub id: String,
+    pub kind: TimelineEntryKind,
+    pub lane: TimelineLane,
+    pub start_ms: f64,
+    /// Absent for instants and unfinished spans.
+    #[ts(optional)]
+    pub end_ms: Option<f64>,
+    pub timing_source: TimingSource,
+    /// Span or event name.
+    pub label: String,
+    /// Words of a speech entry: heard for user speech, played for agent speech. Fills in once
+    /// the span payload loads.
+    #[ts(optional)]
+    pub text: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(optional, as = "Option<Vec<AudioSelection>>")]
+    pub selections: Vec<AudioSelection>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[ts(optional, as = "Option<BTreeMap<String, String>>")]
+    pub attributes: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TimelineEntryKind {
+    Speech,
+    Operation,
+    FrameworkTurn,
+    FrameworkEvent,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TimelineLane {
+    User,
+    Agent,
+    Operations,
+    Framework,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TimingSource {
+    /// Audio selections mapped through their recording's origin.
+    AudioSelection,
+    /// Span start and end.
+    SpanTime,
+    /// A timestamp the framework logged for the event.
+    FrameworkEvent,
+}
+
+/// An observed relationship between timeline entries.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct TimelineLink {
+    pub from: String,
+    /// The target entry, or absent when the logged target is not in the trace.
+    #[ts(optional)]
+    pub to: Option<String>,
+    /// The target as logged: a span id for `span_link`, a turn id for `turn_reply_to`.
+    pub target: String,
+    pub relationship: String,
+    pub evidence: TimelineEvidence,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum TimelineEvidence {
+    /// `metadata.links` on the `from` span.
+    SpanLink,
+    /// `metadata["turn.reply_to"]` on the `from` framework turn.
+    TurnReplyTo,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct TimelineOverlap {
+    pub a: String,
+    pub b: String,
+    pub start_ms: f64,
+    pub end_ms: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

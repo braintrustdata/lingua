@@ -28,6 +28,7 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "contrib.livekit.participant_kind",
     "turn.id",
     "turn.reply_to",
+    "contrib.livekit.events",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

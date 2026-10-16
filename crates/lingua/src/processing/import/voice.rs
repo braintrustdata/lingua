@@ -1,6 +1,7 @@
 use crate::serde_json as json;
 use crate::universal::trajectory::{AudioChannel, AudioRecording, AudioSelection};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 /// Voice evidence logged in a span's metadata. Kept on the span header so a trajectory can place
 /// speech, audio, and observed relationships before payloads load.
@@ -30,6 +31,19 @@ pub struct SpanVoice {
     /// `metadata["turn.reply_to"]`: the user turn an agent turn answers, when the framework knows.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reply_to: Option<String>,
+    /// Framework events the span logged, like `metadata["contrib.livekit.events"]`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events: Vec<FrameworkEvent>,
+}
+
+/// An instant the framework observed, like `agent_state_changed`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FrameworkEvent {
+    pub name: String,
+    pub time_unix_ms: f64,
+    /// Known non-identifying attributes under short names, like `old_state` and `new_state`.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub attributes: BTreeMap<String, String>,
 }
 
 impl SpanVoice {
@@ -95,6 +109,48 @@ struct LoggedLinkAttributes {
     relationship: Option<String>,
 }
 
+#[derive(Deserialize)]
+struct LoggedEvent {
+    name: String,
+    time_unix_ms: f64,
+    #[serde(default)]
+    attributes: LoggedEventAttributes,
+}
+
+/// Event attributes kept on the timeline. Identity attributes like
+/// `contrib.livekit.pii.participant_identity` are not read.
+#[derive(Default, Deserialize)]
+struct LoggedEventAttributes {
+    #[serde(rename = "contrib.livekit.old_state")]
+    old_state: Option<String>,
+    #[serde(rename = "contrib.livekit.new_state")]
+    new_state: Option<String>,
+    #[serde(rename = "contrib.livekit.connection_state")]
+    connection_state: Option<String>,
+    #[serde(rename = "contrib.livekit.participant_kind")]
+    participant_kind: Option<String>,
+    #[serde(rename = "contrib.livekit.disconnect_reason")]
+    disconnect_reason: Option<String>,
+    #[serde(rename = "contrib.livekit.track_source")]
+    track_source: Option<String>,
+}
+
+impl LoggedEventAttributes {
+    fn into_map(self) -> BTreeMap<String, String> {
+        [
+            ("old_state", self.old_state),
+            ("new_state", self.new_state),
+            ("connection_state", self.connection_state),
+            ("participant_kind", self.participant_kind),
+            ("disconnect_reason", self.disconnect_reason),
+            ("track_source", self.track_source),
+        ]
+        .into_iter()
+        .filter_map(|(key, value)| Some((key.to_string(), value?)))
+        .collect()
+    }
+}
+
 /// Voice keys of span metadata, each parsed on its own so one malformed key keeps the rest.
 #[derive(Default, Deserialize)]
 struct VoiceMetadata {
@@ -115,6 +171,8 @@ struct VoiceMetadata {
     turn_id: Option<json::Value>,
     #[serde(rename = "turn.reply_to")]
     reply_to: Option<json::Value>,
+    #[serde(rename = "contrib.livekit.events")]
+    events: Option<json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -210,6 +268,15 @@ pub(crate) fn import_voice(
         ),
         turn_id: field(metadata.turn_id, "turn.id", warnings),
         reply_to: field(metadata.reply_to, "turn.reply_to", warnings),
+        events: field::<Vec<LoggedEvent>>(metadata.events, "contrib.livekit.events", warnings)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|event| FrameworkEvent {
+                name: event.name,
+                time_unix_ms: event.time_unix_ms,
+                attributes: event.attributes.into_map(),
+            })
+            .collect(),
     };
     (!voice.is_empty()).then_some(voice)
 }
@@ -368,6 +435,21 @@ mod tests {
             .unwrap();
         assert_eq!(root.recordings[0].channels.len(), 2);
         assert_eq!(root.recordings[0].origin_unix_ms, Some(1792089428434.0));
+        assert_eq!(root.events.len(), 19);
+        let speaking = &root.events[3];
+        assert_eq!(speaking.name, "agent_state_changed");
+        assert_eq!(speaking.time_unix_ms, 1792089430387.9128);
+        assert_eq!(
+            speaking.attributes,
+            BTreeMap::from([
+                ("new_state".to_string(), "speaking".to_string()),
+                ("old_state".to_string(), "listening".to_string()),
+            ])
+        );
+        assert!(root
+            .events
+            .iter()
+            .all(|event| event.attributes.keys().all(|key| !key.contains("identity"))));
     }
 
     #[test]
