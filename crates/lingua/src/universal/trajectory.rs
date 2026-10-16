@@ -305,4 +305,60 @@ pub enum Work {
     ToolResult(Box<ToolResult>),
     #[serde(rename = "llm_analysis")]
     LLMAnalysis(Box<LLMAnalysis>),
+    Speech(Box<SpeechWork>),
+}
+
+/// Speech logged by a `user_speech` or `agent_speech` span, placed inside the model turn it
+/// belongs to. Each speech span appears in exactly one turn.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct SpeechWork {
+    pub speaker: SpeechSpeaker,
+    /// Words of the speech span: what the user said, or what the agent actually played.
+    #[ts(optional)]
+    pub text: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(optional, as = "Option<Vec<AudioSelection>>")]
+    pub selections: Vec<AudioSelection>,
+    pub placement: SpeechPlacement,
+    /// Other steps whose model context observably included this speech (`input_context` links).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(optional, as = "Option<Vec<String>>")]
+    pub context_step_ids: Vec<String>,
+    /// Framework turn that owns the speech span (`turn.id`), when the framework logs one.
+    #[ts(optional)]
+    pub framework_turn_id: Option<String>,
+    /// Name of the framework turn span that owns the speech span (its outermost ancestor logging
+    /// the same `turn.id`), like `user_turn` or `agent_turn`.
+    #[ts(optional)]
+    pub framework_turn_name: Option<String>,
+    /// `turn.reply_to` logged on that framework turn: the framework turn it answers.
+    #[ts(optional)]
+    pub framework_turn_reply_to: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum SpeechSpeaker {
+    User,
+    Agent,
+}
+
+/// Why a speech step sits in its turn.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum SpeechPlacement {
+    /// A logged relationship ties the speech to `step_id`: `generated_by` for agent speech,
+    /// `input_context` or `turn.reply_to` for user speech. `via` lists intermediate spans, like
+    /// the tts span between an agent speech and its model call.
+    Observed {
+        relationship: String,
+        step_id: String,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[ts(optional, as = "Option<Vec<String>>")]
+        via: Vec<String>,
+    },
+    /// No logged relationship; placed by span start time. `basis` is `time_within_turn`,
+    /// `time_after_turn`, or `time_before_first_turn`.
+    Inferred { basis: String },
 }
