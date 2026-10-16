@@ -1,7 +1,7 @@
-// Re-export big_serde_json as serde_json so that all code can use serde_json:: after importing
-// `use crate::serde_json;`. This wrapper isolates the arbitrary_precision feature.
-
+#[cfg(feature = "arbitrary-precision")]
 pub use big_serde_json as serde_json;
+#[cfg(not(feature = "arbitrary-precision"))]
+pub use serde_json;
 
 // Re-export bytes::Bytes for convenience - transform functions use Bytes in/out
 pub use bytes::Bytes;

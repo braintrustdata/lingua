@@ -78,6 +78,9 @@ jobs:
         RUSTFLAGS: "-D warnings"
       run: cargo test --verbose
 
+    - name: Test ordinary JSON backend
+      run: cargo test --manifest-path tests/standard-json/Cargo.toml
+
     - name: Check generated TypeScript types are up to date
       run: |
         # Generate types (happens during test compilation via ts-rs)

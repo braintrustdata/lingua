@@ -20,7 +20,8 @@ optional_option_fields = true
 wasm-opt = false
 
 [features]
-default = ["openai", "anthropic", "google"]
+default = ["openai", "anthropic", "google", "arbitrary-precision"]
+arbitrary-precision = ["dep:big_serde_json"]
 openai = []
 anthropic = []
 google = []
@@ -30,7 +31,7 @@ wasm-full = []
 
 [dependencies]
 serde.workspace = true
-big_serde_json.workspace = true
+big_serde_json = { workspace = true, optional = true }
 serde_json.workspace = true
 bytes.workspace = true
 yaml_serde.workspace = true
