@@ -1,4 +1,5 @@
 use crate::serde_json as json;
+use crate::universal::trajectory::{AudioChannel, AudioRecording, AudioSelection};
 use serde::{Deserialize, Serialize};
 
 /// Voice evidence logged in a span's metadata. Kept on the span header so a trajectory can place
@@ -7,10 +8,10 @@ use serde::{Deserialize, Serialize};
 pub struct SpanVoice {
     /// `metadata["audio.recordings"]`
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub recordings: Vec<VoiceRecording>,
+    pub recordings: Vec<AudioRecording>,
     /// `metadata["audio.selections"]`, or `metadata["audio.selection"]` when that is all there is.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub selections: Vec<VoiceSelection>,
+    pub selections: Vec<AudioSelection>,
     /// `metadata.links`, in logged order.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub links: Vec<SpanLink>,
@@ -35,56 +36,6 @@ impl SpanVoice {
     pub fn is_empty(&self) -> bool {
         self == &Self::default()
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct VoiceRecording {
-    pub id: String,
-    /// Span holding the audio attachment; absent while the recording is pending or omitted.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub attachment_span_id: Option<String>,
-    /// JSON pointer to the attachment in that span, like `/input/audio/call-0000`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub attachment_pointer: Option<String>,
-    /// Segments of one recording share a group id.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub group_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub mime_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub duration_ms: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub channel_count: Option<u32>,
-    /// What each channel carries, like `session_input` or `local_audio_output`.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub channels: Vec<VoiceChannel>,
-    /// Unix milliseconds of offset 0, when the recording places itself on the call clock.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub origin_unix_ms: Option<f64>,
-    /// `pending`, `ready`, or `omitted`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub truncated: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct VoiceChannel {
-    pub index: u32,
-    pub boundary: String,
-}
-
-/// A stretch of one recording, in milliseconds from the start of that recording.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct VoiceSelection {
-    pub recording_id: String,
-    pub recording_span_id: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub channel_index: Option<u32>,
-    pub start_offset_ms: f64,
-    pub end_offset_ms: f64,
 }
 
 /// An observed relationship logged by the source span, like `generated_by` or `input_context`.
@@ -193,7 +144,7 @@ pub(crate) fn import_voice(
         field::<Vec<LoggedRecording>>(metadata.recordings, "audio.recordings", warnings)
             .unwrap_or_default()
             .into_iter()
-            .map(|recording| VoiceRecording {
+            .map(|recording| AudioRecording {
                 id: recording.id,
                 attachment_span_id: recording.attachment.as_ref().map(|a| a.span_id.clone()),
                 attachment_pointer: recording.attachment.map(|a| a.pointer),
@@ -204,7 +155,7 @@ pub(crate) fn import_voice(
                 channels: recording
                     .sources
                     .into_iter()
-                    .map(|source| VoiceChannel {
+                    .map(|source| AudioChannel {
                         index: source.channel_index,
                         boundary: source.boundary,
                     })
@@ -219,10 +170,10 @@ pub(crate) fn import_voice(
             })
             .collect();
     let selections =
-        field::<Vec<VoiceSelection>>(metadata.selections, "audio.selections", warnings)
+        field::<Vec<AudioSelection>>(metadata.selections, "audio.selections", warnings)
             .filter(|selections| !selections.is_empty())
             .or_else(|| {
-                field::<VoiceSelection>(metadata.selection, "audio.selection", warnings)
+                field::<AudioSelection>(metadata.selection, "audio.selection", warnings)
                     .map(|one| vec![one])
             })
             .unwrap_or_default();

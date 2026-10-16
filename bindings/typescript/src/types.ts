@@ -43,6 +43,9 @@ export type { ChatCompletionRequestMessage } from "./generated/openai/ChatComple
 export type { InputItem } from "./generated/openai/InputItem";
 export type { InputMessage } from "./generated/anthropic/InputMessage";
 export type { Trajectory } from "./generated/Trajectory";
+export type { AudioChannel } from "./generated/AudioChannel";
+export type { AudioRecording } from "./generated/AudioRecording";
+export type { AudioSelection } from "./generated/AudioSelection";
 export type { Turn } from "./generated/Turn";
 export type { Agent } from "./generated/Agent";
 export type { Compaction } from "./generated/Compaction";

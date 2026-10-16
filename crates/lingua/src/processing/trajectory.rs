@@ -7,7 +7,8 @@ use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanCo
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    Agent, AgentResponse, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work, WorkStep,
+    Agent, AgentResponse, AudioRecording, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work,
+    WorkStep,
 };
 use crate::universal::{AssistantContent, AssistantContentPart, Message};
 use crate::UniversalUsage;
