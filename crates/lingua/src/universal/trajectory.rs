@@ -24,6 +24,63 @@ pub struct Trajectory {
     pub metadata: Map<String, Value>,
     #[ts(optional)]
     pub version: Option<String>,
+    /// Audio recordings logged anywhere in the trace, in span order.
+    #[ts(optional)]
+    pub recordings: Option<Vec<AudioRecording>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct AudioRecording {
+    pub id: String,
+    /// Span holding the audio attachment; absent while the recording is pending or omitted.
+    #[ts(optional)]
+    pub attachment_span_id: Option<String>,
+    /// JSON pointer to the attachment in that span, like `/input/audio/call-0000`.
+    #[ts(optional)]
+    pub attachment_pointer: Option<String>,
+    /// Segments of one recording share a group id.
+    #[ts(optional)]
+    pub group_id: Option<String>,
+    #[ts(optional)]
+    pub mime_type: Option<String>,
+    #[ts(optional)]
+    pub duration_ms: Option<f64>,
+    #[ts(optional)]
+    pub channel_count: Option<u32>,
+    /// What each channel carries, like `session_input` or `local_audio_output`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(optional, as = "Option<Vec<AudioChannel>>")]
+    pub channels: Vec<AudioChannel>,
+    /// Unix milliseconds of offset 0, when the recording places itself on the call clock.
+    #[ts(optional)]
+    pub origin_unix_ms: Option<f64>,
+    /// `pending`, `ready`, or `omitted`.
+    #[ts(optional)]
+    pub state: Option<String>,
+    #[ts(optional)]
+    pub truncated: Option<bool>,
+    #[ts(optional)]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct AudioChannel {
+    pub index: u32,
+    pub boundary: String,
+}
+
+/// A stretch of one recording, in milliseconds from the start of that recording.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct AudioSelection {
+    pub recording_id: String,
+    pub recording_span_id: String,
+    #[ts(optional)]
+    pub channel_index: Option<u32>,
+    pub start_offset_ms: f64,
+    pub end_offset_ms: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

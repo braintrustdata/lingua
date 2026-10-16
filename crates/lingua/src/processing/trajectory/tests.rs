@@ -2361,3 +2361,76 @@ fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
     assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
     assert_eq!(result[0]["turns"][0]["response_id"], "done");
 }
+
+fn voice_fixture_trajectories(fixture: &str) -> Vec<crate::universal::Trajectory> {
+    let fixture: Value = serde_json::from_str(fixture).unwrap();
+    let spans: Vec<Span> = serde_json::from_value(fixture["spans"].clone()).unwrap();
+    let mut stream = stream_from_sources(spans.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    loop {
+        let ids = stream.pending_ids(4);
+        if ids.is_empty() {
+            break;
+        }
+        for id in ids {
+            let source = spans
+                .iter()
+                .find(|span| {
+                    span.other.get("id").and_then(|value| value.as_str()) == Some(id.as_str())
+                })
+                .cloned()
+                .unwrap();
+            collect(
+                &mut collector,
+                stream.push(import_span(source).unwrap()).unwrap(),
+            );
+        }
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    collector.snapshot().unwrap()
+}
+
+#[test]
+fn voice_trajectory_lists_recordings_from_headers() {
+    let trajectories = voice_fixture_trajectories(include_str!(
+        "fixtures/voice/livekit-realtime-order-lookup.json"
+    ));
+    assert_eq!(trajectories.len(), 1);
+    let recordings = trajectories[0].recordings.as_ref().unwrap();
+    assert_eq!(recordings.len(), 1);
+    assert_eq!(recordings[0].id, "call-0000");
+    assert_eq!(
+        recordings[0].attachment_span_id.as_deref(),
+        Some("ec099e46fa1da84e")
+    );
+    assert_eq!(recordings[0].channels.len(), 2);
+
+    let edges =
+        voice_fixture_trajectories(include_str!("fixtures/voice/fictional-edge-cases.json"));
+    let ids: Vec<_> = edges[0]
+        .recordings
+        .as_ref()
+        .unwrap()
+        .iter()
+        .map(|recording| (recording.id.as_str(), recording.state.as_deref()))
+        .collect();
+    assert_eq!(
+        ids,
+        vec![
+            ("seg-0", Some("ready")),
+            ("seg-1", Some("ready")),
+            ("agent-clip", Some("pending"))
+        ]
+    );
+}
+
+#[test]
+fn trajectories_without_voice_have_no_recordings() {
+    let stream = stream_from_sources(vec![span("a", 1, json!([]), json!([]))]);
+    let mut collector = TrajectoryCollector::default();
+    let mut stream = stream.unwrap();
+    collect(&mut collector, stream.finish().unwrap_or_default());
+    for trajectory in collector.snapshot().unwrap_or_default() {
+        assert!(trajectory.recordings.is_none());
+    }
+}
