@@ -2434,3 +2434,492 @@ fn trajectories_without_voice_have_no_recordings() {
         assert!(trajectory.recordings.is_none());
     }
 }
+
+fn check_voice_fixture(fixture: &str) -> Trajectory {
+    let fixture: Value = serde_json::from_str(fixture).unwrap();
+    let fixture = ImportFixture {
+        import_options: ImportOptions::default(),
+        spans: serde_json::from_value(fixture["spans"].clone()).unwrap(),
+        turns: Vec::new(),
+        worker_responses: Vec::new(),
+        start_times: None,
+        end_times: None,
+        compactions: None,
+        request_tools: None,
+        requests: None,
+        import_failures: Vec::new(),
+        import_warnings: Vec::new(),
+    };
+    let baseline = serde_json::to_value(run_fixture(&fixture, 1, false, &[])).unwrap();
+    for (batch_size, import_bodies) in [(16, false), (1, true), (16, true)] {
+        assert_eq!(
+            serde_json::to_value(run_fixture(&fixture, batch_size, import_bodies, &[])).unwrap(),
+            baseline,
+            "Utterances depend on load order"
+        );
+    }
+    let count = fixture.spans.len();
+    let reversed: Vec<u64> = (0..count as u64).rev().collect();
+    let interleaved: Vec<u64> = (0..count as u64).map(|index| (index * 7) % 5).collect();
+    for priorities in [reversed, interleaved] {
+        for batch_size in [1, 3, 16] {
+            assert_eq!(
+                serde_json::to_value(run_fixture(&fixture, batch_size, false, &priorities))
+                    .unwrap(),
+                baseline,
+                "Utterances depend on load order"
+            );
+        }
+    }
+    let mut trajectories: Vec<Trajectory> = serde_json::from_value(baseline).unwrap();
+    assert_eq!(trajectories.len(), 1);
+    trajectories.remove(0)
+}
+
+fn header_only_trajectory(fixture: &str) -> Trajectory {
+    let fixture: Value = serde_json::from_str(fixture).unwrap();
+    let spans: Vec<Span> = serde_json::from_value(fixture["spans"].clone()).unwrap();
+    let mut stream = stream_from_sources(spans.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    let ids = stream.pending_ids(1);
+    let first = spans
+        .iter()
+        .find(|span| span.other["id"].as_str() == Some(ids[0].as_str()))
+        .cloned()
+        .unwrap();
+    let mut header = first;
+    header.input = None;
+    header.output = None;
+    collect(
+        &mut collector,
+        stream.push(import_span(header).unwrap()).unwrap(),
+    );
+    let mut trajectories = collector.snapshot().unwrap();
+    trajectories.remove(0)
+}
+
+fn utterance<'a>(trajectory: &'a Trajectory, id: &str) -> &'a crate::universal::Utterance {
+    trajectory
+        .utterances
+        .iter()
+        .flatten()
+        .find(|utterance| utterance.id == id)
+        .unwrap()
+}
+
+fn relations(utterance: &crate::universal::Utterance) -> Vec<(String, String, Option<String>)> {
+    utterance
+        .relations
+        .iter()
+        .map(|relation| {
+            (
+                relation.relationship.clone(),
+                relation.span_id.clone(),
+                relation.via.clone(),
+            )
+        })
+        .collect()
+}
+
+fn turn_span_ids(trajectory: &Trajectory) -> HashSet<String> {
+    trajectory
+        .turns
+        .iter()
+        .flat_map(|turn| {
+            [Some(turn.request_id.clone()), turn.response_id.clone()]
+                .into_iter()
+                .flatten()
+                .chain(turn.work.iter().map(|step| step.id.clone()))
+        })
+        .collect()
+}
+
+#[test]
+fn livekit_speech_becomes_ordered_utterances_once() {
+    use crate::universal::{EvidenceBasis, EvidenceSource, RelationDirection, Speaker, Utterance};
+    let fixture = include_str!("fixtures/voice/livekit-realtime-order-lookup.json");
+    let trajectory = check_voice_fixture(fixture);
+    let utterances = trajectory.utterances.as_ref().unwrap();
+    let ids: Vec<_> = utterances
+        .iter()
+        .map(|utterance| utterance.id.as_str())
+        .collect();
+    assert_eq!(
+        ids,
+        vec![
+            "68e031159f3feede",
+            "8d9f25e48b7888cd",
+            "8bb24c01384ebf11",
+            "62acd8e8ee191cbd",
+            "3a80360be3632430",
+            "2cb6e251a0e3e227",
+            "f5e0b9990bdd4e42",
+        ]
+    );
+    assert!(trajectory.speech_turns.is_none());
+    let in_turns = turn_span_ids(&trajectory);
+    assert!(ids.iter().all(|id| !in_turns.contains(*id)));
+
+    let spoken: Vec<_> = utterances
+        .iter()
+        .map(|utterance| (utterance.speaker, utterance.text.as_deref().unwrap()))
+        .collect();
+    assert_eq!(
+        spoken,
+        vec![
+            (Speaker::Agent, "Hi, how can I help?"),
+            (Speaker::User, " Hi, can you tell me where a"),
+            (Speaker::User, " demo 1042 is"),
+            (Speaker::Agent, " Sure, I'll check that."),
+            (
+                Speaker::Agent,
+                " Order 1042 is in transit and expected to arrive Friday."
+            ),
+            (Speaker::User, " Alright, thank you"),
+            (Speaker::Agent, " You're welcome."),
+        ]
+    );
+    let offsets = |utterance: &Utterance| -> Vec<(Option<u32>, f64, f64)> {
+        utterance
+            .selections
+            .iter()
+            .map(|selection| {
+                assert_eq!(selection.recording_id, "call-0000");
+                assert_eq!(selection.recording_span_id, "ec099e46fa1da84e");
+                (
+                    selection.channel_index,
+                    selection.start_offset_ms,
+                    selection.end_offset_ms,
+                )
+            })
+            .collect()
+    };
+    for utterance in utterances {
+        let selections = offsets(utterance);
+        match utterance.speaker {
+            Speaker::User => {
+                assert_eq!(selections.len(), 1);
+                assert_eq!(selections[0].0, Some(0));
+            }
+            Speaker::Agent => {
+                assert!(selections.len() >= 3);
+                assert!(selections.iter().all(|selection| selection.0 == Some(1)));
+            }
+        }
+    }
+    assert_eq!(
+        offsets(utterance(&trajectory, "8bb24c01384ebf11")),
+        vec![(Some(0), 7053.0, 9369.0)]
+    );
+    assert_eq!(
+        offsets(utterance(&trajectory, "68e031159f3feede")),
+        vec![
+            (Some(1), 1952.0, 3252.0),
+            (Some(1), 3307.0, 3407.0),
+            (Some(1), 3411.0, 3911.0)
+        ]
+    );
+
+    let fixture_value: Value = serde_json::from_str(fixture).unwrap();
+    let rows = fixture_value["spans"].as_array().unwrap();
+    let row_id = |span_id: &str| {
+        rows.iter()
+            .find(|row| row["span_id"] == span_id)
+            .map(|row| row["id"].as_str().unwrap().to_string())
+            .unwrap()
+    };
+    let mut expected_links = HashSet::new();
+    for row in rows {
+        for link in row["metadata"]["links"].as_array().into_iter().flatten() {
+            let source = row["id"].as_str().unwrap().to_string();
+            let target = row_id(link["context"]["spanId"].as_str().unwrap());
+            let relationship = link["attributes"]["braintrust.relationship.type"]
+                .as_str()
+                .unwrap()
+                .to_string();
+            if ids.contains(&source.as_str()) {
+                expected_links.insert((source, relationship, target));
+            } else if ids.contains(&target.as_str()) {
+                expected_links.insert((target, relationship, source));
+            }
+        }
+    }
+    let mut actual_links = HashSet::new();
+    for utterance in utterances {
+        for relation in &utterance.relations {
+            assert_eq!(relation.unresolved, None);
+            assert_eq!(relation.via, None);
+            assert_eq!(relation.step_id.as_ref(), Some(&relation.span_id));
+            assert!(in_turns.contains(&relation.span_id));
+            for evidence in &relation.evidence {
+                assert_eq!(evidence.basis, EvidenceBasis::Observed);
+                match evidence.source {
+                    EvidenceSource::Link => {
+                        let logged_by = evidence.logged_by.clone().unwrap();
+                        assert_eq!(
+                            logged_by,
+                            match relation.direction {
+                                RelationDirection::Outgoing => utterance.id.clone(),
+                                RelationDirection::Incoming => relation.span_id.clone(),
+                            }
+                        );
+                        actual_links.insert((
+                            utterance.id.clone(),
+                            evidence.link_type.clone().unwrap(),
+                            relation.span_id.clone(),
+                        ));
+                    }
+                    EvidenceSource::MessageId => {
+                        assert_eq!(utterance.speaker, Speaker::Agent);
+                        assert_eq!(relation.relationship, "generated_by");
+                        assert!(evidence.message_id.as_ref().unwrap().starts_with("item_"));
+                    }
+                }
+            }
+        }
+    }
+    assert_eq!(actual_links, expected_links);
+    assert_eq!(actual_links.len(), 15);
+
+    let user_demo = utterance(&trajectory, "8bb24c01384ebf11");
+    assert!(user_demo
+        .relations
+        .iter()
+        .all(|relation| relation.span_id != "d855d11a6e8ee505"));
+    assert_eq!(
+        relations(user_demo),
+        vec![
+            (
+                "in_context_of".to_string(),
+                "cf4ad22a4fce2f17".to_string(),
+                None
+            ),
+            (
+                "in_context_of".to_string(),
+                "fb1ff83447ce40a4".to_string(),
+                None
+            ),
+        ]
+    );
+    let sure = utterance(&trajectory, "62acd8e8ee191cbd");
+    assert_eq!(sure.relations[0].relationship, "generated_by");
+    assert_eq!(sure.relations[0].span_id, "d855d11a6e8ee505");
+    assert_eq!(
+        sure.relations[0]
+            .evidence
+            .iter()
+            .map(|evidence| evidence.source)
+            .collect::<Vec<_>>(),
+        vec![EvidenceSource::Link, EvidenceSource::MessageId]
+    );
+
+    let overlapping = |agent: &str, user: &str, agent_start: f64, user_end: f64| {
+        let agent = utterance(&trajectory, agent);
+        let user = utterance(&trajectory, user);
+        assert_eq!(agent.selections[0].start_offset_ms, agent_start);
+        assert_eq!(user.selections[0].end_offset_ms, user_end);
+        for (from, to) in [(agent, user), (user, agent)] {
+            assert!(from
+                .relations
+                .iter()
+                .all(|relation| relation.span_id != to.id));
+        }
+    };
+    overlapping("62acd8e8ee191cbd", "8bb24c01384ebf11", 8853.0, 9369.0);
+    overlapping("f5e0b9990bdd4e42", "2cb6e251a0e3e227", 18940.0, 19729.0);
+    assert!(trajectory
+        .turns
+        .iter()
+        .all(|turn| turn.interrupted.is_none()));
+    let wire = serde_json::to_string(&trajectory).unwrap();
+    assert!(!wire.contains("interrupt"));
+}
+
+#[test]
+fn utterances_are_placed_from_headers_before_text_loads() {
+    let trajectory = header_only_trajectory(include_str!(
+        "fixtures/voice/livekit-realtime-order-lookup.json"
+    ));
+    let utterances = trajectory.utterances.unwrap();
+    assert_eq!(utterances.len(), 7);
+    assert_eq!(
+        utterances
+            .iter()
+            .filter(|utterance| utterance.text.is_some())
+            .count(),
+        0
+    );
+    assert!(utterances
+        .iter()
+        .all(|utterance| !utterance.selections.is_empty()));
+    assert_eq!(
+        utterances
+            .iter()
+            .map(|utterance| utterance.relations.len())
+            .sum::<usize>(),
+        15
+    );
+}
+
+#[test]
+fn cascade_utterances_follow_framework_turns() {
+    use crate::universal::Speaker;
+    let trajectory =
+        check_voice_fixture(include_str!("fixtures/voice/fictional-cascade-turns.json"));
+    let turns = trajectory.speech_turns.as_ref().unwrap();
+    let summary: Vec<_> = turns
+        .iter()
+        .map(|turn| {
+            (
+                turn.id.as_str(),
+                turn.role,
+                turn.utterance_ids.clone(),
+                turn.reply_to.as_deref(),
+                turn.incomplete,
+            )
+        })
+        .collect();
+    assert_eq!(
+        summary,
+        vec![
+            ("UT1", Speaker::User, vec!["row-U1".to_string()], None, None),
+            (
+                "AT1",
+                Speaker::Agent,
+                vec!["row-A1".to_string()],
+                Some("UT1"),
+                None
+            ),
+            ("UT2", Speaker::User, vec!["row-U2".to_string()], None, None),
+            (
+                "AT2",
+                Speaker::Agent,
+                vec!["row-A2".to_string()],
+                Some("UT2"),
+                None
+            ),
+            (
+                "UT3",
+                Speaker::User,
+                vec!["row-U3".to_string()],
+                None,
+                Some(true)
+            ),
+        ]
+    );
+    let played = utterance(&trajectory, "row-A2");
+    assert_eq!(played.text.as_deref(), Some("Yes, I can change it."));
+    assert_eq!(played.turn_id.as_deref(), Some("AT2"));
+    assert_eq!(
+        relations(played),
+        vec![
+            ("generated_by".to_string(), "row-TT2".to_string(), None),
+            (
+                "generated_by".to_string(),
+                "row-M3".to_string(),
+                Some("row-TT2".to_string())
+            ),
+        ]
+    );
+    assert_eq!(played.relations[0].step_id, None);
+    assert_eq!(played.relations[0].span_name.as_deref(), Some("tts"));
+    assert_eq!(played.relations[1].step_id.as_deref(), Some("row-M3"));
+    assert_eq!(
+        played.relations[1].evidence[0].logged_by.as_deref(),
+        Some("row-TT2")
+    );
+    let generated = trajectory
+        .turns
+        .iter()
+        .find(|turn| turn.response_id.as_deref() == Some("row-M3"))
+        .unwrap();
+    assert_eq!(
+        serde_json::to_value(
+            generated
+                .response
+                .as_ref()
+                .unwrap()
+                .response
+                .as_ref()
+                .unwrap()
+        )
+        .unwrap()[0]["text"],
+        "Yes, I can change it. What is the new address?"
+    );
+    assert!(!serde_json::to_string(&trajectory.utterances)
+        .unwrap()
+        .contains("What is the new address?"));
+
+    let heard = utterance(&trajectory, "row-U1");
+    assert_eq!(
+        relations(heard),
+        vec![
+            ("transcribed_by".to_string(), "row-ST1".to_string(), None),
+            ("in_context_of".to_string(), "row-M1".to_string(), None),
+            ("in_context_of".to_string(), "row-M2".to_string(), None),
+            ("in_context_of".to_string(), "row-M3".to_string(), None),
+        ]
+    );
+    let interrupting = utterance(&trajectory, "row-U3");
+    assert!(interrupting.relations.is_empty());
+    assert!(interrupting.start_time < played.end_time.unwrap());
+    let wire = serde_json::to_string(&trajectory).unwrap();
+    assert!(!wire.contains("interrupt"));
+}
+
+#[test]
+fn edge_case_utterances_keep_missing_data_visible() {
+    let trajectory = check_voice_fixture(include_str!("fixtures/voice/fictional-edge-cases.json"));
+    let utterances = trajectory.utterances.as_ref().unwrap();
+    assert_eq!(utterances.len(), 6);
+    assert_eq!(utterance(&trajectory, "row-V1").text, None);
+    assert_eq!(utterance(&trajectory, "row-V1").selections.len(), 1);
+    let no_audio = utterance(&trajectory, "row-V3");
+    assert!(no_audio.selections.is_empty());
+    assert_eq!(
+        relations(no_audio),
+        vec![("generated_by".to_string(), "row-L1".to_string(), None)]
+    );
+    let segmented: Vec<_> = utterance(&trajectory, "row-V4")
+        .selections
+        .iter()
+        .map(|selection| (selection.recording_id.as_str(), selection.start_offset_ms))
+        .collect();
+    assert_eq!(segmented, vec![("seg-0", 5500.0), ("seg-1", 0.0)]);
+    assert!(utterances
+        .iter()
+        .flat_map(|utterance| &utterance.selections)
+        .all(|selection| selection.recording_id != "agent-clip"));
+    assert!(utterance(&trajectory, "row-V5").relations.is_empty());
+    assert!(utterance(&trajectory, "row-V6").relations.is_empty());
+    assert!(trajectory.speech_turns.is_none());
+    assert_eq!(
+        trajectory.metadata.get("import_warnings"),
+        Some(&crate::serde_json::json!([{
+            "span_id": "row-L1",
+            "message": "Unresolved input_context link to span MISSING-SPAN: not in this trace"
+        }]))
+    );
+}
+
+#[test]
+fn unresolved_speech_links_stay_on_the_utterance() {
+    let trajectory = check_voice_fixture(
+        &json!({"spans": [
+            {"id": "root", "span_id": "root", "root_span_id": "root", "span_parents": [],
+             "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 5}},
+            {"id": "speech", "span_id": "speech", "root_span_id": "root", "span_parents": ["root"],
+             "span_attributes": {"type": "task", "name": "agent_speech"}, "metrics": {"start": 1, "end": 2},
+             "output": [{"role": "assistant", "content": "Hello"}],
+             "metadata": {"links": [{"attributes": {"braintrust.relationship.type": "generated_by"}, "context": {"spanId": "gone"}}]}}
+        ]})
+        .to_string(),
+    );
+    let speech = utterance(&trajectory, "speech");
+    assert_eq!(speech.text.as_deref(), Some("Hello"));
+    assert_eq!(speech.relations.len(), 1);
+    assert_eq!(speech.relations[0].span_id, "gone");
+    assert_eq!(speech.relations[0].unresolved, Some(true));
+    assert_eq!(speech.relations[0].step_id, None);
+    assert!(trajectory.turns.is_empty());
+}
