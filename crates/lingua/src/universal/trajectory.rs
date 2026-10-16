@@ -328,6 +328,13 @@ pub struct SpeechWork {
     /// Framework turn that owns the speech span (`turn.id`), when the framework logs one.
     #[ts(optional)]
     pub framework_turn_id: Option<String>,
+    /// Name of the framework turn span that owns the speech span (its outermost ancestor logging
+    /// the same `turn.id`), like `user_turn` or `agent_turn`.
+    #[ts(optional)]
+    pub framework_turn_name: Option<String>,
+    /// `turn.reply_to` logged on that framework turn: the framework turn it answers.
+    #[ts(optional)]
+    pub framework_turn_reply_to: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]

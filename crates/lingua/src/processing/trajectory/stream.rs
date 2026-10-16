@@ -1129,6 +1129,25 @@ impl TrajectoryStream {
                 .map(|other| self.spans[*other].id.clone())
                 .filter(|other| Some(other.as_str()) != step_id)
                 .collect();
+            let mut framework_turn = None;
+            let mut parent = self.parents[index];
+            while let Some(ancestor) = parent {
+                let ancestor_voice = self.spans[ancestor].source.voice.as_ref();
+                if voice.turn_id.is_none()
+                    || ancestor_voice.and_then(|voice| voice.turn_id.as_ref())
+                        != voice.turn_id.as_ref()
+                {
+                    break;
+                }
+                framework_turn = Some(ancestor);
+                parent = self.parents[ancestor];
+            }
+            let framework_turn_name =
+                framework_turn.and_then(|turn| self.spans[turn].source.name.clone());
+            let framework_turn_reply_to = framework_turn
+                .and_then(|turn| self.spans[turn].source.voice.as_ref())
+                .and_then(|turn| turn.reply_to.clone())
+                .or_else(|| voice.reply_to.clone());
             let (text, error) = self.voice.speech.remove(&index).unwrap_or_default();
             placed.push(TrajectoryEvent::Speech {
                 scope: self.scope(key),
@@ -1147,6 +1166,8 @@ impl TrajectoryStream {
                         placement,
                         context_step_ids,
                         framework_turn_id: voice.turn_id,
+                        framework_turn_name,
+                        framework_turn_reply_to,
                     })),
                     sub_agent: None,
                 },

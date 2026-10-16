@@ -19,4 +19,13 @@ context_step_ids?: Array<string>,
 /**
  * Framework turn that owns the speech span (`turn.id`), when the framework logs one.
  */
-framework_turn_id?: string, };
+framework_turn_id?: string, 
+/**
+ * Name of the framework turn span that owns the speech span (its outermost ancestor logging
+ * the same `turn.id`), like `user_turn` or `agent_turn`.
+ */
+framework_turn_name?: string, 
+/**
+ * `turn.reply_to` logged on that framework turn: the framework turn it answers.
+ */
+framework_turn_reply_to?: string, };

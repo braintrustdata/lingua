@@ -2560,6 +2560,11 @@ fn voice_speech_is_placed_once_in_the_realtime_model_turns() {
     assert_eq!(placed.len(), 7);
     assert_eq!(ids.len(), 7);
     assert_eq!(trajectory.turns.len(), 2);
+    assert!(placed
+        .iter()
+        .all(|placed| placed.speech.framework_turn_id.is_none()
+            && placed.speech.framework_turn_name.is_none()
+            && placed.speech.framework_turn_reply_to.is_none()));
 
     let texts: Vec<_> = placed
         .iter()
@@ -2739,6 +2744,14 @@ fn voice_speech_in_cascade_follows_tts_and_keeps_played_text() {
         }
     );
     assert_eq!(played.speech.framework_turn_id.as_deref(), Some("AT2"));
+    assert_eq!(
+        played.speech.framework_turn_name.as_deref(),
+        Some("agent_turn")
+    );
+    assert_eq!(
+        played.speech.framework_turn_reply_to.as_deref(),
+        Some("UT2")
+    );
     let generated = serde_json::to_value(&played.turn.response).unwrap();
     assert_eq!(
         generated["response"][0]["text"],
@@ -2756,6 +2769,11 @@ fn voice_speech_in_cascade_follows_tts_and_keeps_played_text() {
     let question = speech_by_id(&placed, "row-U2");
     assert_eq!(question.turn.request_id, "row-M3");
     assert_eq!(question.speech.framework_turn_id.as_deref(), Some("UT2"));
+    assert_eq!(
+        question.speech.framework_turn_name.as_deref(),
+        Some("user_turn")
+    );
+    assert_eq!(question.speech.framework_turn_reply_to, None);
 
     let overlap = speech_by_id(&placed, "row-U3");
     assert_eq!(overlap.turn.request_id, "row-M3");
