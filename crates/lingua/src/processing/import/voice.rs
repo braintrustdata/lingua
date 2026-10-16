@@ -47,6 +47,19 @@ pub struct SpanLink {
     pub trace_id: Option<String>,
 }
 
+/// Input of a speech synthesis (`tts`) span: the text sent to TTS.
+#[derive(Deserialize)]
+struct SynthesisInput {
+    text: String,
+}
+
+/// Text a `tts` span was asked to synthesize, from its `{"text": ...}` input.
+pub(crate) fn import_synthesis_text(input: Option<&json::Value>) -> Option<String> {
+    SynthesisInput::deserialize(input?)
+        .ok()
+        .map(|input| input.text)
+}
+
 #[derive(Deserialize)]
 struct LoggedRecording {
     id: String,

@@ -1,14 +1,15 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+mod voice;
 pub use stream::{TrajectoryCollector, TrajectoryEvent, TrajectoryStream};
 
 use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext};
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    Agent, AgentResponse, AudioRecording, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work,
-    WorkStep,
+    Agent, AgentResponse, AudioRecording, LLMAnalysis, Scope, ToolResult, Trajectory, Turn,
+    VoiceContext, VoiceMessage, Work, WorkStep,
 };
 use crate::universal::{AssistantContent, AssistantContentPart, Message};
 use crate::UniversalUsage;

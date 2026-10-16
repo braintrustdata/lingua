@@ -5,9 +5,20 @@ import type { Finding } from "./Finding";
 import type { Scope } from "./Scope";
 import type { Section } from "./Section";
 import type { Turn } from "./Turn";
+import type { VoiceContext } from "./VoiceContext";
+import type { VoiceMessage } from "./VoiceMessage";
 
 export type Trajectory = { scope: Array<Scope>, agent: Agent, sections?: Array<Section>, findings?: Array<Finding>, turns: Array<Turn>, metadata: Record<string, unknown>, version?: string, 
 /**
  * Audio recordings logged anywhere in the trace, in span order.
  */
-recordings?: Array<AudioRecording>, };
+recordings?: Array<AudioRecording>, 
+/**
+ * Speech messages keyed by native identity, joining what a model generated, what was played
+ * or heard, and the model calls whose context included each one. Ordered by speech start.
+ */
+voice_messages?: Array<VoiceMessage>, 
+/**
+ * Which voice messages each model call in a voice trace received as context, in call order.
+ */
+voice_contexts?: Array<VoiceContext>, };
