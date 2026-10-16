@@ -25,7 +25,7 @@ use crate::universal::message::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
-use crate::util::media::is_remote_media_uri;
+use crate::util::media::{is_remote_media_uri, parse_base64_data_url};
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine;
 use std::collections::HashSet;
@@ -196,7 +196,7 @@ impl TryFromLLM<Message> for BedrockMessage {
                 )
             }
             Message::User { content } => {
-                let blocks = match content {
+                let blocks: Vec<BedrockContentBlock> = match content {
                     UserContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
                     UserContent::Array(parts) => {
                         if parts
@@ -258,6 +258,18 @@ impl TryFromLLM<Message> for BedrockMessage {
                             .collect()
                     }
                 };
+                if blocks
+                    .iter()
+                    .any(|block| matches!(block, BedrockContentBlock::Document { .. }))
+                    && !blocks
+                        .iter()
+                        .any(|block| matches!(block, BedrockContentBlock::Text { .. }))
+                {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua document content without a text block in the same message".to_string(),
+                        to: "Bedrock Converse document input (requires a text block in the same message)",
+                    });
+                }
                 (BedrockConversationRole::User, blocks)
             }
             Message::Assistant { content, .. } => {
@@ -539,6 +551,15 @@ fn bedrock_document_from_file(
         .into_iter()
         .find(|format| bedrock_document_media_type(*format) == media_type)
         .ok_or_else(unsupported_file_mapping)?;
+    let data = if !is_text_document(format) && data.starts_with("data:") {
+        let block = parse_base64_data_url(&data).ok_or_else(unsupported_file_mapping)?;
+        if block.media_type != media_type {
+            return Err(unsupported_file_mapping());
+        }
+        block.data
+    } else {
+        data
+    };
     let is_remote = if is_text_document(format) {
         is_remote_media_uri(&data)
     } else {
@@ -942,7 +963,15 @@ mod tests {
 
     fn file_to_bedrock(part: UserContentPart) -> Result<BedrockMessage, ConvertError> {
         <BedrockMessage as TryFromLLM<Message>>::try_from(Message::User {
-            content: UserContent::Array(vec![part]),
+            content: UserContent::Array(vec![
+                UserContentPart::Text(TextContentPart {
+                    text: "Read the document".into(),
+                    encrypted_content: None,
+                    cache_control: None,
+                    provider_options: None,
+                }),
+                part,
+            ]),
         })
     }
 
@@ -992,7 +1021,7 @@ mod tests {
             ),
         ] {
             let msg = file_to_bedrock(file_part(data.into(), Some(filename), media_type)).unwrap();
-            assert_eq!(msg.content, vec![expected]);
+            assert_eq!(msg.content[1..], [expected]);
         }
     }
 
@@ -1013,6 +1042,59 @@ mod tests {
                 }
                 other => panic!("expected unsupported mapping for {media_type}, got {other:?}"),
             }
+        }
+    }
+
+    #[test]
+    fn test_bedrock_document_only_message_is_rejected() {
+        let message = Message::User {
+            content: UserContent::Array(vec![file_part(
+                json!("JVBERi0xLjQK"),
+                Some("receipt.pdf"),
+                "application/pdf",
+            )]),
+        };
+        let error = <BedrockMessage as TryFromLLM<Message>>::try_from(message.clone()).unwrap_err();
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        assert!(error.to_string().contains("text"));
+        let messages = vec![
+            Message::User {
+                content: UserContent::String("Read the receipt".into()),
+            },
+            message,
+        ];
+        assert!(universal_to_bedrock_messages(&messages).is_err());
+    }
+
+    #[test]
+    fn test_bedrock_binary_document_data_url() {
+        let block = bedrock_document_from_file(
+            json!("data:application/pdf;base64,JVBERi0xLjQK"),
+            Some("receipt.pdf"),
+            "application/pdf",
+        )
+        .unwrap();
+        assert_eq!(
+            block,
+            document(
+                BedrockDocumentFormat::Pdf,
+                "receipt-pdf",
+                "JVBERi0xLjQK".into()
+            )
+        );
+    }
+
+    #[test]
+    fn test_bedrock_binary_document_rejects_invalid_data_urls() {
+        for data in [
+            "data:image/png;base64,iVBORw0KGgo=",
+            "data:application/pdf,raw-pdf",
+            "data:application/pdf;base64,",
+        ] {
+            assert!(matches!(
+                bedrock_document_from_file(json!(data), Some("receipt.pdf"), "application/pdf"),
+                Err(ConvertError::UnsupportedMapping { .. })
+            ));
         }
     }
 
@@ -1042,10 +1124,29 @@ mod tests {
         let long_name = "a".repeat(BEDROCK_DOCUMENT_NAME_MAX_LEN);
         let messages = vec![
             Message::User {
-                content: UserContent::Array(vec![pdf(None), pdf(None), pdf(Some(&long_name))]),
+                content: UserContent::Array(vec![
+                    UserContentPart::Text(TextContentPart {
+                        text: "Read these documents".into(),
+                        encrypted_content: None,
+                        cache_control: None,
+                        provider_options: None,
+                    }),
+                    pdf(None),
+                    pdf(None),
+                    pdf(Some(&long_name)),
+                ]),
             },
             Message::User {
-                content: UserContent::Array(vec![pdf(None), pdf(Some(&long_name))]),
+                content: UserContent::Array(vec![
+                    UserContentPart::Text(TextContentPart {
+                        text: "Read these too".into(),
+                        encrypted_content: None,
+                        cache_control: None,
+                        provider_options: None,
+                    }),
+                    pdf(None),
+                    pdf(Some(&long_name)),
+                ]),
             },
         ];
 

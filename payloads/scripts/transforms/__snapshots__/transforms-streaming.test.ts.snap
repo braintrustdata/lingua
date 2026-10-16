@@ -5198,9 +5198,7 @@ data: {"choices":[{"delta":{"content":" receipt","role":"assistant"},"finish_rea
 
 data: {"choices":[{"delta":{"content":" is **45","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"00","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":".00","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
@@ -5210,7 +5208,9 @@ data: {"choices":[{"delta":{"content":"K","role":"assistant"},"finish_reason":nu
 
 data: {"choices":[{"delta":{"content":"K**","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":" (Danish Krone).","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":" (Danish","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Krone).","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[],"object":"chat.completion.chunk"}
 

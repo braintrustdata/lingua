@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Based on the document provided:\n\n* **Document Type:** Receipt\n* **Total Amount:** 45.00 DKK (Danish Krone)\n\nPlease let me know if you need help extracting additional details or processing this receipt further!",
+            "thoughtSignature": "EpIICo8IAWkUfROeY0NTcAfksh3CTI3DwkcEOa5eynp0qn3RmLLd+fPiBfagoQmPg3Ewwy0zFscda3u8/F30aoVfxZY5uUKRUthX/MJJeYO0sDhv5Ecwf3FUIQG3fDc1xk20NVafEaOJBFNX7FVYBjCVbrPcQGbNr4bWcZzfCx8Lk6uwFqb51YtOCg0RWPJ0MsgxrS5vUIKaV5RF58CMYMQsgcxlKgls4DBirNitGgD/K5L8xH+Ou8F/JWuBq9oe41/enZkIHL2bh4kSYuNpV//8Uhdg2m4f3gosq2NwWV0aJQ0V2ziXkfObKOBwWp0JpDyJmYgryj8scNURb3lfyXsddNWzp8pGefLilHdIAs7iGy9ZcZhB8TrtLha1qyTZ2Usvz2h3IyeLyEExn/OdZ04Z4gxpquqHKN9RElZTfDYnL3Wo/Xk70DbGBTnB/pIN4iMMgrcwfel0CbU/w83lwlaEV5qnvZi7BnrqPhvL+JtLn5xX9OcHXhHS1Is5FzcbG/elQZQjbBbo/S5IzZX7jAOwP6KMBVPfwCdmqU34gVmvrHCLqMmMhrqCsNTPvkWfkL7yw2GAsbIHBi8Z2Cuv8AO1va3evwpHNQ/wBN64l9fm/45z2RAG/JAI0jcrOH2jsIRikOBcMXZ3xAKEb3gV7aY/SC3yr13xmyhAmCI7vVW98mM7MQxT6BzrjarZ6sSiRFP4EIz8ZZmJQjpCaKwFUqFJ/1eaPY7Q9EVnZ+Racz7jh6PLy+UJDmKYrBuR97avasvI4ZlDkp05IvPD2sjZ/fAxibbLkR0Zi6o68QWNgWl9O90k+2Ld18EEC7tue3iGkSjEaIeNYhK8NU4AZBf45CPkPvUIDEhGNkhTmdb4vOXlqZy4y+rffexk6Xq28b5/JO6dBZ5X2AOZBHKmOaIkS7JkOFhAT5pijQANUyflsNrzSm7nuuLmRax4WN+wouhgOciqtasMI2n6cXhnlyLXa56tZWRbwWdCPmruFqml4Q4JOsQRZUCMJioMNO1cOKkQPF0JWBr30Wj1NYapaHZ22ChSoXu06RygX9ZepF4+HuMQG9JcwGCxV+4nJ9LCGVLEskG+WiEzMRpsndGbY1PPo5FiD59dv3vkl/Zt0ROc2tfjRSDfMnAB5tzP5N06gzgjRaksKtJB8fV0Hr8SH0vKZL9WHMGQeXV28VHrBgMyEnwMy235T+54gaguWLoDIZXJpgDUHMOHnHVqQoh8o4krVWSnfMmBMDoctMuQxfBtFpoxRjj/ev6kZup+urk6JgxjjGj9pmZ0kFXwQa9yXdOvI/toqwjgCDrvwqzDNGeIuhXZKrIeUeHaqhEsXd7A4UeRzjbgvDMSXePuasIvDZk9HJZG7ee0MrFaZe7Y3WOPV9rHZD17yw=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 521,
+    "candidatesTokenCount": 50,
+    "totalTokenCount": 806,
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 520
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 1
+      }
+    ],
+    "thoughtsTokenCount": 235,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.6-flash",
+  "responseId": "WzrSaq--Iouc9MoPluTTwQU"
+}

@@ -55,15 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "."
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "00"
+        "text": ".00"
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +95,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " (Danish Krone)."
+        "text": " (Danish"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " Krone)."
       },
       "contentBlockIndex": 0
     }
@@ -126,7 +126,7 @@
         "totalTokens": 1640
       },
       "metrics": {
-        "latencyMs": 1046
+        "latencyMs": 1079
       }
     }
   }

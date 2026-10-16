@@ -232,6 +232,41 @@
       ]
     },
     {
+      "testCase": "chatCompletionsDocumentOnlyPdfFileParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "fields": [
+        {"pattern": "messages[0].content[0].filename", "reason": "Anthropic document input has no filename field; document title is a separate semantic field"},
+        {"pattern": "messages[0].content[0].provider_options", "reason": "Anthropic document import adds the existing anthropic_type=document provider option; the PDF bytes and MIME type are preserved"}
+      ]
+    },
+    {
+      "testCase": "chatCompletionsDocumentOnlyPdfFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        {"pattern": "messages[0].content[0].filename", "reason": "Anthropic document input has no filename field; document title is a separate semantic field"},
+        {"pattern": "messages[0].content[0].provider_options", "reason": "Anthropic document import adds the existing anthropic_type=document provider option; the PDF bytes and MIME type are preserved"}
+      ]
+    },
+    {
+      "testCase": "chatCompletionsDocumentOnlyPdfFileParam",
+      "source": "ChatCompletions",
+      "target": "Vertex Anthropic",
+      "fields": [
+        {"pattern": "messages[0].content[0].filename", "reason": "Anthropic document input has no filename field; document title is a separate semantic field"},
+        {"pattern": "messages[0].content[0].provider_options", "reason": "Anthropic document import adds the existing anthropic_type=document provider option; the PDF bytes and MIME type are preserved"}
+      ]
+    },
+    {
+      "testCase": "chatCompletionsDocumentOnlyPdfFileParam",
+      "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        {"pattern": "messages[0].content[0].filename", "reason": "Google inlineData has no filename field; the PDF bytes and MIME type are preserved"}
+      ]
+    },
+    {
       "testCase": "outputFormatJsonSchemaParam",
       "source": "Anthropic",
       "target": "Anthropic",

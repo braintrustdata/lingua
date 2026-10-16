@@ -1,0 +1,3 @@
+{
+  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert Lingua document content without a text block in the same message to Bedrock Converse document input (requires a text block in the same message)"
+}

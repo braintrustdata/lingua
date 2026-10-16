@@ -1,0 +1,27 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "file",
+          "file": {
+            "filename": "receipt.pdf",
+            "file_data": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA1NiA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDUwIDc1MCBUZCAoUkVDRUlQVCAtIFRPVEFMIDQ1LjAwIERLSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzNDcgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0MTcKJSVFT0YK"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "I can help with this receipt. The image on page 1 shows a total of 45.00 DKK.\n\nWhat would you like me to do?\n- Extract a structured summary (merchant name, date/time, line items, subtotals, tax, total, payment method, receipt number).\n- Verify the total against the line items (if visible) and flag any discrepancies.\n- Convert the total to another currency or compute tips, etc.\n- Export the data (JSON/CSV) for your records.\n- Scan multiple receipts and compare totals or merchants.\n\nIf you want, I can go ahead and pull out all visible fields from the image now and present a clean summary. Also, if there are more pages, let me know and I can extract across all of them.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

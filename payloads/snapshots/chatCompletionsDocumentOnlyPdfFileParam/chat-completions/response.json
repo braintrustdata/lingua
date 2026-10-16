@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EZdaaKnarUVAUWzh8n8DpiZXkfYfZ",
+  "object": "chat.completion",
+  "created": 1792162368,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I can help with this receipt. The image on page 1 shows a total of 45.00 DKK.\n\nWhat would you like me to do?\n- Extract a structured summary (merchant name, date/time, line items, subtotals, tax, total, payment method, receipt number).\n- Verify the total against the line items (if visible) and flag any discrepancies.\n- Convert the total to another currency or compute tips, etc.\n- Export the data (JSON/CSV) for your records.\n- Scan multiple receipts and compare totals or merchants.\n\nIf you want, I can go ahead and pull out all visible fields from the image now and present a clean summary. Also, if there are more pages, let me know and I can extract across all of them.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 231,
+    "completion_tokens": 1001,
+    "total_tokens": 1232,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

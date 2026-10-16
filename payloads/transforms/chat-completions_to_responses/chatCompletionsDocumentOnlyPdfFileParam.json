@@ -1,0 +1,103 @@
+{
+  "id": "resp_056e6199c2a3bbd2006ad23a5c218c87d28226df94bab35f58",
+  "object": "response",
+  "created_at": 1792162396,
+  "status": "completed",
+  "access_programs": null,
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1792162397,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_056e6199c2a3bbd2006ad23a5cf02087d2954c71b79b5855ae",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABq0jpdWm-LSCOE5VG7FZDxBvbCAU7HKU1LuEFVgeOfqELExJQQ9TkBDpKlRs3CutnOdMY0-nL1TjG4ajeAoZ1vciiUCDqToflwBNRD4zsz19zBxQyFyDusA0uTGAdD00ELTt1Qz-NNTzgFS_nxqrL9putXs9d2ET2Hcnh6eJkjU5hsLuMbCz_qsz7sLHqy-8wil0Ftow82j0co-uzsEN8jdcL2h-8j2bp7ujjm9FsX_pxuQw-X5nMjLK0EdL0jDLnhJIPxZH4oa_a3SeydY0SXBOBX-K_sAcXnHCvFpbe1AxjSM6hiEgCGmpCjaG-gpEKBSuuYQL672BaUfUtqH4qAUH2cvVh7OnJjwBiZtrEvCKMwdHD2oe_6IzN_z6mAj02F6UOZtgIqpCNWeBx1gU7JzGxPnA79s1UHU1oHgZlEDtvmDlVCl34lWOP3hkWWmOfqVzmplw5IIKmCnC1-jSGZHvWMCawgHhoaPZK54VfMTYTekhCzeyrnk58MIUwz6VuzXzwwxBwDW6luWHrDFDYrBTa4vojFeVaXRi-9cpjLTQRuIg9aSD2aADWGc-nlLygqVDg6NnriVemZJgirOnPPVEqMJGEnT0RXAJ9bU2GsmJopgkF7MktH3gcpwphXq6kXIhRNVOyPh48DfhHNwfylyATweZVzWoxuH_VKLffQR1lmHloBanW8-7jvlWzVLpLLXRStO8fz12FH7YTUSq0tQ6kWsIhwsOMSby0N_rxonZz2k68Ge_5YyaDeItdfWeU6CaIpQuVhdeT9oLSAc15o3Zv9vTrkcjJvybnhxsyQuEu-1bWpq1Ok7vMZv2HRpRERPzv_WnxJZRoyQqDqzYShkp_ET1xGCeUSjXiHGGLleqzIOJoiPxZNRSKatt-7r6cnB2hP2Mzq5hV1P-a3BmrwRJFOWg0vN9Ii5hC8Qzvgq0STKRlPiyqv1eelRjDXfWN2a5-wnHlZAU6OiQ3p2EL8-mnmzDxIfHchnD7uHLXc-gsqd1puO55olHyq4RzHww_MheBUsbhNx8mUR_TS6UMrj5jmgTCVT4zCAQIP8LTX3_7QinBe4kSzxnUNuFN6sbOXwV4J7Nxref9luf2arVD6ryVgSmTYb6pzFCKmzImWkt2awI6--EJsEcOLfr_juRGENLPRPayvF0FnEftO9vgPrlG8tycqdTFouw76dDCnGilvPZHrQGsIhsLH0EqPAH0iXqvpm24nAJtPTe92V2ZRYQvIZbHz7cyzHwTaj6M12shVy3PHEIYQ62Q1IrstvpxYMnz4mvDU9X6OflRZhotAj3RUyeViIMhCS6f5VTAEvrhDkMk9vEV41POmP4ugt3j3L61cpVLA8XPQYNOQzwtdhI4YQStlkEpXptKZivbKdfw8yTGofHDJsTbWrUO7MC6t2u7gytZKOgowM_nXfHX22-UbXzTSbyyleAAZhbSl8BTgFDwJrGZt4bh0fV110p4wN9mCFA0IFI7YU98D__ql1VYLmwZZrcxArssjy8VBsVNPXQjCBLrXCi_DHAxEOc-f4UWwNKFYmcMBLKSEtAF2qRuk3d-JhEKAcHahHo6C440--XUAAwAdqjYPzcLqmLYKG8JFroXDBXG3T7jm5XCOeFOlpw5utikVBYzt2R1K8IsVuhb7ZkEk6TUp5WqDNGdRxM65u5f6oWxEfStrMtxEa4fNnOmyKgz8gHew70Jt2vap7S2jxE9U8oduu2RdaItqpE3VKFZ-wWbrRSMYa3Vpms9tzYNGQHB7xbVyeYSP4iQY-zOhYDnx5iuepi3ubu0i98QD",
+      "summary": []
+    },
+    {
+      "id": "msg_056e6199c2a3bbd2006ad23a5d36fc87d2824407c9c08acc36",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Receipt total: **45.00 DKK**"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 37,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 45,
+    "output_tokens_details": {
+      "reasoning_tokens": 29
+    },
+    "total_tokens": 82
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Receipt total: **45.00 DKK**"
+}

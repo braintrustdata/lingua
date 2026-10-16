@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EZdaml6YMgcLMxN21DKBQmN0cvGCE",
+  "object": "chat.completion",
+  "created": 1792162380,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here are a few practical next steps. Pick one (or a combo) and I’ll start:\n\n- Get a clean structured summary from page 1\n  - I can extract: merchant name, date/time, line items (if visible), subtotal, tax, total, payment method, and receipt ID, and present it as JSON or CSV.\n\n- Verify totals and consistency\n  - I’ll check that the total matches the sum of line items (if shown) and flag any discrepancies.\n\n- Convert or compute\n  - Convert 45.00 DKK to another currency (specify target) or calculate tips, per-item averages, etc.\n\n- Batch processing\n  - If you have more receipts/pages, I can extract across all of them and compare totals, merchants, or dates.\n\n- Export formats\n  - I can deliver the data as JSON, CSV, or a simple text summary—whatever you prefer.\n\nWhat would you like me to do first? For example:\n- “Extract a JSON summary from page 1.”\n- “Convert 45.00 DKK to USD.”\n- “Process multiple receipts if I upload more pages.”",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 405,
+    "completion_tokens": 1009,
+    "total_tokens": 1414,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 768,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

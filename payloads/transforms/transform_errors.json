@@ -23,6 +23,7 @@
     "openAIMultipleReasoningSignaturesReplayParam": "Google cannot replay OpenAI encrypted reasoning signatures; thought signatures are provider-issued and no lossless Google equivalent exists."
   },
   "chat-completions_to_bedrock": {
+    "chatCompletionsDocumentOnlyPdfFileParam": "Bedrock Converse requires a text block in the same message as a document; Lingua rejects document-only messages explicitly",
     "chatCompletionsInputAudioParam": "Bedrock Converse has no lossless representation for Chat Completions input_audio",
     "multimodalRequest": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
     "imageUrlMimeTypeFallbackParam": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
@@ -32,6 +33,7 @@
     "openAIMultipleReasoningSignaturesReplayParam": "Bedrock Converse cannot replay OpenAI encrypted reasoning signatures; they are OpenAI-issued provider metadata with no lossless Bedrock equivalent."
   },
   "chat-completions_to_bedrock_streaming": {
+    "chatCompletionsDocumentOnlyPdfFileParam": "Bedrock Converse requires a text block in the same message as a document; Lingua rejects document-only messages explicitly",
     "chatCompletionsInputAudioParam": "Bedrock Converse has no lossless representation for Chat Completions input_audio",
     "chatCompletionsUrlBackedAudioFileParam": "Bedrock Converse does not support file input",
     "chatCompletionsUrlBackedVideoFileParam": "Bedrock Converse does not support file input",

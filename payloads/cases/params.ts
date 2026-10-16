@@ -860,6 +860,30 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  chatCompletionsDocumentOnlyPdfFileParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "file",
+              file: {
+                filename: "receipt.pdf",
+                file_data: `data:application/pdf;base64,${receiptPdfBase64}`,
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   chatCompletionsGcsBackedVideoFileParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
