@@ -66,6 +66,9 @@ pub enum TrajectoryEvent {
         message: String,
     },
     Done,
+    /// Any event type this build does not know; ignored by the collector.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Default)]
@@ -1383,6 +1386,7 @@ impl TrajectoryCollector {
                 message,
             } => self.import_diagnostic("import_warnings", root_span_id, span_id, message)?,
             TrajectoryEvent::Done => self.complete = true,
+            TrajectoryEvent::Unknown => {}
         }
         Ok(())
     }

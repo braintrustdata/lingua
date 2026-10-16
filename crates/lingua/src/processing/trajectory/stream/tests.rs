@@ -169,3 +169,14 @@ fn emitted_payloads_and_per_span_history_are_released() {
             .all(|span| span.output.is_empty() && span.input_keys.is_empty()));
     }
 }
+
+#[test]
+fn collector_ignores_unknown_event_types() {
+    let event: TrajectoryEvent =
+        json::from_value(json::json!({"type": "voice_chatter", "scope": {}})).unwrap();
+    assert!(matches!(event, TrajectoryEvent::Unknown));
+    let mut collector = TrajectoryCollector::default();
+    collector.push(event).unwrap();
+    assert!(collector.snapshot().unwrap().is_empty());
+    assert!(!collector.is_complete());
+}
