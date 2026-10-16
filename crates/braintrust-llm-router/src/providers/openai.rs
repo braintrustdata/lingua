@@ -354,6 +354,7 @@ pub fn is_openai_compatible(kind: &str) -> bool {
             | "databricks"
             | "cohere"
             | "openrouter"
+            | "saladcloud"
     )
 }
 
@@ -411,6 +412,10 @@ pub fn openai_compatible_endpoint(kind: &str) -> Option<OpenAICompatibleEndpoint
             url: "https://openrouter.ai/api/v1",
             is_template: false,
         }),
+        "saladcloud" => Some(OpenAICompatibleEndpoint {
+            url: "https://ai.salad.cloud/v1",
+            is_template: false,
+        }),
         _ => None,
     }
 }
@@ -459,5 +464,14 @@ mod tests {
         let provider = OpenAIProvider::new(config).unwrap();
         let url = provider.chat_url(None).expect("url");
         assert!(url.as_str().contains("default.lepton.run"));
+    }
+
+    #[test]
+    fn recognizes_saladcloud_endpoint() {
+        assert!(is_openai_compatible("saladcloud"));
+
+        let endpoint = openai_compatible_endpoint("saladcloud").expect("endpoint");
+        assert_eq!(endpoint.url, "https://ai.salad.cloud/v1");
+        assert!(!endpoint.is_template);
     }
 }

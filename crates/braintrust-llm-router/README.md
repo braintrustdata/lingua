@@ -83,7 +83,7 @@ async fn main() -> anyhow::Result<()> {
 | AWS Bedrock | AWS SigV4 | Yes | |
 | Azure OpenAI | API Key / Entra | Yes | |
 | Mistral | API Key | Yes | |
-| OpenAI-compatible | API Key | Yes | Together, Groq, Perplexity, etc. |
+| OpenAI-compatible | API Key | Yes | Together, Groq, Perplexity, SaladCloud, etc. |
 
 ## API reference
 
