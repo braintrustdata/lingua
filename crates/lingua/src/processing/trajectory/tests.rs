@@ -2434,3 +2434,581 @@ fn trajectories_without_voice_have_no_recordings() {
         assert!(trajectory.recordings.is_none());
     }
 }
+
+#[test]
+fn recordings_come_from_the_root_span_only() {
+    let recording = |id: &str| json!([{"id": id, "state": "ready", "attachment": {"span_id": "root", "ref": "/input/audio/x"}}]);
+    let spans: Vec<Span> = serde_json::from_value(json!([
+        {"id": "root", "span_id": "root", "root_span_id": "root",
+         "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 9},
+         "metadata": {"audio.recordings": recording("call")}},
+        {"id": "child", "span_id": "child", "root_span_id": "root", "span_parents": ["root"],
+         "span_attributes": {"type": "task", "name": "clip"}, "metrics": {"start": 1, "end": 2},
+         "metadata": {"audio.recordings": recording("clip")}},
+        {"id": "model", "span_id": "model", "root_span_id": "root", "span_parents": ["root"],
+         "span_attributes": {"type": "llm"}, "metrics": {"start": 3, "end": 4},
+         "input": [{"role": "user", "content": "Hi"}], "output": [{"role": "assistant", "content": "Hello"}]}
+    ]))
+    .unwrap();
+    let mut stream = stream_from_sources(spans.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first().cloned() {
+        let source = spans
+            .iter()
+            .find(|span| span.other["id"].as_str() == Some(id.as_str()))
+            .cloned()
+            .unwrap();
+        collect(
+            &mut collector,
+            stream.push(import_span(source).unwrap()).unwrap(),
+        );
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let trajectory = collector.snapshot().unwrap().remove(0);
+    let ids: Vec<_> = trajectory
+        .recordings
+        .as_ref()
+        .unwrap()
+        .iter()
+        .map(|recording| recording.id.as_str())
+        .collect();
+    assert_eq!(ids, vec!["call"]);
+    assert_eq!(
+        trajectory.metadata.get("import_warnings"),
+        Some(&crate::serde_json::json!([{
+            "span_id": "child",
+            "message": "Ignored metadata.audio.recordings: call recordings are read from the root span only"
+        }]))
+    );
+}
+
+fn voice_fixture(fixture: &str) -> ImportFixture {
+    let fixture: Value = serde_json::from_str(fixture).unwrap();
+    ImportFixture {
+        import_options: ImportOptions::default(),
+        spans: serde_json::from_value(fixture["spans"].clone()).unwrap(),
+        turns: Vec::new(),
+        worker_responses: Vec::new(),
+        start_times: None,
+        end_times: None,
+        compactions: None,
+        request_tools: None,
+        requests: None,
+        import_failures: Vec::new(),
+        import_warnings: Vec::new(),
+    }
+}
+
+/// Runs a voice fixture through every load order and batch size and checks the output is the
+/// same each time.
+fn check_voice_fixture(fixture: &str) -> Trajectory {
+    let fixture = voice_fixture(fixture);
+    let baseline = serde_json::to_value(run_fixture(&fixture, 1, false, &[])).unwrap();
+    for (batch_size, import_bodies) in [(16, false), (1, true), (16, true)] {
+        assert_eq!(
+            serde_json::to_value(run_fixture(&fixture, batch_size, import_bodies, &[])).unwrap(),
+            baseline,
+            "Voice output depends on load order"
+        );
+    }
+    let count = fixture.spans.len();
+    let reversed: Vec<u64> = (0..count as u64).rev().collect();
+    let interleaved: Vec<u64> = (0..count as u64).map(|index| (index * 7) % 5).collect();
+    for priorities in [reversed, interleaved] {
+        for batch_size in [1, 3, 16] {
+            assert_eq!(
+                serde_json::to_value(run_fixture(&fixture, batch_size, false, &priorities))
+                    .unwrap(),
+                baseline,
+                "Voice output depends on load order"
+            );
+        }
+    }
+    let mut trajectories: Vec<Trajectory> = serde_json::from_value(baseline).unwrap();
+    assert_eq!(trajectories.len(), 1);
+    trajectories.remove(0)
+}
+
+/// The trajectory after the first payload only, when everything header-determined must be there.
+fn header_only_trajectory(fixture: &str) -> (TrajectoryStream, Trajectory) {
+    let spans = voice_fixture(fixture).spans;
+    let mut stream = stream_from_sources(spans.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    let first = stream.pending_ids(1).remove(0);
+    let mut header = spans
+        .iter()
+        .find(|span| span.other["id"].as_str() == Some(first.as_str()))
+        .cloned()
+        .unwrap();
+    header.input = None;
+    header.output = None;
+    collect(
+        &mut collector,
+        stream.push(import_span(header).unwrap()).unwrap(),
+    );
+    let trajectory = collector.snapshot().unwrap().remove(0);
+    (stream, trajectory)
+}
+
+fn utterance<'a>(trajectory: &'a Trajectory, id: &str) -> &'a crate::universal::Utterance {
+    trajectory
+        .utterances
+        .iter()
+        .flatten()
+        .find(|utterance| utterance.id == id)
+        .unwrap_or_else(|| panic!("Missing utterance {id}"))
+}
+
+fn link_triples(trajectory: &Trajectory) -> Vec<(String, String, String, Option<String>)> {
+    trajectory
+        .links
+        .iter()
+        .flatten()
+        .map(|link| {
+            (
+                link.from.clone(),
+                link.relationship.clone(),
+                link.to.span_id.clone(),
+                link.to.step_id.clone(),
+            )
+        })
+        .collect()
+}
+
+/// Every logged `metadata.links` entry of the fixture as `(from row, relationship, to span)`.
+fn logged_links(fixture: &str) -> Vec<(String, String, String)> {
+    let fixture: Value = serde_json::from_str(fixture).unwrap();
+    let mut links = Vec::new();
+    for row in fixture["spans"].as_array().unwrap() {
+        for link in row["metadata"]["links"].as_array().into_iter().flatten() {
+            links.push((
+                row["id"].as_str().unwrap().to_string(),
+                link["attributes"]["braintrust.relationship.type"]
+                    .as_str()
+                    .unwrap()
+                    .to_string(),
+                link["context"]["spanId"].as_str().unwrap().to_string(),
+            ));
+        }
+    }
+    links
+}
+
+fn turn_span_ids(trajectory: &Trajectory) -> HashSet<String> {
+    trajectory
+        .turns
+        .iter()
+        .flat_map(|turn| {
+            [Some(turn.request_id.clone()), turn.response_id.clone()]
+                .into_iter()
+                .flatten()
+                .chain(turn.work.iter().map(|step| step.id.clone()))
+        })
+        .collect()
+}
+
+const LIVEKIT_TRACE: &str = include_str!("fixtures/voice/livekit-realtime-order-lookup.json");
+const CASCADE_TRACE: &str = include_str!("fixtures/voice/fictional-cascade-turns.json");
+const EDGE_TRACE: &str = include_str!("fixtures/voice/fictional-edge-cases.json");
+
+#[test]
+fn livekit_speech_becomes_ordered_utterances_once() {
+    use crate::universal::{Speaker, Utterance};
+    let trajectory = check_voice_fixture(LIVEKIT_TRACE);
+    let utterances = trajectory.utterances.as_ref().unwrap();
+    let ids: Vec<_> = utterances
+        .iter()
+        .map(|utterance| utterance.id.as_str())
+        .collect();
+    assert_eq!(
+        ids,
+        vec![
+            "68e031159f3feede",
+            "8d9f25e48b7888cd",
+            "8bb24c01384ebf11",
+            "62acd8e8ee191cbd",
+            "3a80360be3632430",
+            "2cb6e251a0e3e227",
+            "f5e0b9990bdd4e42",
+        ]
+    );
+    let in_turns = turn_span_ids(&trajectory);
+    assert!(ids.iter().all(|id| !in_turns.contains(*id)));
+    assert_eq!(trajectory.turns.len(), 2);
+    assert!(utterances
+        .iter()
+        .all(|utterance| utterance.turn.is_none() && utterance.synthesis.is_none()));
+
+    let spoken: Vec<_> = utterances
+        .iter()
+        .map(|utterance| (utterance.speaker, utterance.text.as_deref().unwrap()))
+        .collect();
+    assert_eq!(
+        spoken,
+        vec![
+            (Speaker::Agent, "Hi, how can I help?"),
+            (Speaker::User, " Hi, can you tell me where a"),
+            (Speaker::User, " demo 1042 is"),
+            (Speaker::Agent, " Sure, I'll check that."),
+            (
+                Speaker::Agent,
+                " Order 1042 is in transit and expected to arrive Friday."
+            ),
+            (Speaker::User, " Alright, thank you"),
+            (Speaker::Agent, " You're welcome."),
+        ]
+    );
+    let offsets = |utterance: &Utterance| -> Vec<(Option<u32>, f64, f64)> {
+        utterance
+            .selections
+            .iter()
+            .map(|selection| {
+                assert_eq!(selection.recording_id, "call-0000");
+                assert_eq!(selection.recording_span_id, "ec099e46fa1da84e");
+                (
+                    selection.channel_index,
+                    selection.start_offset_ms,
+                    selection.end_offset_ms,
+                )
+            })
+            .collect()
+    };
+    for utterance in utterances {
+        let selections = offsets(utterance);
+        match utterance.speaker {
+            Speaker::User => {
+                assert_eq!(selections.len(), 1);
+                assert_eq!(selections[0].0, Some(0));
+            }
+            Speaker::Agent => {
+                assert!(selections.len() >= 3);
+                assert!(selections.iter().all(|selection| selection.0 == Some(1)));
+            }
+        }
+    }
+    assert_eq!(
+        offsets(utterance(&trajectory, "8bb24c01384ebf11")),
+        vec![(Some(0), 7053.0, 9369.0)]
+    );
+    assert_eq!(
+        offsets(utterance(&trajectory, "62acd8e8ee191cbd"))[0],
+        (Some(1), 8853.0, 8953.0)
+    );
+
+    let links = link_triples(&trajectory);
+    assert_eq!(links.len(), 18);
+    assert!(links.iter().all(|link| link.3.is_some()));
+    let fixture: Value = serde_json::from_str(LIVEKIT_TRACE).unwrap();
+    let row_id = |span_id: &str| {
+        fixture["spans"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["span_id"] == span_id)
+            .map(|row| row["id"].as_str().unwrap().to_string())
+            .unwrap()
+    };
+    let expected: Vec<_> = logged_links(LIVEKIT_TRACE)
+        .into_iter()
+        .map(|(from, relationship, to)| (from, relationship, to.clone(), Some(row_id(&to))))
+        .collect();
+    assert_eq!(links, expected);
+    let lookup_call = row_id("b7c2237de758520e");
+    let demo = row_id("724b542f5f6952c4");
+    assert!(!links
+        .iter()
+        .any(|link| link.0 == lookup_call && link.3.as_deref() == Some(demo.as_str())));
+    assert_eq!(
+        links
+            .iter()
+            .filter(|link| link.0 == lookup_call)
+            .map(|link| link.3.clone().unwrap())
+            .collect::<Vec<_>>(),
+        vec!["68e031159f3feede", "8d9f25e48b7888cd"]
+    );
+    assert!(links.contains(&(
+        "46685b2fb3905fc6".into(),
+        "requested_by".into(),
+        "b7c2237de758520e".into(),
+        Some(lookup_call)
+    )));
+    assert!(trajectory
+        .turns
+        .iter()
+        .all(|turn| turn.interrupted.is_none()));
+    assert!(!serde_json::to_string(&trajectory)
+        .unwrap()
+        .contains("interrupt"));
+}
+
+#[test]
+fn utterances_and_links_are_placed_from_headers_before_text_loads() {
+    let (_, trajectory) = header_only_trajectory(LIVEKIT_TRACE);
+    let utterances = trajectory.utterances.as_ref().unwrap();
+    assert_eq!(utterances.len(), 7);
+    assert!(utterances.iter().all(|utterance| utterance.text.is_none()));
+    assert!(utterances
+        .iter()
+        .all(|utterance| !utterance.selections.is_empty()));
+    assert_eq!(trajectory.links.as_ref().unwrap().len(), 18);
+}
+
+#[test]
+fn cascade_utterances_carry_framework_turns_and_synthesis() {
+    use crate::universal::{SpanRef, Speaker};
+    let trajectory = check_voice_fixture(CASCADE_TRACE);
+    let summary: Vec<_> = trajectory
+        .utterances
+        .as_ref()
+        .unwrap()
+        .iter()
+        .map(|utterance| {
+            let turn = utterance.turn.as_ref().unwrap();
+            (
+                utterance.id.as_str(),
+                utterance.speaker,
+                turn.span.span_id.as_str(),
+                turn.span.step_id.as_deref(),
+                turn.reply_to.as_ref().map(|reply| {
+                    (
+                        reply.span_id.as_str(),
+                        reply.step_id.as_deref().unwrap_or("UNRESOLVED"),
+                    )
+                }),
+                turn.incomplete,
+            )
+        })
+        .collect();
+    assert_eq!(
+        summary,
+        vec![
+            ("row-U1", Speaker::User, "UT1", Some("row-UT1"), None, None),
+            (
+                "row-A1",
+                Speaker::Agent,
+                "AT1",
+                Some("row-AT1"),
+                Some(("UT1", "row-UT1")),
+                None
+            ),
+            ("row-U2", Speaker::User, "UT2", Some("row-UT2"), None, None),
+            (
+                "row-A2",
+                Speaker::Agent,
+                "AT2",
+                Some("row-AT2"),
+                Some(("UT2", "row-UT2")),
+                None
+            ),
+            (
+                "row-U3",
+                Speaker::User,
+                "UT3",
+                Some("row-UT3"),
+                None,
+                Some(true)
+            ),
+        ]
+    );
+    let played = utterance(&trajectory, "row-A2");
+    assert_eq!(played.text.as_deref(), Some("Yes, I can change it."));
+    let synthesis = played.synthesis.as_ref().unwrap();
+    assert_eq!(
+        synthesis.span,
+        SpanRef {
+            span_id: "TT2".into(),
+            step_id: Some("row-TT2".into())
+        }
+    );
+    assert_eq!(
+        synthesis.text.as_deref(),
+        Some("Yes, I can change it. What is the new address?")
+    );
+    assert_eq!(
+        utterance(&trajectory, "row-A1")
+            .synthesis
+            .as_ref()
+            .unwrap()
+            .text
+            .as_deref(),
+        Some("Your order A7 arrives Friday.")
+    );
+    assert!(trajectory
+        .utterances
+        .as_ref()
+        .unwrap()
+        .iter()
+        .filter(|utterance| utterance.speaker == Speaker::User)
+        .all(|utterance| utterance.synthesis.is_none()));
+    let generated = trajectory
+        .turns
+        .iter()
+        .find(|turn| turn.response_id.as_deref() == Some("row-M3"))
+        .unwrap();
+    assert_eq!(
+        serde_json::to_value(generated.response.as_ref().unwrap()).unwrap()["response"][0]["text"],
+        "Yes, I can change it. What is the new address?"
+    );
+    let links = link_triples(&trajectory);
+    assert_eq!(links.len(), logged_links(CASCADE_TRACE).len());
+    assert_eq!(links.len(), 13);
+    assert!(links
+        .iter()
+        .all(|link| link.3.as_deref() == Some(&format!("row-{}", link.2))));
+    assert_eq!(
+        links
+            .iter()
+            .filter(|link| link.0 == "row-A2" || link.0 == "row-TT2")
+            .map(|link| (link.0.as_str(), link.1.as_str(), link.2.as_str()))
+            .collect::<Vec<_>>(),
+        vec![
+            ("row-TT2", "generated_by", "M3"),
+            ("row-A2", "generated_by", "TT2")
+        ]
+    );
+    assert!(links.contains(&(
+        "row-T1".into(),
+        "requested_by".into(),
+        "M1".into(),
+        Some("row-M1".into())
+    )));
+    assert!(links.contains(&(
+        "row-M2".into(),
+        "consumes_tool_result".into(),
+        "T1".into(),
+        Some("row-T1".into())
+    )));
+    assert!(trajectory
+        .turns
+        .iter()
+        .all(|turn| turn.interrupted.is_none()));
+    assert!(!serde_json::to_string(&trajectory)
+        .unwrap()
+        .contains("interrupt"));
+}
+
+#[test]
+fn synthesis_text_arrives_with_the_tts_payload() {
+    let (stream, headers) = header_only_trajectory(CASCADE_TRACE);
+    let synthesis = utterance(&headers, "row-A2").synthesis.clone().unwrap();
+    assert_eq!(synthesis.span.step_id.as_deref(), Some("row-TT2"));
+    assert_eq!(synthesis.text, None);
+    assert!(stream.needs_payload("row-TT2"));
+    assert!(stream.needs_payload("row-A2"));
+    let pending = stream.pending_ids(usize::MAX);
+    assert!(pending.contains(&"row-TT2".to_string()));
+    assert!(pending.contains(&"row-U2".to_string()));
+}
+
+#[test]
+fn edge_case_utterances_keep_missing_data_visible() {
+    let trajectory = check_voice_fixture(EDGE_TRACE);
+    let utterances = trajectory.utterances.as_ref().unwrap();
+    assert_eq!(
+        utterances
+            .iter()
+            .map(|utterance| utterance.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["row-V1", "row-V2", "row-V3", "row-V4", "row-V6", "row-V5"]
+    );
+    assert_eq!(utterance(&trajectory, "row-V1").text, None);
+    assert_eq!(utterance(&trajectory, "row-V1").selections.len(), 1);
+    let no_audio = utterance(&trajectory, "row-V3");
+    assert!(no_audio.selections.is_empty());
+    assert_eq!(no_audio.text.as_deref(), Some("Sure, one moment."));
+    assert_eq!(no_audio.synthesis, None);
+    let segmented: Vec<_> = utterance(&trajectory, "row-V4")
+        .selections
+        .iter()
+        .map(|selection| (selection.recording_id.as_str(), selection.start_offset_ms))
+        .collect();
+    assert_eq!(segmented, vec![("seg-0", 5500.0), ("seg-1", 0.0)]);
+    assert!(utterances.iter().all(|utterance| utterance.turn.is_none()));
+    assert_eq!(
+        link_triples(&trajectory),
+        vec![
+            (
+                "row-L1".into(),
+                "input_context".into(),
+                "MISSING-SPAN".into(),
+                None
+            ),
+            (
+                "row-V3".into(),
+                "generated_by".into(),
+                "L1".into(),
+                Some("row-L1".into())
+            ),
+        ]
+    );
+    assert_eq!(trajectory.metadata.get("import_warnings"), None);
+    assert_eq!(
+        trajectory
+            .recordings
+            .as_ref()
+            .unwrap()
+            .iter()
+            .map(|recording| (recording.id.as_str(), recording.state.as_deref()))
+            .collect::<Vec<_>>(),
+        vec![
+            ("seg-0", Some("ready")),
+            ("seg-1", Some("ready")),
+            ("agent-clip", Some("pending"))
+        ]
+    );
+}
+
+#[test]
+fn malformed_voice_keys_warn_once_and_keep_the_rest() {
+    let trajectory = check_voice_fixture(
+        &json!({"spans": [
+            {"id": "root", "span_id": "root", "root_span_id": "root", "span_parents": [],
+             "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 5}},
+            {"id": "speech", "span_id": "speech", "root_span_id": "root", "span_parents": ["root"],
+             "span_attributes": {"type": "task", "name": "agent_speech"}, "metrics": {"start": 1, "end": 2},
+             "output": [{"role": "assistant", "content": [{"type": "text", "text": "Hello"}, {"type": "text", "text": "there"}]}],
+             "metadata": {
+                "audio.selections": "nope",
+                "turn.id": "T-gone",
+                "links": [{"attributes": {"braintrust.relationship.type": "generated_by"}, "context": {"spanId": "gone"}}]
+             }}
+        ]})
+        .to_string(),
+    );
+    let speech = utterance(&trajectory, "speech");
+    assert_eq!(speech.text.as_deref(), Some("Hello\nthere"));
+    assert!(speech.selections.is_empty());
+    let turn = speech.turn.as_ref().unwrap();
+    assert_eq!(turn.span.span_id, "T-gone");
+    assert_eq!(turn.span.step_id, None);
+    assert_eq!(turn.reply_to, None);
+    assert_eq!(
+        link_triples(&trajectory),
+        vec![("speech".into(), "generated_by".into(), "gone".into(), None)]
+    );
+    assert!(trajectory.turns.is_empty());
+    assert_eq!(
+        trajectory.metadata.get("import_warnings"),
+        Some(&crate::serde_json::json!([{
+            "span_id": "speech",
+            "message": "Invalid metadata.audio.selections: invalid type: string \"nope\", expected a sequence"
+        }]))
+    );
+}
+
+#[test]
+fn trajectories_without_voice_have_no_utterances_or_links() {
+    let fixture = voice_fixture(
+        &json!({"spans": [
+            {"id": "a", "span_id": "a", "root_span_id": "root", "span_parents": ["root"],
+             "span_attributes": {"type": "llm"}, "metrics": {"start": 1, "end": 2},
+             "input": [{"role": "user", "content": "Hi"}], "output": [{"role": "assistant", "content": "Hello"}]}
+        ]})
+        .to_string(),
+    );
+    let trajectory = run_fixture(&fixture, 1, false, &[]).remove(0);
+    assert!(trajectory.utterances.is_none());
+    assert!(trajectory.links.is_none());
+    assert!(trajectory.recordings.is_none());
+    assert_eq!(trajectory.turns.len(), 1);
+}

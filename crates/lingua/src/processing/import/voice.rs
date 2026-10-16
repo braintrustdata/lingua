@@ -15,21 +15,15 @@ pub struct SpanVoice {
     /// `metadata.links`, in logged order.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub links: Vec<SpanLink>,
-    /// Native message ids, like `metadata["contrib.livekit.message_ids"]`.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub message_ids: Vec<String>,
-    /// Native response id of a model operation, like `metadata["contrib.livekit.response_id"]`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub response_id: Option<String>,
-    /// Native participant kind, like `metadata["contrib.livekit.participant_kind"]`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub participant_kind: Option<String>,
     /// `metadata["turn.id"]`: the framework turn that owns this span.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub turn_id: Option<String>,
     /// `metadata["turn.reply_to"]`: the user turn an agent turn answers, when the framework knows.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reply_to: Option<String>,
+    /// `metadata["turn.incomplete"]`: the framework marked this turn as cut short.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub incomplete: Option<bool>,
 }
 
 impl SpanVoice {
@@ -45,6 +39,19 @@ pub struct SpanLink {
     pub span_id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub trace_id: Option<String>,
+}
+
+/// Input of a speech synthesis (`tts`) span: the text sent to TTS.
+#[derive(Deserialize)]
+struct SynthesisInput {
+    text: String,
+}
+
+/// Text a `tts` span was asked to synthesize, from its `{"text": ...}` input.
+pub(crate) fn import_synthesis_text(input: Option<&json::Value>) -> Option<String> {
+    SynthesisInput::deserialize(input?)
+        .ok()
+        .map(|input| input.text)
 }
 
 #[derive(Deserialize)]
@@ -73,7 +80,7 @@ struct LoggedAttachment {
 #[derive(Deserialize)]
 struct LoggedSource {
     boundary: String,
-    channel_index: u32,
+    channel_index: Option<u32>,
 }
 
 #[derive(Deserialize)]
@@ -105,16 +112,12 @@ struct VoiceMetadata {
     #[serde(rename = "audio.selections")]
     selections: Option<json::Value>,
     links: Option<json::Value>,
-    #[serde(rename = "contrib.livekit.message_ids")]
-    message_ids: Option<json::Value>,
-    #[serde(rename = "contrib.livekit.response_id")]
-    response_id: Option<json::Value>,
-    #[serde(rename = "contrib.livekit.participant_kind")]
-    participant_kind: Option<json::Value>,
     #[serde(rename = "turn.id")]
     turn_id: Option<json::Value>,
     #[serde(rename = "turn.reply_to")]
     reply_to: Option<json::Value>,
+    #[serde(rename = "turn.incomplete")]
+    incomplete: Option<json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -192,24 +195,9 @@ pub(crate) fn import_voice(
         recordings,
         selections,
         links,
-        message_ids: field(
-            metadata.message_ids,
-            "contrib.livekit.message_ids",
-            warnings,
-        )
-        .unwrap_or_default(),
-        response_id: field(
-            metadata.response_id,
-            "contrib.livekit.response_id",
-            warnings,
-        ),
-        participant_kind: field(
-            metadata.participant_kind,
-            "contrib.livekit.participant_kind",
-            warnings,
-        ),
         turn_id: field(metadata.turn_id, "turn.id", warnings),
         reply_to: field(metadata.reply_to, "turn.reply_to", warnings),
+        incomplete: field(metadata.incomplete, "turn.incomplete", warnings),
     };
     (!voice.is_empty()).then_some(voice)
 }
@@ -236,8 +224,6 @@ mod tests {
         assert!(warnings.is_empty(), "{warnings:?}");
         assert_eq!(voice.selections.len(), 2);
         assert_eq!(voice.selections[1].start_offset_ms, 3307.0);
-        assert_eq!(voice.message_ids, vec!["item_1"]);
-        assert_eq!(voice.participant_kind.as_deref(), Some("AGENT"));
         assert_eq!(
             voice.links,
             vec![SpanLink {
@@ -285,6 +271,18 @@ mod tests {
     }
 
     #[test]
+    fn keeps_sources_without_a_channel_index() {
+        let metadata = json!({"audio.recordings": [{
+            "id": "clip", "state": "ready",
+            "sources": [{"boundary": "session_input"}, {"boundary": "local_audio_output", "channel_index": 1}]
+        }]});
+        let voice = import_voice(Some(&metadata), &mut Vec::new()).unwrap();
+        let channels = &voice.recordings[0].channels;
+        assert_eq!(channels[0].index, None);
+        assert_eq!(channels[1].index, Some(1));
+    }
+
+    #[test]
     fn falls_back_to_single_selection_and_keeps_unknown_relationships() {
         let metadata = json!({
             "audio.selection": {"recording_id": "r", "recording_span_id": "root", "start_offset_ms": 1, "end_offset_ms": 2},
@@ -292,7 +290,8 @@ mod tests {
                 {"attributes": {"braintrust.relationship.type": "contrib.acme.heard_by"}, "context": {"spanId": "x"}},
                 {"attributes": {}, "context": {"spanId": "untyped"}}
             ],
-            "turn.id": "UT1"
+            "turn.id": "UT1",
+            "turn.incomplete": true
         });
         let voice = import_voice(Some(&metadata), &mut Vec::new()).unwrap();
         assert_eq!(voice.selections.len(), 1);
@@ -300,14 +299,15 @@ mod tests {
         assert_eq!(voice.links.len(), 1);
         assert_eq!(voice.links[0].relationship, "contrib.acme.heard_by");
         assert_eq!(voice.turn_id.as_deref(), Some("UT1"));
+        assert_eq!(voice.incomplete, Some(true));
     }
 
     #[test]
     fn reports_malformed_voice_metadata_without_failing() {
-        let metadata = json!({"audio.selections": "nope", "contrib.livekit.message_ids": ["m"]});
+        let metadata = json!({"audio.selections": "nope", "turn.id": "UT1"});
         let mut warnings = Vec::new();
         let voice = import_voice(Some(&metadata), &mut warnings).unwrap();
-        assert_eq!(voice.message_ids, vec!["m"]);
+        assert_eq!(voice.turn_id.as_deref(), Some("UT1"));
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].starts_with("Invalid metadata.audio.selections"));
     }
@@ -351,10 +351,9 @@ mod tests {
             .filter(|(name, _, _)| name.ends_with("_speech"))
             .collect();
         assert_eq!(speech.len(), 7);
-        assert!(speech.iter().all(|(_, voice, _)| {
-            let voice = voice.as_ref().unwrap();
-            !voice.selections.is_empty() && voice.message_ids.len() == 1
-        }));
+        assert!(speech
+            .iter()
+            .all(|(_, voice, _)| !voice.as_ref().unwrap().selections.is_empty()));
         let links: usize = spans
             .iter()
             .filter_map(|(_, voice, _)| voice.as_ref())
