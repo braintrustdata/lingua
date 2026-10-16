@@ -2713,10 +2713,6 @@ fn voice_timeline_places_livekit_speech_on_the_recording_clock() {
         .links
         .iter()
         .any(|link| { link.from == lookup_model && link.to.as_deref() == Some(demo_speech) }));
-    assert!(!timeline
-        .gaps
-        .iter()
-        .any(|gap| gap.via.as_deref() == Some(lookup_model) && gap.from == demo_speech));
 
     assert_eq!(
         timeline.overlaps,
@@ -2740,43 +2736,6 @@ fn voice_timeline_places_livekit_speech_on_the_recording_clock() {
         .turns
         .iter()
         .all(|turn| turn.interrupted.is_none()));
-
-    let gaps: Vec<_> = timeline
-        .gaps
-        .iter()
-        .map(|gap| {
-            assert_eq!(gap.evidence, TimelineEvidence::SpanLink);
-            (
-                gap.from.as_str(),
-                gap.to.as_str(),
-                gap.gap_ms,
-                gap.via.as_deref(),
-            )
-        })
-        .collect();
-    assert_eq!(
-        gaps,
-        vec![
-            (
-                "8d9f25e48b7888cd",
-                "62acd8e8ee191cbd",
-                1854.0,
-                Some(lookup_model)
-            ),
-            (
-                demo_speech,
-                "3a80360be3632430",
-                3231.0,
-                Some("cf4ad22a4fce2f17")
-            ),
-            (
-                demo_speech,
-                "f5e0b9990bdd4e42",
-                9571.0,
-                Some("fb1ff83447ce40a4")
-            ),
-        ]
-    );
 }
 
 #[test]
@@ -2805,7 +2764,6 @@ fn voice_timeline_header_state_is_valid_before_speech_loads() {
         1
     );
     assert_eq!(timeline.overlaps.len(), 2);
-    assert_eq!(timeline.gaps.len(), 3);
     assert!(timeline_entry(&timeline, &first).text.is_some());
 }
 
@@ -2892,25 +2850,6 @@ fn voice_timeline_uses_cascade_framework_turns() {
         .turns
         .iter()
         .all(|turn| turn.interrupted.is_none()));
-    let gaps: Vec<_> = timeline
-        .gaps
-        .iter()
-        .map(|gap| {
-            (
-                gap.from.as_str(),
-                gap.to.as_str(),
-                gap.gap_ms,
-                gap.via.as_deref(),
-            )
-        })
-        .collect();
-    assert_eq!(
-        gaps,
-        vec![
-            ("row-U1", "row-A1", 1800.0, Some("row-M2")),
-            ("row-U2", "row-A2", 800.0, Some("row-M3")),
-        ]
-    );
 }
 
 #[test]
@@ -2945,7 +2884,6 @@ fn voice_timeline_handles_missing_voice_data() {
     assert_eq!(missing.len(), 1);
     assert_eq!(missing[0].from, "row-L1");
     assert_eq!(missing[0].to, None);
-    assert!(timeline.gaps.is_empty());
     assert_eq!(
         timeline
             .overlaps

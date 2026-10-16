@@ -100,8 +100,6 @@ pub struct CallTimeline {
     pub links: Vec<TimelineLink>,
     /// Speech of different lanes sharing time. A fact about time only, not interruption or cause.
     pub overlaps: Vec<TimelineOverlap>,
-    /// Silence from user speech to agent speech, only where an observed relationship joins them.
-    pub gaps: Vec<TimelineGap>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -197,21 +195,6 @@ pub struct TimelineOverlap {
     pub b: String,
     pub start_ms: f64,
     pub end_ms: f64,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-pub struct TimelineGap {
-    /// User speech.
-    pub from: String,
-    /// Agent speech.
-    pub to: String,
-    /// `to` start minus `from` end; negative when the agent started first.
-    pub gap_ms: f64,
-    pub evidence: TimelineEvidence,
-    /// The model entry for `span_link` gaps, or the agent turn entry for `turn_reply_to` gaps.
-    #[ts(optional)]
-    pub via: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

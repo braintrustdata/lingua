@@ -51,7 +51,6 @@ export type { TimelineClock } from "./generated/TimelineClock";
 export type { TimelineEntry } from "./generated/TimelineEntry";
 export type { TimelineEntryKind } from "./generated/TimelineEntryKind";
 export type { TimelineEvidence } from "./generated/TimelineEvidence";
-export type { TimelineGap } from "./generated/TimelineGap";
 export type { TimelineLane } from "./generated/TimelineLane";
 export type { TimelineLink } from "./generated/TimelineLink";
 export type { TimelineOverlap } from "./generated/TimelineOverlap";

@@ -1,7 +1,7 @@
 use super::PreparedSpan;
 use crate::universal::trajectory::{
     AudioRecording, CallTimeline, TimelineClock, TimelineEntry, TimelineEntryKind,
-    TimelineEvidence, TimelineGap, TimelineLane, TimelineLink, TimelineOverlap, TimingSource,
+    TimelineEvidence, TimelineLane, TimelineLink, TimelineOverlap, TimingSource,
 };
 use crate::universal::{AssistantContent, AssistantContentPart, Message, UserContent};
 use crate::universal::{TextContentPart, UserContentPart};
@@ -306,90 +306,11 @@ pub(super) fn build(
         }
     }
 
-    let by_id: HashMap<&str, &TimelineEntry> = entries
-        .iter()
-        .map(|entry| (entry.id.as_str(), entry))
-        .collect();
-    let link_to = |from: &str, relationship: &str| -> Vec<&str> {
-        links
-            .iter()
-            .filter(|link| {
-                link.from == from
-                    && link.relationship == relationship
-                    && link.evidence == TimelineEvidence::SpanLink
-            })
-            .filter_map(|link| link.to.as_deref())
-            .collect()
-    };
-    let latest_user = |candidates: Vec<&str>| {
-        candidates
-            .into_iter()
-            .filter_map(|id| by_id.get(id).copied())
-            .filter(|entry| {
-                entry.kind == TimelineEntryKind::Speech && entry.lane == TimelineLane::User
-            })
-            .filter_map(|entry| Some((entry.end_ms?, entry)))
-            .max_by(|a, b| a.0.total_cmp(&b.0).then(a.1.id.cmp(&b.1.id)))
-    };
-    let mut gaps = Vec::new();
-    for agent in speech
-        .iter()
-        .filter(|entry| entry.lane == TimelineLane::Agent)
-    {
-        let mut current = agent.id.as_str();
-        let mut visited = HashSet::from([current]);
-        let mut model = None;
-        while let Some(next) = link_to(current, "generated_by").into_iter().next() {
-            if !visited.insert(next) {
-                break;
-            }
-            if span_entries
-                .get(next)
-                .is_some_and(|span| span.kind() == "llm")
-            {
-                model = Some(next);
-                break;
-            }
-            current = next;
-        }
-        let measured = model
-            .and_then(|model| {
-                let (end, user) = latest_user(link_to(model, "input_context"))?;
-                Some((end, user, TimelineEvidence::SpanLink, model))
-            })
-            .or_else(|| {
-                let span = span_entries.get(agent.id.as_str())?;
-                let turn = turns.get(turn_of(span)?)?;
-                let reply_to = turn.source.voice.as_ref()?.reply_to.as_deref()?;
-                let users = speech
-                    .iter()
-                    .filter(|entry| {
-                        span_entries
-                            .get(entry.id.as_str())
-                            .is_some_and(|span| turn_of(span) == Some(reply_to))
-                    })
-                    .map(|entry| entry.id.as_str())
-                    .collect();
-                let (end, user) = latest_user(users)?;
-                Some((end, user, TimelineEvidence::TurnReplyTo, turn.id.as_str()))
-            });
-        if let Some((end, user, evidence, via)) = measured {
-            gaps.push(TimelineGap {
-                from: user.id.clone(),
-                to: agent.id.clone(),
-                gap_ms: round(agent.start_ms - end),
-                evidence,
-                via: Some(via.to_string()),
-            });
-        }
-    }
-
     Some(CallTimeline {
         origin_unix_ms: origin,
         clock,
         entries,
         links,
         overlaps,
-        gaps,
     })
 }
