@@ -2,7 +2,7 @@ use super::*;
 use crate::processing::import::{import_span, import_span_with_options, ImportOptions, Span};
 use crate::universal::trajectory::{
     ContextRef, InferenceBasis, ObservedSource, VoiceContext, VoiceEvidence, VoiceMessage,
-    VoiceSpeaker,
+    VoiceSpeaker, VoiceSynthesis,
 };
 use crate::universal::{UserContent, UserContentPart};
 use proptest::prelude::*;
@@ -2571,7 +2571,7 @@ fn voice_messages_join_generated_played_and_context_in_livekit_trace() {
                 && selection.channel_index == Some(channel)));
         if message.speaker == VoiceSpeaker::Agent {
             assert_eq!(message.generated_text, message.spoken_text);
-            assert_eq!(message.text_differs, Some(false));
+            assert_eq!(message.synthesis, None);
             assert_eq!(message.joins.len(), 1);
             assert_eq!(message.joins[0].relationship, "generated_by");
             assert_eq!(
@@ -2723,7 +2723,7 @@ fn voice_messages_are_valid_from_headers_alone() {
     assert!(messages
         .iter()
         .filter(|message| message.speaker == VoiceSpeaker::Agent)
-        .all(|message| message.joins.len() == 1 && message.text_differs.is_none()));
+        .all(|message| message.joins.len() == 1 && message.synthesis.is_none()));
     let contexts = trajectory.voice_contexts.as_ref().unwrap();
     assert_eq!(contexts[2].message_ids.len(), 4);
     assert_eq!(contexts[2].unmatched_input_count, None);
@@ -2762,7 +2762,6 @@ fn voice_messages_follow_cascade_turns_and_keep_played_text() {
         Some("Yes, I can change it. What is the new address?")
     );
     assert_eq!(played.generated_step_id.as_deref(), Some("row-M3"));
-    assert_eq!(played.text_differs, Some(true));
     let joins: Vec<_> = played
         .joins
         .iter()
@@ -2782,8 +2781,6 @@ fn voice_messages_follow_cascade_turns_and_keep_played_text() {
             ("generated_by", Some("row-M3"), Some("TT2"), vec![LINKED]),
         ]
     );
-    let answer = voice_message(&trajectory, "row-A1");
-    assert_eq!(answer.text_differs, Some(false));
     let heard = voice_message(&trajectory, "row-U1");
     assert_eq!(heard.joins[0].relationship, "transcribed_by");
     assert_eq!(heard.joins[0].step_id.as_deref(), Some("row-ST1"));
@@ -2805,14 +2802,104 @@ fn voice_messages_follow_cascade_turns_and_keep_played_text() {
 }
 
 #[test]
+fn voice_messages_keep_tts_input_as_synthesis_detail_in_cascade() {
+    let fixture = include_str!("fixtures/voice/fictional-cascade-turns.json");
+    let trajectory = voice_variants(fixture);
+    let details: Vec<_> = trajectory
+        .voice_messages
+        .as_ref()
+        .unwrap()
+        .iter()
+        .map(|message| {
+            (
+                message.id.as_str(),
+                message.spoken_text.as_deref(),
+                message.generated_text.as_deref(),
+                message.synthesis.clone(),
+            )
+        })
+        .collect();
+    let synthesis = |span_id: &str, text: &str| {
+        Some(VoiceSynthesis {
+            span_id: span_id.into(),
+            step_id: format!("row-{span_id}"),
+            text: Some(text.into()),
+        })
+    };
+    assert_eq!(
+        details,
+        vec![
+            ("row-U1", Some("Where is my order?"), None, None),
+            (
+                "row-A1",
+                Some("Your order A7 arrives Friday."),
+                Some("Your order A7 arrives Friday."),
+                synthesis("TT1", "Your order A7 arrives Friday."),
+            ),
+            (
+                "row-U2",
+                Some("Can I change the delivery address?"),
+                None,
+                None
+            ),
+            (
+                "row-A2",
+                Some("Yes, I can change it."),
+                Some("Yes, I can change it. What is the new address?"),
+                synthesis("TT2", "Yes, I can change it. What is the new address?"),
+            ),
+            ("row-U3", Some("It's 12 Elm Street."), None, None),
+        ]
+    );
+    let played = serde_json::to_value(voice_message(&trajectory, "row-A2")).unwrap();
+    let mut keys: Vec<_> = played.as_object().unwrap().keys().cloned().collect();
+    keys.sort();
+    assert_eq!(
+        keys,
+        vec![
+            "end_time",
+            "generated_step_id",
+            "generated_text",
+            "id",
+            "joins",
+            "reply_to",
+            "selections",
+            "speaker",
+            "speech_id",
+            "spoken_text",
+            "start_time",
+            "synthesis",
+            "turn_id",
+        ]
+    );
+    assert_eq!(trajectory.voice_messages.as_ref().unwrap().len(), 5);
+
+    let spans = voice_fixture_spans(fixture);
+    let mut stream = stream_from_sources(spans.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    let first = stream.pending_ids(1).remove(0);
+    assert_ne!(first, "row-TT2");
+    collect(
+        &mut collector,
+        stream
+            .push(import_span(find_source(&spans, &first)).unwrap())
+            .unwrap(),
+    );
+    let headers = collector.snapshot().unwrap().remove(0);
+    let header_synthesis = voice_message(&headers, "row-A2").synthesis.clone().unwrap();
+    assert_eq!(header_synthesis.step_id, "row-TT2");
+    assert_eq!(header_synthesis.text, None);
+    assert!(stream.needs_payload("row-TT2"));
+}
+
+#[test]
 fn voice_messages_survive_missing_voice_data() {
     let trajectory = voice_variants(include_str!("fixtures/voice/fictional-edge-cases.json"));
     let untranscribed = voice_message(&trajectory, "row-V1");
     assert_eq!(untranscribed.spoken_text, None);
-    assert_eq!(untranscribed.text_differs, None);
     let unplaced = voice_message(&trajectory, "row-V3");
     assert!(unplaced.selections.is_empty());
-    assert_eq!(unplaced.text_differs, Some(false));
+    assert_eq!(unplaced.synthesis, None);
     let segmented = voice_message(&trajectory, "row-V4");
     assert_eq!(
         segmented

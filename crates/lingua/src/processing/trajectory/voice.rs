@@ -3,7 +3,7 @@ use super::PreparedSpan;
 use crate::processing::import::{ImportedSpan, SpanVoice};
 use crate::universal::trajectory::{
     ContextRef, InferenceBasis, MessageJoin, ObservedSource, VoiceContext, VoiceEvidence,
-    VoiceMessage, VoiceSpeaker,
+    VoiceMessage, VoiceSpeaker, VoiceSynthesis,
 };
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, UserContent, UserContentPart,
@@ -27,7 +27,8 @@ struct Node {
 /// Payload text that voice joins read.
 #[derive(Default)]
 pub(super) struct VoiceText {
-    /// Speech text for speech spans; assistant output text for model calls.
+    /// Speech text for speech spans, assistant output text for model calls, and TTS input for
+    /// synthesis spans.
     text: Option<String>,
     /// User and assistant text inputs of a model call, in order.
     inputs: Vec<(VoiceSpeaker, String)>,
@@ -88,6 +89,7 @@ impl VoiceJoins {
             }
         }
         for (root_id, mut indices) in members {
+            let mut stream_index = Vec::with_capacity(indices.len());
             indices.sort_by(|a, b| {
                 spans[*a]
                     .start
@@ -125,6 +127,7 @@ impl VoiceJoins {
                     }
                     joins.sources.insert(index, (root_id.to_string(), node));
                 }
+                stream_index.push(index);
                 root.nodes.push(Node {
                     id: span.id.clone(),
                     span_id: span.span_id.clone(),
@@ -133,6 +136,16 @@ impl VoiceJoins {
                     end: span.source.end,
                     voice,
                 });
+            }
+            let synthesis: Vec<_> = root
+                .speech
+                .iter()
+                .filter_map(|speech| root.synthesis(speech))
+                .collect();
+            for node in synthesis {
+                joins
+                    .sources
+                    .insert(stream_index[node], (root_id.to_string(), node));
             }
             let mut counts: HashMap<String, usize> = HashMap::new();
             for speech in &root.speech {
@@ -236,6 +249,20 @@ const LINK: VoiceEvidence = VoiceEvidence::Observed {
 impl RootVoice {
     fn text(&self, node: usize) -> Option<&str> {
         self.texts.get(&node).and_then(|text| text.text.as_deref())
+    }
+
+    /// The non-model span an agent message's first `generated_by` link targets, like a `tts` span.
+    fn synthesis(&self, speech: &Speech) -> Option<usize> {
+        if speech.speaker != VoiceSpeaker::Agent {
+            return None;
+        }
+        self.nodes[speech.node]
+            .voice
+            .links
+            .iter()
+            .filter(|link| link.relationship == GENERATED_BY)
+            .find_map(|link| self.by_span_id.get(&link.span_id).copied())
+            .filter(|target| self.nodes[*target].kind != "llm")
     }
 
     fn join(&self) -> (Vec<VoiceMessage>, Vec<VoiceContext>) {
@@ -399,18 +426,20 @@ impl RootVoice {
         let generated_text = generated
             .and_then(|target| self.text(target))
             .map(str::to_string);
+        let synthesis = self.synthesis(speech).map(|target| VoiceSynthesis {
+            span_id: self.nodes[target].span_id.clone(),
+            step_id: self.nodes[target].id.clone(),
+            text: self.text(target).map(str::to_string),
+        });
         VoiceMessage {
             id: speech.id.clone(),
             speaker: speech.speaker,
             speech_id: node.id.clone(),
             native_ids: node.voice.message_ids.clone(),
-            text_differs: spoken_text
-                .as_ref()
-                .zip(generated_text.as_ref())
-                .map(|(spoken, generated)| spoken != generated),
             spoken_text,
             generated_text,
             generated_step_id: generated.map(|target| self.nodes[target].id.clone()),
+            synthesis,
             selections: node.voice.selections.clone(),
             start_time: node.start,
             end_time: node.end,
@@ -478,6 +507,12 @@ impl VoiceText {
         let speaker = match (span.header.kind.as_str(), span.header.name.as_deref()) {
             ("task", Some("user_speech")) => Some(VoiceSpeaker::User),
             ("task", Some("agent_speech")) => Some(VoiceSpeaker::Agent),
+            (kind, _) if kind != "llm" => {
+                return Self {
+                    text: span.synthesis_text.clone(),
+                    inputs: Vec::new(),
+                };
+            }
             _ => None,
         };
         let texts = |messages: &[Message], wanted: VoiceSpeaker| {

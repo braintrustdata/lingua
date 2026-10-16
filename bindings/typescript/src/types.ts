@@ -54,6 +54,7 @@ export type { VoiceContext } from "./generated/VoiceContext";
 export type { VoiceEvidence } from "./generated/VoiceEvidence";
 export type { VoiceMessage } from "./generated/VoiceMessage";
 export type { VoiceSpeaker } from "./generated/VoiceSpeaker";
+export type { VoiceSynthesis } from "./generated/VoiceSynthesis";
 export type { Turn } from "./generated/Turn";
 export type { Agent } from "./generated/Agent";
 export type { Compaction } from "./generated/Compaction";
