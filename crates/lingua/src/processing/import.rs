@@ -1005,6 +1005,18 @@ fn import_span_messages(
     }
 }
 
+pub fn import_system_message_from_metadata(metadata: &Value) -> Option<Message> {
+    #[cfg(feature = "openai")]
+    {
+        try_system_message_from_openai_metadata(metadata)
+    }
+    #[cfg(not(feature = "openai"))]
+    {
+        let _ = metadata;
+        None
+    }
+}
+
 /// Import messages from a list of spans
 ///
 /// This function processes spans and extracts messages from their input/output fields,

@@ -5,6 +5,26 @@ mod tests {
     use serde_json::{json, Value};
 
     #[test]
+    fn metadata_import_matches_span_import() {
+        for metadata in [
+            json!({"instructions": "system prompt", "payload": [1.25, 2.5, 3.75]}),
+            json!("{\"instructions\":\"encoded system prompt\"}"),
+            json!({"instructions": ""}),
+            json!({"instructions": 123}),
+            json!({"instructions": "prompt", "reasoning": "invalid"}),
+            json!(null),
+        ] {
+            let projected = lingua::processing::import_system_message_from_metadata(&metadata);
+            let imported = import_messages_from_spans(vec![Span {
+                input: None,
+                output: None,
+                other: serde_json::Map::from_iter([("metadata".to_string(), metadata)]),
+            }]);
+            assert_eq!(serde_json::to_value(projected.into_iter().collect::<Vec<_>>()).unwrap(), serde_json::to_value(imported).unwrap());
+        }
+    }
+
+    #[test]
     fn values_move_between_json_backends_without_conversion() {
         let value = json!({
             "text": "café 日本語 🚀",
