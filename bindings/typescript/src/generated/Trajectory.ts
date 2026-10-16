@@ -8,6 +8,6 @@ import type { Turn } from "./Turn";
 
 export type Trajectory = { scope: Array<Scope>, agent: Agent, sections?: Array<Section>, findings?: Array<Finding>, turns: Array<Turn>, metadata: Record<string, unknown>, version?: string, 
 /**
- * Audio recordings logged anywhere in the trace, in span order.
+ * Call recordings logged on the root span, in logged order. Root scope only.
  */
 recordings?: Array<AudioRecording>, };

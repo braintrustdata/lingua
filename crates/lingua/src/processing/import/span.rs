@@ -23,11 +23,9 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "audio.selection",
     "audio.selections",
     "links",
-    "contrib.livekit.message_ids",
-    "contrib.livekit.response_id",
-    "contrib.livekit.participant_kind",
     "turn.id",
     "turn.reply_to",
+    "turn.incomplete",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

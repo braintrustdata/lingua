@@ -874,18 +874,33 @@ impl TrajectoryStream {
         Ok(())
     }
 
-    fn recordings(&self, root_span_id: &str) -> Vec<AudioRecording> {
-        let mut spans: Vec<_> = self
-            .spans
-            .iter()
-            .filter(|span| span.root_span_id == root_span_id)
+    /// Recordings logged on the root span of a trace, in logged order. Recordings logged on
+    /// any other span are not call recordings and are left out with a warning.
+    fn recordings(&mut self, root_span_id: &str) -> Vec<AudioRecording> {
+        let mut indices: Vec<_> = (0..self.spans.len())
+            .filter(|&index| self.spans[index].root_span_id == root_span_id)
             .collect();
-        spans.sort_by(|a, b| a.start.cmp(&b.start).then(a.id.cmp(&b.id)));
+        indices.sort_by(|&a, &b| {
+            let (a, b) = (&self.spans[a], &self.spans[b]);
+            a.start.cmp(&b.start).then(a.id.cmp(&b.id))
+        });
         let mut recordings: Vec<AudioRecording> = Vec::new();
-        for span in spans {
+        for index in indices {
+            let is_root = self.spans[index].source.span_parents.is_empty();
+            let span = &mut self.spans[index];
             let Some(voice) = &span.source.voice else {
                 continue;
             };
+            if voice.recordings.is_empty() {
+                continue;
+            }
+            if !is_root {
+                span.warnings.push(
+                    "Ignored metadata.audio.recordings: call recordings are read from the root span only"
+                        .to_string(),
+                );
+                continue;
+            }
             for recording in &voice.recordings {
                 if !recordings.contains(recording) {
                     recordings.push(recording.clone());
