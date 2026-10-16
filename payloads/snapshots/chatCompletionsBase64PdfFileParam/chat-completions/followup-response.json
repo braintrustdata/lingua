@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EZaTvR8oLEi8tX8Ba7J3wDKPgkfa3",
+  "object": "chat.completion",
+  "created": 1792150423,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here are some practical next steps, depending on your goal:\n\n- Reimbursement/business expense: add it to your expense report or accounting system. Include date, merchant, amount (45.00 DKK), and attach the receipt.\n- Personal budgeting: log the expense in your budgeting app or spreadsheet (date, merchant, category, amount).\n- Bank reconciliation: mark the payment as processed and reconcile the 45.00 DKK against your statement.\n- Record-keeping: save a digital copy of the receipt in a labeled folder (e.g., Taxes/Receipts) for future reference.\n\nIf you’d like, I can format a ready-to-use expense entry for you. Tell me the date, merchant, and the category (e.g., Food, Miscellaneous). Or, I can help you organize and store the receipt—just say what you need.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 273,
+    "completion_tokens": 1078,
+    "total_tokens": 1351,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 896,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

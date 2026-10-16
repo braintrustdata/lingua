@@ -31,7 +31,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " this receipt"
+        "text": " this"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " receipt"
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +55,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ".00"
+        "text": "."
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "00"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +87,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "KK**"
+        "text": "K"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "K**"
       },
       "contentBlockIndex": 0
     }
@@ -102,7 +126,7 @@
         "totalTokens": 1640
       },
       "metrics": {
-        "latencyMs": 996
+        "latencyMs": 1046
       }
     }
   }

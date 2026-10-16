@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The total on this receipt is **45.00 DKK**.",
+            "thoughtSignature": "EowCCokCAWkUfRMHJQITKL19OCqTxRy10l6pbAEjhiNwwscfQebhmmSPNGj2ZmhnCgW0z9cBagyfuynessVuHyysbiGi52n49Ho/eKFyK18AYvWkQPwJlAVod3WZC1ukB83saI5uuyCTebWPYiqK5+N3BC3Jf0jO2i7FrggrAYh2R2tgydJJZ5GBaHd0rsXC/x/LSqcdJnM+j4yrubAa0MuE9IcIrx8w3hMHSx4GlndR7GyT8DFaadpb6JVYwxocpem5yo27m+aQPNxLJ7warLxppHPbbwuWqayMtXlS/24gERfgpt9ZmK/kR6sumSAnzPpB1uDfDA0tihjFfDbcOmoPwhsUfFAH5jy0g/OjLg=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 529,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 598,
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 520
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 9
+      }
+    ],
+    "thoughtsTokenCount": 54,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.6-flash",
+  "responseId": "ngvSarboMZaf1MkPg62Q0QY"
+}

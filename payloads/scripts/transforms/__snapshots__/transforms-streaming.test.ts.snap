@@ -5192,17 +5192,23 @@ data: {"choices":[{"delta":{"content":" total","role":"assistant"},"finish_reaso
 
 data: {"choices":[{"delta":{"content":" on","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":" this receipt","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":" this","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" receipt","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{"content":" is **45","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":".00","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"00","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{"content":"D","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":"KK**","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":"K","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"K**","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{"content":" (Danish Krone).","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 

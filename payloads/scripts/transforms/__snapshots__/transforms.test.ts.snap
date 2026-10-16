@@ -9341,6 +9341,60 @@ I'm ready to help you! Since you mentioned using the cached assistant prefill, I
 }
 `;
 
+exports[`chat-completions → anthropic > chatCompletionsBase64PdfFileParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is the total on this receipt?",
+          "type": "text",
+        },
+        {
+          "source": {
+            "data": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA1NiA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDUwIDc1MCBUZCAoUkVDRUlQVCAtIFRPVEFMIDQ1LjAwIERLSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzNDcgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0MTcKJSVFT0YK",
+            "media_type": "application/pdf",
+            "type": "base64",
+          },
+          "type": "document",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > chatCompletionsBase64PdfFileParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The total on this receipt is **45.00 DKK** (Danish Kroner).",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011Cg5qveAL9jHcaiUHrpTeK",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 24,
+    "prompt_tokens": 1602,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1626,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > chatCompletionsSystemCacheControlParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -15868,6 +15922,56 @@ exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam
 }
 `;
 
+exports[`chat-completions → google > chatCompletionsBase64PdfFileParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is the total on this receipt?",
+        },
+        {
+          "inlineData": {
+            "data": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA1NiA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDUwIDc1MCBUZCAoUkVDRUlQVCAtIFRPVEFMIDQ1LjAwIERLSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzNDcgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0MTcKJSVFT0YK",
+            "mimeType": "application/pdf",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsBase64PdfFileParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The total on this receipt is **45.00 DKK**.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 69,
+    "completion_tokens_details": {
+      "reasoning_tokens": 54,
+    },
+    "prompt_tokens": 529,
+    "total_tokens": 598,
+  },
+}
+`;
+
 exports[`chat-completions → google > chatCompletionsGcsBackedVideoFileParam > request 1`] = `
 {
   "contents": [
@@ -19629,6 +19733,58 @@ Once you provide the text, I’ll generate the summary in your chosen format and
       "cached_tokens": 0,
     },
     "total_tokens": 1360,
+  },
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsBase64PdfFileParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "What is the total on this receipt?",
+          "type": "input_text",
+        },
+        {
+          "file_data": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA1NiA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDUwIDc1MCBUZCAoUkVDRUlQVCAtIFRPVEFMIDQ1LjAwIERLSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzNDcgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0MTcKJSVFT0YK",
+          "filename": "receipt.pdf",
+          "type": "input_file",
+        },
+      ],
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsBase64PdfFileParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "45.00 DKK",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0802b0a7cebf90f4006ad20b9f49d487d1bf324e7e46ecd28c",
+  "model": "gpt-5.6-terra",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "usage": {
+    "completion_tokens": 9,
+    "prompt_tokens": 49,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 58,
   },
 }
 `;
