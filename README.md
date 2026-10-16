@@ -62,6 +62,22 @@ lingua/
 └── tests/typescript/          # TypeScript compatibility tests
 ```
 
+## Rust JSON backend
+
+Lingua preserves arbitrary-precision JSON numbers by default using a separate
+`serde_json` fork. Consumers that already use ordinary `serde_json::Value` can
+share that type with Lingua by disabling default features:
+
+```toml
+lingua = { version = "0.1", default-features = false, features = ["openai", "anthropic", "google"] }
+```
+
+This uses ordinary `serde_json` number handling: signed and unsigned 64-bit
+integers and double-precision floats. It does not preserve larger integers or
+arbitrary decimal precision. Enable `arbitrary-precision` when exact preservation
+is required. Cargo unifies features for each package, so every dependency on the
+same Lingua package must disable default features to use the ordinary backend.
+
 ## Building bindings
 
 ### First-time setup
