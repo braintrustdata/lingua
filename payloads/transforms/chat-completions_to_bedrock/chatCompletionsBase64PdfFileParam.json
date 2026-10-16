@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The total on this receipt is **45.00 DKK** (Danish Krone)."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 1616,
+    "outputTokens": 24,
+    "totalTokens": 1640,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 981
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "5c7fc106-1a07-433b-a5b4-18f42ca13bdb",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

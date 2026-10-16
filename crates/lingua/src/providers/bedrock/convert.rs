@@ -10,8 +10,9 @@ use crate::import_parse::{
     try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
 use crate::providers::bedrock::request::{
-    BedrockContentBlock, BedrockConversationRole, BedrockImageBlock, BedrockImageFormat,
-    BedrockImageSource, BedrockMessage, BedrockReasoningContentBlock, BedrockReasoningTextBlock,
+    BedrockContentBlock, BedrockConversationRole, BedrockDocumentBlock, BedrockDocumentFormat,
+    BedrockDocumentSource, BedrockImageBlock, BedrockImageFormat, BedrockImageSource,
+    BedrockMessage, BedrockReasoningContentBlock, BedrockReasoningTextBlock,
     BedrockToolResultBlock, BedrockToolResultContent, BedrockToolUseBlock, ConverseRequest,
 };
 use crate::providers::bedrock::response::{
@@ -24,6 +25,10 @@ use crate::universal::message::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
+use crate::util::media::is_remote_media_uri;
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use base64::Engine;
+use std::collections::HashSet;
 
 // ============================================================================
 // Bedrock Message -> Universal Message
@@ -43,6 +48,12 @@ impl TryFromLLM<BedrockMessage> for Message {
                     match block {
                         BedrockContentBlock::Text { text } => {
                             text_parts.push(text);
+                        }
+                        BedrockContentBlock::Document { .. } => {
+                            return Err(ConvertError::UnsupportedMapping {
+                                from: "Bedrock document block".to_string(),
+                                to: "Lingua message",
+                            });
                         }
                         BedrockContentBlock::ToolResult { tool_result } => {
                             has_tool_results = true;
@@ -198,21 +209,11 @@ impl TryFromLLM<Message> for BedrockMessage {
                             });
                         }
 
-                        if parts
-                            .iter()
-                            .any(|part| matches!(part, UserContentPart::File { .. }))
-                        {
-                            return Err(ConvertError::UnsupportedMapping {
-                                from: "Lingua file content".to_string(),
-                                to: "Bedrock Converse file input",
-                            });
-                        }
-
                         parts
                             .into_iter()
-                            .filter_map(|p| match p {
+                            .map(|p| match p {
                                 UserContentPart::Text(t) => {
-                                    Some(BedrockContentBlock::Text { text: t.text })
+                                    Ok(Some(BedrockContentBlock::Text { text: t.text }))
                                 }
                                 UserContentPart::Image {
                                     image, media_type, ..
@@ -228,18 +229,32 @@ impl TryFromLLM<Message> for BedrockMessage {
                                                 _ => BedrockImageFormat::Jpeg,
                                             })
                                             .unwrap_or(BedrockImageFormat::Jpeg);
-                                        Some(BedrockContentBlock::Image {
+                                        Ok(Some(BedrockContentBlock::Image {
                                             image: BedrockImageBlock {
                                                 format,
                                                 source: BedrockImageSource { bytes: data },
                                             },
-                                        })
+                                        }))
                                     } else {
-                                        None
+                                        Ok(None)
                                     }
                                 }
-                                _ => None,
+                                UserContentPart::File {
+                                    data,
+                                    filename,
+                                    media_type,
+                                    ..
+                                } => bedrock_document_from_file(
+                                    data,
+                                    filename.as_deref(),
+                                    &media_type,
+                                )
+                                .map(Some),
+                                _ => Ok(None),
                             })
+                            .collect::<Result<Vec<_>, ConvertError>>()?
+                            .into_iter()
+                            .flatten()
                             .collect()
                     }
                 };
@@ -457,7 +472,141 @@ pub fn universal_to_bedrock_messages(
         }
     }
 
+    dedupe_document_names(&mut bedrock_messages);
     Ok(bedrock_messages)
+}
+
+const BEDROCK_DOCUMENT_NAME_MAX_LEN: usize = 200;
+
+const BEDROCK_DOCUMENT_FORMATS: [BedrockDocumentFormat; 9] = [
+    BedrockDocumentFormat::Pdf,
+    BedrockDocumentFormat::Doc,
+    BedrockDocumentFormat::Docx,
+    BedrockDocumentFormat::Xls,
+    BedrockDocumentFormat::Xlsx,
+    BedrockDocumentFormat::Txt,
+    BedrockDocumentFormat::Csv,
+    BedrockDocumentFormat::Html,
+    BedrockDocumentFormat::Md,
+];
+
+fn bedrock_document_media_type(format: BedrockDocumentFormat) -> &'static str {
+    match format {
+        BedrockDocumentFormat::Pdf => "application/pdf",
+        BedrockDocumentFormat::Doc => "application/msword",
+        BedrockDocumentFormat::Docx => {
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        }
+        BedrockDocumentFormat::Xls => "application/vnd.ms-excel",
+        BedrockDocumentFormat::Xlsx => {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        }
+        BedrockDocumentFormat::Txt => "text/plain",
+        BedrockDocumentFormat::Csv => "text/csv",
+        BedrockDocumentFormat::Html => "text/html",
+        BedrockDocumentFormat::Md => "text/markdown",
+    }
+}
+
+fn is_text_document(format: BedrockDocumentFormat) -> bool {
+    matches!(
+        format,
+        BedrockDocumentFormat::Txt
+            | BedrockDocumentFormat::Csv
+            | BedrockDocumentFormat::Html
+            | BedrockDocumentFormat::Md
+    )
+}
+
+fn unsupported_file_mapping() -> ConvertError {
+    ConvertError::UnsupportedMapping {
+        from: "Lingua file content".to_string(),
+        to: "Bedrock Converse file input",
+    }
+}
+
+/// Text documents carry raw text in universal `File.data`; binary documents carry base64.
+fn bedrock_document_from_file(
+    data: Value,
+    filename: Option<&str>,
+    media_type: &str,
+) -> Result<BedrockContentBlock, ConvertError> {
+    let Value::String(data) = data else {
+        return Err(unsupported_file_mapping());
+    };
+
+    let format = BEDROCK_DOCUMENT_FORMATS
+        .into_iter()
+        .find(|format| bedrock_document_media_type(*format) == media_type)
+        .ok_or_else(unsupported_file_mapping)?;
+    let is_remote = if is_text_document(format) {
+        is_remote_media_uri(&data)
+    } else {
+        url::Url::parse(&data).is_ok()
+    };
+    if is_remote {
+        return Err(unsupported_file_mapping());
+    }
+    let bytes = if is_text_document(format) {
+        BASE64_STANDARD.encode(data.as_bytes())
+    } else {
+        data
+    };
+
+    Ok(BedrockContentBlock::Document {
+        document: BedrockDocumentBlock {
+            format,
+            name: bedrock_document_name(filename),
+            source: BedrockDocumentSource { bytes },
+        },
+    })
+}
+
+/// Bedrock document names allow only ASCII alphanumerics, single whitespace,
+/// hyphens, parentheses, and square brackets, up to 200 characters.
+fn bedrock_document_name(filename: Option<&str>) -> String {
+    let mut name = String::new();
+    for c in filename.unwrap_or_default().chars() {
+        let c = if c.is_ascii_alphanumeric() || matches!(c, '-' | '(' | ')' | '[' | ']') {
+            c
+        } else if c.is_whitespace() {
+            ' '
+        } else {
+            '-'
+        };
+        if c == ' ' && (name.is_empty() || name.ends_with(' ')) {
+            continue;
+        }
+        name.push(c);
+    }
+    let name: String = name.chars().take(BEDROCK_DOCUMENT_NAME_MAX_LEN).collect();
+    let name = name.trim_end();
+    if name.is_empty() {
+        "document".to_string()
+    } else {
+        name.to_string()
+    }
+}
+
+/// Bedrock rejects requests that contain duplicate document names.
+fn dedupe_document_names(messages: &mut [BedrockMessage]) {
+    let mut seen = HashSet::new();
+    for block in messages.iter_mut().flat_map(|m| m.content.iter_mut()) {
+        let BedrockContentBlock::Document { document } = block else {
+            continue;
+        };
+        let base = document.name.clone();
+        let mut index = 1;
+        while !seen.insert(document.name.clone()) {
+            index += 1;
+            let suffix = format!(" ({index})");
+            let stem: String = base
+                .chars()
+                .take(BEDROCK_DOCUMENT_NAME_MAX_LEN - suffix.len())
+                .collect();
+            document.name = format!("{}{suffix}", stem.trim_end());
+        }
+    }
 }
 
 /// Convert universal messages to Bedrock Converse format as JSON Value.
@@ -780,6 +929,162 @@ mod tests {
         let error = <BedrockMessage as TryFromLLM<Message>>::try_from(message)
             .expect_err("Bedrock must not silently drop file content");
         assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+    }
+
+    fn file_part(data: Value, filename: Option<&str>, media_type: &str) -> UserContentPart {
+        UserContentPart::File {
+            data,
+            filename: filename.map(str::to_string),
+            media_type: media_type.to_string(),
+            provider_options: None,
+        }
+    }
+
+    fn file_to_bedrock(part: UserContentPart) -> Result<BedrockMessage, ConvertError> {
+        <BedrockMessage as TryFromLLM<Message>>::try_from(Message::User {
+            content: UserContent::Array(vec![part]),
+        })
+    }
+
+    fn document(format: BedrockDocumentFormat, name: &str, bytes: String) -> BedrockContentBlock {
+        BedrockContentBlock::Document {
+            document: BedrockDocumentBlock {
+                format,
+                name: name.to_string(),
+                source: BedrockDocumentSource { bytes },
+            },
+        }
+    }
+
+    #[test]
+    fn test_message_to_bedrock_file_becomes_document() {
+        let docx = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        for (data, filename, media_type, expected) in [
+            (
+                "JVBERi0xLjQK",
+                "receipt.pdf",
+                "application/pdf",
+                document(
+                    BedrockDocumentFormat::Pdf,
+                    "receipt-pdf",
+                    "JVBERi0xLjQK".into(),
+                ),
+            ),
+            (
+                "UEsDBBQ=",
+                "report.docx",
+                docx,
+                document(
+                    BedrockDocumentFormat::Docx,
+                    "report-docx",
+                    "UEsDBBQ=".into(),
+                ),
+            ),
+            (
+                "Total: 45 DKK",
+                "notes.txt",
+                "text/plain",
+                document(
+                    BedrockDocumentFormat::Txt,
+                    "notes-txt",
+                    BASE64_STANDARD.encode("Total: 45 DKK"),
+                ),
+            ),
+        ] {
+            let msg = file_to_bedrock(file_part(data.into(), Some(filename), media_type)).unwrap();
+            assert_eq!(msg.content, vec![expected]);
+        }
+    }
+
+    #[test]
+    fn test_message_to_bedrock_rejects_unsupported_files() {
+        for (data, media_type) in [
+            (json!("https://example.com/report.pdf"), "application/pdf"),
+            (json!("s3://bucket/report.pdf"), "application/pdf"),
+            (json!("https://example.com/notes.txt"), "text/plain"),
+            (json!("UklGRg=="), "audio/wav"),
+            (json!("iVBORw0KGgo="), "image/png"),
+            (json!({"bytes": [1, 2, 3]}), "application/pdf"),
+        ] {
+            match file_to_bedrock(file_part(data, Some("file"), media_type)) {
+                Err(ConvertError::UnsupportedMapping { from, to }) => {
+                    assert_eq!(from, "Lingua file content");
+                    assert_eq!(to, "Bedrock Converse file input");
+                }
+                other => panic!("expected unsupported mapping for {media_type}, got {other:?}"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_bedrock_document_name_sanitization() {
+        assert_eq!(bedrock_document_name(None), "document");
+        assert_eq!(bedrock_document_name(Some("   ")), "document");
+        assert_eq!(
+            bedrock_document_name(Some("my_receipt.pdf")),
+            "my-receipt-pdf"
+        );
+        assert_eq!(
+            bedrock_document_name(Some("Q3  report\t(final) [v2].pdf")),
+            "Q3 report (final) [v2]-pdf"
+        );
+        assert_eq!(bedrock_document_name(Some("reçu.pdf")), "re-u-pdf");
+        assert_eq!(
+            bedrock_document_name(Some(&"a".repeat(250))).len(),
+            BEDROCK_DOCUMENT_NAME_MAX_LEN
+        );
+    }
+
+    #[test]
+    fn test_universal_to_bedrock_dedupes_document_names_across_messages() {
+        let pdf =
+            |filename: Option<&str>| file_part(json!("JVBERi0xLjQK"), filename, "application/pdf");
+        let long_name = "a".repeat(BEDROCK_DOCUMENT_NAME_MAX_LEN);
+        let messages = vec![
+            Message::User {
+                content: UserContent::Array(vec![pdf(None), pdf(None), pdf(Some(&long_name))]),
+            },
+            Message::User {
+                content: UserContent::Array(vec![pdf(None), pdf(Some(&long_name))]),
+            },
+        ];
+
+        let names: Vec<String> = universal_to_bedrock_messages(&messages)
+            .unwrap()
+            .into_iter()
+            .flat_map(|m| m.content)
+            .filter_map(|block| match block {
+                BedrockContentBlock::Document { document } => Some(document.name),
+                _ => None,
+            })
+            .collect();
+
+        assert_eq!(
+            names,
+            vec![
+                "document".to_string(),
+                "document (2)".to_string(),
+                long_name.clone(),
+                "document (3)".to_string(),
+                format!("{} (2)", &long_name[..BEDROCK_DOCUMENT_NAME_MAX_LEN - 4]),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_bedrock_document_to_universal_is_rejected() {
+        let msg = BedrockMessage {
+            role: BedrockConversationRole::User,
+            content: vec![document(
+                BedrockDocumentFormat::Pdf,
+                "receipt",
+                "JVBERi0xLjQK".into(),
+            )],
+        };
+        assert!(matches!(
+            <Message as TryFromLLM<BedrockMessage>>::try_from(msg),
+            Err(ConvertError::UnsupportedMapping { .. })
+        ));
     }
 
     #[test]

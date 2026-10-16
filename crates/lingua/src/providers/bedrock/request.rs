@@ -135,6 +135,10 @@ pub enum BedrockContentBlock {
         image: BedrockImageBlock,
     },
 
+    Document {
+        document: BedrockDocumentBlock,
+    },
+
     ToolUse {
         #[serde(rename = "toolUse")]
         tool_use: BedrockToolUseBlock,
@@ -199,6 +203,44 @@ pub enum BedrockImageFormat {
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockImageSource {
     /// Base64 encoded image bytes
+    pub bytes: String,
+}
+
+/// Document content block
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+// #[ts(export, export_to = "bindings/typescript/")]
+pub struct BedrockDocumentBlock {
+    /// Document format
+    pub format: BedrockDocumentFormat,
+
+    /// Document name, unique within a request
+    pub name: String,
+
+    /// Document source
+    pub source: BedrockDocumentSource,
+}
+
+/// Document format
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+// #[ts(export, export_to = "bindings/typescript/")]
+#[serde(rename_all = "lowercase")]
+pub enum BedrockDocumentFormat {
+    Pdf,
+    Csv,
+    Doc,
+    Docx,
+    Xls,
+    Xlsx,
+    Html,
+    Txt,
+    Md,
+}
+
+/// Document source
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+// #[ts(export, export_to = "bindings/typescript/")]
+pub struct BedrockDocumentSource {
+    /// Base64 encoded document bytes
     pub bytes: String,
 }
 

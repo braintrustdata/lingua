@@ -39,6 +39,9 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
     reasoning_signature: string | string[];
   };
 
+const receiptPdfBase64 =
+  "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA1NiA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDUwIDc1MCBUZCAoUkVDRUlQVCAtIFRPVEFMIDQ1LjAwIERLSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzNDcgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0MTcKJSVFT0YK";
+
 const chatCompletionCacheControlTextPart = {
   type: "text",
   text: "Use this stable reference text as cacheable context.",
@@ -817,6 +820,34 @@ export const paramsCases: TestCaseCollection = {
                 filename: "sample-5s.mp4",
                 file_data:
                   "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsBase64PdfFileParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "What is the total on this receipt?",
+            },
+            {
+              type: "file",
+              file: {
+                filename: "receipt.pdf",
+                file_data: `data:application/pdf;base64,${receiptPdfBase64}`,
               },
             },
           ],

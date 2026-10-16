@@ -68,11 +68,37 @@ type ParallelBedrockResult =
       data: Array<ConverseStreamOutput>;
     };
 
+// Payloads carry wire-format base64 document bytes, but the SDK expects raw
+// bytes and would base64-encode the string a second time.
+function decodeDocumentBytes(
+  payload: BedrockConverseRequest
+): BedrockConverseRequest {
+  return {
+    ...payload,
+    messages: payload.messages?.map((message) => ({
+      ...message,
+      content: message.content?.map((block) => {
+        const bytes: unknown = block.document?.source?.bytes;
+        if (!block.document || typeof bytes !== "string") {
+          return block;
+        }
+        return {
+          ...block,
+          document: {
+            ...block.document,
+            source: { bytes: Buffer.from(bytes, "base64") },
+          },
+        };
+      }),
+    })),
+  };
+}
+
 async function sendBedrockConverse(
   client: BedrockRuntimeClient,
   payload: BedrockConverseRequest
 ): Promise<ConverseResponse> {
-  return client.send(new ConverseCommand(payload));
+  return client.send(new ConverseCommand(decodeDocumentBytes(payload)));
 }
 
 async function sendBedrockConverseStream(
@@ -80,7 +106,9 @@ async function sendBedrockConverseStream(
   payload: BedrockConverseRequest
 ): Promise<Array<ConverseStreamOutput>> {
   const streamChunks: Array<ConverseStreamOutput> = [];
-  const streamResponse = await client.send(new ConverseStreamCommand(payload));
+  const streamResponse = await client.send(
+    new ConverseStreamCommand(decodeDocumentBytes(payload))
+  );
 
   if (streamResponse.stream) {
     for await (const event of streamResponse.stream) {
