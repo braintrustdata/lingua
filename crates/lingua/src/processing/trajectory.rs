@@ -7,10 +7,12 @@ use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanCo
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    Agent, AgentResponse, AudioRecording, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work,
-    WorkStep,
+    Agent, AgentResponse, AudioRecording, LLMAnalysis, Scope, SpeechPlacement, SpeechSpeaker,
+    SpeechWork, ToolResult, Trajectory, Turn, Work, WorkStep,
 };
-use crate::universal::{AssistantContent, AssistantContentPart, Message};
+use crate::universal::{
+    AssistantContent, AssistantContentPart, Message, UserContent, UserContentPart,
+};
 use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -213,6 +215,58 @@ impl PreparedSpan {
             start_time: Some(self.start),
             end_time: self.source.end,
         }
+    }
+
+    fn speaker(&self) -> Option<SpeechSpeaker> {
+        if self.kind() != "task" {
+            return None;
+        }
+        match self.source.name.as_deref() {
+            Some("user_speech") => Some(SpeechSpeaker::User),
+            Some("agent_speech") => Some(SpeechSpeaker::Agent),
+            _ => None,
+        }
+    }
+
+    /// Words of a speech span: the user's `input`, or the agent's played `output`.
+    fn speech_text(&self, speaker: SpeechSpeaker) -> Option<String> {
+        let texts: Vec<String> = match speaker {
+            SpeechSpeaker::User => self
+                .input
+                .iter()
+                .filter_map(|input| match &input.message {
+                    Message::User { content, .. } => Some(match content {
+                        UserContent::String(text) => text.clone(),
+                        UserContent::Array(parts) => parts
+                            .iter()
+                            .filter_map(|part| match part {
+                                UserContentPart::Text(text) => Some(text.text.as_str()),
+                                _ => None,
+                            })
+                            .collect(),
+                    }),
+                    _ => None,
+                })
+                .collect(),
+            SpeechSpeaker::Agent => self
+                .output
+                .iter()
+                .filter_map(|message| match message {
+                    Message::Assistant { content, .. } => Some(match content {
+                        AssistantContent::String(text) => text.clone(),
+                        AssistantContent::Array(parts) => parts
+                            .iter()
+                            .filter_map(|part| match part {
+                                AssistantContentPart::Text(text) => Some(text.text.as_str()),
+                                _ => None,
+                            })
+                            .collect(),
+                    }),
+                    _ => None,
+                })
+                .collect(),
+        };
+        (!texts.is_empty()).then(|| texts.join("\n"))
     }
 
     fn has_final_response(&self) -> bool {

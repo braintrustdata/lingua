@@ -414,7 +414,12 @@ fn check_span_coverage(
             };
             let imported =
                 import_span_with_options(source.clone(), fixture.import_options).unwrap();
-            if imported.header.analysis || !matches!(imported.header.kind.as_str(), "llm" | "task")
+            if imported.header.analysis
+                || !matches!(imported.header.kind.as_str(), "llm" | "task")
+                || matches!(
+                    imported.header.name.as_deref(),
+                    Some("user_speech" | "agent_speech")
+                )
             {
                 continue;
             }
@@ -2363,14 +2368,25 @@ fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
 }
 
 fn voice_fixture_trajectories(fixture: &str) -> Vec<crate::universal::Trajectory> {
+    voice_trajectories_in_order(fixture, 4, false)
+}
+
+fn voice_trajectories_in_order(
+    fixture: &str,
+    limit: usize,
+    reverse: bool,
+) -> Vec<crate::universal::Trajectory> {
     let fixture: Value = serde_json::from_str(fixture).unwrap();
     let spans: Vec<Span> = serde_json::from_value(fixture["spans"].clone()).unwrap();
     let mut stream = stream_from_sources(spans.clone()).unwrap();
     let mut collector = TrajectoryCollector::default();
     loop {
-        let ids = stream.pending_ids(4);
+        let mut ids = stream.pending_ids(limit);
         if ids.is_empty() {
             break;
+        }
+        if reverse {
+            ids.reverse();
         }
         for id in ids {
             let source = spans
@@ -2433,4 +2449,457 @@ fn trajectories_without_voice_have_no_recordings() {
     for trajectory in collector.snapshot().unwrap_or_default() {
         assert!(trajectory.recordings.is_none());
     }
+}
+
+const LIVEKIT_VOICE: &str = include_str!("fixtures/voice/livekit-realtime-order-lookup.json");
+const CASCADE_VOICE: &str = include_str!("fixtures/voice/fictional-cascade-turns.json");
+const EDGE_VOICE: &str = include_str!("fixtures/voice/fictional-edge-cases.json");
+
+struct PlacedSpeech<'a> {
+    turn: &'a Turn,
+    step: &'a WorkStep,
+    speech: &'a SpeechWork,
+}
+
+fn placed_speech(trajectory: &Trajectory) -> Vec<PlacedSpeech<'_>> {
+    trajectory
+        .turns
+        .iter()
+        .flat_map(|turn| {
+            turn.work.iter().filter_map(move |step| match &step.work {
+                Work::Speech(speech) => Some(PlacedSpeech { turn, step, speech }),
+                _ => None,
+            })
+        })
+        .collect()
+}
+
+fn speech_by_id<'a>(placed: &'a [PlacedSpeech<'a>], id: &str) -> &'a PlacedSpeech<'a> {
+    placed.iter().find(|placed| placed.step.id == id).unwrap()
+}
+
+fn observed_step(speech: &SpeechWork) -> Option<(&str, &str)> {
+    match &speech.placement {
+        SpeechPlacement::Observed {
+            relationship,
+            step_id,
+            ..
+        } => Some((relationship.as_str(), step_id.as_str())),
+        SpeechPlacement::Inferred { .. } => None,
+    }
+}
+
+fn fixture_headers(fixture: &str) -> HashMap<String, SpanContext> {
+    let fixture: Value = serde_json::from_str(fixture).unwrap();
+    let spans: Vec<Span> = serde_json::from_value(fixture["spans"].clone()).unwrap();
+    spans
+        .into_iter()
+        .map(|span| {
+            let header = import_span(span).unwrap().header;
+            (header.id.clone().unwrap(), header)
+        })
+        .collect()
+}
+
+fn has_link(header: &SpanContext, relationship: &str, target: &SpanContext) -> bool {
+    header
+        .voice
+        .iter()
+        .flat_map(|voice| &voice.links)
+        .any(|link| {
+            link.relationship == relationship && Some(&link.span_id) == target.span_id.as_ref()
+        })
+}
+
+fn assert_speech_matches_links(fixture: &str, trajectory: &Trajectory) {
+    let headers = fixture_headers(fixture);
+    for placed in placed_speech(trajectory) {
+        let speech_header = &headers[&placed.step.id];
+        if let SpeechPlacement::Observed {
+            relationship,
+            step_id,
+            via,
+        } = &placed.speech.placement
+        {
+            let step = &headers[step_id];
+            let mut chain = vec![speech_header];
+            chain.extend(via.iter().map(|id| &headers[id]));
+            chain.push(step);
+            match relationship.as_str() {
+                "generated_by" => {
+                    for pair in chain.windows(2) {
+                        assert!(has_link(pair[0], "generated_by", pair[1]));
+                    }
+                }
+                "input_context" => assert!(has_link(step, "input_context", speech_header)),
+                "turn.reply_to" => {}
+                other => panic!("Unexpected relationship {other}"),
+            }
+        }
+        for other in &placed.speech.context_step_ids {
+            assert!(has_link(&headers[other], "input_context", speech_header));
+        }
+    }
+}
+
+fn voice_fixture_as_import(fixture: &str) -> ImportFixture {
+    let mut fixture: Value = serde_json::from_str(fixture).unwrap();
+    fixture["turns"] = json!([]);
+    serde_json::from_value(fixture).unwrap()
+}
+
+#[test]
+fn voice_speech_is_placed_once_in_the_realtime_model_turns() {
+    let trajectories = voice_fixture_trajectories(LIVEKIT_VOICE);
+    let trajectory = &trajectories[0];
+    let placed = placed_speech(trajectory);
+    let ids: HashSet<_> = placed
+        .iter()
+        .map(|placed| placed.step.id.as_str())
+        .collect();
+    assert_eq!(placed.len(), 7);
+    assert_eq!(ids.len(), 7);
+    assert_eq!(trajectory.turns.len(), 2);
+
+    let texts: Vec<_> = placed
+        .iter()
+        .map(|placed| {
+            (
+                placed.speech.speaker,
+                placed.speech.text.as_deref().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        texts,
+        vec![
+            (SpeechSpeaker::Agent, "Hi, how can I help?"),
+            (SpeechSpeaker::User, " Hi, can you tell me where a"),
+            (SpeechSpeaker::User, " demo 1042 is"),
+            (SpeechSpeaker::Agent, " Sure, I'll check that."),
+            (
+                SpeechSpeaker::Agent,
+                " Order 1042 is in transit and expected to arrive Friday."
+            ),
+            (SpeechSpeaker::User, " Alright, thank you"),
+            (SpeechSpeaker::Agent, " You're welcome."),
+        ]
+    );
+    let headers = fixture_headers(LIVEKIT_VOICE);
+    for placed in &placed {
+        let voice = headers[&placed.step.id].voice.as_ref().unwrap();
+        assert_eq!(placed.speech.selections, voice.selections);
+        let channel = match placed.speech.speaker {
+            SpeechSpeaker::User => 0,
+            SpeechSpeaker::Agent => {
+                assert!(placed.speech.selections.len() >= 3);
+                1
+            }
+        };
+        assert!(placed
+            .speech
+            .selections
+            .iter()
+            .all(|selection| selection.channel_index == Some(channel)
+                && selection.recording_id == "call-0000"));
+    }
+    assert_speech_matches_links(LIVEKIT_VOICE, trajectory);
+
+    let greeting = speech_by_id(&placed, "68e031159f3feede");
+    assert_eq!(greeting.turn.request_id, "f34aaa489e63f67e");
+    assert_eq!(
+        observed_step(greeting.speech),
+        Some(("generated_by", "f34aaa489e63f67e"))
+    );
+
+    let first = speech_by_id(&placed, "8d9f25e48b7888cd");
+    assert_eq!(
+        observed_step(first.speech),
+        Some(("input_context", "d855d11a6e8ee505"))
+    );
+    assert_eq!(
+        first.speech.context_step_ids,
+        vec!["cf4ad22a4fce2f17", "fb1ff83447ce40a4"]
+    );
+
+    let order_number = speech_by_id(&placed, "8bb24c01384ebf11");
+    assert_eq!(
+        observed_step(order_number.speech),
+        Some(("input_context", "cf4ad22a4fce2f17"))
+    );
+    assert_eq!(
+        order_number.speech.context_step_ids,
+        vec!["fb1ff83447ce40a4"]
+    );
+    for placed in &placed {
+        assert!(!placed
+            .speech
+            .context_step_ids
+            .iter()
+            .any(|id| id == "d855d11a6e8ee505" && placed.step.id == "8bb24c01384ebf11"));
+    }
+
+    let thanks = speech_by_id(&placed, "2cb6e251a0e3e227");
+    assert_eq!(
+        thanks.speech.placement,
+        SpeechPlacement::Inferred {
+            basis: "time_within_turn".into()
+        }
+    );
+
+    let check = speech_by_id(&placed, "62acd8e8ee191cbd");
+    assert_eq!(
+        observed_step(check.speech),
+        Some(("generated_by", "d855d11a6e8ee505"))
+    );
+    let welcome = speech_by_id(&placed, "f5e0b9990bdd4e42");
+    assert_eq!(
+        observed_step(welcome.speech),
+        Some(("generated_by", "fb1ff83447ce40a4"))
+    );
+    assert!(trajectory
+        .turns
+        .iter()
+        .all(|turn| turn.interrupted.is_none()));
+    for placed in &placed {
+        if let Some((_, step)) = observed_step(placed.speech) {
+            assert!(!ids.contains(step), "Speech placed by other speech");
+        }
+    }
+
+    let order: Vec<_> = trajectory.turns[1]
+        .work
+        .iter()
+        .map(|step| step.id.as_str())
+        .collect();
+    assert_eq!(
+        order,
+        vec![
+            "8d9f25e48b7888cd",
+            "8bb24c01384ebf11",
+            "d855d11a6e8ee505",
+            "62acd8e8ee191cbd",
+            "46685b2fb3905fc6",
+            "cf4ad22a4fce2f17",
+            "3a80360be3632430",
+            "2cb6e251a0e3e227",
+            "f5e0b9990bdd4e42",
+        ]
+    );
+    assert_eq!(
+        trajectory.turns[1].response_id.as_deref(),
+        Some("fb1ff83447ce40a4")
+    );
+}
+
+#[test]
+fn voice_speech_keeps_model_turns_unchanged() {
+    let with_speech = voice_fixture_trajectories(LIVEKIT_VOICE);
+    let mut fixture: Value = serde_json::from_str(LIVEKIT_VOICE).unwrap();
+    fixture["spans"].as_array_mut().unwrap().retain(|span| {
+        !matches!(
+            span["span_attributes"]["name"].as_str(),
+            Some("user_speech" | "agent_speech")
+        )
+    });
+    let without_speech = voice_fixture_trajectories(&fixture.to_string());
+    let mut stripped = serde_json::to_value(&with_speech).unwrap();
+    for turn in stripped[0]["turns"].as_array_mut().unwrap() {
+        turn["work"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|step| step["work"]["type"] != "speech");
+    }
+    assert_eq!(
+        stripped[0]["turns"],
+        serde_json::to_value(&without_speech).unwrap()[0]["turns"]
+    );
+}
+
+#[test]
+fn voice_speech_in_cascade_follows_tts_and_keeps_played_text() {
+    let trajectories = voice_fixture_trajectories(CASCADE_VOICE);
+    let trajectory = &trajectories[0];
+    let placed = placed_speech(trajectory);
+    assert_eq!(placed.len(), 5);
+    assert_speech_matches_links(CASCADE_VOICE, trajectory);
+    assert!(trajectory
+        .turns
+        .iter()
+        .all(|turn| turn.interrupted.is_none()));
+
+    let played = speech_by_id(&placed, "row-A2");
+    assert_eq!(played.speech.text.as_deref(), Some("Yes, I can change it."));
+    assert_eq!(
+        played.speech.placement,
+        SpeechPlacement::Observed {
+            relationship: "generated_by".into(),
+            step_id: "row-M3".into(),
+            via: vec!["row-TT2".into()],
+        }
+    );
+    assert_eq!(played.speech.framework_turn_id.as_deref(), Some("AT2"));
+    let generated = serde_json::to_value(&played.turn.response).unwrap();
+    assert_eq!(
+        generated["response"][0]["text"],
+        "Yes, I can change it. What is the new address?"
+    );
+
+    let first_answer = speech_by_id(&placed, "row-A1");
+    assert_eq!(first_answer.turn.request_id, "row-M1");
+    assert_eq!(
+        observed_step(first_answer.speech),
+        Some(("generated_by", "row-M2"))
+    );
+    assert_eq!(first_answer.speech.context_step_ids, vec!["row-M3"]);
+
+    let question = speech_by_id(&placed, "row-U2");
+    assert_eq!(question.turn.request_id, "row-M3");
+    assert_eq!(question.speech.framework_turn_id.as_deref(), Some("UT2"));
+
+    let overlap = speech_by_id(&placed, "row-U3");
+    assert_eq!(overlap.turn.request_id, "row-M3");
+    assert_eq!(
+        overlap.speech.placement,
+        SpeechPlacement::Inferred {
+            basis: "time_after_turn".into()
+        }
+    );
+    assert_eq!(overlap.speech.framework_turn_id.as_deref(), Some("UT3"));
+}
+
+#[test]
+fn voice_user_speech_falls_back_to_framework_reply_to() {
+    let mut fixture: Value = serde_json::from_str(CASCADE_VOICE).unwrap();
+    for span in fixture["spans"].as_array_mut().unwrap() {
+        if span["span_attributes"]["type"] == "llm" {
+            span["metadata"]["links"] = json!([]);
+        }
+    }
+    let trajectories = voice_fixture_trajectories(&fixture.to_string());
+    let placed = placed_speech(&trajectories[0]);
+    let question = speech_by_id(&placed, "row-U2");
+    assert_eq!(
+        observed_step(question.speech),
+        Some(("turn.reply_to", "row-M3"))
+    );
+    assert!(question.speech.context_step_ids.is_empty());
+    let first = speech_by_id(&placed, "row-U1");
+    assert_eq!(
+        observed_step(first.speech),
+        Some(("turn.reply_to", "row-M1"))
+    );
+    assert!(matches!(
+        speech_by_id(&placed, "row-U3").speech.placement,
+        SpeechPlacement::Inferred { .. }
+    ));
+}
+
+#[test]
+fn voice_speech_edge_cases_are_placed_without_panicking() {
+    let trajectories = voice_fixture_trajectories(EDGE_VOICE);
+    let trajectory = &trajectories[0];
+    let placed = placed_speech(trajectory);
+    assert_eq!(placed.len(), 6);
+    assert_speech_matches_links(EDGE_VOICE, trajectory);
+    assert!(trajectory
+        .turns
+        .iter()
+        .all(|turn| turn.interrupted.is_none()));
+
+    let silent = speech_by_id(&placed, "row-V1");
+    assert_eq!(silent.speech.text, None);
+    assert_eq!(
+        silent.speech.placement,
+        SpeechPlacement::Inferred {
+            basis: "time_before_first_turn".into()
+        }
+    );
+    let unrecorded = speech_by_id(&placed, "row-V3");
+    assert!(unrecorded.speech.selections.is_empty());
+    assert_eq!(
+        observed_step(unrecorded.speech),
+        Some(("generated_by", "row-L1"))
+    );
+    let segmented = speech_by_id(&placed, "row-V4");
+    let segments: Vec<_> = segmented
+        .speech
+        .selections
+        .iter()
+        .map(|selection| (selection.recording_id.as_str(), selection.start_offset_ms))
+        .collect();
+    assert_eq!(segments, vec![("seg-0", 5500.0), ("seg-1", 0.0)]);
+    for id in ["row-V2", "row-V5", "row-V6"] {
+        assert!(matches!(
+            speech_by_id(&placed, id).speech.placement,
+            SpeechPlacement::Inferred { .. }
+        ));
+    }
+    assert_eq!(
+        serde_json::to_value(&trajectory.metadata["import_warnings"]).unwrap(),
+        json!([{"span_id": "row-L1", "message": "Unresolved input_context link to span MISSING-SPAN"}])
+    );
+    assert!(trajectory
+        .recordings
+        .as_ref()
+        .unwrap()
+        .iter()
+        .any(|recording| recording.state.as_deref() == Some("pending")));
+}
+
+#[test]
+fn voice_speech_does_not_depend_on_load_order() {
+    for fixture in [LIVEKIT_VOICE, CASCADE_VOICE, EDGE_VOICE] {
+        let expected =
+            serde_json::to_value(voice_trajectories_in_order(fixture, 1, false)).unwrap();
+        for (limit, reverse) in [(16, false), (1, true), (16, true), (usize::MAX, true)] {
+            assert_eq!(
+                serde_json::to_value(voice_trajectories_in_order(fixture, limit, reverse)).unwrap(),
+                expected
+            );
+        }
+        let imported = voice_fixture_as_import(fixture);
+        for (batch_size, bodies) in [(1, false), (16, false), (1, true), (16, true)] {
+            assert_eq!(
+                serde_json::to_value(run_fixture(&imported, batch_size, bodies, &[])).unwrap(),
+                expected
+            );
+        }
+        let reversed: Vec<_> = (0..imported.spans.len() as u64).rev().collect();
+        assert_eq!(
+            serde_json::to_value(run_fixture(&imported, 3, false, &reversed)).unwrap(),
+            expected
+        );
+    }
+}
+
+#[test]
+fn voice_speech_with_failed_payload_keeps_its_place() {
+    let fixture: Value = serde_json::from_str(LIVEKIT_VOICE).unwrap();
+    let spans: Vec<Span> = serde_json::from_value(fixture["spans"].clone()).unwrap();
+    let mut stream = stream_from_sources(spans.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first().cloned() {
+        let events = if id == "8bb24c01384ebf11" {
+            stream.fail(&id, "payload unavailable".into()).unwrap()
+        } else {
+            let source = spans
+                .iter()
+                .find(|span| span.other["id"].as_str() == Some(id.as_str()))
+                .cloned()
+                .unwrap();
+            stream.push(import_span(source).unwrap()).unwrap()
+        };
+        collect(&mut collector, events);
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let trajectories = collector.snapshot().unwrap();
+    let placed = placed_speech(&trajectories[0]);
+    assert_eq!(placed.len(), 7);
+    let failed = speech_by_id(&placed, "8bb24c01384ebf11");
+    assert_eq!(failed.speech.text, None);
+    assert_eq!(
+        observed_step(failed.speech),
+        Some(("input_context", "cf4ad22a4fce2f17"))
+    );
 }
