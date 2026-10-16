@@ -21,10 +21,10 @@ mod tests {
             .unwrap()
             .as_ptr();
         let lingua_value: lingua::serde_json::Value = value;
-        let value: Value = lingua_value;
-        assert_eq!(value.to_string(), original);
+        let returned_value: Value = lingua_value;
+        assert_eq!(returned_value.to_string(), original);
         assert_eq!(
-            value
+            returned_value
                 .as_object()
                 .unwrap()
                 .get("text")
