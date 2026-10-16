@@ -1,0 +1,11 @@
+[package]
+name = "lingua-standard-json-test"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+lingua = { path = "../../crates/lingua", default-features = false, features = ["openai", "anthropic", "google"] }
+serde_json = "1.0"

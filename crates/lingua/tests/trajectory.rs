@@ -43,6 +43,11 @@ fn trajectory_preserves_json_values_and_provider_params() {
         serde_json::from_str::<serde_json::Value>(r#"{ "id": 123456789012345678901234567890 }"#)
             .unwrap();
 
+    assert_eq!(
+        expected.to_string(),
+        r#"{"id":123456789012345678901234567890}"#
+    );
+
     assert_eq!(serde_json::to_value(&decoded.metadata).unwrap(), expected);
     assert_eq!(
         serde_json::to_value(&decoded.agent.metadata).unwrap(),
