@@ -1,4 +1,4 @@
-use super::voice::{import_voice, SpanVoice};
+use super::voice::{import_synthesis_text, import_voice, SpanVoice};
 use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
@@ -75,6 +75,9 @@ pub struct ImportedSpan {
     pub errors: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub warnings: Vec<String>,
+    /// Text sent to speech synthesis, from the input of a `tts` task span.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub synthesis_text: Option<String>,
 }
 
 impl ImportedSpan {
@@ -91,6 +94,7 @@ impl ImportedSpan {
             interruption_messages: Vec::new(),
             errors: self.errors.clone(),
             warnings: self.warnings.clone(),
+            synthesis_text: None,
         }
     }
 }
@@ -230,6 +234,10 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
     } else {
         (None, None)
     };
+    let synthesis_text = (source.span_attributes.kind.as_deref() == Some("task")
+        && source.span_attributes.name.as_deref() == Some("tts"))
+    .then(|| import_synthesis_text(span.input.as_ref()))
+    .flatten();
     let super::SpanMessages {
         input,
         output,
@@ -321,6 +329,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         interruption_messages,
         errors,
         warnings,
+        synthesis_text,
     })
 }
 
