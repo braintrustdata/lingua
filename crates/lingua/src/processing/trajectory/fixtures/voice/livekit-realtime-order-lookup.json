@@ -1,0 +1,3132 @@
+{
+ "description": "Real LiveKit realtime trace (Braintrust SDKs / voice-sdk-instrumentation-livekit, root 9474f300fdfc76c9d3dad9c5c51a115c), copied verbatim from the BTQL export. No turn containers.",
+ "spans": [
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965489098817536",
+   "_xact_id": "1000198038627161904",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625780269",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038625782237",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "audio.recordings": [
+        {
+         "id": "call",
+         "state": "pending"
+        }
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627096687",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627159519",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "input"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627160767",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627161904",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.audio.input_clock": "arrival_anchored_ordered_samples"
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:08.432Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "32faf3fda16a6e96",
+   "input": {
+    "audio": {
+     "call-0000": {
+      "content_type": "audio/ogg",
+      "filename": "call-0000.ogg",
+      "key": "a487ffab-f1ca-41b9-b7bd-9b05dc0d5409",
+      "type": "braintrust_attachment"
+     }
+    }
+   },
+   "is_root": true,
+   "log_id": "g",
+   "metadata": {
+    "audio.recordings": [
+     {
+      "attachment": {
+       "ref": "/input/audio/call-0000",
+       "span_id": "ec099e46fa1da84e"
+      },
+      "channel_count": 2,
+      "duration_ms": 20589,
+      "id": "call-0000",
+      "mime_type": "audio/ogg",
+      "recording_group_id": "call",
+      "sample_rate_hz": 48000,
+      "sources": [
+       {
+        "boundary": "session_input",
+        "channel_index": 0
+       },
+       {
+        "boundary": "local_audio_output",
+        "channel_index": 1
+       }
+      ],
+      "state": "ready",
+      "timeline": {
+       "basis": "local_input_arrival_and_output_playout",
+       "origin_unix_ms": 1792089428434,
+       "recording_start_offset_ms": 0
+      }
+     }
+    ],
+    "contrib.livekit.agent_label": "default_agent",
+    "contrib.livekit.agent_name": "",
+    "contrib.livekit.audio.input_clock": "arrival_anchored_ordered_samples",
+    "contrib.livekit.audio.input_formats": [
+     {
+      "channel_count": 1,
+      "sample_rate_hz": 24000
+     }
+    ],
+    "contrib.livekit.audio.output_formats": [
+     {
+      "channel_count": 1,
+      "sample_rate_hz": 24000
+     }
+    ],
+    "contrib.livekit.dispatch_id": "AD_DJUdS834MvQa",
+    "contrib.livekit.events": [
+     {
+      "attributes": {
+       "contrib.livekit.connection_state": "CONN_CONNECTED"
+      },
+      "name": "connection_state_changed",
+      "time_unix_ms": 1792089428436.7566
+     },
+     {
+      "attributes": {
+       "contrib.livekit.participant_id": "PA_KgVCRqcGXSnn",
+       "contrib.livekit.participant_kind": "STANDARD",
+       "contrib.livekit.pii.participant_identity": "caller-0057d53a-48a6-4215-a963-f8028b08340c"
+      },
+      "name": "participant_linked",
+      "time_unix_ms": 1792089428456.4795
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "listening",
+       "contrib.livekit.old_state": "initializing"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089428467.381
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "speaking",
+       "contrib.livekit.old_state": "listening"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089430387.9128
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "listening",
+       "contrib.livekit.old_state": "speaking"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089432355.4749
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "speaking",
+       "contrib.livekit.old_state": "listening"
+      },
+      "name": "user_state_changed",
+      "time_unix_ms": 1792089433721.1292
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "listening",
+       "contrib.livekit.old_state": "speaking"
+      },
+      "name": "user_state_changed",
+      "time_unix_ms": 1792089435434.4114
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "speaking",
+       "contrib.livekit.old_state": "listening"
+      },
+      "name": "user_state_changed",
+      "time_unix_ms": 1792089435487.8762
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "speaking",
+       "contrib.livekit.old_state": "listening"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089437288.4763
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "listening",
+       "contrib.livekit.old_state": "speaking"
+      },
+      "name": "user_state_changed",
+      "time_unix_ms": 1792089437805.5151
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "thinking",
+       "contrib.livekit.old_state": "speaking"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089439262.6978
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "speaking",
+       "contrib.livekit.old_state": "thinking"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089441034.3694
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "listening",
+       "contrib.livekit.old_state": "speaking"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089445734.061
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "speaking",
+       "contrib.livekit.old_state": "listening"
+      },
+      "name": "user_state_changed",
+      "time_unix_ms": 1792089446998.232
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "speaking",
+       "contrib.livekit.old_state": "listening"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089447374.9666
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "listening",
+       "contrib.livekit.old_state": "speaking"
+      },
+      "name": "user_state_changed",
+      "time_unix_ms": 1792089448165.331
+     },
+     {
+      "attributes": {
+       "contrib.livekit.new_state": "listening",
+       "contrib.livekit.old_state": "speaking"
+      },
+      "name": "agent_state_changed",
+      "time_unix_ms": 1792089448878.38
+     },
+     {
+      "attributes": {
+       "contrib.livekit.disconnect_reason": "CLIENT_INITIATED",
+       "contrib.livekit.participant_id": "PA_KgVCRqcGXSnn",
+       "contrib.livekit.participant_kind": "STANDARD",
+       "contrib.livekit.pii.participant_identity": "caller-0057d53a-48a6-4215-a963-f8028b08340c"
+      },
+      "name": "participant_disconnected",
+      "time_unix_ms": 1792089449027.427
+     },
+     {
+      "attributes": {
+       "contrib.livekit.connection_state": "CONN_DISCONNECTED"
+      },
+      "name": "connection_state_changed",
+      "time_unix_ms": 1792089449133.4773
+     }
+    ],
+    "contrib.livekit.job.agent_id": "A_NkeZmdfpMxcY",
+    "contrib.livekit.job.worker_id": "AW_KoVrbp69Mo8m",
+    "contrib.livekit.job_id": "AJ_ME2GU3L8ehQF",
+    "contrib.livekit.room_sid": "RM_WinynvmvdkYo",
+    "gen_ai.conversation.id": "RM_WinynvmvdkYo",
+    "gen_ai.operation.name": "invoke_workflow",
+    "gen_ai.workflow.name": "agent_session"
+   },
+   "metrics": {
+    "duration": 21.26017117500305,
+    "end": 1792089449.689171,
+    "start": 1792089428.429
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 0,
+    "name": "livekit.agent_session",
+    "type": "task"
+   },
+   "span_id": "ec099e46fa1da84e",
+   "span_parents": null,
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965489227792385",
+   "_xact_id": "1000198038625782237",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625782237",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:08.433Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "773aba621dfa792f",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {},
+   "metrics": {
+    "duration": 0.0349273681640625,
+    "end": 1792089428.4679277,
+    "start": 1792089428.433
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 1,
+    "name": "livekit.session_start",
+    "type": "task"
+   },
+   "span_id": "85e816be189ff63d",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965489227792386",
+   "_xact_id": "1000198038625782237",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625782237",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:08.457Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "42b76436330f2102",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.participant_id": "PA_KgVCRqcGXSnn",
+    "contrib.livekit.participant_kind": "STANDARD",
+    "contrib.livekit.room_io.participant_filter": false
+   },
+   "metrics": {
+    "duration": 0.003690004348754883,
+    "end": 1792089428.46069,
+    "start": 1792089428.457
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 2,
+    "name": "livekit.wait_for_participant",
+    "type": "task"
+   },
+   "span_id": "0f76bd08661f2878",
+   "span_parents": [
+    "85e816be189ff63d"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965489227792387",
+   "_xact_id": "1000198038625782237",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625782237",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:08.457Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "fcfaa40bb2a001be",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.agent_label": "default_agent",
+    "gen_ai.agent.name": "default_agent",
+    "gen_ai.conversation.id": "RM_WinynvmvdkYo",
+    "gen_ai.operation.name": "create_agent",
+    "gen_ai.provider.name": "openai",
+    "gen_ai.request.model": "gpt-live-1",
+    "model": "gpt-live-1",
+    "provider": "openai"
+   },
+   "metrics": {
+    "duration": 0.0092315673828125,
+    "end": 1792089428.4662316,
+    "start": 1792089428.457
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 3,
+    "name": "livekit.start_agent_activity",
+    "type": "task"
+   },
+   "span_id": "bedea6d2fabf3be6",
+   "span_parents": [
+    "85e816be189ff63d"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965489227792388",
+   "_xact_id": "1000198038625782237",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625782237",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:08.458Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "6fb44ca437ec4592",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {},
+   "metrics": {
+    "duration": 0.0013921260833740234,
+    "end": 1792089428.459392,
+    "start": 1792089428.458
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 4,
+    "name": "livekit.setup_toolsets",
+    "type": "task"
+   },
+   "span_id": "fcd5cec1dcef3a25",
+   "span_parents": [
+    "bedea6d2fabf3be6"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965489227792389",
+   "_xact_id": "1000198038625782237",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625782237",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:08.463Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "944331540676f46d",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.events": [
+     {
+      "attributes": {
+       "contrib.livekit.track_sid": "TR_AMiepgwHN5s4TM",
+       "contrib.livekit.track_source": "SOURCE_MICROPHONE"
+      },
+      "name": "track_subscribed",
+      "time_unix_ms": 1792089428486.629
+     },
+     {
+      "attributes": {},
+      "name": "first_frame",
+      "time_unix_ms": 1792089428492
+     }
+    ],
+    "contrib.livekit.first_frame_delay": 0.029
+   },
+   "metrics": {
+    "duration": 0.02986288070678711,
+    "end": 1792089428.492863,
+    "start": 1792089428.463
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 5,
+    "name": "livekit.wait_for_audio_track",
+    "type": "task"
+   },
+   "span_id": "11f984e59a2edbff",
+   "span_parents": [
+    "85e816be189ff63d"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965489227792390",
+   "_xact_id": "1000198038625782237",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625782237",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:08.463Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "595ebaedcaa5d168",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.track_sid": "TR_AM8SdqBnDeTARP"
+   },
+   "metrics": {
+    "duration": 0.13543415069580078,
+    "end": 1792089428.5984342,
+    "start": 1792089428.463
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 6,
+    "name": "livekit.publish_audio_output",
+    "type": "task"
+   },
+   "span_id": "f64b5cb6d70fae78",
+   "span_parents": [
+    "85e816be189ff63d"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965489227792391",
+   "_xact_id": "1000198038625782237",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625782237",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:08.466Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "34561bc37a5b32ac",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.agent_label": "default_agent"
+   },
+   "metrics": {
+    "duration": 0.0002911090850830078,
+    "end": 1792089428.4662912,
+    "start": 1792089428.466
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 7,
+    "name": "livekit.on_enter",
+    "type": "task"
+   },
+   "span_id": "f7743cd1a35d7b4f",
+   "span_parents": [
+    "bedea6d2fabf3be6"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965493611495424",
+   "_xact_id": "1000198038625980960",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625849127",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038625850419",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.input_scope": "realtime_session_context",
+       "contrib.livekit.response_id": "item_30180d4d-dc6"
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038625979755",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "output"
+      ],
+      "to": [
+       {
+        "content": "Hi, how can I help?",
+        "role": "assistant"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038625980960",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:10.381Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "f34aaa489e63f67e",
+   "input": [],
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.input_scope": "realtime_session_context",
+    "contrib.livekit.response_id": "item_30180d4d-dc6",
+    "gen_ai.conversation.id": "RM_WinynvmvdkYo",
+    "gen_ai.operation.name": "generate_content",
+    "gen_ai.provider.name": "openai",
+    "gen_ai.request.model": "gpt-live-1",
+    "gen_ai.request.stream": true,
+    "model": "gpt-live-1",
+    "provider": "openai"
+   },
+   "metrics": {
+    "duration": 1.9753108024597168,
+    "end": 1792089432.3563108,
+    "start": 1792089430.381
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": [
+    {
+     "content": "Hi, how can I help?",
+     "role": "assistant"
+    }
+   ],
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 8,
+    "name": "llm_response",
+    "type": "llm"
+   },
+   "span_id": "fa2686c96e34afda",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965493696167937",
+   "_xact_id": "1000198038627160767",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038625850419",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038625980960",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627160767",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:10.387Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "68e031159f3feede",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "audio.selection": null,
+    "audio.selections": [
+     {
+      "channel_index": 1,
+      "end_offset_ms": 3252,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 1952
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 3407,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 3307
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 3911,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 3411
+     }
+    ],
+    "contrib.livekit.message_ids": [
+     "item_30180d4d-dc6"
+    ],
+    "contrib.livekit.participant_id": "PA_FXS3NrqSCZ9T",
+    "contrib.livekit.participant_kind": "AGENT",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "generated_by"
+      },
+      "context": {
+       "spanId": "fa2686c96e34afda",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     }
+    ]
+   },
+   "metrics": {
+    "duration": 1.9679999351501465,
+    "end": 1792089432.355,
+    "start": 1792089430.387
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": [
+    {
+     "content": "Hi, how can I help?",
+     "role": "assistant"
+    }
+   ],
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 9,
+    "name": "agent_speech",
+    "type": "task"
+   },
+   "span_id": "3cfd96ad876a52e1",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965506705063936",
+   "_xact_id": "1000198038627160767",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626048919",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626050003",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_446e565f-c1e"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626108016",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_446e565f-c1e"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626109184",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_446e565f-c1e"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626111527",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "input"
+      ],
+      "to": [
+       {
+        "content": " Hi, can you tell me where",
+        "role": "user"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626112599",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_446e565f-c1e"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626113676",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_446e565f-c1e"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626176895",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "input"
+      ],
+      "to": [
+       {
+        "content": " Hi, can you tell me where a",
+        "role": "user"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626177983",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627160767",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:13.721Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "8d9f25e48b7888cd",
+   "input": [
+    {
+     "content": " Hi, can you tell me where a",
+     "role": "user"
+    }
+   ],
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "audio.selection": {
+     "channel_index": 0,
+     "end_offset_ms": 6999,
+     "recording_id": "call-0000",
+     "recording_span_id": "ec099e46fa1da84e",
+     "start_offset_ms": 5287
+    },
+    "audio.selections": [
+     {
+      "channel_index": 0,
+      "end_offset_ms": 6999,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 5287
+     }
+    ],
+    "contrib.livekit.message_ids": [
+     "speech_446e565f-c1e"
+    ],
+    "contrib.livekit.participant_id": "PA_KgVCRqcGXSnn",
+    "contrib.livekit.participant_kind": "STANDARD"
+   },
+   "metrics": {
+    "duration": 1.713566780090332,
+    "end": 1792089435.4345667,
+    "start": 1792089433.721
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 10,
+    "name": "user_speech",
+    "type": "task"
+   },
+   "span_id": "b4b129f8d1e80c1e",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965515163402241",
+   "_xact_id": "1000198038627160767",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626177983",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626179049",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_804f94a3-1e6"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626239222",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "input"
+      ],
+      "to": [
+       {
+        "content": " demo 104",
+        "role": "user"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626240224",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_804f94a3-1e6"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626242199",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "input"
+      ],
+      "to": [
+       {
+        "content": " demo 1042",
+        "role": "user"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626243247",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_804f94a3-1e6"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626304512",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "input"
+      ],
+      "to": [
+       {
+        "content": " demo 1042 is",
+        "role": "user"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626305551",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_804f94a3-1e6"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626311030",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "input"
+      ],
+      "to": [
+       {
+        "content": " demo 1042 is",
+        "role": "user"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626369678",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627160767",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:15.488Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "8bb24c01384ebf11",
+   "input": [
+    {
+     "content": " demo 1042 is",
+     "role": "user"
+    }
+   ],
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "audio.selection": {
+     "channel_index": 0,
+     "end_offset_ms": 9369,
+     "recording_id": "call-0000",
+     "recording_span_id": "ec099e46fa1da84e",
+     "start_offset_ms": 7053
+    },
+    "audio.selections": [
+     {
+      "channel_index": 0,
+      "end_offset_ms": 9369,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 7053
+     }
+    ],
+    "contrib.livekit.message_ids": [
+     "speech_804f94a3-1e6"
+    ],
+    "contrib.livekit.participant_id": "PA_KgVCRqcGXSnn",
+    "contrib.livekit.participant_kind": "STANDARD"
+   },
+   "metrics": {
+    "duration": 2.317721128463745,
+    "end": 1792089437.804721,
+    "start": 1792089435.487
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 11,
+    "name": "user_speech",
+    "type": "task"
+   },
+   "span_id": "724b542f5f6952c4",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965523617087488",
+   "_xact_id": "1000198038626439529",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626306976",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626308534",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.input_scope": "realtime_session_context",
+       "contrib.livekit.response_id": "item_c4f0eac8-947"
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626371933",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "output"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626437894",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "output"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626439529",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:17.286Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "d855d11a6e8ee505",
+   "input": [
+    {
+     "content": "Hi, how can I help?",
+     "role": "assistant"
+    },
+    {
+     "content": " Hi, can you tell me where a",
+     "role": "user"
+    }
+   ],
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.input_scope": "realtime_session_context",
+    "contrib.livekit.response_id": "item_c4f0eac8-947",
+    "gen_ai.conversation.id": "RM_WinynvmvdkYo",
+    "gen_ai.operation.name": "generate_content",
+    "gen_ai.provider.name": "openai",
+    "gen_ai.request.model": "gpt-live-1",
+    "gen_ai.request.stream": true,
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "3cfd96ad876a52e1",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "b4b129f8d1e80c1e",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     }
+    ],
+    "model": "gpt-live-1",
+    "provider": "openai"
+   },
+   "metrics": {
+    "duration": 1.9801483154296875,
+    "end": 1792089439.2661483,
+    "start": 1792089437.286
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": [
+    {
+     "content": null,
+     "role": "assistant",
+     "tool_calls": [
+      {
+       "function": {
+        "arguments": "{\"order_id\":\"1042\"}",
+        "name": "lookup_order"
+       },
+       "id": "call_sRWHZLATdVVcZeifkZiZ6V0d",
+       "type": "function"
+      }
+     ]
+    },
+    {
+     "content": " Sure, I'll check that.",
+     "role": "assistant"
+    }
+   ],
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 12,
+    "name": "llm_response",
+    "type": "llm"
+   },
+   "span_id": "b7c2237de758520e",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965523719192577",
+   "_xact_id": "1000198038627160767",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626308534",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626369678",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "audio.selection": null,
+       "audio.selections": []
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626439529",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "output"
+      ],
+      "to": [
+       {
+        "content": " Sure, I'll check that.",
+        "role": "assistant"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627160767",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:17.288Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "62acd8e8ee191cbd",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "audio.selection": null,
+    "audio.selections": [
+     {
+      "channel_index": 1,
+      "end_offset_ms": 8953,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 8853
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 10261,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 8961
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 10426,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 10326
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 10827,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 10428
+     }
+    ],
+    "contrib.livekit.message_ids": [
+     "item_c4f0eac8-947"
+    ],
+    "contrib.livekit.participant_id": "PA_FXS3NrqSCZ9T",
+    "contrib.livekit.participant_kind": "AGENT",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "generated_by"
+      },
+      "context": {
+       "spanId": "b7c2237de758520e",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     }
+    ]
+   },
+   "metrics": {
+    "duration": 1.9749999046325684,
+    "end": 1792089439.263,
+    "start": 1792089437.288
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": [
+    {
+     "content": " Sure, I'll check that.",
+     "role": "assistant"
+    }
+   ],
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 13,
+    "name": "agent_speech",
+    "type": "task"
+   },
+   "span_id": "e09b793a3b6505d4",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965527948558336",
+   "_xact_id": "1000198038626373069",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626373069",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:18.241Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "46685b2fb3905fc6",
+   "input": {
+    "order_id": "1042"
+   },
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.function_tool.is_error": false,
+    "contrib.livekit.function_tool.name": "lookup_order",
+    "gen_ai.agent.name": "default_agent",
+    "gen_ai.conversation.id": "RM_WinynvmvdkYo",
+    "gen_ai.operation.name": "execute_tool",
+    "gen_ai.tool.call.id": "call_sRWHZLATdVVcZeifkZiZ6V0d",
+    "gen_ai.tool.name": "lookup_order",
+    "gen_ai.tool.type": "function",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "requested_by"
+      },
+      "context": {
+       "spanId": "b7c2237de758520e",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     }
+    ]
+   },
+   "metrics": {
+    "duration": 0.12335634231567384,
+    "end": 1792089438.3643565,
+    "start": 1792089438.241
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": {
+    "delivery": "Friday",
+    "demo_data": true,
+    "order_id": "1042",
+    "status": "in_transit"
+   },
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 14,
+    "name": "lookup_order",
+    "type": "tool"
+   },
+   "span_id": "20eb745f0662fe82",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965540661362688",
+   "_xact_id": "1000198038626837067",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626567051",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626568132",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.input_scope": "realtime_session_context",
+       "contrib.livekit.response_id": "item_4be5c549-3a4"
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626835430",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "output"
+      ],
+      "to": [
+       {
+        "content": " Order 1042 is in transit and expected to arrive Friday.",
+        "role": "assistant"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626837067",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:21.032Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "cf4ad22a4fce2f17",
+   "input": [
+    {
+     "content": "Hi, how can I help?",
+     "role": "assistant"
+    },
+    {
+     "content": " Hi, can you tell me where a",
+     "role": "user"
+    },
+    {
+     "content": " demo 1042 is",
+     "role": "user"
+    },
+    {
+     "content": " Sure, I'll check that.",
+     "role": "assistant"
+    },
+    {
+     "content": null,
+     "role": "assistant",
+     "tool_calls": [
+      {
+       "function": {
+        "arguments": "{\"order_id\":\"1042\"}",
+        "name": "lookup_order"
+       },
+       "id": "call_sRWHZLATdVVcZeifkZiZ6V0d",
+       "type": "function"
+      }
+     ]
+    },
+    {
+     "content": "{\"order_id\":\"1042\",\"status\":\"in_transit\",\"delivery\":\"Friday\",\"demo_data\":true}",
+     "role": "tool",
+     "tool_call_id": "call_sRWHZLATdVVcZeifkZiZ6V0d"
+    }
+   ],
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.input_scope": "realtime_session_context",
+    "contrib.livekit.response_id": "item_4be5c549-3a4",
+    "gen_ai.conversation.id": "RM_WinynvmvdkYo",
+    "gen_ai.operation.name": "generate_content",
+    "gen_ai.provider.name": "openai",
+    "gen_ai.request.model": "gpt-live-1",
+    "gen_ai.request.stream": true,
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "3cfd96ad876a52e1",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "b4b129f8d1e80c1e",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "724b542f5f6952c4",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "e09b793a3b6505d4",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "consumes_tool_result"
+      },
+      "context": {
+       "spanId": "20eb745f0662fe82",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     }
+    ],
+    "model": "gpt-live-1",
+    "provider": "openai"
+   },
+   "metrics": {
+    "duration": 4.702823162078857,
+    "end": 1792089445.7348232,
+    "start": 1792089441.032
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": [
+    {
+     "content": " Order 1042 is in transit and expected to arrive Friday.",
+     "role": "assistant"
+    }
+   ],
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 15,
+    "name": "llm_response",
+    "type": "llm"
+   },
+   "span_id": "b4e74ad754f892dd",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965540732207105",
+   "_xact_id": "1000198038627160767",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626568132",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626837067",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627160767",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:21.034Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "3a80360be3632430",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "audio.selection": null,
+    "audio.selections": [
+     {
+      "channel_index": 1,
+      "end_offset_ms": 14299,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 12600
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 16404,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 14304
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 17297,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 16497
+     }
+    ],
+    "contrib.livekit.message_ids": [
+     "item_4be5c549-3a4"
+    ],
+    "contrib.livekit.participant_id": "PA_FXS3NrqSCZ9T",
+    "contrib.livekit.participant_kind": "AGENT",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "generated_by"
+      },
+      "context": {
+       "spanId": "b4e74ad754f892dd",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     }
+    ]
+   },
+   "metrics": {
+    "duration": 4.700000047683716,
+    "end": 1792089445.734,
+    "start": 1792089441.034
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": [
+    {
+     "content": " Order 1042 is in transit and expected to arrive Friday.",
+     "role": "assistant"
+    }
+   ],
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 16,
+    "name": "agent_speech",
+    "type": "task"
+   },
+   "span_id": "a7d76d0048b38108",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965566406066176",
+   "_xact_id": "1000198038627160767",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626959884",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626961279",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_221d8ad1-c5a"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626962412",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_221d8ad1-c5a"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038626963471",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.message_ids": [
+        "speech_221d8ad1-c5a"
+       ]
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627026860",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "input"
+      ],
+      "to": [
+       {
+        "content": " Alright, thank you",
+        "role": "user"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627028068",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627160767",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:26.998Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "2cb6e251a0e3e227",
+   "input": [
+    {
+     "content": " Alright, thank you",
+     "role": "user"
+    }
+   ],
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "audio.selection": {
+     "channel_index": 0,
+     "end_offset_ms": 19729,
+     "recording_id": "call-0000",
+     "recording_span_id": "ec099e46fa1da84e",
+     "start_offset_ms": 18564
+    },
+    "audio.selections": [
+     {
+      "channel_index": 0,
+      "end_offset_ms": 19729,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 18564
+     }
+    ],
+    "contrib.livekit.message_ids": [
+     "speech_221d8ad1-c5a"
+    ],
+    "contrib.livekit.participant_id": "PA_KgVCRqcGXSnn",
+    "contrib.livekit.participant_kind": "STANDARD"
+   },
+   "metrics": {
+    "duration": 1.167288303375244,
+    "end": 1792089448.1652882,
+    "start": 1792089446.998
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 17,
+    "name": "user_speech",
+    "type": "task"
+   },
+   "span_id": "25e6d8da0e2ac49c",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965566641143808",
+   "_xact_id": "1000198038627090989",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626963471",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627032482",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "output"
+      ],
+      "to": [
+       {
+        "content": " You're welcome.",
+        "role": "assistant"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627090989",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:27.373Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "fb1ff83447ce40a4",
+   "input": [
+    {
+     "content": "Hi, how can I help?",
+     "role": "assistant"
+    },
+    {
+     "content": " Hi, can you tell me where a",
+     "role": "user"
+    },
+    {
+     "content": " demo 1042 is",
+     "role": "user"
+    },
+    {
+     "content": " Sure, I'll check that.",
+     "role": "assistant"
+    },
+    {
+     "content": null,
+     "role": "assistant",
+     "tool_calls": [
+      {
+       "function": {
+        "arguments": "{\"order_id\":\"1042\"}",
+        "name": "lookup_order"
+       },
+       "id": "call_sRWHZLATdVVcZeifkZiZ6V0d",
+       "type": "function"
+      }
+     ]
+    },
+    {
+     "content": "{\"order_id\":\"1042\",\"status\":\"in_transit\",\"delivery\":\"Friday\",\"demo_data\":true}",
+     "role": "tool",
+     "tool_call_id": "call_sRWHZLATdVVcZeifkZiZ6V0d"
+    },
+    {
+     "content": " Order 1042 is in transit and expected to arrive Friday.",
+     "role": "assistant"
+    }
+   ],
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.input_scope": "realtime_session_context",
+    "contrib.livekit.response_id": "item_e908f916-4a4",
+    "gen_ai.conversation.id": "RM_WinynvmvdkYo",
+    "gen_ai.operation.name": "generate_content",
+    "gen_ai.provider.name": "openai",
+    "gen_ai.request.model": "gpt-live-1",
+    "gen_ai.request.stream": true,
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "3cfd96ad876a52e1",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "b4b129f8d1e80c1e",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "724b542f5f6952c4",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "e09b793a3b6505d4",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "consumes_tool_result"
+      },
+      "context": {
+       "spanId": "20eb745f0662fe82",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "a7d76d0048b38108",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     }
+    ],
+    "model": "gpt-live-1",
+    "provider": "openai"
+   },
+   "metrics": {
+    "duration": 1.5064504146575928,
+    "end": 1792089448.8794503,
+    "start": 1792089447.373
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": [
+    {
+     "content": " You're welcome.",
+     "role": "assistant"
+    }
+   ],
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 18,
+    "name": "llm_response",
+    "type": "llm"
+   },
+   "span_id": "801232dba27364b6",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965566641143809",
+   "_xact_id": "1000198038627160767",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038626963471",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627028068",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "audio.selection": null,
+       "audio.selections": []
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627090989",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "output"
+      ],
+      "to": [
+       {
+        "content": " You're welcome.",
+        "role": "assistant"
+       }
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627160767",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:27.375Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "f5e0b9990bdd4e42",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "audio.selection": null,
+    "audio.selections": [
+     {
+      "channel_index": 1,
+      "end_offset_ms": 19040,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 18940
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 19141,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 19041
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 20244,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 19144
+     },
+     {
+      "channel_index": 1,
+      "end_offset_ms": 20442,
+      "recording_id": "call-0000",
+      "recording_span_id": "ec099e46fa1da84e",
+      "start_offset_ms": 20342
+     }
+    ],
+    "contrib.livekit.message_ids": [
+     "item_e908f916-4a4"
+    ],
+    "contrib.livekit.participant_id": "PA_FXS3NrqSCZ9T",
+    "contrib.livekit.participant_kind": "AGENT",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "generated_by"
+      },
+      "context": {
+       "spanId": "801232dba27364b6",
+       "traceFlags": 1,
+       "traceId": "9474f300fdfc76c9d3dad9c5c51a115c"
+      }
+     }
+    ]
+   },
+   "metrics": {
+    "duration": 1.503000020980835,
+    "end": 1792089448.878,
+    "start": 1792089447.375
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": [
+    {
+     "content": " You're welcome.",
+     "role": "assistant"
+    }
+   ],
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 19,
+    "name": "agent_speech",
+    "type": "task"
+   },
+   "span_id": "cea34c01ea725ac1",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965575084474368",
+   "_xact_id": "1000198038627096687",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038627092306",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627096687",
+     "audit_data": {
+      "action": "merge",
+      "from": null,
+      "path": [
+       "metadata"
+      ],
+      "to": {
+       "contrib.livekit.close.drain": false,
+       "contrib.livekit.close_reason": "participant_disconnected"
+      }
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:29.028Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "469ceb6630ddbb7d",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.close.drain": false,
+    "contrib.livekit.close_reason": "participant_disconnected"
+   },
+   "metrics": {
+    "duration": 0.6611077785491943,
+    "end": 1792089449.689108,
+    "start": 1792089449.028
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 20,
+    "name": "livekit.session_close",
+    "type": "task"
+   },
+   "span_id": "6255234fa1804419",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965575084474369",
+   "_xact_id": "1000198038627092306",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038627092306",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:29.029Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "bc1b8d3774a7e6c9",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.agent_label": "default_agent"
+   },
+   "metrics": {
+    "duration": 0.0011548995971679688,
+    "end": 1792089449.030155,
+    "start": 1792089449.029
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 21,
+    "name": "livekit.drain_agent_activity",
+    "type": "task"
+   },
+   "span_id": "86e5cb8d574f8d59",
+   "span_parents": [
+    "6255234fa1804419"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965575084474370",
+   "_xact_id": "1000198038627092306",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038627092306",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:29.029Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "a216c98fc8b01ec1",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.agent_label": "default_agent"
+   },
+   "metrics": {
+    "duration": 0.00020551681518554688,
+    "end": 1792089449.0292056,
+    "start": 1792089449.029
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 22,
+    "name": "livekit.on_exit",
+    "type": "task"
+   },
+   "span_id": "91edc284894fec42",
+   "span_parents": [
+    "86e5cb8d574f8d59"
+   ],
+   "tags": null
+  },
+  {
+   "_async_scoring_state": null,
+   "_pagination_key": "p07696965575268171776",
+   "_xact_id": "1000198038627096687",
+   "audit_data": [
+    {
+     "_xact_id": "1000198038627095109",
+     "audit_data": {
+      "action": "upsert"
+     },
+     "metadata": {},
+     "source": "api"
+    },
+    {
+     "_xact_id": "1000198038627096687",
+     "audit_data": {
+      "action": "merge",
+      "path": [
+       "metadata"
+      ]
+     },
+     "metadata": {},
+     "source": "api"
+    }
+   ],
+   "classifications": null,
+   "comments": null,
+   "context": {
+    "caller_filename": "file:///Users/david/src/braintrust/voice-evals-poc/demos/sdk-instrumentation/livekit/js/src/tracing.js",
+    "caller_functionname": "Object.onStart",
+    "caller_lineno": 22,
+    "span_origin": {
+     "instrumentation": {
+      "name": "livekit"
+     },
+     "name": "braintrust.sdk.javascript",
+     "version": "3.37.1"
+    }
+   },
+   "created": "2026-10-15T18:37:29.534Z",
+   "error": null,
+   "expected": null,
+   "facets": null,
+   "id": "0aacbca1362ff694",
+   "input": null,
+   "is_root": false,
+   "log_id": "g",
+   "metadata": {
+    "contrib.livekit.eou.endpointing_delay": 0.5,
+    "contrib.livekit.eou.not_committed_count": 0,
+    "contrib.livekit.eou.outcome": "committed",
+    "contrib.livekit.eou.rearm_count": 0,
+    "contrib.livekit.eou.source": "manual",
+    "contrib.livekit.eou.wait_duration": 0.155
+   },
+   "metrics": {
+    "duration": 0.1549999713897705,
+    "end": 1792089449.688,
+    "start": 1792089449.533
+   },
+   "org_id": "5abfae3a-7aa7-4653-a9c8-b3efcb18f584",
+   "origin": null,
+   "output": null,
+   "project_id": "a1b86ffa-42d8-445b-a43f-c9de68b3ece1",
+   "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+   "scores": null,
+   "span_attributes": {
+    "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+    "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+    "exec_counter": 23,
+    "name": "livekit.eou_wait",
+    "type": "task"
+   },
+   "span_id": "960bffd7039246ac",
+   "span_parents": [
+    "ec099e46fa1da84e"
+   ],
+   "tags": null
+  }
+ ]
+}
