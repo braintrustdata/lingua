@@ -27,6 +27,126 @@ pub struct Trajectory {
     /// Audio recordings logged anywhere in the trace, in span order.
     #[ts(optional)]
     pub recordings: Option<Vec<AudioRecording>>,
+    /// Speech logged on the call, one per `user_speech`/`agent_speech` span, ordered by
+    /// `(start_time, id)`. Model and tool work stays in `turns`; `relations` point into it.
+    #[ts(optional)]
+    pub utterances: Option<Vec<Utterance>>,
+    /// User and agent turns, present only when the framework logged turn spans.
+    #[ts(optional)]
+    pub speech_turns: Option<Vec<SpeechTurn>>,
+}
+
+/// Words one participant spoke on the call, from a single speech span.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct Utterance {
+    /// Id of the speech span.
+    pub id: String,
+    pub speaker: Speaker,
+    /// Transcribed user words or played agent words; absent until the span payload loads, or
+    /// when the span logged none. Never model-generated text.
+    #[ts(optional)]
+    pub text: Option<String>,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    pub selections: Vec<AudioSelection>,
+    /// Framework turn id (`metadata["turn.id"]`) of the speech span.
+    #[ts(optional)]
+    pub turn_id: Option<String>,
+    pub relations: Vec<UtteranceRelation>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum Speaker {
+    User,
+    Agent,
+}
+
+/// A relationship between an utterance and another span, with the evidence that establishes it.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct UtteranceRelation {
+    /// Read from the utterance: `generated_by`, `transcribed_by`, `in_context_of`, or the logged
+    /// relationship type.
+    pub relationship: String,
+    pub direction: RelationDirection,
+    /// Id of the related span, or the logged span id when the trace does not contain it.
+    pub span_id: String,
+    #[ts(optional)]
+    pub span_name: Option<String>,
+    /// Set when the related span appears in `turns`, as a request, response, or work step.
+    #[ts(optional)]
+    pub step_id: Option<String>,
+    /// The intermediate span when this relationship is reached through another one, like the
+    /// tts span between agent speech and the model call that generated its text.
+    #[ts(optional)]
+    pub via: Option<String>,
+    /// The logged target is not in the trace.
+    #[ts(optional)]
+    pub unresolved: Option<bool>,
+    pub evidence: Vec<RelationEvidence>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum RelationDirection {
+    /// Logged by the utterance (or the `via` span) about the related span.
+    Outgoing,
+    /// Logged by the related span about the utterance, like a model call's `input_context`.
+    Incoming,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct RelationEvidence {
+    pub basis: EvidenceBasis,
+    pub source: EvidenceSource,
+    /// Span whose `metadata.links` carries the link.
+    #[ts(optional)]
+    pub logged_by: Option<String>,
+    /// Logged `braintrust.relationship.type`.
+    #[ts(optional)]
+    pub link_type: Option<String>,
+    /// Native id shared by the speech span's message ids and the related span's response id.
+    #[ts(optional)]
+    pub message_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidenceBasis {
+    Observed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidenceSource {
+    Link,
+    MessageId,
+}
+
+/// A user or agent turn the framework logged as a `user_turn` or `agent_turn` span.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct SpeechTurn {
+    /// Framework turn id, or the turn span id when none was logged.
+    pub id: String,
+    pub span_id: String,
+    pub role: Speaker,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    pub utterance_ids: Vec<String>,
+    /// `metadata["turn.reply_to"]`
+    #[ts(optional)]
+    pub reply_to: Option<String>,
+    /// `metadata["turn.incomplete"]`
+    #[ts(optional)]
+    pub incomplete: Option<bool>,
 }
 
 #[skip_serializing_none]

@@ -4,10 +4,21 @@ import type { AudioRecording } from "./AudioRecording";
 import type { Finding } from "./Finding";
 import type { Scope } from "./Scope";
 import type { Section } from "./Section";
+import type { SpeechTurn } from "./SpeechTurn";
 import type { Turn } from "./Turn";
+import type { Utterance } from "./Utterance";
 
 export type Trajectory = { scope: Array<Scope>, agent: Agent, sections?: Array<Section>, findings?: Array<Finding>, turns: Array<Turn>, metadata: Record<string, unknown>, version?: string, 
 /**
  * Audio recordings logged anywhere in the trace, in span order.
  */
-recordings?: Array<AudioRecording>, };
+recordings?: Array<AudioRecording>, 
+/**
+ * Speech logged on the call, one per `user_speech`/`agent_speech` span, ordered by
+ * `(start_time, id)`. Model and tool work stays in `turns`; `relations` point into it.
+ */
+utterances?: Array<Utterance>, 
+/**
+ * User and agent turns, present only when the framework logged turn spans.
+ */
+speech_turns?: Array<SpeechTurn>, };

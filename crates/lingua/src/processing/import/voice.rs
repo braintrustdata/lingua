@@ -30,6 +30,9 @@ pub struct SpanVoice {
     /// `metadata["turn.reply_to"]`: the user turn an agent turn answers, when the framework knows.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reply_to: Option<String>,
+    /// `metadata["turn.incomplete"]`: the framework marked this turn as cut short.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub incomplete: Option<bool>,
 }
 
 impl SpanVoice {
@@ -115,6 +118,8 @@ struct VoiceMetadata {
     turn_id: Option<json::Value>,
     #[serde(rename = "turn.reply_to")]
     reply_to: Option<json::Value>,
+    #[serde(rename = "turn.incomplete")]
+    incomplete: Option<json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -210,6 +215,7 @@ pub(crate) fn import_voice(
         ),
         turn_id: field(metadata.turn_id, "turn.id", warnings),
         reply_to: field(metadata.reply_to, "turn.reply_to", warnings),
+        incomplete: field(metadata.incomplete, "turn.incomplete", warnings),
     };
     (!voice.is_empty()).then_some(voice)
 }
@@ -292,7 +298,8 @@ mod tests {
                 {"attributes": {"braintrust.relationship.type": "contrib.acme.heard_by"}, "context": {"spanId": "x"}},
                 {"attributes": {}, "context": {"spanId": "untyped"}}
             ],
-            "turn.id": "UT1"
+            "turn.id": "UT1",
+            "turn.incomplete": true
         });
         let voice = import_voice(Some(&metadata), &mut Vec::new()).unwrap();
         assert_eq!(voice.selections.len(), 1);
@@ -300,6 +307,7 @@ mod tests {
         assert_eq!(voice.links.len(), 1);
         assert_eq!(voice.links[0].relationship, "contrib.acme.heard_by");
         assert_eq!(voice.turn_id.as_deref(), Some("UT1"));
+        assert_eq!(voice.incomplete, Some(true));
     }
 
     #[test]
