@@ -26,6 +26,7 @@ use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
 pub use crate::universal::trajectory::OpaqueItem;
+use crate::universal::trajectory::OpaqueItemKind;
 use crate::universal::Message;
 use crate::universal::{
     AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
@@ -57,15 +58,15 @@ struct MessageImport {
     opaque: Vec<OpaqueItem>,
 }
 
-fn is_opaque_item(data: &Value) -> bool {
+fn opaque_item_kind(data: &Value) -> Option<OpaqueItemKind> {
     #[cfg(feature = "openai")]
     {
-        crate::providers::openai::convert::is_opaque_item_for_import(data)
+        crate::providers::openai::convert::opaque_item_kind_for_import(data)
     }
     #[cfg(not(feature = "openai"))]
     {
         let _ = data;
-        false
+        None
     }
 }
 
@@ -90,7 +91,7 @@ fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<M
         || (import.options.preserve_unsupported
             && data
                 .as_array()
-                .is_some_and(|items| items.iter().any(is_opaque_item)))
+                .is_some_and(|items| items.iter().any(|item| opaque_item_kind(item).is_some())))
     {
         return try_parse_mixed_messages_for_import(data, import).unwrap_or_default();
     }
@@ -250,10 +251,16 @@ fn try_parse_mixed_messages_for_import(
     let errors_before = import.errors.len();
 
     for (index, item) in items.iter().enumerate() {
-        if import.options.preserve_unsupported && is_opaque_item(item) {
+        let kind = if import.options.preserve_unsupported {
+            opaque_item_kind(item)
+        } else {
+            None
+        };
+        if kind.is_some() {
             import.opaque.push(OpaqueItem {
                 index: Some(index),
                 value: item.clone(),
+                kind,
                 is_metadata: false,
             });
             continue;
@@ -311,6 +318,7 @@ fn try_parse_mixed_messages_for_import(
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
+                    kind: None,
                     is_metadata: true,
                 });
             }
@@ -324,6 +332,7 @@ fn try_parse_mixed_messages_for_import(
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
+                    kind: None,
                     is_metadata: false,
                 });
             }
@@ -936,10 +945,16 @@ fn import_span_messages(
         _ => true,
     };
     let parse = |value: Value, field: &str, import: &mut MessageImport| {
-        if options.preserve_unsupported && is_opaque_item(&value) {
+        let kind = if options.preserve_unsupported {
+            opaque_item_kind(&value)
+        } else {
+            None
+        };
+        if kind.is_some() {
             import.opaque.push(OpaqueItem {
                 index: None,
                 value,
+                kind,
                 is_metadata: false,
             });
             return Vec::new();
@@ -957,6 +972,7 @@ fn import_span_messages(
                 import.opaque.push(OpaqueItem {
                     index: None,
                     value,
+                    kind: None,
                     is_metadata: false,
                 });
             }

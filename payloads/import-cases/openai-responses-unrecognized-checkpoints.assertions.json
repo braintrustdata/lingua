@@ -1,0 +1,42 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "user"
+  ],
+  "mustContainText": [
+    "Continue the task"
+  ],
+  "expectedOpaqueInput": [
+    [
+      {
+        "index": 1,
+        "value": {
+          "type": "compaction",
+          "encrypted_content": "missing_id"
+        }
+      },
+      {
+        "index": 2,
+        "value": {
+          "type": "compaction",
+          "id": "cmp_invalid",
+          "encrypted_content": 42
+        }
+      },
+      {
+        "index": 3,
+        "value": {
+          "type": "provider_checkpoint",
+          "id": "checkpoint",
+          "encrypted_content": "synthetic_provider_ciphertext"
+        }
+      }
+    ]
+  ],
+  "expectedOpaqueOutput": [
+    []
+  ],
+  "mustNotContainText": [
+    "encrypted_content"
+  ]
+}

@@ -8,6 +8,7 @@ use crate::providers::openai::tool_discovery;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
+use crate::universal::trajectory::OpaqueItemKind;
 use crate::universal::{
     AssistantContent, AssistantContentPart, AudioFormat, CacheControl, Message, ProviderOptions,
     TextContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
@@ -1293,12 +1294,12 @@ pub(crate) fn try_parse_responses_items_for_import(
     try_from_responses_items_candidate(&normalized)
 }
 
-pub(crate) fn is_opaque_item_for_import(data: &serde_json::Value) -> bool {
-    openai::InputItem::deserialize(data).is_ok_and(|item| {
-        item.input_item_type == Some(openai::InputItemType::Compaction)
-            && item.id.is_some()
-            && item.encrypted_content.is_some()
-    })
+pub(crate) fn opaque_item_kind_for_import(data: &serde_json::Value) -> Option<OpaqueItemKind> {
+    let item = openai::InputItem::deserialize(data).ok()?;
+    (item.input_item_type == Some(openai::InputItemType::Compaction)
+        && item.id.is_some()
+        && item.encrypted_content.is_some())
+    .then_some(OpaqueItemKind::Compaction)
 }
 
 #[derive(Deserialize)]
