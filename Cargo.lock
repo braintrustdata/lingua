@@ -1974,7 +1974,7 @@ checksum = "2e126dda6f34391ab7b444f9922055facc83c07a910da3eb16f1e4d9c45dc777"
 
 [[package]]
 name = "lingua"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aws-sdk-bedrockruntime",
  "base64 0.22.1",

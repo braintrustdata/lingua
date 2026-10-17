@@ -1371,7 +1371,7 @@ fn extract_instructions_from_openai_metadata_value(metadata: &serde_json::Value)
             let parsed = serde_json::from_str::<serde_json::Value>(metadata_json).ok()?;
             serde_json::from_value::<OpenAIResponsesExtrasView>(parsed).ok()?
         }
-        _ => serde_json::from_value::<OpenAIResponsesExtrasView>(metadata.clone()).ok()?,
+        _ => OpenAIResponsesExtrasView::deserialize(metadata).ok()?,
     };
     typed.instructions
 }
