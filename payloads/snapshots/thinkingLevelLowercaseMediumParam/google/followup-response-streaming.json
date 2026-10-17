@@ -1,0 +1,394 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends entirely on what you’"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 7,
+      "totalTokenCount": 285,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "re in the mood for! Since I don’t have much context yet, here are a few different paths we could take:\n\n**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 35,
+      "totalTokenCount": 313,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "1. If you want to be productive:**\n*   Tell me about a project you’re working on, and I’"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 61,
+      "totalTokenCount": 339,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "ll help you brainstorm the next step.\n*   Give me a list of tasks you’re procrastinating on, and I’"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 88,
+      "totalTokenCount": 366,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "ll help you pick the easiest one to start.\n\n**2. If you’re bored and want to be entertained:**\n*   Ask"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 117,
+      "totalTokenCount": 395,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " me for a \"weird fact of the day.\"\n*   We can play a game (like 20 Questions, a"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 143,
+      "totalTokenCount": 421,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " text-based adventure, or a trivia quiz).\n*   Tell me a genre you like, and I’ll give"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 168,
+      "totalTokenCount": 446,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you a movie or book recommendation.\n\n**3. If you want to learn something:**\n*   Pick a topic ("
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 193,
+      "totalTokenCount": 471,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "history, science, tech, cooking) and ask me to explain it like you’re five.\n*   Ask me to teach"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 220,
+      "totalTokenCount": 498,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you a useful life hack or a new vocabulary word.\n\n**4. If you just want to talk:**\n*   Tell"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 246,
+      "totalTokenCount": 524,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " me how your day is going.\n*   Ask me a \"What if?\" philosophical question.\n\n**What’"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 270,
+      "totalTokenCount": 548,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "s the vibe?** If you give me a little hint about what you're doing, I can give you a better suggestion."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 297,
+      "totalTokenCount": 575,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EpEKCo4KAWkUfRNX8cYpV/bnn7EE2s1URfoLMexpfA+Mpmlh7UPcqwfCmMqgmMRjPUkY0f9RgFfPHbtN8kTdgRurapxDMQhy8OYfArKwpR56qm0YiUZcx+KvZ4A0z2TuNEl75YoFA1u5QqArtafphOsEvt3FTQ/zpEEry6JqkxEVlHrEujiI9o4Nrufk2nr/49fRMbd3WSvU1VLMQ4iEuBTXYF4GwyruiWPVu/HP6MZtYv56G+SkcNbqro1olvvdOcHAQWZpRD445B/2UTlSyUwAz/Gn0Uyi+nZHL4K8QI1wGyEVAFeplYxUw3O9vYAi3FXqIMe95PbaDEQiSrLvuAJi4oNKiEqu2FA2mRdn3mQ6wtaxOPD7KrcqZRZ1Vcxl012j6kYqQadC1PkumPfWoeUiJdKbQpe2+PiavFT0sZD70+idvtPZoEalVzBQGg9S+6+XNvX/xYgvIu3Dw4fDtPt6g4CKAhF+M2FmoKNqthDG/SD6D1OkgsrnU0CFd7SU8HMSJLPm2Zy8PG/qZxnDvHwWFx0PWgSUnCXYOMHf/tarnFJMp7x12pER7WNHnVeUEYQ0bd23wcner1N8e7txa8t5a38uZH8/kcr8rssVIFRnseY3mI6o55HKDAJ7InhtpxifCPQiTwWjdmBI6JsZR4xhnONYYiS5Sf+WcPmpQWxycGwIKgEd8r0WDAmtNKGGWR4L/HNqBoccgt9+Ty1HPfyK4EsjRfkbq5LBCui32FrQcmY1oSnOg9799XxGD7Xw/hLJazXY90btkY1EE3BotsA6LXb0jlluIYh8RpTupwnnwEi34aXPX5EULF8mTyV9UP1cVD7xrkxovZnyQd80d3vbhP1UjDBVyS6d59Ht+6OfbeQfB8xeyWooLBBYQD5VwvZRGxF5oGmOTADNWw7olOkkpIFVL+AmMUtncFE78asss4d5jRTisqRBZjKCob5p2HnCKpQKjiJMIsMBDpR0HC55UrpEKDkf7OnbwpBKNvc1fDD1LaCawF1uno4EsmGU8DMxAg979CWOa+euTcJIbSXA2qss4jTPRv0GCRwrrFqDlKqBVomUXhWpHf4czRf7KnvbJxZBm64mw5k9PJkUarlbmCyUS9G3jrcd1X3t6ev5uhveXE1APqK00s6MXoX+o4oaFDYmiqbVW6nB/u78r5pW8pkp6IntahL+4YEr+J4sMO6zoAsrhsusnggNbuDQN/xMqFysj0wYANcme4dIzH76QjQuc6XO4qzvKILGmqUUoDnD4sbwr7fwt2wMxPlkG1GyjXJXWGDx43D7ctEsRKuYrVtqqGnJR/VZSMgP1fSopTMWHfByngY+kAj8xICkzffvL/jW87nkabHPimy0m0yktYowxkqVHm77zHRTNSmXOrrCypCLuBYvZ/Ge4Zho63XRRGUWlyO/vg1IDrYaetTsD9g9i/9uWKr+X0rqYLNd8wZiT11pDfw/tV5YHrAd7ut97xnbqLRg1qTvs5yTT5Tm7A6ucwCIQwaHwXS+WdsHJepeuQvHcDkxSzZn05AAzzLSfvv5urR2AxOHKuRT649A5L5PRlnTEvDOIqtkDmlqXJmFOpYYIZSPXdQVDZN1rekeGkV2R184LaZDVeEmoveS0rGWXnNaQTSleuqanvBoHxKUSEiyMcoMqCNlVLGngiWjFOfKq07qpF8Ihq7+XKPEPCd9cVUIcIqpW+Dq+PrK5R45a5Z96+8xooKZ3bnDGEHg1g=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 13,
+      "candidatesTokenCount": 297,
+      "totalTokenCount": 575,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13
+        }
+      ],
+      "thoughtsTokenCount": 265,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMapHwLMDI39IPtPjVyQI"
+  }
+]

@@ -1,0 +1,244 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends on what you’re in the mood for!"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 453,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 427,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaprRL6iB_PUPxqbXMA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " Here are a few options:\n\n1.  **Get something done:** Tell me a goal or a task you'"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 36,
+      "totalTokenCount": 477,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 427,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaprRL6iB_PUPxqbXMA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "ve been putting off, and I'll help you break it down into small steps.\n2.  **Learn something new:** Ask"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 64,
+      "totalTokenCount": 505,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 427,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaprRL6iB_PUPxqbXMA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " me about a random topic (like space, history, or how something works).\n3.  **Be creative:** We could write"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 91,
+      "totalTokenCount": 532,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 427,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaprRL6iB_PUPxqbXMA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " a short story together or I could give you a writing/drawing prompt.\n4.  **Play a game:**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 115,
+      "totalTokenCount": 556,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 427,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaprRL6iB_PUPxqbXMA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " We could play 20 Questions, a trivia game, or a word game.\n5.  **Just chat:** Tell me what"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 143,
+      "totalTokenCount": 584,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 427,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaprRL6iB_PUPxqbXMA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "’s on your mind or how your day is going.\n\n**What sounds good to you?**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 164,
+      "totalTokenCount": 605,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 427,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaprRL6iB_PUPxqbXMA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "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"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 164,
+      "totalTokenCount": 605,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 427,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaprRL6iB_PUPxqbXMA"
+  }
+]

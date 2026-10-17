@@ -1,0 +1,64 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "ok."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 34,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "thoughtsTokenCount": 28,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BMXMatHmOr201MkPjNqA-Ag"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EvQBCvEBAWkUfRP8Wn/ywIueRZWSP1754s+TMNGnAh1OcujQllchKhJVSSiUjgZmNzR8UUh0M6zBas3bCTbrrHdwlwRC4Yo+qLGeLDleYnTgD+lhZQ4z0GsUudTmqShAucav4vla2EjClK1qRuj6RAOSL+O0K+zno9RB2toIpzq88izoC3MzdAV4DETZvOH4qx0YIgqHPn06Ny3bobqdIZzRdycHkfZHPm668ZwICamoyhzRT04CzvmLGi5PPfpU6tu5rrtMcygr9QJmso9Wmg97EAFD/fNiV79yCokSwCxGjPJBktPw8eJOByi+6ZssCQ1tM9UJMQ=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 34,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "thoughtsTokenCount": 28,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BMXMatHmOr201MkPjNqA-Ag"
+  }
+]

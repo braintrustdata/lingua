@@ -2106,6 +2106,7 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // Add lowercase serde aliases to the Type enum so it accepts both
     // "STRING" (Google native) and "string" (OpenAI JSON Schema) during deserialization
     processed = add_type_enum_lowercase_aliases(&processed);
+    processed = add_enum_lowercase_aliases(&processed, "ThinkingLevel");
 
     // Preserve established public Rust variant names when quicktype disambiguates them.
     processed = preserve_google_public_enum_variant_names(&processed);
@@ -2126,26 +2127,31 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
 /// Adding aliases lets the enum accept both casings during deserialization while
 /// still serializing as uppercase for outgoing Google requests.
 fn add_type_enum_lowercase_aliases(content: &str) -> String {
+    add_enum_lowercase_aliases(content, "Type")
+}
+
+fn add_enum_lowercase_aliases(content: &str, enum_name: &str) -> String {
     let lines: Vec<&str> = content.lines().collect();
     let mut result_lines: Vec<String> = Vec::new();
-    let mut in_type_enum = false;
+    let mut in_target_enum = false;
+    let declaration = format!("pub enum {enum_name} {{");
 
     for line in &lines {
         let trimmed = line.trim();
 
-        if trimmed == "pub enum Type {" || trimmed.ends_with("pub enum Type {") {
-            in_type_enum = true;
+        if trimmed.ends_with(&declaration) {
+            in_target_enum = true;
             result_lines.push(line.to_string());
             continue;
         }
 
-        if in_type_enum && trimmed == "}" {
-            in_type_enum = false;
+        if in_target_enum && trimmed == "}" {
+            in_target_enum = false;
             result_lines.push(line.to_string());
             continue;
         }
 
-        if in_type_enum {
+        if in_target_enum {
             // quicktype renames variants that collide with Rust prelude names (e.g. the
             // `String` variant becomes `TypeString`) and emits an explicit
             // `#[serde(rename = "STRING")]`. Those renamed lines are skipped by the

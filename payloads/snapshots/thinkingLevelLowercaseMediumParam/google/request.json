@@ -1,0 +1,18 @@
+{
+  "model": "gemini-3-flash-preview",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say ok."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingLevel": "medium"
+    }
+  }
+}

@@ -24541,6 +24541,206 @@ exports[`google → anthropic > textFormatJsonSchemaWithDescriptionParam > respo
 }
 `;
 
+exports[`google → anthropic > thinkingLevelLowercaseHighParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 3072,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseHighParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to say "ok". This is a simple, straightforward request that doesn't involve anything harmful or problematic. I'll respond with "ok" as requested.",
+            "thought": true,
+            "thoughtSignature": "EsUDCroBCBIYAipAPoyOpu0YZ0/vdBwRVqQDiWkLv+bTzZUyUv9nAxL9A87CEKj4T80ShExuX5mkEWLhRvCyqmtcedhKxiwQnLjIEDIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAamMs9YGEgytWJX30vNXXlhx0oIaDBjsTEDquVpLfYpBtiIwTSPxF9zc7nvWNJQcWVq3sq75CVAlHcXGASb2OTzGV/BPNF2XOf9UmOiflKYGlUslKrcBNJTjfcvQ4pG+IrVqluoz8zBvxXX/qopBy8DLm0AkKddH1TIVCGTlDh+/jRVHP/IFuBCwwLwWkSB4rFvTsDZRkFG99cwJeSuTuM+lYSbpoMvnAczS7W00PRDU9S3XbeguMNt+x7GMCC14pr9QRojgOcayfek3IbQ2I4wG2oZn5mctXuUolEDDiqTcWR/J4uxe2SbPv4G/gV6s+M4CJYsbmalMTBxcbm4wR6Ve6AkwrruKDq0ZGy9/GAE=",
+          },
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 7,
+    "promptTokenCount": 39,
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 43,
+    "totalTokenCount": 89,
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseLowParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseLowParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to say "ok". This is a simple, straightforward request with no harmful content or issues. I'll comply with this request.",
+            "thought": true,
+            "thoughtSignature": "EqwDCroBCBIYAipAPXt0Gpszq8EPv9mPt6fdI1B2QdnTBbQoYDfoHruw1gC1njsVuKkB+64ODUQAYy0AAce8B0nlECtH8SNniwHy9zIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAamMs9YGEgwkrmycmL1/gSSdVeQaDKEgcJk/daIg/JDBcCIwx/n5gzuG6ieQkzPiIULk/gVFAkwG8obQlXjBG4oMO1njuaEg1EleH4dMgJNXXRYRKp4B98CV3a8jG3xQF4N80im7m5ahz+Tz41Dv85cobJArVsSox364o0gZgbkl269UZTy7/dJu6G8M8hWdmgir4eNJX79+q2B+P6yhF2VWcsNkTSJ10+LLHlpB0Y3y8Ip5zuPNhEdScszaHqF7+ojNbCu/fwSANLV7NFyp2lS/OEM9zGP/50cbGgHnvy2FcQrKuzNclt/34epXUWsrY8R7MqkYAQ==",
+          },
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 7,
+    "promptTokenCount": 39,
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 37,
+    "totalTokenCount": 83,
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseMediumParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 2048,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseMediumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to say "ok". This is a simple, straightforward request that doesn't involve anything harmful or problematic. I'll simply respond with "ok" as requested.",
+            "thought": true,
+            "thoughtSignature": "EswDCroBCBIYAipAb5xu5xrnAYEG1XihhV0Fg35FzeIqEYWmofwg41d9B3+mcrJ8S669Hq9cYIFhGd9pfGY/9XJfQfAIMEdI0REMZDIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAaqMs9YGEgyUMXbPGnx9VrDTSbIaDAnG++Tqjjn+XJ7qHyIwr1GvdMLIsWFZSP2wA3Y0WiF+hPvxGjDu9J6GipQOH7viQ0xFGcx55vI4TvI4rJ+oKr4BPAjqRtjuDhogX0+nV68xce8iSJRe8PO6AVurKk6nTj7vQhu8zROrIgWvJDZuJ1JpyHR/JGQvzplKL2BBij3c76GUDN1srx1zp5E/F4aO39RbEpek44ifmepRJ4/r687BQHk0UORVSl7mD+n4Vk4cGa+XOLlxVqfcfNKVoxJyR626qLWeN3Y3wD3+o/2XsEtcNU2rWoxjkqa/eLRiZpWnHxBX4MRVravPgOa4rZXBA2qhtLfGAS/32/ixrZ2FlRgB",
+          },
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 7,
+    "promptTokenCount": 39,
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 44,
+    "totalTokenCount": 90,
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseMinimalParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseMinimalParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to say "ok". This is a simple, straightforward request that doesn't involve anything harmful or problematic. I'll simply respond with "ok" as requested.",
+            "thought": true,
+            "thoughtSignature": "EswDCroBCBIYAipAb5xu5xrnAYEG1XihhV0Fg35FzeIqEYWmofwg41d9B3+mcrJ8S669Hq9cYIFhGd9pfGY/9XJfQfAIMEdI0REMZDIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAaqMs9YGEgwe4hRkOkix+9Or6mEaDL4SUVx8qVGa+kpJhCIwPSYelQ+jbvLPtE7Mj8uKpJKVWg+VC0k7j/jkG4eXDuhG7rnXyoOw0ZV2Ct6tU6IGKr4B6eYLSANsVnejmkozzi4KPCikXR82OLSwtghW/Jw6oPcPUEVtSYrHYnBTg13p3xrptKcALUkdi57ILNeYqksOgxObPeOJphyTHSLd2mdOvvmbRtdDXqeF9eU0THyEkdBFd2eDkDsyZRGhEp9OsmdJ++9ggYGLTnSEXKgZj5unHwYkwjPdhfBEIOgm6uViLJHC6T7WLtpUEjB5rESOVmHmZ+r4ROHS7ZsT40cbF/z910k8Z0jn+cHySLtlYgihExgB",
+          },
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 7,
+    "promptTokenCount": 39,
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 44,
+    "totalTokenCount": 90,
+  },
+}
+`;
+
 exports[`google → anthropic > thinkingLevelParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -27182,6 +27382,164 @@ exports[`google → chat-completions > textFormatJsonSchemaWithDescriptionParam 
 }
 `;
 
+exports[`google → chat-completions > thinkingLevelLowercaseHighParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseHighParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 448,
+    "totalTokenCount": 468,
+  },
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseLowParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "low",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseLowParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "totalTokenCount": 20,
+  },
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseMediumParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "medium",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseMediumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 212,
+  },
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseMinimalParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "minimal",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseMinimalParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Ok.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "totalTokenCount": 20,
+  },
+}
+`;
+
 exports[`google → chat-completions > thinkingLevelParam > request 1`] = `
 {
   "messages": [
@@ -29738,6 +30096,174 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > respo
     "promptTokenCount": 41,
     "thoughtsTokenCount": 384,
     "totalTokenCount": 448,
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseHighParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseHighParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 9,
+    "totalTokenCount": 14,
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseLowParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "low",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseLowParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 9,
+    "totalTokenCount": 14,
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseMediumParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "medium",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseMediumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 9,
+    "totalTokenCount": 14,
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseMinimalParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "low",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseMinimalParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 9,
+    "totalTokenCount": 14,
   },
 }
 `;
