@@ -1,0 +1,46 @@
+[
+  {
+    "input": [
+      {
+        "role": "user",
+        "content": "Continue the task"
+      },
+      {
+        "type": "compaction",
+        "id": "cmp_mixed_input",
+        "encrypted_content": "synthetic_mixed_input_ciphertext",
+        "provider_extension": "preserved"
+      },
+      {
+        "role": "assistant",
+        "content": "Continuing"
+      }
+    ],
+    "output": {
+      "type": "compaction",
+      "id": "cmp_standalone_output",
+      "encrypted_content": "synthetic_standalone_output_ciphertext",
+      "provider_extension": "preserved"
+    }
+  },
+  {
+    "input": {
+      "type": "compaction",
+      "id": "cmp_standalone_input",
+      "encrypted_content": "synthetic_standalone_input_ciphertext",
+      "provider_extension": "preserved"
+    },
+    "output": [
+      {
+        "type": "compaction",
+        "id": "cmp_mixed_output",
+        "encrypted_content": "synthetic_mixed_output_ciphertext",
+        "provider_extension": "preserved"
+      },
+      {
+        "role": "assistant",
+        "content": "Task complete"
+      }
+    ]
+  }
+]

@@ -70,6 +70,8 @@ Supported keys:
 - `expectedRolesInOrder` (string array)
 - `expectedAssistantContentPartTypes` (array of string arrays, one per assistant message)
 - `expectedReasoningEncryptedContent` (array of strings or nulls, one per reasoning part)
+- `expectedOpaqueInput` (array of opaque-item arrays, one per span, imported with `preserve_unsupported`)
+- `expectedOpaqueOutput` (array of opaque-item arrays, one per span, imported with `preserve_unsupported`)
 - `mustContainText` (string array)
 - `mustNotContainText` (string array)
 

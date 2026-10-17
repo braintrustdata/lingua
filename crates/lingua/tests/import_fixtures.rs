@@ -1,3 +1,4 @@
+use lingua::processing::import::{import_span_with_options, ImportOptions, OpaqueItem};
 use lingua::processing::{import_messages_from_spans, Span};
 use lingua::serde_json;
 use lingua::universal::{AssistantContent, AssistantContentPart};
@@ -15,6 +16,10 @@ struct ImportAssertionCase {
     expected_roles_in_order: Option<Vec<String>>,
     expected_assistant_content_part_types: Option<Vec<Vec<String>>>,
     expected_reasoning_encrypted_content: Option<Vec<Option<String>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    expected_opaque_input: Option<Vec<Vec<OpaqueItem>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    expected_opaque_output: Option<Vec<Vec<OpaqueItem>>>,
     must_contain_text: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     must_not_contain_text: Option<Vec<String>>,
@@ -159,6 +164,8 @@ fn infer_assertions_from_messages(messages: &[Message]) -> ImportAssertionCase {
         expected_roles_in_order: Some(roles),
         expected_assistant_content_part_types: None,
         expected_reasoning_encrypted_content: None,
+        expected_opaque_input: None,
+        expected_opaque_output: None,
         must_contain_text: Some(vec![]),
         must_not_contain_text: None,
     }
@@ -272,7 +279,7 @@ fn test_import_cases_from_shared_fixtures() {
         let spans = parse_spans_fixture(&case_name, &spans_path, &spans_json);
 
         let assertions_path = spans_path.with_file_name(format!("{}.assertions.json", case_name));
-        let messages = import_messages_from_spans(spans);
+        let messages = import_messages_from_spans(spans.clone());
         let serialized_messages =
             serde_json::to_string(&messages).expect("messages should serialize to json");
         let inferred = infer_assertions_from_messages(&messages);
@@ -306,6 +313,8 @@ fn test_import_cases_from_shared_fixtures() {
                     expected_reasoning_encrypted_content: existing
                         .expected_reasoning_encrypted_content
                         .clone(),
+                    expected_opaque_input: existing.expected_opaque_input.clone(),
+                    expected_opaque_output: existing.expected_opaque_output.clone(),
                     must_contain_text: existing.must_contain_text.clone(),
                     must_not_contain_text: existing.must_not_contain_text.clone(),
                 };
@@ -329,6 +338,48 @@ fn test_import_cases_from_shared_fixtures() {
                 assertions_path.display()
             );
         };
+
+        if assertions.expected_opaque_input.is_some() || assertions.expected_opaque_output.is_some()
+        {
+            let imported = spans
+                .into_iter()
+                .map(|span| {
+                    import_span_with_options(
+                        span,
+                        ImportOptions {
+                            preserve_unsupported: true,
+                        },
+                    )
+                    .expect("fixture spans should import")
+                })
+                .collect::<Vec<_>>();
+            for (field, expected, actual) in [
+                (
+                    "input",
+                    assertions.expected_opaque_input,
+                    imported
+                        .iter()
+                        .map(|span| &span.opaque_input)
+                        .collect::<Vec<_>>(),
+                ),
+                (
+                    "output",
+                    assertions.expected_opaque_output,
+                    imported
+                        .iter()
+                        .map(|span| &span.opaque_output)
+                        .collect::<Vec<_>>(),
+                ),
+            ] {
+                if let Some(expected) = expected {
+                    assert_eq!(
+                        serde_json::to_value(actual).unwrap(),
+                        serde_json::to_value(expected).unwrap(),
+                        "opaque {field} mismatch for case '{case_name}'",
+                    );
+                }
+            }
+        }
 
         if let Some(expected_count) = assertions.expected_message_count {
             assert_eq!(
