@@ -26,6 +26,7 @@ use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
 pub use crate::universal::trajectory::OpaqueItem;
+use crate::universal::trajectory::OpaqueItemKind;
 use crate::universal::Message;
 use crate::universal::{
     AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
@@ -57,15 +58,15 @@ struct MessageImport {
     opaque: Vec<OpaqueItem>,
 }
 
-fn is_opaque_item(data: &Value) -> bool {
+fn opaque_item_kind(data: &Value) -> Option<OpaqueItemKind> {
     #[cfg(feature = "openai")]
     {
-        crate::providers::openai::convert::is_opaque_item_for_import(data)
+        crate::providers::openai::convert::opaque_item_kind_for_import(data)
     }
     #[cfg(not(feature = "openai"))]
     {
         let _ = data;
-        false
+        None
     }
 }
 
@@ -90,7 +91,7 @@ fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<M
         || (import.options.preserve_unsupported
             && data
                 .as_array()
-                .is_some_and(|items| items.iter().any(is_opaque_item)))
+                .is_some_and(|items| items.iter().any(|item| opaque_item_kind(item).is_some())))
     {
         return try_parse_mixed_messages_for_import(data, import).unwrap_or_default();
     }
@@ -250,10 +251,16 @@ fn try_parse_mixed_messages_for_import(
     let errors_before = import.errors.len();
 
     for (index, item) in items.iter().enumerate() {
-        if import.options.preserve_unsupported && is_opaque_item(item) {
+        let kind = if import.options.preserve_unsupported {
+            opaque_item_kind(item)
+        } else {
+            None
+        };
+        if kind.is_some() {
             import.opaque.push(OpaqueItem {
                 index: Some(index),
                 value: item.clone(),
+                kind,
                 is_metadata: false,
             });
             continue;
@@ -311,6 +318,7 @@ fn try_parse_mixed_messages_for_import(
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
+                    kind: None,
                     is_metadata: true,
                 });
             }
@@ -324,6 +332,7 @@ fn try_parse_mixed_messages_for_import(
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
                     value: item.clone(),
+                    kind: None,
                     is_metadata: false,
                 });
             }
@@ -936,10 +945,16 @@ fn import_span_messages(
         _ => true,
     };
     let parse = |value: Value, field: &str, import: &mut MessageImport| {
-        if options.preserve_unsupported && is_opaque_item(&value) {
+        let kind = if options.preserve_unsupported {
+            opaque_item_kind(&value)
+        } else {
+            None
+        };
+        if kind.is_some() {
             import.opaque.push(OpaqueItem {
                 index: None,
                 value,
+                kind,
                 is_metadata: false,
             });
             return Vec::new();
@@ -957,6 +972,7 @@ fn import_span_messages(
                 import.opaque.push(OpaqueItem {
                     index: None,
                     value,
+                    kind: None,
                     is_metadata: false,
                 });
             }
@@ -1038,6 +1054,87 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(feature = "openai")]
+    #[test]
+    fn classifies_encrypted_compaction_items() {
+        let checkpoint = crate::serde_json::json!({
+            "type": "compaction",
+            "id": "cmp_checkpoint",
+            "encrypted_content": "opaque_checkpoint",
+            "provider_extension": "preserved"
+        });
+        let input = crate::serde_json::json!([
+            { "role": "user", "content": "Continue the task" },
+            checkpoint,
+            { "role": "assistant", "content": "Continuing" }
+        ]);
+        let span = Span {
+            input: Some(input),
+            output: Some(checkpoint.clone()),
+            other: Default::default(),
+        };
+        let imported = import_span_with_options(
+            span,
+            ImportOptions {
+                preserve_unsupported: true,
+            },
+        )
+        .unwrap();
+
+        assert!(imported.errors.is_empty());
+        assert!(imported.warnings.is_empty());
+        assert_eq!(imported.input.len(), 2);
+        assert!(imported.output.is_empty());
+        assert_eq!(
+            serde_json::to_value(&imported.opaque_input).unwrap(),
+            crate::serde_json::json!([
+                { "index": 1, "value": checkpoint, "kind": "compaction" }
+            ]),
+        );
+        assert_eq!(
+            serde_json::to_value(&imported.opaque_output).unwrap(),
+            crate::serde_json::json!([
+                { "index": null, "value": checkpoint, "kind": "compaction" }
+            ]),
+        );
+    }
+
+    #[test]
+    fn leaves_unrecognized_checkpoints_unclassified() {
+        for checkpoint in [
+            crate::serde_json::json!({
+                "type": "compaction", "encrypted_content": "missing_id"
+            }),
+            crate::serde_json::json!({
+                "type": "compaction", "id": "cmp_invalid", "encrypted_content": 42
+            }),
+            crate::serde_json::json!({
+                "type": "provider_checkpoint", "id": "checkpoint",
+                "encrypted_content": "opaque_checkpoint"
+            }),
+        ] {
+            let imported = import_span_with_options(
+                Span {
+                    input: Some(crate::serde_json::json!([
+                        { "role": "user", "content": "Continue the task" },
+                        checkpoint
+                    ])),
+                    output: None,
+                    other: Default::default(),
+                },
+                ImportOptions {
+                    preserve_unsupported: true,
+                },
+            )
+            .unwrap();
+            assert_eq!(imported.input.len(), 1);
+            assert_eq!(
+                serde_json::to_value(imported.opaque_input).unwrap(),
+                crate::serde_json::json!([{ "index": 1, "value": checkpoint }]),
+            );
+        }
+    }
 
     #[test]
     fn invalid_tool_call_metadata_preserves_valid_hints() {
