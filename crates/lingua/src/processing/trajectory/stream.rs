@@ -718,6 +718,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice: _,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
@@ -828,6 +829,11 @@ impl TrajectoryStream {
             );
         }
         for (scope, name) in scopes {
+            let recordings = scope
+                .owner_span_id
+                .is_none()
+                .then(|| self.recordings(&scope.root_span_id))
+                .filter(|recordings| !recordings.is_empty());
             events.push(TrajectoryEvent::Start {
                 trajectory: Trajectory {
                     version: Some("1".to_string()),
@@ -847,6 +853,7 @@ impl TrajectoryStream {
                     sections: None,
                     findings: None,
                     metadata: Default::default(),
+                    recordings,
                 },
                 scope,
             });
@@ -862,6 +869,27 @@ impl TrajectoryStream {
             .map(|(scope, indices)| (scope, indices.len()))
             .collect();
         Ok(())
+    }
+
+    fn recordings(&self, root_span_id: &str) -> Vec<AudioRecording> {
+        let mut spans: Vec<_> = self
+            .spans
+            .iter()
+            .filter(|span| span.root_span_id == root_span_id)
+            .collect();
+        spans.sort_by(|a, b| a.start.cmp(&b.start).then(a.id.cmp(&b.id)));
+        let mut recordings: Vec<AudioRecording> = Vec::new();
+        for span in spans {
+            let Some(voice) = &span.source.voice else {
+                continue;
+            };
+            for recording in &voice.recordings {
+                if !recordings.contains(recording) {
+                    recordings.push(recording.clone());
+                }
+            }
+        }
+        recordings
     }
 
     fn drain(&mut self) -> Result<Vec<TrajectoryEvent>> {
