@@ -22,21 +22,39 @@ pub(crate) fn is_anthropic_request(payload: &Value) -> bool {
     {
         return false;
     }
-    let leading_system = messages
-        .first()
-        .is_some_and(|message| message["role"] == "system" && message["output_config"].is_null());
-    !leading_system
-        || [
-            "cache_control",
-            "system",
-            "thinking",
-            "output_config",
-            "top_k",
-            "stop_sequences",
-        ]
-        .iter()
-        .any(|field| fields.contains_key(*field))
+    if [
+        "cache_control",
+        "system",
+        "thinking",
+        "output_config",
+        "top_k",
+        "stop_sequences",
+    ]
+    .iter()
+    .any(|field| fields.contains_key(*field))
         || matches!(payload["tools"][0]["name"], Value::String(_))
+    {
+        return true;
+    }
+    if messages
+        .first()
+        .is_some_and(|message| message["role"] == "system" && message["output_config"].is_null())
+    {
+        return false;
+    }
+    !messages.iter().any(|message| {
+        ["developer", "tool", "function"]
+            .iter()
+            .any(|role| message["role"] == *role)
+            || ["tool_calls", "tool_call_id", "function_call", "refusal"]
+                .iter()
+                .any(|field| !message[*field].is_null())
+            || matches!(&message["content"], Value::Array(parts) if parts.iter().any(|part| {
+                ["image_url", "input_audio", "file", "refusal"]
+                    .iter()
+                    .any(|kind| part["type"] == *kind)
+            }))
+    })
 }
 
 pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
