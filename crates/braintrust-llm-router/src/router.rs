@@ -246,13 +246,6 @@ struct NativeResponsesMetadata {
 }
 
 #[derive(Deserialize)]
-struct NativeAnthropicMetadata {
-    #[serde(rename = "messages")]
-    _messages: Vec<serde::de::IgnoredAny>,
-    stream: Option<bool>,
-}
-
-#[derive(Deserialize)]
 struct StreamFlagMetadata {
     stream: Option<bool>,
 }
@@ -279,7 +272,7 @@ fn native_responses_requires_json_response(body: &[u8]) -> bool {
     }
 }
 
-fn native_anthropic_requires_json_response(body: &[u8]) -> bool {
+fn native_anthropic_metadata(body: &[u8]) -> (Option<bool>, bool) {
     #[derive(Deserialize)]
     struct OutputConfigMetadata {
         format: Option<serde::de::IgnoredAny>,
@@ -287,19 +280,21 @@ fn native_anthropic_requires_json_response(body: &[u8]) -> bool {
 
     #[derive(Deserialize)]
     struct ResponseFormatMetadata {
+        stream: Option<bool>,
         output_config: Option<OutputConfigMetadata>,
         output_format: Option<serde::de::IgnoredAny>,
     }
 
     match lingua::serde_json::from_slice::<ResponseFormatMetadata>(body) {
-        Ok(metadata) => {
+        Ok(metadata) => (
+            metadata.stream,
             metadata
                 .output_config
                 .and_then(|config| config.format)
                 .is_some()
-                || metadata.output_format.is_some()
-        }
-        Err(_) => true,
+                || metadata.output_format.is_some(),
+        ),
+        Err(_) => (None, true),
     }
 }
 
@@ -464,16 +459,7 @@ impl Router {
                         native_responses_requires_json_response(&body),
                     )
                 }),
-                ProviderFormat::Anthropic => {
-                    lingua::serde_json::from_slice::<NativeAnthropicMetadata>(&body)
-                        .ok()
-                        .map(|metadata| {
-                            (
-                                metadata.stream,
-                                native_anthropic_requires_json_response(&body),
-                            )
-                        })
-                }
+                ProviderFormat::Anthropic => Some(native_anthropic_metadata(&body)),
                 _ => None,
             }
         };
@@ -1991,7 +1977,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn native_anthropic_route_still_translates_foreign_formats() {
+    async fn anthropic_route_still_translates_foreign_endpoints() {
         let (router, route) = native_anthropic_test_route();
         for (body, endpoint_format) in [
             (
@@ -2000,11 +1986,11 @@ mod tests {
             ),
             (
                 r#"{"model":"gpt-5-mini","input":[{"role":"user","content":"Hello"}]}"#,
-                ProviderFormat::Anthropic,
+                ProviderFormat::Responses,
             ),
             (
                 r#"{"contents":[{"role":"user","parts":[{"text":"Hello"}]}]}"#,
-                ProviderFormat::Anthropic,
+                ProviderFormat::Google,
             ),
         ] {
             let (request, metadata) = router

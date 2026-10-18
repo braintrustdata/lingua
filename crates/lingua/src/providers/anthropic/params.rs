@@ -6,15 +6,13 @@ These views cover only partial maps where the generated request type is not the
 right shape: provider extras and cross-provider detection guards.
 */
 
-use crate::serde_json::{self, Value};
-use serde::{de::IgnoredAny, Deserialize};
+use crate::serde_json::Value;
+use serde::Deserialize;
 
-use super::generated::{InputMessage, JsonOutputFormat, OutputConfig};
+use super::generated::{JsonOutputFormat, OutputConfig};
 
 #[derive(Deserialize)]
 pub(crate) struct AnthropicMessageWithDirectives {
-    #[serde(flatten)]
-    pub message: InputMessage,
     pub output_config: Option<OutputConfig>,
 }
 
@@ -41,87 +39,34 @@ pub struct AnthropicExtrasView {
     pub metadata: Option<Value>,
 }
 
-fn deserialize_present<'de, D>(deserializer: D) -> Result<bool, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    IgnoredAny::deserialize(deserializer)?;
-    Ok(true)
-}
+const OPENAI_ONLY_FIELDS: &[&str] = &[
+    "stream_options",
+    "n",
+    "logprobs",
+    "top_logprobs",
+    "logit_bias",
+    "response_format",
+    "functions",
+    "function_call",
+    "seed",
+    "presence_penalty",
+    "frequency_penalty",
+    "store",
+    "parallel_tool_calls",
+    "stop",
+    "reasoning_effort",
+    "reasoning_enabled",
+    "suffix_messages",
+    "chat_template_kwargs",
+    "max_completion_tokens",
+];
 
-#[derive(Debug, Clone, Default, Deserialize)]
-#[serde(default)]
-struct AnthropicOpenAiOnlyFieldsView {
-    #[serde(default, deserialize_with = "deserialize_present")]
-    stream_options: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    n: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    logprobs: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    top_logprobs: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    logit_bias: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    response_format: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    functions: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    function_call: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    seed: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    presence_penalty: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    frequency_penalty: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    store: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    parallel_tool_calls: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    stop: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    reasoning_effort: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    reasoning_enabled: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    suffix_messages: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    chat_template_kwargs: bool,
-    #[serde(default, deserialize_with = "deserialize_present")]
-    max_completion_tokens: bool,
-}
-
-impl AnthropicOpenAiOnlyFieldsView {
-    fn first_present(&self) -> Option<&'static str> {
-        [
-            ("stream_options", self.stream_options),
-            ("n", self.n),
-            ("logprobs", self.logprobs),
-            ("top_logprobs", self.top_logprobs),
-            ("logit_bias", self.logit_bias),
-            ("response_format", self.response_format),
-            ("functions", self.functions),
-            ("function_call", self.function_call),
-            ("seed", self.seed),
-            ("presence_penalty", self.presence_penalty),
-            ("frequency_penalty", self.frequency_penalty),
-            ("store", self.store),
-            ("parallel_tool_calls", self.parallel_tool_calls),
-            ("stop", self.stop),
-            ("reasoning_effort", self.reasoning_effort),
-            ("reasoning_enabled", self.reasoning_enabled),
-            ("suffix_messages", self.suffix_messages),
-            ("chat_template_kwargs", self.chat_template_kwargs),
-            ("max_completion_tokens", self.max_completion_tokens),
-        ]
-        .into_iter()
-        .find_map(|(field, present)| present.then_some(field))
-    }
-}
-
-pub(crate) fn first_openai_only_field(payload: &Value) -> Result<Option<&'static str>, String> {
-    serde_json::from_value::<AnthropicOpenAiOnlyFieldsView>(payload.clone())
-        .map(|view| view.first_present())
-        .map_err(|e| e.to_string())
+pub(crate) fn first_openai_only_field(payload: &Value) -> Option<&'static str> {
+    let Value::Object(fields) = payload else {
+        return None;
+    };
+    OPENAI_ONLY_FIELDS
+        .iter()
+        .copied()
+        .find(|field| fields.contains_key(*field))
 }
