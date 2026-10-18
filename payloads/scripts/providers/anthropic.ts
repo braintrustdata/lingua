@@ -66,6 +66,13 @@ export async function executeAnthropic(
     if ("context_management" in payload) {
       betaHeaders.push("context-management-2025-06-27");
     }
+    if (
+      payload.messages.some(
+        (message) => message.role === "system" && "output_config" in message
+      )
+    ) {
+      betaHeaders.push("mid-conversation-output-config-2026-07-01");
+    }
     const requestOptions =
       betaHeaders.length > 0
         ? { headers: { "anthropic-beta": betaHeaders.join(",") } }

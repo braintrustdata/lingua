@@ -1,8 +1,39 @@
 import { describe, expect, test } from "vitest";
-import { ANTHROPIC_MODEL, OPENAI_CHAT_COMPLETIONS_MODEL } from "../../cases";
+import { transform_request } from "@braintrust/lingua-wasm";
+import {
+  allTestCases,
+  getCaseForProvider,
+  ANTHROPIC_MODEL,
+  OPENAI_CHAT_COMPLETIONS_MODEL,
+} from "../../cases";
 import { transformAndValidateRequest } from "./helpers";
 
 describe("anthropic mid-conversation system messages", () => {
+  test.each([
+    "anthropicConsecutiveSystemMessages",
+    "anthropicSystemPromptPatchWithEffort",
+  ])("preserves native %s", (caseName) => {
+    const request = getCaseForProvider(allTestCases, caseName, "anthropic");
+    expect(request).toBeDefined();
+    expect(
+      transformAndValidateRequest(request, "Anthropic", "anthropic")
+    ).toEqual(request);
+  });
+
+  test.each(["OpenAI", "Responses", "Google"])(
+    "rejects per-message effort conversion to %s",
+    (target) => {
+      const request = getCaseForProvider(
+        allTestCases,
+        "anthropicSystemPromptPatchWithEffort",
+        "anthropic"
+      );
+      expect(() => transform_request(JSON.stringify(request), target)).toThrow(
+        "per-message output_config"
+      );
+    }
+  );
+
   test("rejects non-leading system messages for Anthropic export", () => {
     expect(() =>
       transformAndValidateRequest(

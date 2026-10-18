@@ -11,7 +11,9 @@ use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::generated::{
     CreateMessageParams, InputContentBlockType, InputMessage, MessageContent, MessageRole,
 };
-use crate::providers::anthropic::params::first_openai_only_field;
+use crate::providers::anthropic::params::{
+    first_openai_only_field, AnthropicMessageWithDirectives, AnthropicMessagesView,
+};
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
@@ -26,7 +28,9 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, Detec
 
     let request: CreateMessageParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
-    validate_system_message_support_and_placement(&request.model, &request.messages)?;
+    let messages: AnthropicMessagesView = serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+    validate_system_message_support_and_placement(&request.model, &messages.messages)?;
     Ok(request)
 }
 
@@ -42,11 +46,17 @@ pub fn try_parse_anthropic_source(payload: &Value) -> Result<CreateMessageParams
     let request: CreateMessageParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
 
-    validate_system_message_placement(&request.messages)?;
+    let messages: AnthropicMessagesView = serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+    validate_system_message_placement(&messages.messages)?;
 
     if system_messages_present(&request.messages)
         && !capabilities::supports_mid_conversation_system_messages(&request.model)
         && !has_anthropic_source_markers(&request)
+        && !messages
+            .messages
+            .iter()
+            .any(|message| message.output_config.is_some())
     {
         return Err(DetectionError::UnsupportedSystemRoleMessages {
             model: request.model.clone(),
@@ -86,16 +96,20 @@ pub(crate) fn system_messages_are_supported_and_well_placed(
     model: &str,
     raw_messages: &Value,
 ) -> Result<bool, DetectionError> {
-    let messages: Vec<InputMessage> = serde_json::from_value(raw_messages.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+    let messages: Vec<AnthropicMessageWithDirectives> =
+        serde_json::from_value(raw_messages.clone())
+            .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
     Ok(validate_system_message_support_and_placement(model, &messages).is_ok())
 }
 
 fn validate_system_message_support_and_placement(
     model: &str,
-    messages: &[InputMessage],
+    messages: &[AnthropicMessageWithDirectives],
 ) -> Result<(), DetectionError> {
-    if !system_messages_present(messages) {
+    if !messages
+        .iter()
+        .any(|message| matches!(message.message.role, MessageRole::System))
+    {
         return Ok(());
     }
 
@@ -116,7 +130,9 @@ fn system_messages_present(messages: &[InputMessage]) -> bool {
         .any(|message| matches!(message.role, MessageRole::System))
 }
 
-fn validate_system_message_placement(messages: &[InputMessage]) -> Result<(), DetectionError> {
+fn validate_system_message_placement(
+    messages: &[AnthropicMessageWithDirectives],
+) -> Result<(), DetectionError> {
     if mid_conversation_system_messages_have_valid_placement(messages) {
         Ok(())
     } else {
@@ -124,7 +140,7 @@ fn validate_system_message_placement(messages: &[InputMessage]) -> Result<(), De
     }
 }
 
-fn assistant_message_ends_with_server_tool_use(message: &InputMessage) -> bool {
+fn assistant_message_ends_with_server_tool_result(message: &InputMessage) -> bool {
     if !matches!(message.role, MessageRole::Assistant) {
         return false;
     }
@@ -136,29 +152,55 @@ fn assistant_message_ends_with_server_tool_use(message: &InputMessage) -> bool {
     blocks.last().is_some_and(|block| {
         matches!(
             block.input_content_block_type,
-            InputContentBlockType::ServerToolUse
+            InputContentBlockType::WebSearchToolResult
+                | InputContentBlockType::WebFetchToolResult
+                | InputContentBlockType::CodeExecutionToolResult
+                | InputContentBlockType::BashCodeExecutionToolResult
+                | InputContentBlockType::TextEditorCodeExecutionToolResult
+                | InputContentBlockType::ToolSearchToolResult
         )
     })
 }
 
-fn mid_conversation_system_messages_have_valid_placement(messages: &[InputMessage]) -> bool {
-    for (index, message) in messages.iter().enumerate() {
-        if !matches!(message.role, MessageRole::System) {
+fn is_effort_only_directive(message: &AnthropicMessageWithDirectives) -> bool {
+    matches!(&message.message.content, MessageContent::InputContentBlockArray(blocks) if blocks.is_empty())
+        && message
+            .output_config
+            .as_ref()
+            .is_some_and(|config| config.effort.is_some() && config.format.is_none())
+}
+
+fn mid_conversation_system_messages_have_valid_placement(
+    messages: &[AnthropicMessageWithDirectives],
+) -> bool {
+    let mut index = 0;
+    while index < messages.len() {
+        if !matches!(messages[index].message.role, MessageRole::System) {
+            index += 1;
             continue;
         }
-
-        let Some(previous) = index.checked_sub(1).and_then(|prev| messages.get(prev)) else {
+        let start = index;
+        let mut has_content = false;
+        while index < messages.len() && matches!(messages[index].message.role, MessageRole::System)
+        {
+            has_content |= !is_effort_only_directive(&messages[index]);
+            index += 1;
+        }
+        if !has_content {
+            continue;
+        }
+        let Some(previous) = start.checked_sub(1).and_then(|prev| messages.get(prev)) else {
             return false;
         };
-        let previous_allows_system = matches!(previous.role, MessageRole::User)
-            || assistant_message_ends_with_server_tool_use(previous);
+        let previous_allows_system = matches!(previous.message.role, MessageRole::User)
+            || assistant_message_ends_with_server_tool_result(&previous.message);
         if !previous_allows_system {
             return false;
         }
 
         let next_allows_system = messages
-            .get(index + 1)
-            .is_none_or(|next| matches!(next.role, MessageRole::Assistant));
+            .get(index)
+            .is_none_or(|next| matches!(next.message.role, MessageRole::Assistant));
         if !next_allows_system {
             return false;
         }
@@ -184,6 +226,107 @@ pub enum DetectionError {
 mod tests {
     use super::*;
     use crate::serde_json::json;
+
+    #[test]
+    fn consecutive_system_sections_and_effort_directives_are_accepted() {
+        let user = json!({"role": "user", "content": "Say OK."});
+        let assistant = json!({"role": "assistant", "content": "OK"});
+        let patch = json!({"role": "system", "content": "Keep answers brief."});
+        let effort = json!({"role": "system", "content": [], "output_config": {"effort": "high"}});
+        for messages in [
+            vec![user.clone(), patch.clone(), patch.clone()],
+            vec![user.clone(), patch.clone(), effort.clone()],
+            vec![
+                user.clone(),
+                effort.clone(),
+                patch.clone(),
+                assistant.clone(),
+            ],
+            vec![effort.clone(), user.clone()],
+            vec![
+                user.clone(),
+                assistant.clone(),
+                effort.clone(),
+                user.clone(),
+            ],
+            vec![effort.clone(), effort.clone()],
+            vec![
+                user.clone(),
+                json!({"role": "assistant", "content": [{"type": "web_search_tool_result", "tool_use_id": "srvtoolu_1", "content": []}]}),
+                patch.clone(),
+                effort.clone(),
+            ],
+        ] {
+            let payload = json!({
+                "model": "claude-opus-5-5",
+                "max_tokens": 1024,
+                "system": "Follow the user's instructions.",
+                "messages": messages,
+            });
+            assert!(try_parse_anthropic(&payload).is_ok(), "{payload}");
+            assert!(try_parse_anthropic_source(&payload).is_ok(), "{payload}");
+            let result = crate::transform_request(
+                crate::Bytes::from(serde_json::to_vec(&payload).unwrap()),
+                crate::ProviderFormat::Anthropic,
+                None,
+            )
+            .expect("native system messages pass through");
+            assert!(result.is_passthrough());
+        }
+    }
+
+    #[test]
+    fn per_message_effort_is_rejected_when_translating_across_providers() {
+        let payload = json!({
+            "model": "claude-opus-5-5",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Say OK."},
+                {"role": "system", "content": [], "output_config": {"effort": "high"}},
+            ],
+        });
+        for target in [
+            crate::ProviderFormat::ChatCompletions,
+            crate::ProviderFormat::Responses,
+            crate::ProviderFormat::Google,
+        ] {
+            let error = crate::transform_request(
+                crate::Bytes::from(serde_json::to_vec(&payload).unwrap()),
+                target,
+                None,
+            )
+            .expect_err("per-message effort must not be silently dropped");
+            assert!(error.to_string().contains("per-message output_config"));
+        }
+    }
+
+    #[test]
+    fn system_sections_with_content_still_require_valid_placement() {
+        let user = json!({"role": "user", "content": "Say OK."});
+        let assistant = json!({"role": "assistant", "content": "OK"});
+        let patch = json!({"role": "system", "content": "Keep answers brief."});
+        let effort = json!({"role": "system", "content": [], "output_config": {"effort": "high"}});
+        for messages in [
+            vec![effort.clone(), patch.clone(), assistant.clone()],
+            vec![user.clone(), patch.clone(), effort.clone(), user.clone()],
+            vec![user.clone(), assistant, effort, patch],
+            vec![json!({"role": "system", "content": []}), user],
+        ] {
+            let payload = json!({
+                "model": "claude-opus-5-5",
+                "max_tokens": 1024,
+                "system": "Follow the user's instructions.",
+                "messages": messages,
+            });
+            assert!(
+                matches!(
+                    try_parse_anthropic_source(&payload),
+                    Err(DetectionError::InvalidSystemRolePlacement)
+                ),
+                "{payload}"
+            );
+        }
+    }
 
     #[test]
     fn test_try_parse_anthropic_valid() {

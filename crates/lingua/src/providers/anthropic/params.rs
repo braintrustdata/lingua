@@ -9,7 +9,19 @@ right shape: provider extras and cross-provider detection guards.
 use crate::serde_json::{self, Value};
 use serde::{de::IgnoredAny, Deserialize};
 
-use super::generated::JsonOutputFormat;
+use super::generated::{InputMessage, JsonOutputFormat, OutputConfig};
+
+#[derive(Deserialize)]
+pub(crate) struct AnthropicMessageWithDirectives {
+    #[serde(flatten)]
+    pub message: InputMessage,
+    pub output_config: Option<OutputConfig>,
+}
+
+#[derive(Deserialize)]
+pub(crate) struct AnthropicMessagesView {
+    pub messages: Vec<AnthropicMessageWithDirectives>,
+}
 
 /// Typed view over `UniversalParams.extras[Anthropic]` used during universal
 /// -> Anthropic reconstruction.

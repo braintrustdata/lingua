@@ -7,6 +7,10 @@ import {
 } from "@google/genai";
 import OpenAI from "openai";
 import {
+  type MessageParam,
+  type OutputConfig,
+} from "@anthropic-ai/sdk/resources/messages";
+import {
   ChatCompletionAssistantMessageWithCacheControl,
   ChatCompletionSystemMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
@@ -3608,6 +3612,51 @@ export const paramsCases: TestCaseCollection = {
     })(),
     bedrock: null,
   },
+
+  anthropicConsecutiveSystemMessages: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: "claude-opus-4-8",
+      max_tokens: 1024,
+      system: "Follow the user's instructions.",
+      messages: [
+        { role: "user", content: "Say OK." },
+        { role: "system", content: "Keep the answer brief." },
+        { role: "system", content: "Use plain text." },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  anthropicSystemPromptPatchWithEffort: (() => {
+    const effortMessage = {
+      role: "system",
+      content: [],
+      output_config: { effort: "high" },
+    } satisfies MessageParam & {
+      output_config: OutputConfig;
+    };
+    return {
+      "chat-completions": null,
+      responses: null,
+      anthropic: {
+        model: "claude-opus-5-5",
+        max_tokens: 1024,
+        system: "Follow the user's instructions.",
+        thinking: { type: "adaptive" },
+        output_config: { effort: "high" },
+        messages: [
+          { role: "user", content: "Say OK." },
+          { role: "system", content: "Keep the answer brief." },
+          effortMessage,
+        ],
+      },
+      google: null,
+      bedrock: null,
+    } satisfies TestCase;
+  })(),
 
   anthropicMessageWithSystemMessage: (() => {
     const testCase: TestCase = {

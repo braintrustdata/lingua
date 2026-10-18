@@ -27,7 +27,7 @@ use crate::providers::anthropic::generated::{
     ServiceTierEnum, ServiceTierServiceTier, Thinking, ThinkingType, Tool, ToolChoice,
     ToolChoiceType, Usage,
 };
-use crate::providers::anthropic::params::AnthropicExtrasView;
+use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicMessagesView};
 use crate::providers::anthropic::tool_discovery;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
@@ -330,6 +330,17 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
+        let message_directives: AnthropicMessagesView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        if message_directives
+            .messages
+            .iter()
+            .any(|message| message.output_config.is_some())
+        {
+            return Err(TransformError::ToUniversalFailed(
+                "Anthropic per-message output_config cannot be translated without changing turn-scoped effort semantics".to_string(),
+            ));
+        }
         let raw_payload_obj: Map<String, Value> = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
         let raw_params_view: AnthropicExtrasView =
