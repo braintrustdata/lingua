@@ -5,7 +5,12 @@ import {
   type MessageParam,
   type OutputConfig,
 } from "@anthropic-ai/sdk/resources/messages";
-import { ANTHROPIC_MODEL, OPENAI_CHAT_COMPLETIONS_MODEL } from "../../cases";
+import {
+  allTestCases,
+  getCaseForProvider,
+  ANTHROPIC_MODEL,
+  OPENAI_CHAT_COMPLETIONS_MODEL,
+} from "../../cases";
 import { transformAndValidateRequest } from "./helpers";
 
 describe("anthropic mid-conversation system messages", () => {
@@ -113,6 +118,52 @@ describe("anthropic mid-conversation system messages", () => {
       },
     });
   });
+
+  test.each([
+    { caseName: "imageUrlMimeTypeFallbackParam", target: "Anthropic" },
+    { caseName: "chatCompletionsInputAudioParam", target: "Google" },
+    { caseName: "parallelToolCallsRequest", target: "Google" },
+  ])(
+    "detects $caseName with max_tokens for $target",
+    ({ caseName, target }) => {
+      const template = getCaseForProvider(
+        allTestCases,
+        caseName,
+        "chat-completions"
+      );
+      if (!template) {
+        throw new Error(`Missing OpenAI payload case: ${caseName}`);
+      }
+      const {
+        tools: _tools,
+        max_tokens: _maxTokens,
+        max_completion_tokens: _maxCompletionTokens,
+        ...request
+      } = template;
+      for (const messages of [
+        request.messages,
+        [
+          { role: "user", content: "Earlier context." },
+          { role: "assistant", content: "OK." },
+          ...request.messages,
+        ],
+      ]) {
+        const expected = transform_request(
+          JSON.stringify({ ...request, messages, max_completion_tokens: 100 }),
+          target
+        );
+        const actual = transform_request(
+          JSON.stringify({ ...request, messages, max_tokens: 100 }),
+          target
+        );
+        expect(actual).toEqual(expected);
+        expect(actual).toMatchObject({
+          transformed: true,
+          sourceFormat: "openai",
+        });
+      }
+    }
+  );
 
   test.each(["OpenAI", "Responses", "Google"])(
     "rejects per-message effort conversion to %s",
