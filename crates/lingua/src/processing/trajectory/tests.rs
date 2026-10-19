@@ -1279,6 +1279,45 @@ fn task_wrappers_preserve_conversations_and_worker_scopes() {
 }
 
 #[test]
+fn collector_view_borrows_the_snapshot_without_assembling_it() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/nested-worker-and-embedding.json")).unwrap();
+    let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    for source in fixture.spans.clone() {
+        let span = import_span_with_options(source, fixture.import_options).unwrap();
+        if stream.needs_payload(span.header.id.as_deref().unwrap()) {
+            collect(&mut collector, stream.push(span).unwrap());
+        }
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let view = collector.view().unwrap();
+    let mut sub_agents = 0;
+    let mut pending: Vec<&TrajectoryView> = view.iter().collect();
+    while let Some(trajectory) = pending.pop() {
+        for turn in &trajectory.turns {
+            assert!(turn.turn.work.is_empty());
+            for step in &turn.work {
+                if let Some(sub_agent) = &step.sub_agent {
+                    sub_agents += 1;
+                    pending.push(sub_agent);
+                }
+            }
+        }
+    }
+    assert!(sub_agents > 0);
+    assert_eq!(
+        serde_json::to_value(
+            view.iter()
+                .map(TrajectoryView::to_trajectory)
+                .collect::<Vec<_>>()
+        )
+        .unwrap(),
+        serde_json::to_value(collector.snapshot().unwrap()).unwrap(),
+    );
+}
+
+#[test]
 fn reviewer_calls_do_not_split_turns_or_replace_the_final_response() {
     let sources: Vec<Span> =
         serde_json::from_str(include_str!("fixtures/reviewer-continuation.json")).unwrap();
