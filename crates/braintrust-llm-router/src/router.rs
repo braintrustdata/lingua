@@ -1102,7 +1102,11 @@ impl Router {
             );
             Error::NoProvider(catalog_format)
         })?;
-        let provider_formats = provider.provider_formats();
+        let provider_formats = if passthrough {
+            provider.provider_formats()
+        } else {
+            provider.model_formats(&spec)?
+        };
         let format = if passthrough {
             if !provider_formats.contains(&output_format) {
                 return Err(Error::NoProvider(output_format));
@@ -3687,19 +3691,19 @@ mod tests {
 
     #[tokio::test]
     async fn responses_routes_preserve_native_requests() {
-        for provider in [
-            "openai",
-            "azure",
-            "bedrock",
-            "azure_ai_gateway",
-            "databricks",
+        for (provider, flavor) in [
+            ("openai", ModelFlavor::Chat),
+            ("azure", ModelFlavor::Chat),
+            ("bedrock", ModelFlavor::Chat),
+            ("azure_ai_gateway", ModelFlavor::Chat),
+            ("databricks", ModelFlavor::Responses),
         ] {
             for model in [
                 "global.openai.gpt-6-astra",
                 "us.openai.gpt-6-astra",
                 "custom-model",
             ] {
-                let mut spec = openai_spec(model, ModelFlavor::Chat);
+                let mut spec = openai_spec(model, flavor);
                 spec.available_providers = vec![provider.into()];
                 let mut catalog = ModelCatalog::empty();
                 catalog.insert(model.into(), spec);
@@ -3757,6 +3761,55 @@ mod tests {
                     assert_eq!(metadata.provider_format, ProviderFormat::Responses);
                 }
             }
+        }
+    }
+
+    #[test]
+    fn databricks_routes_require_explicit_responses_capability() {
+        for (model, supports_responses) in [
+            ("custom-model", false),
+            ("gpt-6-astra", false),
+            ("databricks-gpt-oss-120b", false),
+            ("databricks-gpt-6-1-sol", true),
+        ] {
+            let mut spec = openai_spec(model, ModelFlavor::Chat);
+            spec.available_providers = vec!["databricks".into()];
+            if supports_responses {
+                spec.extra = serde_json::from_str(r#"{"supports_responses":true}"#).unwrap();
+            }
+            let mut catalog = ModelCatalog::empty();
+            catalog.insert(model.into(), spec);
+            let router = Router::builder()
+                .with_catalog(Arc::new(catalog))
+                .add_provider(
+                    "databricks",
+                    DatabricksProvider::from_config(
+                        Some(&Url::parse("https://example.databricks.com").unwrap()),
+                        None,
+                        None,
+                    )
+                    .unwrap(),
+                    dummy_auth(),
+                    vec![],
+                )
+                .build()
+                .unwrap();
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::Responses, &[])
+                .unwrap();
+            assert_eq!(
+                routes[0].format,
+                if supports_responses {
+                    ProviderFormat::Responses
+                } else {
+                    ProviderFormat::ChatCompletions
+                },
+                "{model}"
+            );
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
+                .unwrap();
+            assert_eq!(routes[0].format, ProviderFormat::ChatCompletions, "{model}");
         }
     }
 

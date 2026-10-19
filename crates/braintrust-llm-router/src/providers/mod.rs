@@ -244,6 +244,10 @@ pub trait Provider: Send + Sync {
     /// All formats this provider can handle.
     fn provider_formats(&self) -> Vec<ProviderFormat>;
 
+    fn model_formats(&self, _spec: &ModelSpec) -> Result<Vec<ProviderFormat>> {
+        Ok(self.provider_formats())
+    }
+
     /// Execute a completion request.
     ///
     /// Returns raw bytes response from the provider. The Router handles

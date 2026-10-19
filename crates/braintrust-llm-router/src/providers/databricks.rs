@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use crate::auth::AuthConfig;
-use crate::catalog::ModelSpec;
+use crate::catalog::{ModelFlavor, ModelSpec};
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
@@ -24,6 +24,12 @@ pub struct DatabricksConfig {
 pub struct DatabricksProvider {
     client: ClientWithMiddleware,
     config: DatabricksConfig,
+}
+
+#[derive(serde::Deserialize)]
+struct DatabricksModelExtra {
+    #[serde(default)]
+    supports_responses: bool,
 }
 
 impl DatabricksProvider {
@@ -67,14 +73,7 @@ impl DatabricksProvider {
             segments.pop_if_empty();
             segments.push("serving-endpoints");
             if format == ProviderFormat::Responses {
-                let unified = model.starts_with("databricks-")
-                    && (!model.starts_with("databricks-gpt-")
-                        || model.starts_with("databricks-gpt-oss-"));
-                segments.push(if unified {
-                    "open-responses"
-                } else {
-                    "responses"
-                });
+                segments.push("responses");
             } else {
                 segments.push(model);
                 segments.push("invocations");
@@ -106,6 +105,21 @@ impl crate::providers::Provider for DatabricksProvider {
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
         vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
+    }
+
+    fn model_formats(&self, spec: &ModelSpec) -> Result<Vec<ProviderFormat>> {
+        let extra: DatabricksModelExtra =
+            serde_json::from_value(serde_json::Value::Object(spec.extra.clone()))?;
+        Ok(
+            if extra.supports_responses
+                || spec.flavor == ModelFlavor::Responses
+                || spec.format == ProviderFormat::Responses
+            {
+                self.provider_formats()
+            } else {
+                vec![ProviderFormat::ChatCompletions]
+            },
+        )
     }
 
     async fn complete(
@@ -268,18 +282,13 @@ mod tests {
             url.as_str(),
             "https://adb-123.azuredatabricks.net/serving-endpoints/my-model/invocations"
         );
-        for (model, endpoint) in [
-            ("external-openai", "responses"),
-            ("databricks-gpt-6-1-sol", "responses"),
-            ("databricks-gpt-oss-120b", "open-responses"),
-            ("databricks-meta-llama-3-3-70b-instruct", "open-responses"),
-        ] {
+        for model in ["external-openai", "databricks-gpt-6-1-sol"] {
             assert_eq!(
                 provider
                     .serving_url(model, ProviderFormat::Responses)
                     .unwrap()
                     .path(),
-                format!("/serving-endpoints/{endpoint}"),
+                "/serving-endpoints/responses",
             );
         }
     }
