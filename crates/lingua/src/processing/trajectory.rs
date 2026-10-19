@@ -1,7 +1,9 @@
 mod stream;
 #[cfg(test)]
 mod tests;
-pub use stream::{TrajectoryCollector, TrajectoryEvent, TrajectoryStream};
+pub use stream::{
+    TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
+};
 
 use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext};
 use crate::processing::message_dedup_hash;
