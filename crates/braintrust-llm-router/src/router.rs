@@ -1108,11 +1108,6 @@ impl Router {
                 return Err(Error::NoProvider(output_format));
             }
             output_format
-        } else if provider.id() == "databricks"
-            && (!spec.model.starts_with("databricks-gpt-")
-                || spec.model.starts_with("databricks-gpt-oss-"))
-        {
-            catalog_format
         } else if provider_formats.contains(&ProviderFormat::Responses)
             && (spec.requires_responses_api()
                 || (output_format == ProviderFormat::Responses
@@ -3703,9 +3698,6 @@ mod tests {
                 "global.openai.gpt-6-astra",
                 "us.openai.gpt-6-astra",
                 "custom-model",
-                "databricks-gpt-6-1-sol",
-                "databricks-gpt-oss-120b",
-                "databricks-meta-llama-3-3-70b-instruct",
             ] {
                 let mut spec = openai_spec(model, ModelFlavor::Chat);
                 spec.available_providers = vec![provider.into()];
@@ -3731,10 +3723,6 @@ mod tests {
                     .resolve_provider_routes(model, ProviderFormat::Responses, &[])
                     .expect("resolves");
                 let route = &routes[0];
-                if provider == "databricks" && model != "databricks-gpt-6-1-sol" {
-                    assert_eq!(route.format, ProviderFormat::ChatCompletions, "{model}");
-                    continue;
-                }
                 assert_eq!(
                     route.format,
                     ProviderFormat::Responses,
