@@ -2,12 +2,23 @@
 import type { Agent } from "./Agent";
 import type { AudioRecording } from "./AudioRecording";
 import type { Finding } from "./Finding";
+import type { Link } from "./Link";
 import type { Scope } from "./Scope";
 import type { Section } from "./Section";
 import type { Turn } from "./Turn";
+import type { Utterance } from "./Utterance";
 
 export type Trajectory = { scope: Array<Scope>, agent: Agent, sections?: Array<Section>, findings?: Array<Finding>, turns: Array<Turn>, metadata: Record<string, unknown>, version?: string, 
 /**
- * Audio recordings logged anywhere in the trace, in span order.
+ * Call recordings logged on the root span, in logged order. Root scope only.
  */
-recordings?: Array<AudioRecording>, };
+recordings?: Array<AudioRecording>, 
+/**
+ * Speech on the call, one per `user_speech`/`agent_speech` span, ordered by
+ * `(start_time, id)`. Model and tool work stays in `turns`.
+ */
+utterances?: Array<Utterance>, 
+/**
+ * Every span link logged by a span in this scope, resolved to row ids where possible.
+ */
+links?: Array<Link>, };

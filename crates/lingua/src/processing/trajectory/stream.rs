@@ -55,6 +55,12 @@ pub enum TrajectoryEvent {
         scope: TrajectoryScope,
         id: String,
     },
+    /// Replaces the utterance with the same id: sent with its text once the speech payload
+    /// loads, and again when a linked tts payload fills `synthesis.text`.
+    Utterance {
+        scope: TrajectoryScope,
+        utterance: Box<Utterance>,
+    },
     Failure {
         root_span_id: String,
         span_id: String,
@@ -66,6 +72,9 @@ pub enum TrajectoryEvent {
         message: String,
     },
     Done,
+    /// Any event type this build does not know; ignored by the collector.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Default)]
@@ -181,7 +190,11 @@ enum Role {
     Conversation,
     Analysis,
     Tool,
-    Task { fallback: bool },
+    Task {
+        fallback: bool,
+    },
+    /// A speech span: listed in `utterances`, never a turn or a work step.
+    Speech,
 }
 
 impl Role {
@@ -202,6 +215,7 @@ fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) 
                 "llm" if span.source.analysis => Role::Analysis,
                 "llm" => Role::Conversation,
                 "tool" => Role::Tool,
+                "task" if voice::speech_speaker(span).is_some() => Role::Speech,
                 "task" if !span.source.analysis => Role::Task { fallback: true },
                 _ => Role::Ignored,
             }
@@ -412,6 +426,9 @@ pub struct TrajectoryStream {
     task_children: Vec<Vec<usize>>,
     task_resolved: Vec<bool>,
     initial_events: Vec<TrajectoryEvent>,
+    utterances: HashMap<usize, (TrajectoryScope, Utterance)>,
+    synthesis_sources: HashMap<usize, Vec<usize>>,
+    voice_pending: Vec<usize>,
     resumed: HashSet<usize>,
     order: Vec<usize>,
     cursor: usize,
@@ -534,6 +551,9 @@ impl TrajectoryStream {
             task_children,
             task_resolved,
             initial_events: Vec::new(),
+            utterances: HashMap::new(),
+            synthesis_sources: HashMap::new(),
+            voice_pending: Vec::new(),
             resumed: HashSet::new(),
             cursor: 0,
             exclude_system,
@@ -549,7 +569,36 @@ impl TrajectoryStream {
         self.by_id.get(id).is_some_and(|&index| !self.ready[index])
     }
 
+    /// Turn spans in stream order, merged by start time with the speech and tts spans that only
+    /// utterances read.
     pub fn pending_ids(&self, limit: usize) -> Vec<String> {
+        let mut turns = self.pending_turn_spans(limit).into_iter().peekable();
+        let mut voice = self
+            .voice_pending
+            .iter()
+            .copied()
+            .filter(|index| !self.ready[*index])
+            .peekable();
+        let mut pending = Vec::new();
+        while pending.len() < limit {
+            let next = match (turns.peek(), voice.peek()) {
+                (Some(&turn), Some(&speech))
+                    if self.spans[speech].start < self.spans[turn].start =>
+                {
+                    voice.next()
+                }
+                (Some(_), _) => turns.next(),
+                (None, _) => voice.next(),
+            };
+            let Some(index) = next else {
+                break;
+            };
+            pending.push(self.spans[index].id.clone());
+        }
+        pending
+    }
+
+    fn pending_turn_spans(&self, limit: usize) -> Vec<usize> {
         let mut pending = Vec::new();
         let mut seen = HashSet::new();
         let mut blocked = false;
@@ -588,7 +637,7 @@ impl TrajectoryStream {
                 if !self.task_resolved[index] && !unresolved.is_empty() {
                     dependencies.extend(unresolved.into_iter().rev());
                 } else if !self.ready[index] {
-                    pending.push(self.spans[index].id.clone());
+                    pending.push(index);
                 }
             }
         }
@@ -606,7 +655,25 @@ impl TrajectoryStream {
     }
 
     pub fn push(&mut self, span: ImportedSpan) -> Result<Vec<TrajectoryEvent>> {
-        self.push_prepared(PreparedSpan::new(span)?)
+        let voice = span
+            .header
+            .id
+            .as_ref()
+            .and_then(|id| self.by_id.get(id))
+            .copied()
+            .and_then(|index| {
+                if let Some((_, utterance)) = self.utterances.get(&index) {
+                    return Some((index, voice::speech_text(&span, utterance.speaker)));
+                }
+                self.synthesis_sources
+                    .contains_key(&index)
+                    .then(|| (index, span.synthesis_text.clone()))
+            });
+        let mut events = self.push_prepared(PreparedSpan::new(span)?)?;
+        if let Some((index, text)) = voice {
+            events.extend(self.voice_payload(index, text));
+        }
+        Ok(events)
     }
 
     pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
@@ -616,7 +683,35 @@ impl TrajectoryStream {
         if !self.task_resolved[index] {
             self.resolve_task(index);
         }
+        if matches!(self.roles[index], Role::Ignored | Role::Speech) {
+            self.spans[index].release_payload();
+        }
         self.drain()
+    }
+
+    /// Fills the text a loaded speech or tts payload supplies and re-sends each utterance it
+    /// changes.
+    fn voice_payload(&mut self, index: usize, text: Option<String>) -> Vec<TrajectoryEvent> {
+        let targets = match self.synthesis_sources.get(&index) {
+            Some(speech) => speech.clone(),
+            None => vec![index],
+        };
+        let mut events = Vec::new();
+        for target in targets {
+            let Some((scope, utterance)) = self.utterances.get_mut(&target) else {
+                continue;
+            };
+            if target == index {
+                utterance.text.clone_from(&text);
+            } else if let Some(synthesis) = &mut utterance.synthesis {
+                synthesis.text.clone_from(&text);
+            }
+            events.push(TrajectoryEvent::Utterance {
+                scope: scope.clone(),
+                utterance: Box::new(utterance.clone()),
+            });
+        }
+        events
     }
 
     fn resolve_task(&mut self, index: usize) {
@@ -750,7 +845,7 @@ impl TrajectoryStream {
         let mut scope_indices = BTreeMap::<_, Vec<_>>::new();
         for (index, span) in self.spans.iter().enumerate() {
             let role = self.roles[index];
-            if role == Role::Ignored {
+            if matches!(role, Role::Ignored | Role::Speech) {
                 continue;
             }
             let owner = &self.owners[&index];
@@ -828,6 +923,49 @@ impl TrajectoryStream {
                     .and_then(|index| self.spans[index].source.name.clone()),
             );
         }
+        let skipped: Vec<_> = (0..self.spans.len())
+            .map(|index| self.owners[&index].skipped)
+            .collect();
+        let voice = voice::voice_headers(&self.spans, &skipped);
+        let mut utterances: BTreeMap<TrajectoryScope, Vec<Utterance>> = BTreeMap::new();
+        let mut links: BTreeMap<TrajectoryScope, Vec<Link>> = BTreeMap::new();
+        for (index, utterance) in voice.utterances {
+            if self.roles[index] != Role::Speech {
+                continue;
+            }
+            let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+            let scope = self.scope(&key);
+            scopes.entry(scope.clone()).or_insert_with(|| {
+                key.tool
+                    .and_then(|index| self.spans[index].source.name.clone())
+            });
+            utterances
+                .entry(scope.clone())
+                .or_default()
+                .push(utterance.clone());
+            self.voice_pending.push(index);
+            self.utterances.insert(index, (scope, utterance));
+        }
+        for (index, link) in voice.links {
+            let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+            let scope = self.scope(&key);
+            scopes.entry(scope.clone()).or_insert_with(|| {
+                key.tool
+                    .and_then(|index| self.spans[index].source.name.clone())
+            });
+            links.entry(scope).or_default().push(link);
+        }
+        self.synthesis_sources = voice
+            .synthesis_sources
+            .into_iter()
+            .filter_map(|(tts, speech)| {
+                let speech: Vec<_> = speech
+                    .into_iter()
+                    .filter(|index| self.utterances.contains_key(index))
+                    .collect();
+                (!speech.is_empty()).then_some((tts, speech))
+            })
+            .collect();
         for (scope, name) in scopes {
             let recordings = scope
                 .owner_span_id
@@ -854,6 +992,8 @@ impl TrajectoryStream {
                     findings: None,
                     metadata: Default::default(),
                     recordings,
+                    utterances: utterances.remove(&scope),
+                    links: links.remove(&scope),
                 },
                 scope,
             });
@@ -864,6 +1004,16 @@ impl TrajectoryStream {
                 self.spans[index].release_payload();
             }
         }
+        for &index in self.synthesis_sources.keys() {
+            if self.roles[index] == Role::Ignored {
+                self.ready[index] = false;
+                self.voice_pending.push(index);
+            }
+        }
+        self.voice_pending.sort_by(|a, b| {
+            let (a, b) = (&self.spans[*a], &self.spans[*b]);
+            a.start.cmp(&b.start).then(a.id.cmp(&b.id))
+        });
         self.remaining = scope_indices
             .into_iter()
             .map(|(scope, indices)| (scope, indices.len()))
@@ -871,18 +1021,33 @@ impl TrajectoryStream {
         Ok(())
     }
 
-    fn recordings(&self, root_span_id: &str) -> Vec<AudioRecording> {
-        let mut spans: Vec<_> = self
-            .spans
-            .iter()
-            .filter(|span| span.root_span_id == root_span_id)
+    /// Recordings logged on the root span of a trace, in logged order. Recordings logged on
+    /// any other span are not call recordings and are left out with a warning.
+    fn recordings(&mut self, root_span_id: &str) -> Vec<AudioRecording> {
+        let mut indices: Vec<_> = (0..self.spans.len())
+            .filter(|&index| self.spans[index].root_span_id == root_span_id)
             .collect();
-        spans.sort_by(|a, b| a.start.cmp(&b.start).then(a.id.cmp(&b.id)));
+        indices.sort_by(|&a, &b| {
+            let (a, b) = (&self.spans[a], &self.spans[b]);
+            a.start.cmp(&b.start).then(a.id.cmp(&b.id))
+        });
         let mut recordings: Vec<AudioRecording> = Vec::new();
-        for span in spans {
+        for index in indices {
+            let is_root = self.spans[index].source.span_parents.is_empty();
+            let span = &mut self.spans[index];
             let Some(voice) = &span.source.voice else {
                 continue;
             };
+            if voice.recordings.is_empty() {
+                continue;
+            }
+            if !is_root {
+                span.warnings.push(
+                    "Ignored metadata.audio.recordings: call recordings are read from the root span only"
+                        .to_string(),
+                );
+                continue;
+            }
             for recording in &voice.recordings {
                 if !recordings.contains(recording) {
                     recordings.push(recording.clone());
@@ -1286,7 +1451,11 @@ struct CollectedTurn {
     work: BTreeMap<usize, WorkStep>,
     order: usize,
 }
-type CollectedTrajectory = (Trajectory, BTreeMap<String, CollectedTurn>);
+type CollectedTrajectory = (
+    Trajectory,
+    BTreeMap<String, CollectedTurn>,
+    BTreeMap<String, Utterance>,
+);
 
 #[derive(Default)]
 pub struct TrajectoryCollector {
@@ -1308,10 +1477,19 @@ impl TrajectoryCollector {
                 if self.scopes.contains_key(&scope) {
                     return Err("Duplicate trajectory scope".to_string());
                 }
-                self.scopes.insert(scope, (trajectory, BTreeMap::new()));
+                let mut trajectory = trajectory;
+                let utterances = trajectory
+                    .utterances
+                    .take()
+                    .into_iter()
+                    .flatten()
+                    .map(|utterance| (utterance.id.clone(), utterance))
+                    .collect();
+                self.scopes
+                    .insert(scope, (trajectory, BTreeMap::new(), utterances));
             }
             TrajectoryEvent::Turn { scope, id, turn } => {
-                let (_, turns) = self
+                let (_, turns, _) = self
                     .scopes
                     .get_mut(&scope)
                     .ok_or("Unknown trajectory scope")?;
@@ -1372,6 +1550,13 @@ impl TrajectoryCollector {
             TrajectoryEvent::Interrupted { scope, id } => {
                 self.turn(&scope, &id)?.turn.interrupted = Some(true)
             }
+            TrajectoryEvent::Utterance { scope, utterance } => {
+                self.scopes
+                    .get_mut(&scope)
+                    .ok_or("Unknown trajectory scope")?
+                    .2
+                    .insert(utterance.id.clone(), *utterance);
+            }
             TrajectoryEvent::Failure {
                 root_span_id,
                 span_id,
@@ -1383,6 +1568,7 @@ impl TrajectoryCollector {
                 message,
             } => self.import_diagnostic("import_warnings", root_span_id, span_id, message)?,
             TrajectoryEvent::Done => self.complete = true,
+            TrajectoryEvent::Unknown => {}
         }
         Ok(())
     }
@@ -1394,7 +1580,7 @@ impl TrajectoryCollector {
         span_id: String,
         message: String,
     ) -> Result<()> {
-        let (trajectory, _) = self
+        let (trajectory, _, _) = self
             .scopes
             .get_mut(&TrajectoryScope {
                 root_span_id,
@@ -1414,7 +1600,7 @@ impl TrajectoryCollector {
     fn turn(&mut self, scope: &TrajectoryScope, id: &str) -> Result<&mut CollectedTurn> {
         self.scopes
             .get_mut(scope)
-            .and_then(|(_, turns)| turns.get_mut(id))
+            .and_then(|(_, turns, _)| turns.get_mut(id))
             .ok_or_else(|| "Unknown trajectory turn".to_string())
     }
 
@@ -1426,8 +1612,12 @@ impl TrajectoryCollector {
         if !visiting.insert(scope.clone()) {
             return Err("Cycle in trajectory scopes".to_string());
         }
-        let (header, turns) = self.scopes.get(scope).ok_or("Unknown trajectory scope")?;
+        let (header, turns, utterances) =
+            self.scopes.get(scope).ok_or("Unknown trajectory scope")?;
         let mut trajectory = header.clone();
+        let mut utterances: Vec<_> = utterances.values().cloned().collect();
+        utterances.sort_by(|a, b| a.start_time.cmp(&b.start_time).then(a.id.cmp(&b.id)));
+        trajectory.utterances = (!utterances.is_empty()).then_some(utterances);
         let mut turns: Vec<_> = turns.values().collect();
         turns.sort_by_key(|collected| (collected.turn.start_time, collected.order));
         for collected in turns {
