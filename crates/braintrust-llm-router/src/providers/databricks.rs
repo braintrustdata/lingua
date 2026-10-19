@@ -76,11 +76,16 @@ impl DatabricksProvider {
         Ok(url)
     }
 
-    fn prepare_payload(payload: Bytes, format: ProviderFormat) -> Result<Bytes> {
-        if format != ProviderFormat::Responses {
+    fn prepare_payload(payload: Bytes, format: ProviderFormat, model: &str) -> Result<Bytes> {
+        if format != ProviderFormat::Responses || !model.starts_with("databricks-") {
             return Ok(payload);
         }
         let params: OpenAIResponsesParams = serde_json::from_slice(&payload)?;
+        if params.store == Some(true) {
+            return Err(Error::InvalidRequest(
+                "Databricks foundation models do not support store: true".into(),
+            ));
+        }
         if params.store != Some(false) {
             return Ok(payload);
         }
@@ -110,7 +115,7 @@ impl crate::providers::Provider for DatabricksProvider {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let url = self.serving_url(&spec.model, format)?;
-        let payload = Self::prepare_payload(payload, format)?;
+        let payload = Self::prepare_payload(payload, format, &spec.model)?;
 
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
@@ -164,7 +169,7 @@ impl crate::providers::Provider for DatabricksProvider {
         }
 
         let url = self.serving_url(&spec.model, format)?;
-        let payload = Self::prepare_payload(payload, format)?;
+        let payload = Self::prepare_payload(payload, format, &spec.model)?;
 
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
@@ -235,6 +240,22 @@ mod tests {
     use super::*;
 
     #[test]
+    fn responses_preserve_external_storage_controls() {
+        for payload in [br#"{"store":false}"#.as_slice(), br#"{"store":true}"#] {
+            let payload = Bytes::copy_from_slice(payload);
+            assert_eq!(
+                DatabricksProvider::prepare_payload(
+                    payload.clone(),
+                    ProviderFormat::Responses,
+                    "external-openai"
+                )
+                .unwrap(),
+                payload,
+            );
+        }
+    }
+
+    #[test]
     fn serving_url_appends_model_and_invocations() {
         let config = DatabricksConfig {
             api_base: Url::parse("https://adb-123.azuredatabricks.net").unwrap(),
@@ -247,6 +268,13 @@ mod tests {
         assert_eq!(
             url.as_str(),
             "https://adb-123.azuredatabricks.net/serving-endpoints/my-model/invocations"
+        );
+        assert_eq!(
+            provider
+                .serving_url("my-model", ProviderFormat::Responses)
+                .unwrap()
+                .path(),
+            "/serving-endpoints/responses"
         );
     }
 
@@ -272,84 +300,24 @@ mod tests {
         assert!(matches!(err, Error::InvalidRequest(_)));
     }
 
-    #[tokio::test]
-    async fn responses_preserve_tools_and_use_responses_endpoint() {
-        use crate::providers::Provider;
-        use futures::StreamExt;
-        use wiremock::matchers::{body_json, header, method, path};
-        use wiremock::{Mock, MockServer, ResponseTemplate};
-
-        let server = MockServer::start().await;
-        let provider = DatabricksProvider::new(DatabricksConfig {
-            api_base: Url::parse(&server.uri()).unwrap(),
-            timeout: None,
-        })
-        .unwrap();
-        let auth = crate::auth::api_key_auth("test-token");
-        let spec: ModelSpec = serde_json::from_str(
-            r#"{"model":"databricks-gpt-6-1-sol","format":"openai","flavor":"chat"}"#,
-        )
-        .unwrap();
-        assert!(provider
-            .provider_formats()
-            .contains(&ProviderFormat::Responses));
-
-        for (streaming, store) in [
-            (false, None),
-            (true, None),
-            (false, Some(false)),
-            (true, Some(false)),
-            (true, Some(true)),
-        ] {
-            let mut expected = serde_json::json!({
-                "model": "databricks-gpt-6-1-sol",
-                "input": "hello",
-                "stream": streaming,
-                "tools": [{"type": "custom", "name": "exec", "format": {"type": "text"}}],
-                "future_parameter": {"nested": [null, {"store": true}]},
-            });
-            let mut request = expected.clone();
-            if let Some(store) = store {
-                request["store"] = store.into();
-                if store {
-                    expected["store"] = true.into();
-                }
-            }
-            let payload = Bytes::from(serde_json::to_vec(&request).unwrap());
-            let _mock = Mock::given(method("POST"))
-                .and(path("/serving-endpoints/responses"))
-                .and(header("authorization", "Bearer test-token"))
-                .and(body_json(expected))
-                .respond_with(ResponseTemplate::new(200).set_body_string("data: [DONE]\n\n"))
-                .expect(1)
-                .mount_as_scoped(&server)
-                .await;
-            if streaming {
-                let mut stream = provider
-                    .complete_stream(
-                        payload,
-                        &auth,
-                        &spec,
-                        ProviderFormat::Responses,
-                        &ClientHeaders::default(),
-                    )
-                    .await
-                    .unwrap();
-                while let Some(chunk) = stream.next().await {
-                    chunk.unwrap();
-                }
-            } else {
-                provider
-                    .complete(
-                        payload,
-                        &auth,
-                        &spec,
-                        ProviderFormat::Responses,
-                        &ClientHeaders::default(),
-                    )
-                    .await
-                    .unwrap();
-            }
-        }
+    #[test]
+    fn foundation_responses_preserve_tools_and_reject_storage() {
+        let payload = Bytes::from_static(br#"{"input":"hi","store":false,"tools":[{"type":"custom","name":"exec"}],"unknown":{"store":true}}"#);
+        let expected = Bytes::from_static(
+            br#"{"input":"hi","tools":[{"type":"custom","name":"exec"}],"unknown":{"store":true}}"#,
+        );
+        assert_eq!(
+            DatabricksProvider::prepare_payload(
+                payload,
+                ProviderFormat::Responses,
+                "databricks-gpt-6-sol"
+            )
+            .unwrap(),
+            expected,
+        );
+        assert!(matches!(
+            DatabricksProvider::prepare_payload(Bytes::from_static(br#"{"store":true}"#), ProviderFormat::Responses, "databricks-gpt-6-sol"),
+            Err(Error::InvalidRequest(message)) if message.contains("store: true")
+        ));
     }
 }

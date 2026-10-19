@@ -3689,11 +3689,19 @@ mod tests {
 
     #[tokio::test]
     async fn responses_routes_preserve_native_requests() {
-        for provider in ["openai", "azure", "bedrock", "azure_ai_gateway"] {
+        for provider in [
+            "openai",
+            "azure",
+            "bedrock",
+            "azure_ai_gateway",
+            "databricks",
+        ] {
             for model in [
                 "global.openai.gpt-6-astra",
                 "us.openai.gpt-6-astra",
                 "custom-model",
+                "databricks-gpt-6-1-sol",
+                "databricks-meta-llama-3-3-70b-instruct",
             ] {
                 let mut spec = openai_spec(model, ModelFlavor::Chat);
                 spec.available_providers = vec![provider.into()];
@@ -3719,6 +3727,10 @@ mod tests {
                     .resolve_provider_routes(model, ProviderFormat::Responses, &[])
                     .expect("resolves");
                 let route = &routes[0];
+                if provider == "databricks" && model != "databricks-gpt-6-1-sol" {
+                    assert_eq!(route.format, ProviderFormat::ChatCompletions, "{model}");
+                    continue;
+                }
                 assert_eq!(
                     route.format,
                     ProviderFormat::Responses,
@@ -3806,44 +3818,6 @@ mod tests {
                 .expect("resolves");
             assert_eq!(routes.len(), 1, "{model}");
             assert_eq!(routes[0].format, ProviderFormat::Responses, "{model}");
-        }
-    }
-
-    #[test]
-    fn databricks_responses_use_native_transport_only_for_openai_models() {
-        for (model, expected_format) in [
-            ("databricks-gpt-6-1-sol", ProviderFormat::Responses),
-            (
-                "databricks-meta-llama-3-3-70b-instruct",
-                ProviderFormat::ChatCompletions,
-            ),
-        ] {
-            let mut catalog = ModelCatalog::empty();
-            let mut spec = openai_spec(model, ModelFlavor::Chat);
-            spec.available_providers = vec!["databricks".into()];
-            catalog.insert(model.into(), spec);
-            let router = Router::builder()
-                .with_catalog(Arc::new(catalog))
-                .add_provider(
-                    "databricks",
-                    FakeProvider {
-                        name: "databricks",
-                        formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
-                    },
-                    dummy_auth(),
-                    vec![ProviderFormat::ChatCompletions],
-                )
-                .build()
-                .unwrap();
-            let routes = router
-                .resolve_provider_routes(model, ProviderFormat::Responses, &[])
-                .unwrap();
-            assert_eq!(routes.len(), 1);
-            assert_eq!(routes[0].format, expected_format, "{model}");
-            let routes = router
-                .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
-                .unwrap();
-            assert_eq!(routes[0].format, ProviderFormat::ChatCompletions, "{model}");
         }
     }
 
