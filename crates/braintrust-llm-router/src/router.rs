@@ -1108,7 +1108,10 @@ impl Router {
                 return Err(Error::NoProvider(output_format));
             }
             output_format
-        } else if provider.id() == "databricks" && !spec.model.starts_with("databricks-gpt-") {
+        } else if provider.id() == "databricks"
+            && (!spec.model.starts_with("databricks-gpt-")
+                || spec.model.starts_with("databricks-gpt-oss-"))
+        {
             catalog_format
         } else if provider_formats.contains(&ProviderFormat::Responses)
             && (spec.requires_responses_api()
@@ -3701,6 +3704,7 @@ mod tests {
                 "us.openai.gpt-6-astra",
                 "custom-model",
                 "databricks-gpt-6-1-sol",
+                "databricks-gpt-oss-120b",
                 "databricks-meta-llama-3-3-70b-instruct",
             ] {
                 let mut spec = openai_spec(model, ModelFlavor::Chat);
