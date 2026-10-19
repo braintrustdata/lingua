@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{collections::BTreeMap, time::Duration};
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
@@ -8,6 +8,7 @@ use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
+use lingua::providers::openai::params::OpenAIResponsesParams;
 use lingua::ProviderFormat;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
@@ -57,7 +58,7 @@ impl DatabricksProvider {
 
     // This does not support Databrick's new AI gateway URL format yet, only
     // their model serving endpoints.
-    fn serving_url(&self, model: &str) -> Result<Url> {
+    fn serving_url(&self, model: &str, format: ProviderFormat) -> Result<Url> {
         let mut url = self.config.api_base.clone();
         {
             let mut segments = url
@@ -65,10 +66,28 @@ impl DatabricksProvider {
                 .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
             segments.pop_if_empty();
             segments.push("serving-endpoints");
-            segments.push(model);
-            segments.push("invocations");
+            if format == ProviderFormat::Responses {
+                segments.push("responses");
+            } else {
+                segments.push(model);
+                segments.push("invocations");
+            }
         }
         Ok(url)
+    }
+
+    fn prepare_payload(payload: Bytes, format: ProviderFormat) -> Result<Bytes> {
+        if format != ProviderFormat::Responses {
+            return Ok(payload);
+        }
+        let params: OpenAIResponsesParams = serde_json::from_slice(&payload)?;
+        if params.store != Some(false) {
+            return Ok(payload);
+        }
+        let mut fields: BTreeMap<String, Box<serde_json::value::RawValue>> =
+            serde_json::from_slice(&payload)?;
+        fields.remove("store");
+        Ok(Bytes::from(serde_json::to_vec(&fields)?))
     }
 }
 
@@ -79,7 +98,7 @@ impl crate::providers::Provider for DatabricksProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::ChatCompletions]
+        vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
     }
 
     async fn complete(
@@ -87,10 +106,11 @@ impl crate::providers::Provider for DatabricksProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
-        _format: ProviderFormat,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.serving_url(&spec.model)?;
+        let url = self.serving_url(&spec.model, format)?;
+        let payload = Self::prepare_payload(payload, format)?;
 
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
@@ -143,7 +163,8 @@ impl crate::providers::Provider for DatabricksProvider {
                 .await;
         }
 
-        let url = self.serving_url(&spec.model)?;
+        let url = self.serving_url(&spec.model, format)?;
+        let payload = Self::prepare_payload(payload, format)?;
 
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
@@ -220,7 +241,9 @@ mod tests {
             timeout: None,
         };
         let provider = DatabricksProvider::new(config).unwrap();
-        let url = provider.serving_url("my-model").unwrap();
+        let url = provider
+            .serving_url("my-model", ProviderFormat::ChatCompletions)
+            .unwrap();
         assert_eq!(
             url.as_str(),
             "https://adb-123.azuredatabricks.net/serving-endpoints/my-model/invocations"
@@ -234,7 +257,9 @@ mod tests {
             timeout: None,
         };
         let provider = DatabricksProvider::new(config).unwrap();
-        let url = provider.serving_url("llama-3-1-8b").unwrap();
+        let url = provider
+            .serving_url("llama-3-1-8b", ProviderFormat::ChatCompletions)
+            .unwrap();
         assert_eq!(
             url.as_str(),
             "https://adb-123.azuredatabricks.net/serving-endpoints/llama-3-1-8b/invocations"
@@ -245,5 +270,86 @@ mod tests {
     fn from_config_requires_api_base() {
         let err = DatabricksProvider::from_config(None, None, None).unwrap_err();
         assert!(matches!(err, Error::InvalidRequest(_)));
+    }
+
+    #[tokio::test]
+    async fn responses_preserve_tools_and_use_responses_endpoint() {
+        use crate::providers::Provider;
+        use futures::StreamExt;
+        use wiremock::matchers::{body_json, header, method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let server = MockServer::start().await;
+        let provider = DatabricksProvider::new(DatabricksConfig {
+            api_base: Url::parse(&server.uri()).unwrap(),
+            timeout: None,
+        })
+        .unwrap();
+        let auth = crate::auth::api_key_auth("test-token");
+        let spec: ModelSpec = serde_json::from_str(
+            r#"{"model":"databricks-gpt-6-1-sol","format":"openai","flavor":"chat"}"#,
+        )
+        .unwrap();
+        assert!(provider
+            .provider_formats()
+            .contains(&ProviderFormat::Responses));
+
+        for (streaming, store) in [
+            (false, None),
+            (true, None),
+            (false, Some(false)),
+            (true, Some(false)),
+            (true, Some(true)),
+        ] {
+            let mut expected = serde_json::json!({
+                "model": "databricks-gpt-6-1-sol",
+                "input": "hello",
+                "stream": streaming,
+                "tools": [{"type": "custom", "name": "exec", "format": {"type": "text"}}],
+                "future_parameter": {"nested": [null, {"store": true}]},
+            });
+            let mut request = expected.clone();
+            if let Some(store) = store {
+                request["store"] = store.into();
+                if store {
+                    expected["store"] = true.into();
+                }
+            }
+            let payload = Bytes::from(serde_json::to_vec(&request).unwrap());
+            let _mock = Mock::given(method("POST"))
+                .and(path("/serving-endpoints/responses"))
+                .and(header("authorization", "Bearer test-token"))
+                .and(body_json(expected))
+                .respond_with(ResponseTemplate::new(200).set_body_string("data: [DONE]\n\n"))
+                .expect(1)
+                .mount_as_scoped(&server)
+                .await;
+            if streaming {
+                let mut stream = provider
+                    .complete_stream(
+                        payload,
+                        &auth,
+                        &spec,
+                        ProviderFormat::Responses,
+                        &ClientHeaders::default(),
+                    )
+                    .await
+                    .unwrap();
+                while let Some(chunk) = stream.next().await {
+                    chunk.unwrap();
+                }
+            } else {
+                provider
+                    .complete(
+                        payload,
+                        &auth,
+                        &spec,
+                        ProviderFormat::Responses,
+                        &ClientHeaders::default(),
+                    )
+                    .await
+                    .unwrap();
+            }
+        }
     }
 }

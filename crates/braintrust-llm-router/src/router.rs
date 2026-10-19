@@ -1108,6 +1108,8 @@ impl Router {
                 return Err(Error::NoProvider(output_format));
             }
             output_format
+        } else if provider.id() == "databricks" && !spec.model.starts_with("databricks-gpt-") {
+            catalog_format
         } else if provider_formats.contains(&ProviderFormat::Responses)
             && (spec.requires_responses_api()
                 || (output_format == ProviderFormat::Responses
@@ -3804,6 +3806,44 @@ mod tests {
                 .expect("resolves");
             assert_eq!(routes.len(), 1, "{model}");
             assert_eq!(routes[0].format, ProviderFormat::Responses, "{model}");
+        }
+    }
+
+    #[test]
+    fn databricks_responses_use_native_transport_only_for_openai_models() {
+        for (model, expected_format) in [
+            ("databricks-gpt-6-1-sol", ProviderFormat::Responses),
+            (
+                "databricks-meta-llama-3-3-70b-instruct",
+                ProviderFormat::ChatCompletions,
+            ),
+        ] {
+            let mut catalog = ModelCatalog::empty();
+            let mut spec = openai_spec(model, ModelFlavor::Chat);
+            spec.available_providers = vec!["databricks".into()];
+            catalog.insert(model.into(), spec);
+            let router = Router::builder()
+                .with_catalog(Arc::new(catalog))
+                .add_provider(
+                    "databricks",
+                    FakeProvider {
+                        name: "databricks",
+                        formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                    },
+                    dummy_auth(),
+                    vec![ProviderFormat::ChatCompletions],
+                )
+                .build()
+                .unwrap();
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::Responses, &[])
+                .unwrap();
+            assert_eq!(routes.len(), 1);
+            assert_eq!(routes[0].format, expected_format, "{model}");
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
+                .unwrap();
+            assert_eq!(routes[0].format, ProviderFormat::ChatCompletions, "{model}");
         }
     }
 
