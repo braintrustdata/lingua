@@ -192,7 +192,11 @@ pub fn normalize_openai_model_name(model: &str) -> String {
             lower
                 .rsplit_once('/')
                 .map(|(_, model)| model)
-                .filter(|model| model.starts_with("gpt-"))
+                .filter(|model| {
+                    ["gpt-", "o1", "o3", "o4"]
+                        .iter()
+                        .any(|prefix| model.starts_with(prefix))
+                })
         })
     {
         stripped.to_string()
@@ -647,7 +651,15 @@ mod tests {
 
     #[test]
     fn test_strip_temperature() {
-        let reasoning_models = ["o1", "o1-mini", "o3", "gpt-5-mini"];
+        let reasoning_models = [
+            "o1",
+            "o1-mini",
+            "o3",
+            "gpt-5-mini",
+            "@openai/o1",
+            "braintrust/o3",
+            "custom/o4-mini",
+        ];
         let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
 
         // Reasoning models: temperature should be stripped
@@ -685,7 +697,15 @@ mod tests {
 
     #[test]
     fn test_strip_top_p() {
-        let reasoning_models = ["o1", "o1-mini", "o3", "gpt-5-mini"];
+        let reasoning_models = [
+            "o1",
+            "o1-mini",
+            "o3",
+            "gpt-5-mini",
+            "@openai/o1",
+            "braintrust/o3",
+            "custom/o4-mini",
+        ];
         let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
 
         for model in reasoning_models {
@@ -714,7 +734,13 @@ mod tests {
     #[test]
     fn test_force_max_completion_tokens() {
         // Reasoning models: max_tokens → max_completion_tokens
-        for model in ["o1", "gpt-5"] {
+        for model in [
+            "o1",
+            "gpt-5",
+            "@openai/o1",
+            "braintrust/o3",
+            "custom/o4-mini",
+        ] {
             let mut obj = json!({
                 "model": model,
                 "messages": [{"role": "user", "content": "Hello"}],
