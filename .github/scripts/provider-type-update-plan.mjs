@@ -561,7 +561,7 @@ export function renderImplementation(plan) {
   const lines = [
     `# ${plan.provider} implementation checklist`,
     "",
-    "Complete each item and its focused tests before starting the next item.",
+    "Complete each item and its focused tests, or record an unresolved tool blocker, before starting the next item.",
     "Consult the full audit at $PROVIDER_UPDATE_PLAN_PATH only for a specific unresolved question; do not repeat the audit.",
     "Live captures and broad validation are run separately by the workflow.",
     "",

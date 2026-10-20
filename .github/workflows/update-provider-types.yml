@@ -536,9 +536,25 @@ jobs:
             do not use `cd` or `git -C`/`make -C` command variants. Use Read/Grep
             with bounded ranges for source inspection. Write scratch scripts
             only under `${{ runner.temp }}/provider-type-update-scratch`.
-            Leave scratch cleanup to the runner. If a required command is
-            denied, stop and report the exact command and denial. Do not retry
-            through another interpreter, path, or shell spelling.
+            Leave scratch cleanup to the runner. A command denial does not end
+            the phase. For each denied capability, allow one evidence-based
+            correction to an explicitly permitted form: for example, remove an
+            unnecessary shell wrapper or use Read/Grep for source inspection.
+            Allow at most four such recovery attempts across the whole phase.
+            Never change permissions or use another interpreter to evade a denial.
+            Do not keep retrying the same unavailable capability on later items.
+            Optional version checks, inspection helpers, and scratch cleanup
+            must not block implementation when an allowed path remains.
+
+            If recovery fails, immediately record the exact command, denial,
+            affected change ids, and remaining work or unchecked tests in
+            `${{ runner.temp }}/provider-type-update-implementation-notes.md`.
+            Preserve consistent work and continue independent checklist items.
+            If only validation is unavailable, continue scoped implementation
+            and test additions, mark that work unverified, and leave execution
+            to the workflow's deterministic validation steps. Do not claim
+            completion for skipped work or unchecked tests. End early only
+            when no useful authorized work remains.
 
             Implement every unblocked plan item, including focused tests and any
             payload cases required by the plan. Provider-only items use focused
@@ -561,8 +577,9 @@ jobs:
             Work in checklist order. For each item, add its named tests and
             payload cases first, implement only that behavior, then run the
             focused tests with a test-name filter. Confirm that the new tests
-            actually ran and passed before moving to the next item. Do not
-            defer all test additions until after production edits. Do not run
+            actually ran and passed, or record the unresolved tool blocker and
+            unverified work as described above, before moving to the next item.
+            Do not defer all test additions until after production edits. Do not run
             the broad provider suite merely to establish a baseline; the
             workflow runs generation, build, clippy, and broad validation after
             this phase. Repeat a broad check only to diagnose a focused failure.
@@ -1152,6 +1169,13 @@ jobs:
             phase. Read `$PROVIDER_UPDATE_PLAN_PATH`, inspect the complete final
             diff, and do not modify any tracked file.
 
+            If `${{ runner.temp }}/provider-type-update-implementation-notes.md`
+            exists, read it for denied commands, affected items, and unchecked
+            tests. Reconcile those notes with the final diff and deterministic
+            validation outcomes below. A recovered denial is not itself a
+            blocker; missing implementation or a still-unchecked required test
+            is. Do not treat the notes as proof that work was completed.
+
             Validation outcomes:
             - plan has human blockers: `${{ steps.plan_validation.outputs.has_blockers }}`
             - unblocked payload capture cases: `${{ steps.capture_cases.outputs.cases }}`
@@ -1239,6 +1263,7 @@ jobs:
           path: |
             ${{ runner.temp }}/provider-type-update-plan.json
             ${{ runner.temp }}/provider-type-update-implementation.md
+            ${{ runner.temp }}/provider-type-update-implementation-notes.md
             ${{ runner.temp }}/provider-type-update-verification.json
             ${{ runner.temp }}/provider-type-update.patch
           if-no-files-found: warn
