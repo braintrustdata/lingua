@@ -62,7 +62,8 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
 
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
-    let normalized = normalize_openai_model_name(model);
+    let normalized = model.to_ascii_lowercase();
+    let normalized = normalize_openai_model_name(&normalized);
     for (prefix, transforms) in MODEL_TRANSFORM_RULES {
         if normalized.starts_with(prefix) {
             return transforms;
@@ -80,7 +81,8 @@ pub fn model_needs_transforms(model: &str) -> bool {
 ///
 /// OpenAI supports these for GPT-5.6 and later model families.
 pub fn supports_prompt_cache_breakpoint(model: &str) -> bool {
-    let model = normalize_openai_model_name(model);
+    let model = model.to_ascii_lowercase();
+    let model = normalize_openai_model_name(&model);
     let Some(version) = model.strip_prefix("gpt-") else {
         return false;
     };
@@ -103,7 +105,8 @@ pub fn supports_prompt_cache_breakpoint(model: &str) -> bool {
 /// Keep this allowlist narrow: model schemas accept the content shape broadly, but most Chat
 /// Completions models reject audio input at request validation time.
 pub fn supports_chat_input_audio(model: &str) -> bool {
-    let model = normalize_openai_model_name(model);
+    let model = model.to_ascii_lowercase();
+    let model = normalize_openai_model_name(&model);
     model == "gpt-4o-audio-preview"
         || model.starts_with("gpt-4o-audio-preview-")
         || model == "gpt-4o-mini-audio-preview"
@@ -171,16 +174,17 @@ impl EffortFamily {
     }
 }
 
-fn normalize_openai_model_name(model: &str) -> String {
-    let lower = model.to_ascii_lowercase();
-    if let Some(stripped) = lower
-        .strip_prefix("openai/")
-        .or_else(|| lower.strip_prefix("openai."))
-    {
-        stripped.to_string()
-    } else {
-        lower
+pub fn normalize_openai_model_name(model: &str) -> &str {
+    let base = model.rsplit('/').next().unwrap_or(model);
+    let base = base.split_once(".openai.").map_or(base, |(_, rest)| rest);
+    let base = base.strip_prefix("openai.").unwrap_or(base);
+    if base.starts_with("gpt-") {
+        return base;
     }
+    model
+        .strip_prefix("openai/")
+        .or_else(|| model.strip_prefix("openai."))
+        .unwrap_or(model)
 }
 
 // OpenAI uses dotted point releases (gpt-5.6), while Databricks catalogs the
@@ -193,8 +197,9 @@ fn gpt_5_point_release_suffix(model: &str) -> Option<&str> {
 }
 
 fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
-    let model = normalize_openai_model_name(model);
-    let point_release = gpt_5_point_release_suffix(&model);
+    let model = model.to_ascii_lowercase();
+    let model = normalize_openai_model_name(&model);
+    let point_release = gpt_5_point_release_suffix(model);
 
     if point_release.is_some_and(|release| release.starts_with('6')) {
         Some(EffortFamily::NoneLowMediumHighXhighMax)
@@ -367,6 +372,23 @@ mod tests {
     use crate::serde_json::{self, json};
 
     #[test]
+    fn normalizes_provider_specific_gpt_names() {
+        for model in [
+            "gpt-6-astra",
+            "openai.gpt-6-astra",
+            "us.openai.gpt-6-astra",
+            "global.openai.gpt-6-astra",
+            "openai/gpt-6-astra",
+            "custom/gpt-6-astra",
+        ] {
+            assert_eq!(normalize_openai_model_name(model), "gpt-6-astra", "{model}");
+        }
+        for model in ["anthropic/claude-sonnet-4-6", "custom/deployment"] {
+            assert_eq!(normalize_openai_model_name(model), model);
+        }
+    }
+
+    #[test]
     fn test_chat_input_audio_capability() {
         for model in [
             "gpt-4o-audio-preview",
@@ -411,6 +433,14 @@ mod tests {
             ),
             (
                 "openai/gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "us.openai.gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "global.openai.gpt-6-astra",
                 &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
             ),
             ("gpt-4", &[][..]),

@@ -25,7 +25,7 @@ pub use auth::{
 };
 pub use catalog::{ModelCatalog, ModelFlavor, ModelResolver, ModelSpec};
 pub use error::{Error, Result, UpstreamHttpError};
-pub use lingua::ProviderFormat;
+pub use lingua::{providers::openai::capabilities::normalize_openai_model_name, ProviderFormat};
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};
 pub use providers::{
     is_openai_compatible, openai_compatible_endpoint, AnthropicConfig, AnthropicProvider,
