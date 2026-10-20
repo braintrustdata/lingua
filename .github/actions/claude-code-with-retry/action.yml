@@ -52,6 +52,17 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Install standalone Braintrust CLI
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p "$RUNNER_TEMP/braintrust-cli"
+        pnpm --dir "$RUNNER_TEMP/braintrust-cli" add @braintrust/bt@0.26.0
+        cli_bin="$RUNNER_TEMP/braintrust-cli/node_modules/.bin"
+        "$cli_bin/bt" --version
+        "$cli_bin/bt" trace hook --help
+        echo "$cli_bin" >> "$GITHUB_PATH"
+
     - name: Run Claude Code
       id: primary
       continue-on-error: true

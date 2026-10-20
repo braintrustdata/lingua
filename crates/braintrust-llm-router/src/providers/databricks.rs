@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{collections::BTreeMap, time::Duration};
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
@@ -8,6 +8,7 @@ use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
+use lingua::providers::openai::params::OpenAIResponsesParams;
 use lingua::ProviderFormat;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
@@ -55,9 +56,20 @@ impl DatabricksProvider {
         )
     }
 
+    pub(crate) fn supports_responses(model: &str) -> bool {
+        model
+            .strip_prefix("databricks-gpt-")
+            .is_some_and(|name| name.starts_with(|c: char| c.is_ascii_digit()))
+    }
+
     // This does not support Databrick's new AI gateway URL format yet, only
     // their model serving endpoints.
-    fn serving_url(&self, model: &str) -> Result<Url> {
+    fn serving_url(&self, model: &str, format: ProviderFormat) -> Result<Url> {
+        if format == ProviderFormat::Responses && !Self::supports_responses(model) {
+            return Err(Error::InvalidRequest(
+                "Databricks Responses requires a preconfigured GPT endpoint".into(),
+            ));
+        }
         let mut url = self.config.api_base.clone();
         {
             let mut segments = url
@@ -65,11 +77,29 @@ impl DatabricksProvider {
                 .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
             segments.pop_if_empty();
             segments.push("serving-endpoints");
-            segments.push(model);
-            segments.push("invocations");
+            if format == ProviderFormat::Responses {
+                segments.push("responses");
+            } else {
+                segments.push(model);
+                segments.push("invocations");
+            }
         }
         Ok(url)
     }
+}
+
+fn prepare_payload(payload: Bytes, format: ProviderFormat) -> Result<Bytes> {
+    if format != ProviderFormat::Responses {
+        return Ok(payload);
+    }
+    let params: OpenAIResponsesParams = serde_json::from_slice(&payload)?;
+    if params.store != Some(false) {
+        return Ok(payload);
+    }
+    let mut fields: BTreeMap<String, Box<serde_json::value::RawValue>> =
+        serde_json::from_slice(&payload)?;
+    fields.remove("store");
+    Ok(Bytes::from(serde_json::to_vec(&fields)?))
 }
 
 #[async_trait]
@@ -79,7 +109,7 @@ impl crate::providers::Provider for DatabricksProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::ChatCompletions]
+        vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
     }
 
     async fn complete(
@@ -87,10 +117,11 @@ impl crate::providers::Provider for DatabricksProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
-        _format: ProviderFormat,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.serving_url(&spec.model)?;
+        let url = self.serving_url(&spec.model, format)?;
+        let payload = prepare_payload(payload, format)?;
 
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
@@ -143,7 +174,8 @@ impl crate::providers::Provider for DatabricksProvider {
                 .await;
         }
 
-        let url = self.serving_url(&spec.model)?;
+        let url = self.serving_url(&spec.model, format)?;
+        let payload = prepare_payload(payload, format)?;
 
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
@@ -214,17 +246,48 @@ mod tests {
     use super::*;
 
     #[test]
+    fn chat_requests_preserve_storage_controls() {
+        for payload in [br#"{"store":false}"#.as_slice(), br#"{"store":true}"#] {
+            let payload = Bytes::copy_from_slice(payload);
+            let prepared = prepare_payload(payload.clone(), ProviderFormat::ChatCompletions);
+            assert_eq!(prepared.unwrap(), payload);
+        }
+    }
+
+    #[test]
     fn serving_url_appends_model_and_invocations() {
         let config = DatabricksConfig {
             api_base: Url::parse("https://adb-123.azuredatabricks.net").unwrap(),
             timeout: None,
         };
         let provider = DatabricksProvider::new(config).unwrap();
-        let url = provider.serving_url("my-model").unwrap();
+        let url = provider
+            .serving_url("my-model", ProviderFormat::ChatCompletions)
+            .unwrap();
         assert_eq!(
             url.as_str(),
             "https://adb-123.azuredatabricks.net/serving-endpoints/my-model/invocations"
         );
+        for model in [
+            "databricks-gpt-4o",
+            "databricks-gpt-5",
+            "databricks-gpt-5-6-sol",
+            "databricks-gpt-6-1-sol",
+        ] {
+            assert_eq!(
+                provider
+                    .serving_url(model, ProviderFormat::Responses)
+                    .unwrap()
+                    .path(),
+                "/serving-endpoints/responses",
+            );
+        }
+        for model in ["external-openai", "custom-model", "databricks-gpt-oss-120b"] {
+            assert!(matches!(
+                provider.serving_url(model, ProviderFormat::Responses),
+                Err(Error::InvalidRequest(_))
+            ));
+        }
     }
 
     #[test]
@@ -234,7 +297,9 @@ mod tests {
             timeout: None,
         };
         let provider = DatabricksProvider::new(config).unwrap();
-        let url = provider.serving_url("llama-3-1-8b").unwrap();
+        let url = provider
+            .serving_url("llama-3-1-8b", ProviderFormat::ChatCompletions)
+            .unwrap();
         assert_eq!(
             url.as_str(),
             "https://adb-123.azuredatabricks.net/serving-endpoints/llama-3-1-8b/invocations"
@@ -245,5 +310,22 @@ mod tests {
     fn from_config_requires_api_base() {
         let err = DatabricksProvider::from_config(None, None, None).unwrap_err();
         assert!(matches!(err, Error::InvalidRequest(_)));
+    }
+
+    #[test]
+    fn foundation_responses_omit_only_disabled_storage() {
+        let payload = Bytes::from_static(br#"{"input":"hi","store":false,"tools":[{"type":"custom","name":"exec"}],"unknown":{"store":true}}"#);
+        let expected = Bytes::from_static(
+            br#"{"input":"hi","tools":[{"type":"custom","name":"exec"}],"unknown":{"store":true}}"#,
+        );
+        assert_eq!(
+            prepare_payload(payload, ProviderFormat::Responses).unwrap(),
+            expected,
+        );
+        let stored = Bytes::from_static(br#"{"store":true}"#);
+        assert_eq!(
+            prepare_payload(stored.clone(), ProviderFormat::Responses).unwrap(),
+            stored,
+        );
     }
 }
