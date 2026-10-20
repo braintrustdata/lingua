@@ -4,8 +4,10 @@
  * Optional. Video metadata. The metadata should only be specified while the video data is
  * presented in inline_data or file_data.
  *
- * Deprecated: Use `GenerateContentRequest.processing_options` instead. Metadata describes
- * the input video content.
+ * Metadata describes the input video content. Set this in `Part.video_metadata` or
+ * `FunctionResponsePart.video_metadata` when `inline_data` or `file_data` contains video to
+ * configure static video preprocessing (such as time clipping, frame rate, maximum frame
+ * count, or extracted content layers).
  */
 export type VideoMetadata = { 
 /**

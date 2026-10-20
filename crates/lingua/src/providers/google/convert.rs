@@ -445,6 +445,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                     if let Some(block) = parse_base64_data_url(&data) {
                                         converted.push(GooglePart {
                                             inline_data: Some(GoogleBlob {
+                                                display_name: None,
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
                                             }),
@@ -455,6 +456,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             media_type.unwrap_or_else(|| mime_type_from_url(&data));
                                         converted.push(GooglePart {
                                             file_data: Some(GoogleFileData {
+                                                display_name: None,
                                                 file_uri: Some(data),
                                                 mime_type: Some(mime_type),
                                             }),
@@ -465,6 +467,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
                                         converted.push(GooglePart {
                                             inline_data: Some(GoogleBlob {
+                                                display_name: None,
                                                 mime_type: Some(mime_type),
                                                 data: Some(data),
                                             }),
@@ -479,6 +482,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                     };
                                     converted.push(GooglePart {
                                         inline_data: Some(GoogleBlob {
+                                            display_name: None,
                                             mime_type: Some(mime_type.to_string()),
                                             data: Some(data),
                                         }),
@@ -494,6 +498,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                     if let Some(block) = parse_base64_data_url(&data) {
                                         converted.push(GooglePart {
                                             inline_data: Some(GoogleBlob {
+                                                display_name: None,
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
                                             }),
@@ -514,6 +519,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                         })?;
                                         converted.push(GooglePart {
                                             file_data: Some(GoogleFileData {
+                                                display_name: None,
                                                 file_uri: Some(data),
                                                 mime_type: Some(mime_type),
                                             }),
@@ -522,6 +528,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                     } else {
                                         converted.push(GooglePart {
                                             inline_data: Some(GoogleBlob {
+                                                display_name: None,
                                                 mime_type: Some(media_type),
                                                 data: Some(data),
                                             }),
@@ -625,6 +632,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                     };
                                     converted.push(GooglePart {
                                         inline_data: Some(GoogleBlob {
+                                            display_name: None,
                                             data: data_str,
                                             mime_type: Some(media_type),
                                         }),
@@ -1747,6 +1755,7 @@ mod tests {
                 role: Some("user".to_string()),
                 parts: Some(vec![GooglePart {
                     inline_data: Some(GoogleBlob {
+                        display_name: None,
                         mime_type: Some(mime_type.to_string()),
                         data: Some("UklGRg==".to_string()),
                     }),
@@ -1796,6 +1805,7 @@ mod tests {
             role: Some("user".to_string()),
             parts: Some(vec![GooglePart {
                 inline_data: Some(GoogleBlob {
+                    display_name: None,
                     mime_type: Some("text/plain".to_string()),
                     data: Some("Sample text.".to_string()),
                 }),
