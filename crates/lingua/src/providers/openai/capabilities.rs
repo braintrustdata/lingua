@@ -62,10 +62,14 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
 
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
-    let normalized = normalize_openai_model_name(model);
-    for (prefix, transforms) in MODEL_TRANSFORM_RULES {
-        if normalized.starts_with(prefix) {
-            return transforms;
+    for model in [
+        model.to_ascii_lowercase(),
+        normalize_openai_model_name(model),
+    ] {
+        for (prefix, transforms) in MODEL_TRANSFORM_RULES {
+            if model.starts_with(prefix) {
+                return transforms;
+            }
         }
     }
     &[]
@@ -171,11 +175,29 @@ impl EffortFamily {
     }
 }
 
-fn normalize_openai_model_name(model: &str) -> String {
+pub fn normalize_openai_model_name(model: &str) -> String {
     let lower = model.to_ascii_lowercase();
+    if let Some(suffix) = lower.strip_prefix("databricks-gpt-") {
+        let (major, rest) = suffix.split_once('-').unwrap_or((suffix, ""));
+        if major.parse::<u32>().is_ok() && rest.starts_with(|c: char| c.is_ascii_digit()) {
+            return format!("gpt-{major}.{rest}");
+        }
+        return format!("gpt-{suffix}");
+    }
     if let Some(stripped) = lower
         .strip_prefix("openai/")
         .or_else(|| lower.strip_prefix("openai."))
+        .or_else(|| lower.split_once(".openai.").map(|(_, model)| model))
+        .or_else(|| {
+            lower
+                .rsplit_once('/')
+                .map(|(_, model)| model)
+                .filter(|model| {
+                    ["gpt-", "o1", "o3", "o4"]
+                        .iter()
+                        .any(|prefix| model.starts_with(prefix))
+                })
+        })
     {
         stripped.to_string()
     } else {
@@ -183,18 +205,9 @@ fn normalize_openai_model_name(model: &str) -> String {
     }
 }
 
-// OpenAI uses dotted point releases (gpt-5.6), while Databricks catalogs the
-// same model families with dashed IDs (databricks-gpt-5-6). Extract the point
-// release so both forms select the same reasoning-effort family below.
-fn gpt_5_point_release_suffix(model: &str) -> Option<&str> {
-    model
-        .strip_prefix("gpt-5.")
-        .or_else(|| model.strip_prefix("databricks-gpt-5-"))
-}
-
 fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
     let model = normalize_openai_model_name(model);
-    let point_release = gpt_5_point_release_suffix(&model);
+    let point_release = model.strip_prefix("gpt-5.");
 
     if point_release.is_some_and(|release| release.starts_with('6')) {
         Some(EffortFamily::NoneLowMediumHighXhighMax)
@@ -367,6 +380,19 @@ mod tests {
     use crate::serde_json::{self, json};
 
     #[test]
+    fn test_normalize_databricks_models() {
+        for (model, expected) in [
+            ("databricks-gpt-5-6-luna", "gpt-5.6-luna"),
+            ("DATABRICKS-GPT-5-1", "gpt-5.1"),
+            ("databricks-gpt-5-mini", "gpt-5-mini"),
+            ("databricks-gpt-4o-mini", "gpt-4o-mini"),
+            ("databricks-gpt-oss-120b", "gpt-oss-120b"),
+        ] {
+            assert_eq!(normalize_openai_model_name(model), expected, "{model}");
+        }
+    }
+
+    #[test]
     fn test_chat_input_audio_capability() {
         for model in [
             "gpt-4o-audio-preview",
@@ -412,6 +438,22 @@ mod tests {
             (
                 "openai/gpt-6-astra",
                 &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "us.openai.gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "global.openai.gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "custom/gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "DATABRICKS-GPT-5-6-LUNA",
+                &[ForceMaxTokens, StripStreamOptions][..],
             ),
             ("gpt-4", &[][..]),
             ("gpt-4o", &[][..]),
@@ -575,6 +617,11 @@ mod tests {
                 ReasoningEffort::Xhigh,
                 ReasoningEffort::High,
             ),
+            (
+                "databricks-gpt-5-mini",
+                ReasoningEffort::Max,
+                ReasoningEffort::High,
+            ),
             ("gpt-5.1", ReasoningEffort::Xhigh, ReasoningEffort::High),
             (
                 "gpt-5.1-codex",
@@ -604,7 +651,15 @@ mod tests {
 
     #[test]
     fn test_strip_temperature() {
-        let reasoning_models = ["o1", "o1-mini", "o3", "gpt-5-mini"];
+        let reasoning_models = [
+            "o1",
+            "o1-mini",
+            "o3",
+            "gpt-5-mini",
+            "@openai/o1",
+            "braintrust/o3",
+            "custom/o4-mini",
+        ];
         let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
 
         // Reasoning models: temperature should be stripped
@@ -642,7 +697,15 @@ mod tests {
 
     #[test]
     fn test_strip_top_p() {
-        let reasoning_models = ["o1", "o1-mini", "o3", "gpt-5-mini"];
+        let reasoning_models = [
+            "o1",
+            "o1-mini",
+            "o3",
+            "gpt-5-mini",
+            "@openai/o1",
+            "braintrust/o3",
+            "custom/o4-mini",
+        ];
         let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
 
         for model in reasoning_models {
@@ -671,7 +734,13 @@ mod tests {
     #[test]
     fn test_force_max_completion_tokens() {
         // Reasoning models: max_tokens → max_completion_tokens
-        for model in ["o1", "gpt-5"] {
+        for model in [
+            "o1",
+            "gpt-5",
+            "@openai/o1",
+            "braintrust/o3",
+            "custom/o4-mini",
+        ] {
             let mut obj = json!({
                 "model": model,
                 "messages": [{"role": "user", "content": "Hello"}],
@@ -745,6 +814,7 @@ mod tests {
             "pixstral",
             "devstral",
             "voxstral",
+            "databricks-gpt-5-6-luna",
         ] {
             let mut obj = json!({
                 "model": model,
