@@ -188,6 +188,12 @@ pub fn normalize_openai_model_name(model: &str) -> String {
         .strip_prefix("openai/")
         .or_else(|| lower.strip_prefix("openai."))
         .or_else(|| lower.split_once(".openai.").map(|(_, model)| model))
+        .or_else(|| {
+            lower
+                .rsplit_once('/')
+                .map(|(_, model)| model)
+                .filter(|model| model.starts_with("gpt-"))
+        })
     {
         stripped.to_string()
     } else {
@@ -435,6 +441,10 @@ mod tests {
             ),
             (
                 "global.openai.gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "custom/gpt-6-astra",
                 &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
             ),
             (
