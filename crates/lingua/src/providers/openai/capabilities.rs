@@ -176,6 +176,7 @@ pub fn normalize_openai_model_name(model: &str) -> String {
     if let Some(stripped) = lower
         .strip_prefix("openai/")
         .or_else(|| lower.strip_prefix("openai."))
+        .or_else(|| lower.split_once(".openai.").map(|(_, model)| model))
     {
         stripped.to_string()
     } else {
@@ -411,6 +412,14 @@ mod tests {
             ),
             (
                 "openai/gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "us.openai.gpt-6-astra",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "global.openai.gpt-6-astra",
                 &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
             ),
             ("gpt-4", &[][..]),
