@@ -62,10 +62,14 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
 
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
-    let normalized = normalize_openai_model_name(model);
-    for (prefix, transforms) in MODEL_TRANSFORM_RULES {
-        if normalized.starts_with(prefix) {
-            return transforms;
+    for model in [
+        model.to_ascii_lowercase(),
+        normalize_openai_model_name(model),
+    ] {
+        for (prefix, transforms) in MODEL_TRANSFORM_RULES {
+            if model.starts_with(prefix) {
+                return transforms;
+            }
         }
     }
     &[]
@@ -173,6 +177,13 @@ impl EffortFamily {
 
 pub fn normalize_openai_model_name(model: &str) -> String {
     let lower = model.to_ascii_lowercase();
+    if let Some(suffix) = lower.strip_prefix("databricks-gpt-") {
+        let (major, rest) = suffix.split_once('-').unwrap_or((suffix, ""));
+        if major.parse::<u32>().is_ok() && rest.starts_with(|c: char| c.is_ascii_digit()) {
+            return format!("gpt-{major}.{rest}");
+        }
+        return format!("gpt-{suffix}");
+    }
     if let Some(stripped) = lower
         .strip_prefix("openai/")
         .or_else(|| lower.strip_prefix("openai."))
@@ -184,18 +195,9 @@ pub fn normalize_openai_model_name(model: &str) -> String {
     }
 }
 
-// OpenAI uses dotted point releases (gpt-5.6), while Databricks catalogs the
-// same model families with dashed IDs (databricks-gpt-5-6). Extract the point
-// release so both forms select the same reasoning-effort family below.
-fn gpt_5_point_release_suffix(model: &str) -> Option<&str> {
-    model
-        .strip_prefix("gpt-5.")
-        .or_else(|| model.strip_prefix("databricks-gpt-5-"))
-}
-
 fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
     let model = normalize_openai_model_name(model);
-    let point_release = gpt_5_point_release_suffix(&model);
+    let point_release = model.strip_prefix("gpt-5.");
 
     if point_release.is_some_and(|release| release.starts_with('6')) {
         Some(EffortFamily::NoneLowMediumHighXhighMax)
@@ -368,6 +370,19 @@ mod tests {
     use crate::serde_json::{self, json};
 
     #[test]
+    fn test_normalize_databricks_models() {
+        for (model, expected) in [
+            ("databricks-gpt-5-6-luna", "gpt-5.6-luna"),
+            ("DATABRICKS-GPT-5-1", "gpt-5.1"),
+            ("databricks-gpt-5-mini", "gpt-5-mini"),
+            ("databricks-gpt-4o-mini", "gpt-4o-mini"),
+            ("databricks-gpt-oss-120b", "gpt-oss-120b"),
+        ] {
+            assert_eq!(normalize_openai_model_name(model), expected, "{model}");
+        }
+    }
+
+    #[test]
     fn test_chat_input_audio_capability() {
         for model in [
             "gpt-4o-audio-preview",
@@ -421,6 +436,10 @@ mod tests {
             (
                 "global.openai.gpt-6-astra",
                 &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "DATABRICKS-GPT-5-6-LUNA",
+                &[ForceMaxTokens, StripStreamOptions][..],
             ),
             ("gpt-4", &[][..]),
             ("gpt-4o", &[][..]),
@@ -582,6 +601,11 @@ mod tests {
             (
                 "databricks-gpt-5-1",
                 ReasoningEffort::Xhigh,
+                ReasoningEffort::High,
+            ),
+            (
+                "databricks-gpt-5-mini",
+                ReasoningEffort::Max,
                 ReasoningEffort::High,
             ),
             ("gpt-5.1", ReasoningEffort::Xhigh, ReasoningEffort::High),
@@ -754,6 +778,7 @@ mod tests {
             "pixstral",
             "devstral",
             "voxstral",
+            "databricks-gpt-5-6-luna",
         ] {
             let mut obj = json!({
                 "model": model,
