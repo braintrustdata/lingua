@@ -147,7 +147,7 @@ test("runs each provider-update Claude phase at most once", () => {
   assert.doesNotMatch(autofixWorkflow, /uses: anthropics\/claude-code-action/);
   assert.equal(
     claudeRetryAction.match(
-      /uses: anthropics\/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1/g
+      /uses: anthropics\/claude-code-action@db77d4d3c98f3f6380e7cd45ffba2342a3dbde3c/g
     )?.length,
     2
   );
@@ -203,7 +203,7 @@ test("runs integration planning at medium effort", () => {
 
   assert.notEqual(planningStart, -1);
   assert.notEqual(planningEnd, -1);
-  assert.match(planningStep, /--model claude-opus-5\s+--effort medium/);
+  assert.match(planningStep, /--model claude-opus-5-5\s+--effort medium/);
   assert.match(planningStep, /timeout-minutes: 30/);
   assert.match(planningStep, /--max-turns 50/);
   assert.match(planningStep, /display_report: "false"/);
