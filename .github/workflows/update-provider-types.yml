@@ -364,7 +364,7 @@ jobs:
             --max-turns 50
             --add-dir "${{ runner.temp }}"
             --tools "Agent,Skill,Read,Glob,Grep,LS,Bash,Write"
-            --allowedTools "Agent,Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*)"
+            --allowedTools "Agent,Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(node .github/scripts/provider-type-update-plan.mjs validate-structure:*)"
             --disallowedTools "Edit,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is the planning-only phase for provider `${{ matrix.provider }}`.
@@ -395,7 +395,10 @@ jobs:
             `${{ runner.temp }}/provider-type-update-plan.json` using Write.
             Use that absolute path directly; do not resolve it with echo,
             printenv, or an environment search. Confirm the file exists before
-            responding. Use one plan item per semantic change
+            responding. Run this permitted validator as a separate Bash call
+            and correct any schema errors before finishing:
+            `node .github/scripts/provider-type-update-plan.mjs validate-structure ${{ runner.temp }}/provider-type-update-plan.json ${{ matrix.provider }}`.
+            Use one plan item per semantic change
             group rather than one item per repeated schema occurrence. Exclude
             documentation-only and mechanically equivalent changes from the
             plan, but record the evidence used to classify them.
@@ -1187,7 +1190,7 @@ jobs:
             --max-turns 40
             --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Bash,Write"
-            --allowedTools "Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(git ls-files:*),Bash(ls:*),Bash(head:*),Bash(cat:*),Bash(grep:*)"
+            --allowedTools "Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(git ls-files:*),Bash(ls:*),Bash(head:*),Bash(cat:*),Bash(grep:*),Bash(node .github/scripts/provider-type-update-plan.mjs verify-structure:*)"
             --disallowedTools "Agent,Edit,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is the read-only verification phase for provider `${{ matrix.provider }}`.
@@ -1220,7 +1223,10 @@ jobs:
             verification schema. Write only the JSON report to
             `${{ runner.temp }}/provider-type-update-verification.json` using
             Write. Use the supplied absolute paths directly; do not resolve
-            them through the shell. A failed or skipped required
+            them through the shell. Before finishing, run this permitted
+            validator as a separate Bash call and correct any schema errors:
+            `node .github/scripts/provider-type-update-plan.mjs verify-structure ${{ runner.temp }}/provider-type-update-verification.json ${{ matrix.provider }}`.
+            A failed or skipped required
             validation is a blocking finding. Live and transform capture are
             required only when the unblocked payload capture case list is non-empty.
             Treat any new `provider_options` round-trip marker, opaque replay-only
