@@ -115,6 +115,7 @@ jobs:
       run: >-
         node --test
         .github/scripts/braintrust-provider-types.test.mjs
+        .github/scripts/provider-type-update-check.test.mjs
         .github/scripts/provider-type-update-plan.test.mjs
         .github/scripts/provider-type-update-workflow.test.mjs
 

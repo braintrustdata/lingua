@@ -30,6 +30,47 @@ const providerAuditors = [
   readFileSync(new URL(`../../.claude/agents/${name}`, import.meta.url), "utf8")
 );
 
+test("uses the validation runner for initial and repaired CI checks", () => {
+  for (const [name, operation] of [
+    ["Run focused provider tests", "provider-tests"],
+    ["Run focused provider tests after mechanical repair", "provider-tests"],
+    ["Run generator tests", "generator-tests"],
+    ["Run generator tests after mechanical repair", "generator-tests"],
+    ["Validate build", "build"],
+    ["Validate build after mechanical repair", "build"],
+    ["Run clippy", "clippy"],
+    ["Run clippy after mechanical repair", "clippy"],
+  ]) {
+    const step = workflow.split(`- name: ${name}\n`)[1]?.split("- name:")[0];
+    assert.ok(
+      step?.includes(
+        `node .github/scripts/provider-type-update-check.mjs ${operation}`
+      ),
+      name
+    );
+  }
+  assert.match(workflow, /runner\.temp }}\/provider-type-update-checks\n/);
+});
+
+test("submits plan and verification candidates through the artifact helper", () => {
+  assert.match(
+    workflow,
+    /Bash\(node \.github\/scripts\/provider-type-update-check\.mjs submit-plan:\*\)/
+  );
+  assert.match(
+    workflow,
+    /Bash\(node \.github\/scripts\/provider-type-update-check\.mjs submit-verification:\*\)/
+  );
+  assert.match(
+    workflow,
+    /provider-type-update-check\.mjs submit-plan \$\{\{ runner\.temp }}\/provider-type-update-plan-candidate\.json/
+  );
+  assert.match(
+    workflow,
+    /provider-type-update-check\.mjs submit-verification \$\{\{ runner\.temp }}\/provider-type-update-verification-candidate\.json/
+  );
+});
+
 test("regenerates provider Rust after implementation before safety checks", () => {
   const regeneration = workflow.indexOf(
     "- name: Regenerate Rust provider types after implementation"

@@ -103,23 +103,12 @@ the next edit. Implement items in checklist order, completing each behavior
 and its tests, or recording an unresolved tool blocker, before starting the
 next.
 
-Keep Bash in the repository root. Use Read/Grep with bounded ranges for source
-inspection and put scratch scripts in temp (`$PROVIDER_UPDATE_SCRATCH_DIR` in
-the workflow), never in the repository.
-Leave scratch cleanup to the runner. A command denial does not end the phase.
-Allow one evidence-based correction per denied capability to an explicitly
-permitted command form or Read/Grep, with at most four recovery attempts across
-the phase. Never change permissions or use another interpreter to evade a
-denial. Do not retry an unavailable capability on later items. Optional version
-checks, inspection helpers, and scratch cleanup must not block useful work.
-
-If recovery fails, immediately record the exact command, denial, affected
-change ids, and remaining work or unchecked tests in the implementation notes
-path supplied by the workflow. Preserve consistent progress and continue
-independent items. If only validation is unavailable, continue scoped code and
-test additions, mark the work unverified, and leave execution to the workflow.
-Do not claim completion for skipped work or unchecked tests. End early only
-when no useful authorized work remains.
+When the workflow supplies the validation helper, check each item with
+`node .github/scripts/provider-type-update-check.mjs item <change-id>`.
+It executes the plan's focused Rust tests and saves their results and full logs.
+Keep scratch files in the supplied temp directory. If an operation is unavailable,
+record the failure, affected ids, and unverified work in the supplied notes path
+and continue independent items.
 
 1. Add focused unit tests, provider-only offline end-to-end rejection tests,
    and any portable-semantics payload cases before changing adapter behavior.
@@ -127,12 +116,9 @@ when no useful authorized work remains.
    directly.
 3. Preserve typed boundaries and explicit errors.
 4. Update every serializer and streaming path identified by the plan.
-5. Run the named focused tests with a test-name filter and confirm they actually
-   ran and passed, or record the unresolved tool blocker and unverified work,
-   before moving to the next item. Do not defer test additions
-   until after all production changes. The workflow runs broad validation
-   separately; do not run a broad baseline suite or repeat completed checks
-   unless needed to diagnose a focused failure.
+5. Check the item with the helper, or run its focused tests when working outside
+   the automation. Resolve failures before moving to the next item. Broad
+   validation runs separately in the workflow.
 6. Do not call live provider APIs. The workflow runs planned live captures in
    a separate secret-scoped step.
 7. Re-read the plan and inspect `git diff` before finishing. Every affected
