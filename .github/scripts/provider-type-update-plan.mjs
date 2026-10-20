@@ -556,6 +556,60 @@ export function hasBlockers(plan) {
   return Array.isArray(plan.blockers) && plan.blockers.length > 0;
 }
 
+export function renderImplementation(plan) {
+  const blockerIds = new Set(plan.blockers.map((blocker) => blocker.change_id));
+  const lines = [
+    `# ${plan.provider} implementation checklist`,
+    "",
+    "Complete each item and its focused tests before starting the next item.",
+    "Consult the full audit at $PROVIDER_UPDATE_PLAN_PATH only for a specific unresolved question; do not repeat the audit.",
+    "Live captures and broad validation are run separately by the workflow.",
+    "",
+    "## Blocked changes: do not implement",
+    "",
+  ];
+  for (const blocker of plan.blockers) {
+    lines.push(`- \`${blocker.change_id}\`: ${blocker.question}`);
+  }
+  if (plan.blockers.length === 0) lines.push("None.");
+
+  for (const change of plan.changes) {
+    if (blockerIds.has(change.id)) continue;
+    const affectedSurfaces = SURFACES.filter(
+      (surface) => change.surfaces[surface].status === "affected"
+    );
+    lines.push(
+      "",
+      `## ${change.id}`,
+      "",
+      `- Source: \`${change.source.path}\` — \`${change.source.symbol}\``,
+      `- Root cause: ${change.root_cause}`,
+      `- Required behavior: ${change.expected_behavior}`,
+      `- Mapping: \`${change.mapping.decision}\` — ${change.mapping.rationale}`,
+      `- Affected surfaces: ${affectedSurfaces.join(", ") || "none"}`,
+      `- Expected diff impact: ${change.expected_diff_impact}`,
+      "- Implementation targets:"
+    );
+    for (const target of change.implementation_targets ?? []) {
+      lines.push(`  - \`${target}\``);
+    }
+    for (const [label, values] of [
+      ["Unit tests", change.tests.unit],
+      ["Offline public-entry tests", change.tests.offline_end_to_end],
+      [
+        "Payload cases to add (workflow captures later)",
+        change.tests.payload_cases,
+      ],
+      ["Validation commands (run focused tests first)", change.tests.commands],
+    ]) {
+      lines.push(`- ${label}:`);
+      for (const value of values) lines.push(`  - \`${value}\``);
+      if (values.length === 0) lines.push("  - None.");
+    }
+  }
+  return lines.join("\n");
+}
+
 export function captureCases(plan) {
   const cases = new Set();
   const blockerIds = new Set(
@@ -737,11 +791,21 @@ function main(argv) {
   const [command, path, provider] = argv;
   if (!command || !path) {
     throw new Error(
-      "Usage: provider-type-update-plan.mjs validate|validate-structure|has-blockers|render-blockers|render-provider-only|capture-cases|verify|verify-structure|verdict <path> [provider]"
+      "Usage: provider-type-update-plan.mjs validate|validate-structure|has-blockers|render-implementation|render-blockers|render-provider-only|capture-cases|verify|verify-structure|verdict <path> [provider]"
     );
   }
   const value = loadJson(path);
 
+  if (command === "render-implementation") {
+    const errors = validatePlan(value, provider);
+    if (errors.length) {
+      printErrors("Plan", errors);
+      process.exitCode = 1;
+    } else {
+      console.log(renderImplementation(value));
+    }
+    return;
+  }
   if (command === "validate" || command === "validate-structure") {
     const errors = validatePlan(value, provider);
     if (errors.length) {

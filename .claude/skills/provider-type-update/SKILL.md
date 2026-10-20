@@ -62,6 +62,12 @@ Do not edit tracked files during this phase.
    repeated occurrences of the same wire-shape change, or for description,
    example, ordering, and formatting-only churn.
 
+Plan only work required by the current specification update. Generator repairs
+need evidence of an actual failure, collision, or public-name regression in
+this diff. Do not add speculative future guards, unrelated cleanup, or general
+hardening. Keep item instructions concise and put detailed audit evidence in
+the audit reports instead of repeating it for every surface.
+
 When no semantic groups remain, write an empty `changes` array, record grouped
 evidence in `non_semantic_changes`, and mark the other audit reports as skipped
 with the reason.
@@ -85,8 +91,19 @@ representation is unclear.
 
 ## Implementation phase
 
-Read the validated JSON plan before changing files. Implement one plan item at
-a time.
+Start with `plan.md`; the workflow stages a compact implementation checklist
+there. Consult the full validated JSON audit at `$PROVIDER_UPDATE_PLAN_PATH`,
+when supplied, only to resolve a specific question about the current item. Do
+not repeat the specification audit or read whole modules before identifying
+the next edit. Implement items in checklist order, completing each behavior
+and its tests before starting the next.
+
+Keep Bash in the repository root. Use Read/Grep with bounded ranges for source
+inspection and put scratch scripts in temp (`$PROVIDER_UPDATE_SCRATCH_DIR` in
+the workflow), never in the repository.
+Leave scratch cleanup to the runner. If a required command is denied, stop and
+report the exact command and error; do not retry through another interpreter,
+path, or shell spelling.
 
 1. Add focused unit tests, provider-only offline end-to-end rejection tests,
    and any portable-semantics payload cases before changing adapter behavior.
@@ -94,7 +111,11 @@ a time.
    directly.
 3. Preserve typed boundaries and explicit errors.
 4. Update every serializer and streaming path identified by the plan.
-5. Run focused tests before broad validation.
+5. Run the named focused tests with a test-name filter and confirm they actually
+   ran and passed before moving to the next item. Do not defer test additions
+   until after all production changes. The workflow runs broad validation
+   separately; do not run a broad baseline suite or repeat completed checks
+   unless needed to diagnose a focused failure.
 6. Do not call live provider APIs. The workflow runs planned live captures in
    a separate secret-scoped step.
 7. Re-read the plan and inspect `git diff` before finishing. Every affected

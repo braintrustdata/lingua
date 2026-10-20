@@ -385,6 +385,12 @@ jobs:
             provider update. Do not include `.github/**`, `pipelines/**`,
             `scripts/**`, `Makefile`, or `AGENTS.md` in implementation targets.
             Provider type generation fixes belong in `crates/generate-types`.
+            Include only work required by this specification update. Generator
+            repairs need evidence of an actual failure, collision, or public-name
+            regression in the current diff. Do not plan speculative guards for
+            future specifications, unrelated cleanup, or general hardening.
+            Keep per-item behavior and test instructions concise; put detailed
+            audit evidence in `audit_reports` instead of repeating it per surface.
 
             Classify provider-hosted execution and provider-defined harness protocols
             as `provider_only`. This includes hosted code execution, browser or
@@ -453,7 +459,13 @@ jobs:
           steps.changes.outputs.has_changes == 'true' &&
           steps.plan_validation.outcome == 'success'
         continue-on-error: true
-        run: cp "$RUNNER_TEMP/provider-type-update-plan.json" plan.md
+        run: |
+          set -euo pipefail
+          node .github/scripts/provider-type-update-plan.mjs render-implementation \
+            "$RUNNER_TEMP/provider-type-update-plan.json" "${{ matrix.provider }}" \
+            > "$RUNNER_TEMP/provider-type-update-implementation.md"
+          mkdir -p "$RUNNER_TEMP/provider-type-update-scratch"
+          cp "$RUNNER_TEMP/provider-type-update-implementation.md" plan.md
 
       - name: Snapshot Braintrust trace for implementation
         id: integration_implementation_task_trace
@@ -496,25 +508,44 @@ jobs:
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
                 "CC_PARENT_SPAN_ID": "${{ steps.integration_implementation_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
                 "CC_ROOT_SPAN_ID": "${{ steps.integration_implementation_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
+                "PROVIDER_UPDATE_PLAN_PATH": "${{ runner.temp }}/provider-type-update-plan.json",
+                "PROVIDER_UPDATE_SCRATCH_DIR": "${{ runner.temp }}/provider-type-update-scratch",
                 "BRAINTRUST_DEBUG": "false"
               }
             }
           claude_args: |
             --model claude-opus-5
             --max-turns 100
+            --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
-            --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*)"
+            --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(pwd:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(sed:*),Bash(grep:*),Bash(rg:*),Bash(node:*),Bash(python3:*),Bash(cargo --version:*),Bash(cargo build:*),Bash(cargo test:*),Bash(cargo check:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make --version:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(git grep:*),Bash(git ls-files:*)"
             --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is the implementation phase for provider `${{ matrix.provider }}`.
             Invoke the `provider-type-update` skill and follow its implementation
-            phase. Read and implement the validated plan in `plan.md`.
+            phase. Start with the compact implementation checklist in `plan.md`.
+            The full validated audit is at
+            `${{ runner.temp }}/provider-type-update-plan.json`; consult only
+            the relevant item if the checklist leaves a specific question.
+            Do not re-audit the specification, inventory unrelated generator
+            risks, or read entire modules before identifying the next edit.
+
+            Preflight the tool environment in one Bash call before working:
+            `pwd && node --version && python3 --version && cargo --version && git status --short`.
+            Keep Bash in the repository root and use repository-relative paths;
+            do not use `cd` or `git -C`/`make -C` command variants. Use Read/Grep
+            with bounded ranges for source inspection. Write scratch scripts
+            only under `${{ runner.temp }}/provider-type-update-scratch`.
+            Leave scratch cleanup to the runner. If a required command is
+            denied, stop and report the exact command and denial. Do not retry
+            through another interpreter, path, or shell spelling.
 
             Implement every unblocked plan item, including focused tests and any
             payload cases required by the plan. Provider-only items use focused
-            unit tests and have no payload cases. Treat every change id listed in `plan.md`'s
-            `blockers` array as out of scope: do not implement it, add a fixture
-            for it, or invent a workaround. Do not edit `plan.md`, `AGENTS.md`, or any
+            unit tests and have no payload cases. Treat every change id listed in
+            the checklist's blocked changes section as out of scope: do not
+            implement it, add a fixture for it, or invent a workaround.
+            Do not edit `plan.md`, `AGENTS.md`, or any
             `generated.rs` file directly,
             `.github/**`, `pipelines/**`, `scripts/**`, or `Makefile`, and do not
             call a live provider API. Never add a `provider_options` marker or
@@ -526,6 +557,15 @@ jobs:
             Public-name normalization and collision repairs are deterministic
             generator work and must be completed through their separate unblocked
             plan items without implementing any blocked semantic mapping.
+
+            Work in checklist order. For each item, add its named tests and
+            payload cases first, implement only that behavior, then run the
+            focused tests with a test-name filter. Confirm that the new tests
+            actually ran and passed before moving to the next item. Do not
+            defer all test additions until after production edits. Do not run
+            the broad provider suite merely to establish a baseline; the
+            workflow runs generation, build, clippy, and broad validation after
+            this phase. Repeat a broad check only to diagnose a focused failure.
 
             For every `provider_only` item:
             - preserve complete native wire acceptance in generated types and validation;
@@ -539,12 +579,12 @@ jobs:
             If you change `crates/generate-types`, run
             `make generate-provider-types PROVIDER=${{ matrix.provider }}` so the
             generated Rust reflects the generator fix. Changes to `generated.rs`
-            are allowed only when produced by that command. Before finishing, run
-            focused provider and generator tests plus clippy for every crate you
-            changed. Do not report completion while a permitted deterministic
-            validation is failing. Leave the completed changes uncommitted. Keep
-            the final response to one sentence and do not include diffs, logs, or
-            test output.
+            are allowed only when produced by that command. Before finishing,
+            inspect `git diff` against the checklist and run any remaining
+            focused provider or generator tests. Do not report completion while
+            a permitted deterministic validation is failing. Leave the completed
+            changes uncommitted. Keep the final response to one sentence and do
+            not include diffs, logs, or test output.
 
       - name: Remove staged implementation plan
         if: always() && steps.stage_plan.outcome == 'success'
@@ -1198,6 +1238,7 @@ jobs:
           name: provider-type-integration-${{ matrix.provider }}-${{ github.run_id }}
           path: |
             ${{ runner.temp }}/provider-type-update-plan.json
+            ${{ runner.temp }}/provider-type-update-implementation.md
             ${{ runner.temp }}/provider-type-update-verification.json
             ${{ runner.temp }}/provider-type-update.patch
           if-no-files-found: warn
