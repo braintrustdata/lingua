@@ -886,6 +886,24 @@ pub(crate) fn transform_stream_chunk_step(
     } else {
         None
     };
+    // A native stream chunk whose source format already is the target format is
+    // returned byte-for-byte. Detection proved the chunk parses as the target's
+    // own stream type, so provider-specific fields the universal model cannot
+    // represent must not fail same-format traffic. Universal conversion is only
+    // performed for chunks that actually have to cross a format boundary.
+    if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
+        return Ok(StreamTransformStep {
+            result: TransformResult::PassThrough(chunk_bytes),
+            source_format,
+            source_is_native_stream,
+            universal: None,
+            event_type,
+            is_passthrough: true,
+            #[cfg(feature = "openai")]
+            responses_text_message_event,
+        });
+    }
+
     let universal = match detection.kind {
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
@@ -896,19 +914,6 @@ pub(crate) fn transform_stream_chunk_step(
             unreachable!("stream detection never falls back to request payloads")
         }
     };
-
-    if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
-        return Ok(StreamTransformStep {
-            result: TransformResult::PassThrough(chunk_bytes),
-            source_format,
-            source_is_native_stream,
-            universal,
-            event_type,
-            is_passthrough: true,
-            #[cfg(feature = "openai")]
-            responses_text_message_event,
-        });
-    }
 
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;

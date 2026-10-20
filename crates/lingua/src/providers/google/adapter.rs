@@ -16,11 +16,14 @@ use crate::providers::google::capabilities::{
     effort_to_thinking_level, supports_disabling_thinking, thinking_level_to_effort,
     GoogleCapabilities, GoogleThinkingStyle,
 };
-use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
+use crate::providers::google::convert::{
+    reject_provider_only_part_fields, SYNTHETIC_CALL_ID_PREFIX,
+};
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
-    Content as GoogleContent, GenerateContentResponse, GenerationConfig, ServiceTier,
-    ThinkingConfig, ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
+    Candidate as GoogleCandidate, Content as GoogleContent, FinishReason as GoogleFinishReason,
+    GenerateContentResponse, GenerationConfig, ServiceTier, ThinkingConfig, ThinkingLevel,
+    Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
@@ -55,6 +58,105 @@ fn validate_system_messages_have_no_audio(messages: &[Message]) -> Result<(), Tr
                 to: "Google system instruction",
             }
             .to_string(),
+        ));
+    }
+
+    Ok(())
+}
+
+/// Typed view over the Google request fields that land in [`GoogleParams::extras`].
+///
+/// `continuationToken` is intentionally left in the untyped extras map so that
+/// Google -> Google traffic re-emits it verbatim; this view exists so the
+/// cross-provider path can recognize it without raw map access.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct GoogleProviderOnlyExtrasView {
+    continuation_token: Option<String>,
+}
+
+fn google_unsupported_mapping(from: &str, to: &'static str) -> TransformError {
+    TransformError::ToUniversalFailed(
+        ConvertError::UnsupportedMapping {
+            from: from.to_string(),
+            to,
+        }
+        .to_string(),
+    )
+}
+
+/// Reject request state that only Google can act on.
+///
+/// Hosted speech-recognition configuration, Google-scoped voice handles and
+/// continuation tokens are preserved on the same-format passthrough path. They
+/// cannot be represented in a universal request, so a transform that would drop
+/// them fails explicitly instead.
+fn validate_google_request_has_no_provider_only_state(
+    params: &GoogleParams,
+) -> Result<(), TransformError> {
+    let extras_value = serde_json::to_value(&params.extras)
+        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+    let extras: GoogleProviderOnlyExtrasView = serde_json::from_value(extras_value)
+        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+    if extras.continuation_token.is_some() {
+        return Err(google_unsupported_mapping(
+            "Google continuationToken",
+            "Lingua request (Google continuation state can only be resumed by Google)",
+        ));
+    }
+
+    let Some(config) = &params.generation_config else {
+        return Ok(());
+    };
+
+    if config.audio_transcription_config.is_some() {
+        return Err(google_unsupported_mapping(
+            "Google generationConfig.audioTranscriptionConfig",
+            "Lingua request (Google-hosted speech recognition configuration is provider-specific)",
+        ));
+    }
+
+    if let Some(speech_config) = &config.speech_config {
+        let mut voice_configs = speech_config.voice_config.iter().chain(
+            speech_config
+                .multi_speaker_voice_config
+                .iter()
+                .flat_map(|multi| multi.speaker_voice_configs.iter().flatten())
+                .filter_map(|speaker| speaker.voice_config.as_ref()),
+        );
+        if voice_configs.any(|voice_config| voice_config.voice.is_some()) {
+            return Err(google_unsupported_mapping(
+                "Google speechConfig voiceConfig.voice",
+                "Lingua request (Google stored and replicated voice handles are provider-specific)",
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+/// Reject candidate-level continuation state.
+///
+/// A `CONTINUATION` terminal is only meaningful together with the token that
+/// resumes it, and no other provider can accept that token, so the turn must
+/// not be reported as an ordinary finished turn.
+fn validate_google_candidate_has_no_continuation_state(
+    candidate: &GoogleCandidate,
+) -> Result<(), TransformError> {
+    if candidate.continuation_token.is_some() {
+        return Err(google_unsupported_mapping(
+            "Google candidate continuationToken",
+            "Lingua response (Google continuation state can only be resumed by Google)",
+        ));
+    }
+
+    if matches!(
+        candidate.finish_reason,
+        Some(GoogleFinishReason::Continuation)
+    ) {
+        return Err(google_unsupported_mapping(
+            "Google finishReason CONTINUATION",
+            "Lingua response (Google continuation state can only be resumed by Google)",
         ));
     }
 
@@ -162,6 +264,8 @@ impl ProviderAdapter for GoogleAdapter {
         // Single parse: typed params now includes typed contents and generation_config
         let typed_params: GoogleParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        validate_google_request_has_no_provider_only_state(&typed_params)?;
 
         let model = typed_params.model.clone();
 
@@ -568,6 +672,8 @@ impl ProviderAdapter for GoogleAdapter {
         let mut finish_reasons = Vec::new();
 
         for candidate in response.candidates.iter().flatten() {
+            validate_google_candidate_has_no_continuation_state(candidate)?;
+
             if let Some(content) = &candidate.content {
                 let universal = <Message as TryFromLLM<GoogleContent>>::try_from(content.clone())
                     .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -731,11 +837,18 @@ impl ProviderAdapter for GoogleAdapter {
         let mut choices = Vec::new();
 
         for candidate in candidates {
+            validate_google_candidate_has_no_continuation_state(&candidate)?;
+
             let index = candidate.index.unwrap_or(0) as u32;
             let parts = candidate
                 .content
                 .and_then(|content| content.parts)
                 .unwrap_or_default();
+
+            for part in &parts {
+                reject_provider_only_part_fields(part)
+                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+            }
 
             let mut text_segments = Vec::new();
             let mut reasoning = Vec::new();

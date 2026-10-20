@@ -65,6 +65,52 @@ fn mime_type_from_url(url: &str) -> String {
     infer_mime_type_from_reference(None, Some(url)).unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string())
 }
 
+/// Reject part fields whose meaning depends on Google-hosted execution or on
+/// Google-defined harness state.
+///
+/// These fields are accepted and preserved verbatim by the generated types, so
+/// an unmodified Google payload still passes through byte-for-byte. The
+/// universal model has no representation for them, so a conversion that would
+/// drop them stops with an explicit unsupported-mapping error instead.
+pub(super) fn reject_provider_only_part_fields(part: &GooglePart) -> Result<(), ConvertError> {
+    let unsupported = if part.audio_transcription.is_some() {
+        Some((
+            "Google Part audioTranscription",
+            "Lingua content (Google-hosted speech recognition transcripts, speaker labels and word offsets are provider-specific)",
+        ))
+    } else if part.media_processing.is_some() {
+        Some((
+            "Google Part mediaProcessing",
+            "Lingua content (Google-managed media navigation is provider-specific)",
+        ))
+    } else if part.speech_metadata.is_some() {
+        Some((
+            "Google Part speechMetadata",
+            "Lingua content (Google speech-synthesis speaker and style are provider-specific)",
+        ))
+    } else if part.tool_call.is_some() {
+        Some((
+            "Google Part toolCall",
+            "Lingua content (Google server-side tool execution records are provider-specific)",
+        ))
+    } else if part.tool_response.is_some() {
+        Some((
+            "Google Part toolResponse",
+            "Lingua content (Google server-side tool execution records are provider-specific)",
+        ))
+    } else {
+        None
+    };
+
+    match unsupported {
+        Some((from, to)) => Err(ConvertError::UnsupportedMapping {
+            from: from.to_string(),
+            to,
+        }),
+        None => Ok(()),
+    }
+}
+
 fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
     match value {
         Value::Object(map) => Some(map.clone()),
@@ -193,6 +239,7 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut assistant_parts: Vec<AssistantContentPart> = Vec::new();
 
                 for part in &parts {
+                    reject_provider_only_part_fields(part)?;
                     if let Some(t) = &part.text {
                         if part.thought == Some(true) {
                             // Thinking part: thought=true marks model's internal reasoning
@@ -267,7 +314,7 @@ impl TryFromLLM<GoogleContent> for Message {
                         if let Some(data) = &blob.data {
                             assistant_parts.push(AssistantContentPart::File {
                                 data: Value::String(data.clone()),
-                                filename: None,
+                                filename: blob.display_name.clone(),
                                 media_type: blob
                                     .mime_type
                                     .clone()
@@ -290,6 +337,7 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut tool_parts: Vec<ToolContentPart> = Vec::new();
 
                 for part in &parts {
+                    reject_provider_only_part_fields(part)?;
                     if let Some(t) = &part.text {
                         user_parts.push(UserContentPart::Text(TextContentPart {
                             text: t.clone(),
@@ -321,7 +369,7 @@ impl TryFromLLM<GoogleContent> for Message {
                             } else {
                                 user_parts.push(UserContentPart::File {
                                     data: Value::String(data.clone()),
-                                    filename: None,
+                                    filename: blob.display_name.clone(),
                                     media_type: mime_type,
                                     provider_options: None,
                                 });
@@ -342,7 +390,7 @@ impl TryFromLLM<GoogleContent> for Message {
                             } else {
                                 user_parts.push(UserContentPart::File {
                                     data: Value::String(uri.clone()),
-                                    filename: None,
+                                    filename: fd.display_name.clone(),
                                     media_type: mime_type,
                                     provider_options: None,
                                 });
@@ -447,6 +495,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
+                                                ..Default::default()
                                             }),
                                             ..Default::default()
                                         });
@@ -457,6 +506,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
                                                 mime_type: Some(mime_type),
+                                                ..Default::default()
                                             }),
                                             ..Default::default()
                                         });
@@ -467,6 +517,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(mime_type),
                                                 data: Some(data),
+                                                ..Default::default()
                                             }),
                                             ..Default::default()
                                         });
@@ -481,6 +532,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                         inline_data: Some(GoogleBlob {
                                             mime_type: Some(mime_type.to_string()),
                                             data: Some(data),
+                                            ..Default::default()
                                         }),
                                         ..Default::default()
                                     });
@@ -496,6 +548,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
+                                                display_name: filename,
                                             }),
                                             ..Default::default()
                                         });
@@ -516,6 +569,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
                                                 mime_type: Some(mime_type),
+                                                display_name: filename,
                                             }),
                                             ..Default::default()
                                         });
@@ -524,6 +578,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(media_type),
                                                 data: Some(data),
+                                                display_name: filename,
                                             }),
                                             ..Default::default()
                                         });
@@ -617,7 +672,10 @@ impl TryFromLLM<Message> for GoogleContent {
                                     });
                                 }
                                 AssistantContentPart::File {
-                                    data, media_type, ..
+                                    data,
+                                    filename,
+                                    media_type,
+                                    ..
                                 } => {
                                     let data_str = match data {
                                         Value::String(s) => Some(s),
@@ -627,6 +685,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                         inline_data: Some(GoogleBlob {
                                             data: data_str,
                                             mime_type: Some(media_type),
+                                            display_name: filename,
                                         }),
                                         ..Default::default()
                                     });
@@ -1749,6 +1808,7 @@ mod tests {
                     inline_data: Some(GoogleBlob {
                         mime_type: Some(mime_type.to_string()),
                         data: Some("UklGRg==".to_string()),
+                        ..Default::default()
                     }),
                     ..Default::default()
                 }]),
@@ -1798,6 +1858,7 @@ mod tests {
                 inline_data: Some(GoogleBlob {
                     mime_type: Some("text/plain".to_string()),
                     data: Some("Sample text.".to_string()),
+                    ..Default::default()
                 }),
                 ..Default::default()
             }]),
