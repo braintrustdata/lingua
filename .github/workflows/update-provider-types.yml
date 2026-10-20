@@ -542,7 +542,7 @@ jobs:
             --max-turns 100
             --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
-            --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(pwd:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(sed:*),Bash(grep:*),Bash(rg:*),Bash(node:*),Bash(python3:*),Bash(cargo --version:*),Bash(cargo build:*),Bash(cargo test:*),Bash(cargo check:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make --version:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(git grep:*),Bash(git ls-files:*)"
+            --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(pwd:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(sed:*),Bash(grep:*),Bash(rg:*),Bash(node .github/scripts/provider-type-update-check.mjs:*),Bash(cargo --version:*),Bash(cargo build:*),Bash(cargo test:*),Bash(cargo check:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make --version:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(git grep:*),Bash(git ls-files:*)"
             --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is the implementation phase for provider `${{ matrix.provider }}`.

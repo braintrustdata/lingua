@@ -84,6 +84,14 @@ function testCommand(command) {
   return words;
 }
 
+function testReference(reference) {
+  const name = reference.split(/\s+\(/, 1)[0].replace(/^.*\.rs::/, "");
+  if (!/^[A-Za-z_][A-Za-z0-9_]*(::[A-Za-z_][A-Za-z0-9_]*)*$/.test(name)) {
+    throw new Error(`Cannot identify a Rust test name in: ${reference}`);
+  }
+  return name;
+}
+
 function itemChecks(plan, id) {
   const change = plan.changes.find((item) => item.id === id);
   if (!change) throw new Error(`Unknown change id: ${id}`);
@@ -105,7 +113,11 @@ function itemChecks(plan, id) {
       `Change ${id} has named tests but no supported cargo test command.`
     );
   }
-  return { checks, deferred };
+  const requiredTests = [
+    ...change.tests.unit,
+    ...change.tests.offline_end_to_end,
+  ].map((reference) => ({ change_id: id, name: testReference(reference) }));
+  return { checks, deferred, requiredTests };
 }
 
 function plannedChecks(plan) {
@@ -116,6 +128,7 @@ function plannedChecks(plan) {
   return {
     checks: items.flatMap((item) => item.checks),
     deferred: items.flatMap((item) => item.deferred),
+    requiredTests: items.flatMap((item) => item.requiredTests),
   };
 }
 
@@ -236,9 +249,10 @@ async function main([action, value, provider, ...extra]) {
   if (provider) throw new Error("Unexpected extra argument.");
   let checks;
   let deferred = [];
+  let requiredTests = [];
   let planStatus;
   if (action === "item") {
-    ({ checks, deferred } = itemChecks(loadPlan(), value));
+    ({ checks, deferred, requiredTests } = itemChecks(loadPlan(), value));
   } else if (action === "provider-tests") {
     if (!providers.has(value)) throw new Error(`Unknown provider: ${value}`);
     checks = [
@@ -253,6 +267,7 @@ async function main([action, value, provider, ...extra]) {
       const planned = plannedChecks(loadPlan(value));
       checks.push(...planned.checks);
       deferred = planned.deferred;
+      requiredTests = planned.requiredTests;
     }
   } else {
     if (value) throw new Error("Unexpected extra argument.");
@@ -335,6 +350,26 @@ async function main([action, value, provider, ...extra]) {
   report.status = report.checks.some((check) => check.status === "fail")
     ? "fail"
     : "pass";
+  const passedTests = report.checks.flatMap((check) =>
+    (check.tests?.cases ?? [])
+      .filter((test) => test.status === "ok")
+      .map((test) => test.name)
+  );
+  report.named_tests = requiredTests.map((test) => ({
+    ...test,
+    status: passedTests.some(
+      (name) => name === test.name || name.endsWith(`::${test.name}`)
+    )
+      ? "pass"
+      : "missing",
+  }));
+  const missing = report.named_tests.filter(
+    (test) => test.status === "missing"
+  );
+  if (missing.length && report.status === "pass") {
+    report.status = "fail";
+    report.error = `Declared tests did not pass: ${missing.map((test) => `${test.change_id}:${test.name}`).join(", ")}`;
+  }
   report.source_after = sourceState();
   if (JSON.stringify(report.source) !== JSON.stringify(report.source_after)) {
     report.status = "fail";

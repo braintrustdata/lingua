@@ -193,6 +193,61 @@ test("rejects a successful cargo exit when no tests actually ran", (t) => {
   assert.equal(result.output.checks[0].exit_code, 0);
 });
 
+test("fails item and CI validation when a broad filter misses declared tests", (t) => {
+  const f = fixture(t, passing);
+  const value = plan();
+  value.changes[0].tests.unit = ["new_unit_test"];
+  value.changes[0].tests.offline_end_to_end = ["new_rejection_test"];
+  value.changes[0].tests.commands = ["cargo test -p lingua google"];
+  writeFileSync(f.planPath, JSON.stringify(value));
+  for (const args of [
+    ["item", "example"],
+    ["provider-tests", "google"],
+  ]) {
+    const result = f.run(args);
+    assert.equal(result.code, 1);
+    assert.match(result.output.error, /new_unit_test/);
+    assert.match(result.output.error, /new_rejection_test/);
+  }
+});
+
+test("requires the named end-to-end test to pass rather than be ignored", (t) => {
+  const f = fixture(
+    t,
+    `${passing} console.log("test rejection_test ... ignored");`
+  );
+  const value = plan();
+  value.changes[0].tests.offline_end_to_end = ["rejection_test"];
+  writeFileSync(f.planPath, JSON.stringify(value));
+  const result = f.run(["item", "example"]);
+  assert.equal(result.code, 1);
+  assert.match(result.output.error, /rejection_test/);
+});
+
+test("matches qualified names, source-file references, and annotated plan references", (t) => {
+  const f = fixture(
+    t,
+    `
+console.log("test providers::google::tests::example_test ... ok");
+console.log("test rejection_test ... ok");
+console.log("test passthrough_test ... ok");
+`
+  );
+  const value = plan();
+  value.changes[0].tests.unit = ["providers::google::tests::example_test"];
+  value.changes[0].tests.offline_end_to_end = [
+    "crates/lingua/tests/example.rs::rejection_test",
+    "passthrough_test (crates/lingua/tests/example.rs; proves native preservation)",
+  ];
+  writeFileSync(f.planPath, JSON.stringify(value));
+  const result = f.run(["item", "example"]);
+  assert.equal(result.code, 0);
+  assert.equal(result.output.named_tests.length, 3);
+  assert.ok(
+    result.output.named_tests.every((entry) => entry.status === "pass")
+  );
+});
+
 test("preserves nonzero exit codes and complete diagnostics in the log", (t) => {
   const f = fixture(
     t,
@@ -396,7 +451,7 @@ test("invalidates evidence if sources change while the checks are running", (t) 
 test("keeps full test names in the saved report while bounding the tool response", (t) => {
   const f = fixture(
     t,
-    `for (let i = 0; i < 70; i++) console.log("test case_" + i + " ... ok");`
+    `${passing} for (let i = 0; i < 69; i++) console.log("test case_" + i + " ... ok");`
   );
   const result = f.run(["item", "example"]);
   assert.equal(result.code, 0);

@@ -105,6 +105,18 @@ test("lets planning invoke its auditors and implementation run required commands
   );
 });
 
+test("limits implementation interpreter access to the validation helper", () => {
+  const implementation = workflow
+    .split("- name: Implement generated provider integration\n")[1]
+    .split("- name: Remove staged implementation plan")[0];
+  const allowed = implementation.match(/--allowedTools "([^"]+)"/)[1];
+  assert.doesNotMatch(allowed, /Bash\((node|python3):\*\)/);
+  assert.match(
+    allowed,
+    /Bash\(node \.github\/scripts\/provider-type-update-check\.mjs:\*\)/
+  );
+});
+
 test("separates deterministic generated-name fixes from semantic blockers", () => {
   assert.match(
     workflow,
