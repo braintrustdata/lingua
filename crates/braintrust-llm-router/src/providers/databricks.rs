@@ -57,12 +57,9 @@ impl DatabricksProvider {
     }
 
     pub(crate) fn supports_responses(model: &str) -> bool {
-        matches!(
-            model
-                .strip_prefix("databricks-gpt-")
-                .and_then(|name| name.split('-').next()),
-            Some("5" | "6")
-        )
+        model
+            .strip_prefix("databricks-gpt-")
+            .is_some_and(|name| name.starts_with(|c: char| c.is_ascii_digit()))
     }
 
     // This does not support Databrick's new AI gateway URL format yet, only
@@ -70,7 +67,7 @@ impl DatabricksProvider {
     fn serving_url(&self, model: &str, format: ProviderFormat) -> Result<Url> {
         if format == ProviderFormat::Responses && !Self::supports_responses(model) {
             return Err(Error::InvalidRequest(
-                "Databricks Responses requires a preconfigured GPT-5 or GPT-6 endpoint".into(),
+                "Databricks Responses requires a preconfigured GPT endpoint".into(),
             ));
         }
         let mut url = self.config.api_base.clone();
@@ -272,6 +269,7 @@ mod tests {
             "https://adb-123.azuredatabricks.net/serving-endpoints/my-model/invocations"
         );
         for model in [
+            "databricks-gpt-4o",
             "databricks-gpt-5",
             "databricks-gpt-5-6-sol",
             "databricks-gpt-6-1-sol",
