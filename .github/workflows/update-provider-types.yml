@@ -226,7 +226,18 @@ jobs:
         timeout-minutes: 30
         uses: ./.github/actions/claude-code-with-retry
         env:
-          APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
+          APPEND_SYSTEM_PROMPT: |
+            ${{ steps.repair_messages.outputs.system_message }}
+
+            This phase is generation repair only. Make the smallest change
+            needed to fix the reported generation or compiler failure. Defer
+            semantic integration to the later planning and implementation phases.
+            Validate with provider generation and
+            `cargo check -p lingua --all-targets`, then finish. Do not run
+            `cargo test`, workspace suites, payload/WASM builds, or clippy here;
+            the workflow runs those validations after repair. Background tasks
+            are disabled. Use foreground commands with an adequate timeout;
+            never wait with sleep, pgrep, or a shell polling loop.
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -247,6 +258,7 @@ jobs:
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
                 "CC_PARENT_SPAN_ID": "${{ steps.repair_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
                 "CC_ROOT_SPAN_ID": "${{ steps.repair_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
+                "BASH_DEFAULT_TIMEOUT_MS": "600000",
                 "BRAINTRUST_DEBUG": "false"
               }
             }
@@ -370,11 +382,20 @@ jobs:
             semantic groups. They must not independently re-audit the complete
             raw specification diff. If the inventory contains no semantic
             changes, skip those three auditors.
+            All auditor calls must run in the foreground and return their
+            final reports before you synthesize the plan. They may be issued
+            together as parallel tool calls; do not launch background agents.
+            Background tasks are disabled for this unattended phase. Do not
+            return a waiting/status response: your final response ends the
+            phase. Collect the reports and write the plan before finishing.
 
             Do not modify any tracked file. Read
             `.github/scripts/provider-type-update-plan.mjs` and its tests for the
             exact schema. Write only the final JSON plan to
-            `$PROVIDER_UPDATE_PLAN_PATH`. Use one plan item per semantic change
+            `${{ runner.temp }}/provider-type-update-plan.json` using Write.
+            Use that absolute path directly; do not resolve it with echo,
+            printenv, or an environment search. Confirm the file exists before
+            responding. Use one plan item per semantic change
             group rather than one item per repeated schema occurrence. Exclude
             documentation-only and mechanically equivalent changes from the
             plan, but record the evidence used to classify them.
@@ -791,7 +812,8 @@ jobs:
             --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is a single bounded mechanical repair pass for provider
-            `${{ matrix.provider }}`. Read `$PROVIDER_UPDATE_PLAN_PATH` and the
+            `${{ matrix.provider }}`. Read
+            `${{ runner.temp }}/provider-type-update-plan.json` and the
             current diff. Fix only deterministic validation failures in already
             unblocked implementation work. Every change id in the plan's
             `blockers` array remains out of scope; do not implement it or invent
@@ -1170,8 +1192,8 @@ jobs:
           prompt: |
             This is the read-only verification phase for provider `${{ matrix.provider }}`.
             Invoke the `provider-type-update` skill and follow its verification
-            phase. Read `$PROVIDER_UPDATE_PLAN_PATH`, inspect the complete final
-            diff, and do not modify any tracked file.
+            phase. Read `${{ runner.temp }}/provider-type-update-plan.json`,
+            inspect the complete final diff, and do not modify any tracked file.
 
             If `${{ runner.temp }}/provider-type-update-implementation-notes.md`
             exists, read it for denied commands, affected items, and unchecked
@@ -1196,7 +1218,9 @@ jobs:
 
             Read `.github/scripts/provider-type-update-plan.mjs` for the exact
             verification schema. Write only the JSON report to
-            `$PROVIDER_UPDATE_VERIFICATION_PATH`. A failed or skipped required
+            `${{ runner.temp }}/provider-type-update-verification.json` using
+            Write. Use the supplied absolute paths directly; do not resolve
+            them through the shell. A failed or skipped required
             validation is a blocking finding. Live and transform capture are
             required only when the unblocked payload capture case list is non-empty.
             Treat any new `provider_options` round-trip marker, opaque replay-only

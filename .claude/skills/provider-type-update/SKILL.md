@@ -55,6 +55,10 @@ Do not edit tracked files during this phase.
    `provider-capability-auditor`, `provider-semantic-auditor`, and
    `provider-coverage-auditor` in parallel. Do not have each agent independently
    re-read the complete raw specification diff.
+   Run auditor calls in the foreground and collect every final report before
+   proceeding. Parallel tool calls are fine; background agents are not. A
+   waiting/status final response ends the unattended phase before it can write
+   its artifact.
 4. Reconcile their reports yourself. Subagent reports are evidence, not final
    decisions.
 5. Write the structured JSON plan requested by the workflow.

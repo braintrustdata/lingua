@@ -66,6 +66,8 @@ runs:
     - name: Run Claude Code
       id: primary
       continue-on-error: true
+      env:
+        CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
       uses: anthropics/claude-code-action@db77d4d3c98f3f6380e7cd45ffba2342a3dbde3c
       with:
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
@@ -102,6 +104,8 @@ runs:
         steps.primary.outcome == 'failure' &&
         inputs.retry_on_failure == 'true'
       continue-on-error: true
+      env:
+        CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
       uses: anthropics/claude-code-action@db77d4d3c98f3f6380e7cd45ffba2342a3dbde3c
       with:
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
