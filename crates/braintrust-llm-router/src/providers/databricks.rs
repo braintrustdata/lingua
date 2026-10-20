@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use crate::auth::AuthConfig;
-use crate::catalog::{ModelFlavor, ModelSpec};
+use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
@@ -24,12 +24,6 @@ pub struct DatabricksConfig {
 pub struct DatabricksProvider {
     client: ClientWithMiddleware,
     config: DatabricksConfig,
-}
-
-#[derive(serde::Deserialize)]
-struct DatabricksModelExtra {
-    #[serde(default)]
-    supports_responses: bool,
 }
 
 impl DatabricksProvider {
@@ -62,9 +56,23 @@ impl DatabricksProvider {
         )
     }
 
+    pub(crate) fn supports_responses(model: &str) -> bool {
+        matches!(
+            model
+                .strip_prefix("databricks-gpt-")
+                .and_then(|name| name.split('-').next()),
+            Some("5" | "6")
+        )
+    }
+
     // This does not support Databrick's new AI gateway URL format yet, only
     // their model serving endpoints.
     fn serving_url(&self, model: &str, format: ProviderFormat) -> Result<Url> {
+        if format == ProviderFormat::Responses && !Self::supports_responses(model) {
+            return Err(Error::InvalidRequest(
+                "Databricks Responses requires a preconfigured GPT-5 or GPT-6 endpoint".into(),
+            ));
+        }
         let mut url = self.config.api_base.clone();
         {
             let mut segments = url
@@ -83,8 +91,8 @@ impl DatabricksProvider {
     }
 }
 
-fn prepare_payload(payload: Bytes, format: ProviderFormat, model: &str) -> Result<Bytes> {
-    if format != ProviderFormat::Responses || !model.starts_with("databricks-") {
+fn prepare_payload(payload: Bytes, format: ProviderFormat) -> Result<Bytes> {
+    if format != ProviderFormat::Responses {
         return Ok(payload);
     }
     let params: OpenAIResponsesParams = serde_json::from_slice(&payload)?;
@@ -107,21 +115,6 @@ impl crate::providers::Provider for DatabricksProvider {
         vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
     }
 
-    fn model_formats(&self, spec: &ModelSpec) -> Result<Vec<ProviderFormat>> {
-        let extra: DatabricksModelExtra =
-            serde_json::from_value(serde_json::Value::Object(spec.extra.clone()))?;
-        Ok(
-            if extra.supports_responses
-                || spec.flavor == ModelFlavor::Responses
-                || spec.format == ProviderFormat::Responses
-            {
-                self.provider_formats()
-            } else {
-                vec![ProviderFormat::ChatCompletions]
-            },
-        )
-    }
-
     async fn complete(
         &self,
         payload: Bytes,
@@ -131,7 +124,7 @@ impl crate::providers::Provider for DatabricksProvider {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let url = self.serving_url(&spec.model, format)?;
-        let payload = prepare_payload(payload, format, &spec.model)?;
+        let payload = prepare_payload(payload, format)?;
 
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
@@ -185,7 +178,7 @@ impl crate::providers::Provider for DatabricksProvider {
         }
 
         let url = self.serving_url(&spec.model, format)?;
-        let payload = prepare_payload(payload, format, &spec.model)?;
+        let payload = prepare_payload(payload, format)?;
 
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
@@ -256,14 +249,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn responses_preserve_external_storage_controls() {
+    fn chat_requests_preserve_storage_controls() {
         for payload in [br#"{"store":false}"#.as_slice(), br#"{"store":true}"#] {
             let payload = Bytes::copy_from_slice(payload);
-            let prepared = prepare_payload(
-                payload.clone(),
-                ProviderFormat::Responses,
-                "external-openai",
-            );
+            let prepared = prepare_payload(payload.clone(), ProviderFormat::ChatCompletions);
             assert_eq!(prepared.unwrap(), payload);
         }
     }
@@ -282,7 +271,11 @@ mod tests {
             url.as_str(),
             "https://adb-123.azuredatabricks.net/serving-endpoints/my-model/invocations"
         );
-        for model in ["external-openai", "databricks-gpt-6-1-sol"] {
+        for model in [
+            "databricks-gpt-5",
+            "databricks-gpt-5-6-sol",
+            "databricks-gpt-6-1-sol",
+        ] {
             assert_eq!(
                 provider
                     .serving_url(model, ProviderFormat::Responses)
@@ -290,6 +283,12 @@ mod tests {
                     .path(),
                 "/serving-endpoints/responses",
             );
+        }
+        for model in ["external-openai", "custom-model", "databricks-gpt-oss-120b"] {
+            assert!(matches!(
+                provider.serving_url(model, ProviderFormat::Responses),
+                Err(Error::InvalidRequest(_))
+            ));
         }
     }
 
@@ -322,17 +321,12 @@ mod tests {
             br#"{"input":"hi","tools":[{"type":"custom","name":"exec"}],"unknown":{"store":true}}"#,
         );
         assert_eq!(
-            prepare_payload(payload, ProviderFormat::Responses, "databricks-gpt-6-sol").unwrap(),
+            prepare_payload(payload, ProviderFormat::Responses).unwrap(),
             expected,
         );
         let stored = Bytes::from_static(br#"{"store":true}"#);
         assert_eq!(
-            prepare_payload(
-                stored.clone(),
-                ProviderFormat::Responses,
-                "databricks-gpt-6-sol"
-            )
-            .unwrap(),
+            prepare_payload(stored.clone(), ProviderFormat::Responses).unwrap(),
             stored,
         );
     }

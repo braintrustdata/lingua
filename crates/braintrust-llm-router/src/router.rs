@@ -1102,16 +1102,16 @@ impl Router {
             );
             Error::NoProvider(catalog_format)
         })?;
-        let provider_formats = if passthrough {
-            provider.provider_formats()
-        } else {
-            provider.model_formats(&spec)?
-        };
+        let provider_formats = provider.provider_formats();
         let format = if passthrough {
             if !provider_formats.contains(&output_format) {
                 return Err(Error::NoProvider(output_format));
             }
             output_format
+        } else if provider.id() == "databricks"
+            && !DatabricksProvider::supports_responses(&spec.model)
+        {
+            catalog_format
         } else if provider_formats.contains(&ProviderFormat::Responses)
             && (spec.requires_responses_api()
                 || (output_format == ProviderFormat::Responses
@@ -3691,19 +3691,13 @@ mod tests {
 
     #[tokio::test]
     async fn responses_routes_preserve_native_requests() {
-        for (provider, flavor) in [
-            ("openai", ModelFlavor::Chat),
-            ("azure", ModelFlavor::Chat),
-            ("bedrock", ModelFlavor::Chat),
-            ("azure_ai_gateway", ModelFlavor::Chat),
-            ("databricks", ModelFlavor::Responses),
-        ] {
+        for provider in ["openai", "azure", "bedrock", "azure_ai_gateway"] {
             for model in [
                 "global.openai.gpt-6-astra",
                 "us.openai.gpt-6-astra",
                 "custom-model",
             ] {
-                let mut spec = openai_spec(model, flavor);
+                let mut spec = openai_spec(model, ModelFlavor::Chat);
                 spec.available_providers = vec![provider.into()];
                 let mut catalog = ModelCatalog::empty();
                 catalog.insert(model.into(), spec);
@@ -3764,34 +3758,34 @@ mod tests {
         }
     }
 
-    #[test]
-    fn databricks_routes_require_explicit_responses_capability() {
+    #[tokio::test]
+    async fn databricks_responses_only_use_preconfigured_gpt_endpoints() {
+        let provider = DatabricksProvider::from_config(
+            Some(&Url::parse("https://example.databricks.com").unwrap()),
+            None,
+            None,
+        )
+        .unwrap();
         for (model, supports_responses) in [
             ("custom-model", false),
             ("gpt-6-astra", false),
+            ("external-openai", false),
             ("databricks-gpt-oss-120b", false),
+            ("databricks-claude-sonnet-4-5", false),
+            ("databricks-gemini-3-1-pro", false),
+            ("databricks-gpt-4o", false),
+            ("databricks-gpt-50", false),
+            ("databricks-gpt-5", true),
+            ("databricks-gpt-5-6-sol", true),
             ("databricks-gpt-6-1-sol", true),
         ] {
             let mut spec = openai_spec(model, ModelFlavor::Chat);
             spec.available_providers = vec!["databricks".into()];
-            if supports_responses {
-                spec.extra = serde_json::from_str(r#"{"supports_responses":true}"#).unwrap();
-            }
             let mut catalog = ModelCatalog::empty();
             catalog.insert(model.into(), spec);
             let router = Router::builder()
                 .with_catalog(Arc::new(catalog))
-                .add_provider(
-                    "databricks",
-                    DatabricksProvider::from_config(
-                        Some(&Url::parse("https://example.databricks.com").unwrap()),
-                        None,
-                        None,
-                    )
-                    .unwrap(),
-                    dummy_auth(),
-                    vec![],
-                )
+                .add_provider("databricks", provider.clone(), dummy_auth(), vec![])
                 .build()
                 .unwrap();
             let routes = router
@@ -3806,6 +3800,29 @@ mod tests {
                 },
                 "{model}"
             );
+            if supports_responses {
+                for stream in [false, true] {
+                    let body = Bytes::from(
+                        serde_json::to_vec(&serde_json::json!({
+                            "model": model, "input": "Hello", "stream": stream,
+                            "tools": [{"type": "custom", "name": "exec"}]
+                        }))
+                        .unwrap(),
+                    );
+                    let (prepared, metadata) = router
+                        .create_prepared_request_internal(
+                            body.clone(),
+                            ProviderFormat::Responses,
+                            &routes[0],
+                            stream,
+                            RequestPreparationOptions::default(),
+                        )
+                        .await
+                        .unwrap();
+                    assert_eq!(prepared.payload, body);
+                    assert!(metadata.lingua_passthrough);
+                }
+            }
             let routes = router
                 .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
                 .unwrap();
