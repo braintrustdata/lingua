@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EbBpGnoP7WXZIBKGXqCnX869WHA5u",
+  "object": "chat.completion",
+  "created": 1792532302,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here’s what you can do next:\n\n- View the image on page 1: The parsed text only shows “Hello from Lingua,” but there might be unreadable text in an image. I can OCR the image to extract any embedded text and provide a full reading.\n- Get a summary or translation: If you want, I can summarize or translate the extracted text (or both) into another language.\n- Check for more pages: If there are additional pages in the document, I can fetch them and extract their contents as well.\n- Export or format: I can give you the plain text, or format it as a short report, bullet points, or a ready-to-copy snippet.\n\nWould you like me to view the image on page 1 and extract any additional text?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 314,
+    "completion_tokens": 806,
+    "total_tokens": 1120,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 640,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

@@ -11,6 +11,7 @@
     "googleToolCallThoughtSignatureReplayParam": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls"
   },
   "chat-completions_to_anthropic": {
+    "chatCompletionsFileFilenameToGoogleDisplayNameParam": "Anthropic document input cannot preserve file filenames",
     "chatCompletionsInputAudioParam": "Anthropic does not support OpenAI input_audio",
     "chatCompletionsUrlBackedAudioFileParam": "Anthropic document input does not support URL-backed audio files",
     "chatCompletionsUrlBackedVideoFileParam": "Anthropic document input does not support URL-backed video files",
@@ -23,6 +24,7 @@
     "openAIMultipleReasoningSignaturesReplayParam": "Google cannot replay OpenAI encrypted reasoning signatures; thought signatures are provider-issued and no lossless Google equivalent exists."
   },
   "chat-completions_to_bedrock": {
+    "chatCompletionsFileFilenameToGoogleDisplayNameParam": "Bedrock Converse does not support Lingua file input",
     "chatCompletionsInputAudioParam": "Bedrock Converse has no lossless representation for Chat Completions input_audio",
     "multimodalRequest": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
     "imageUrlMimeTypeFallbackParam": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
@@ -32,6 +34,7 @@
     "openAIMultipleReasoningSignaturesReplayParam": "Bedrock Converse cannot replay OpenAI encrypted reasoning signatures; they are OpenAI-issued provider metadata with no lossless Bedrock equivalent."
   },
   "chat-completions_to_bedrock_streaming": {
+    "chatCompletionsFileFilenameToGoogleDisplayNameParam": "Bedrock Converse does not support Lingua file input",
     "chatCompletionsInputAudioParam": "Bedrock Converse has no lossless representation for Chat Completions input_audio",
     "chatCompletionsUrlBackedAudioFileParam": "Bedrock Converse does not support file input",
     "chatCompletionsUrlBackedVideoFileParam": "Bedrock Converse does not support file input",
@@ -84,6 +87,7 @@
     "chatCompletionsAssistantCacheControlParam": "Responses output_text cannot preserve assistant text cache control"
   },
   "google_to_anthropic": {
+    "chatCompletionsFileFilenameToGoogleDisplayNameParam": "Anthropic document input cannot preserve file filenames",
     "googleInlineAudioParam": "Anthropic does not support Google inline audio input",
     "codeInterpreterToolParam": "Expected: Google code_execution is provider-specific and is not a lossless equivalent of Anthropic bash",
     "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by anthropic",
