@@ -124,7 +124,11 @@ fn pdf_url_metadata(url: &str) -> Option<FileMetadata> {
     })
 }
 
-async fn normalize_pdf_images<F>(body: Bytes, fetch: &mut F) -> Result<Bytes>
+async fn normalize_pdf_images<F>(
+    body: Bytes,
+    target_format: ProviderFormat,
+    fetch: &mut F,
+) -> Result<Bytes>
 where
     F: for<'a> FnMut(&'a str, Option<&'a str>) -> FetchMediaFuture<'a>,
 {
@@ -155,10 +159,18 @@ where
             continue;
         };
         media.media_type = "application/pdf".into();
+        // image_url has no filename. Anthropic documents cannot represent an
+        // inferred filename, so do not introduce one during normalization.
+        let filename = match target_format {
+            ProviderFormat::Anthropic
+            | ProviderFormat::BedrockAnthropic
+            | ProviderFormat::VertexAnthropic => None,
+            _ => Some(filename),
+        };
         replacements.push((
             pointer,
             File {
-                filename: Some(filename),
+                filename,
                 file_data: Some(media_block_to_url(&media)),
                 file_id: None,
             },
@@ -389,7 +401,7 @@ where
         .find(|adapter| adapter.detect_request(&parsed.value))
         .ok_or(TransformError::UnableToDetectRequestFormat)?;
     let normalized_body = if source_adapter.format() == ProviderFormat::ChatCompletions {
-        normalize_pdf_images(parsed.bytes.clone(), &mut fetch).await?
+        normalize_pdf_images(parsed.bytes.clone(), format, &mut fetch).await?
     } else {
         parsed.bytes.clone()
     };
@@ -911,6 +923,43 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn playground_pdf_normalization_distinguishes_inferred_and_explicit_filenames() {
+        for format in [
+            ProviderFormat::Anthropic,
+            ProviderFormat::BedrockAnthropic,
+            ProviderFormat::VertexAnthropic,
+        ] {
+            let unnamed_pdf = Bytes::from_static(br#"{"model":"playground-model","messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:application/pdf;base64,JVBERi0xLjQ="}}]}]}"#);
+            prepare_request_with_remote_media_and_fetch(
+                unnamed_pdf,
+                &spec("claude-sonnet-4-6", format),
+                format,
+                RemoteMediaPolicy::for_format(format).unwrap(),
+                |_| panic!("inline PDFs must not fetch"),
+            )
+            .await
+            .expect("an unnamed PDF must normalize without introducing a filename");
+
+            let body = Bytes::from_static(br#"{"model":"playground-model","messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:application/pdf;base64,JVBERi0xLjQ="}},{"type":"file","file":{"filename":"report.pdf","file_data":"data:application/pdf;base64,JVBERi0xLjQ="}}]}]}"#);
+            let result = prepare_request_with_remote_media_and_fetch(
+                body,
+                &spec("claude-sonnet-4-6", format),
+                format,
+                RemoteMediaPolicy::for_format(format).unwrap(),
+                |_| panic!("inline PDFs must not fetch"),
+            )
+            .await;
+            let error =
+                result.expect_err("an explicit filename must still be rejected by Anthropic");
+            assert!(matches!(
+                error,
+                Error::Lingua(TransformError::FromUniversalFailed(_))
+            ));
+            assert!(error.to_string().contains("Lingua file filename"));
+        }
+    }
+
+    #[tokio::test]
     async fn playground_pdf_normalization_preserves_native_fields() {
         let body = json!({
             "model": "gpt-5-mini", "custom": {"keep": true},
@@ -948,6 +997,7 @@ mod tests {
         for mismatched_type in [false, true] {
             let result = normalize_pdf_images(
                 Bytes::from_static(br#"{"messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"https://example.com/file.pdf?secret=token"}}]}]}"#),
+                ProviderFormat::ChatCompletions,
                 &mut move |_, _| Box::pin(async move {
                     if mismatched_type {
                         Ok(MediaBlock {media_type: "image/png".into(), data: "iVBORw0KGgo=".into()})

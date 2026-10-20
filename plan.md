@@ -39,3 +39,12 @@ Google media import discards Blob/FileData.display_name, and file export always 
 - Remove the three obsolete Google filename-loss exceptions after the converter fix.
 - The new named-PDF case exposes existing Anthropic filename loss. Add a typed guard in `crates/lingua/src/providers/anthropic/convert.rs`, test its unsupported-mapping error, and keep the document-title test focused on its independent title contract. Record only this case's explicit errors in the request expectations and payload error manifest.
 - Google captures also contain served_service_tier billing metadata, which Anthropic streams cannot retain. Scope the existing metadata normalization expectation to this new case and provider pair.
+
+## CI correction: playground PDF normalization
+
+- Root cause: the router converts PDF `image_url` parts into file parts and synthesizes a filename even for Anthropic targets. The strict filename guard correctly rejects that new filename, breaking existing router PDF normalization tests.
+- Target files: `crates/braintrust-llm-router/src/providers/remote_media.rs` and its existing router tests.
+- Expected behavior: normalize unlabeled PDF image attachments for Anthropic, Bedrock Anthropic, and Vertex Anthropic without creating a filename. Preserve inferred transport filenames for other targets and continue rejecting explicitly named file parts for Anthropic.
+- Tests: reproduce both CI failures; extend the provider matrix to Bedrock Anthropic and add a regression proving normalization does not remove explicit file filenames.
+- Expected-diff impact: no payload snapshot or provider converter changes.
+- Validation: run the failing `playground_pdf` router tests, the full router library suite, workspace Rust tests, clippy, formatting, generated-type sync, and typed-boundary checks; then push and verify CI.
