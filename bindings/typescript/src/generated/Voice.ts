@@ -7,4 +7,16 @@ import type { VoiceTurn } from "./VoiceTurn";
 /**
  * Recorded speech and native voice turns. Model and tool work stays in `Trajectory.turns`.
  */
-export type Voice = { recordings: Array<AudioRecording>, utterances: Array<Utterance>, turns: Array<VoiceTurn>, links: Array<Link>, };
+export type Voice = { 
+/**
+ * By `start_unix_ms`.
+ */
+recordings: Array<AudioRecording>, 
+/**
+ * By `start_time`.
+ */
+utterances: Array<Utterance>, 
+/**
+ * By `start_time`.
+ */
+turns: Array<VoiceTurn>, links: Array<Link>, };
