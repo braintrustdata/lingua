@@ -35,7 +35,7 @@ importers:
         specifier: ^6.0.0
         version: 6.16.0(ws@8.20.1)(zod@4.3.6)
       tsup:
-        specifier: ^8.5.0
+        specifier: ^8.5.1
         version: 8.5.1(@swc/core@1.15.7)(postcss@8.5.14)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.9.0)
       typescript:
         specifier: ^5.6.3
@@ -5672,7 +5672,7 @@ snapshots:
     dependencies:
       minimatch: 10.2.5
       path-browserify: 1.0.1
-      tinyglobby: 0.2.15
+      tinyglobby: 0.2.16
 
   '@tsconfig/node10@1.0.12': {}
 
@@ -8132,7 +8132,7 @@ snapshots:
       lines-and-columns: 1.2.4
       mz: 2.7.0
       pirates: 4.0.7
-      tinyglobby: 0.2.15
+      tinyglobby: 0.2.16
       ts-interface-checker: 0.1.13
 
   supports-color@7.2.0:
@@ -8293,7 +8293,7 @@ snapshots:
       source-map: 0.7.6
       sucrase: 3.35.1
       tinyexec: 0.3.2
-      tinyglobby: 0.2.15
+      tinyglobby: 0.2.16
       tree-kill: 1.2.2
     optionalDependencies:
       '@swc/core': 1.15.7
