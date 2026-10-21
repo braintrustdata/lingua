@@ -52,3 +52,24 @@ where
         _ => None,
     }
 }
+
+#[cfg(feature = "openai")]
+pub(crate) fn try_parse_items<T>(
+    data: &Value,
+) -> Option<impl Iterator<Item = Result<T, crate::error::ConvertError>> + '_>
+where
+    T: DeserializeOwned,
+{
+    let items = match data {
+        Value::Array(items) => items.as_slice(),
+        Value::Object(_) => std::slice::from_ref(data),
+        _ => return None,
+    };
+    Some(items.iter().map(|item| {
+        T::deserialize(item).map_err(
+            |error| crate::error::ConvertError::ContentConversionFailed {
+                reason: error.to_string(),
+            },
+        )
+    }))
+}

@@ -1,6 +1,6 @@
 use crate::error::ConvertError;
 use crate::import_parse::{
-    non_empty_messages, try_convert_non_empty, try_parse, try_parse_vec_or_single,
+    non_empty_messages, try_convert_non_empty, try_parse, try_parse_items, try_parse_vec_or_single,
 };
 use crate::providers::openai::generated as openai;
 use crate::providers::openai::params::OpenAIResponsesExtrasView;
@@ -1263,18 +1263,28 @@ fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Me
         });
     }
 
+    for message in &mut merged {
+        if let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = message
+        {
+            parts.shrink_to_fit();
+        }
+    }
+    merged.shrink_to_fit();
     merged
 }
 
 fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<Vec<Message>> {
-    if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate) {
-        if let Some(messages) = try_convert_non_empty(provider_messages) {
+    if let Some(provider_messages) = try_parse_items::<openai::InputItem>(candidate) {
+        if let Some(messages) = try_convert_non_empty(ResponsesInputItems(provider_messages)) {
             return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
         }
     }
 
-    if let Some(provider_messages) = try_parse_vec_or_single::<openai::OutputItem>(candidate) {
-        if let Some(messages) = try_convert_non_empty(provider_messages) {
+    if let Some(provider_messages) = try_parse_items::<openai::OutputItem>(candidate) {
+        if let Some(messages) = try_convert_non_empty(ResponsesOutputItems(provider_messages)) {
             return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
         }
     }
@@ -1293,7 +1303,19 @@ pub(crate) fn try_parse_responses_items_for_import(
     try_from_responses_items_candidate(&normalized)
 }
 
+#[derive(Deserialize)]
+struct OpaqueItemTypeProbe {
+    #[serde(rename = "type")]
+    item_type: Option<openai::InputItemType>,
+}
+
 pub(crate) fn is_opaque_item_for_import(data: &serde_json::Value) -> bool {
+    let Ok(probe) = OpaqueItemTypeProbe::deserialize(data) else {
+        return false;
+    };
+    if probe.item_type != Some(openai::InputItemType::Compaction) {
+        return false;
+    }
     openai::InputItem::deserialize(data).is_ok_and(|item| {
         item.input_item_type == Some(openai::InputItemType::Compaction)
             && item.id.is_some()
@@ -1433,9 +1455,25 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
     type Error = ConvertError;
 
     fn try_from(inputs: Vec<openai::InputItem>) -> Result<Self, Self::Error> {
+        <Self as TryFromLLM<ResponsesInputItems<_>>>::try_from(ResponsesInputItems(
+            inputs.into_iter().map(Ok),
+        ))
+    }
+}
+
+struct ResponsesInputItems<I>(I);
+
+impl<I> TryFromLLM<ResponsesInputItems<I>> for Vec<Message>
+where
+    I: IntoIterator<Item = Result<openai::InputItem, ConvertError>>,
+{
+    type Error = ConvertError;
+
+    fn try_from(inputs: ResponsesInputItems<I>) -> Result<Self, Self::Error> {
         let mut result = Vec::new();
         let mut last_tool_search_call_id: Option<String> = None;
-        for mut input in inputs {
+        for input in inputs.0 {
+            let mut input = input?;
             let pending_tool_search_call_id = last_tool_search_call_id.take();
             match input.input_item_type {
                 Some(openai::InputItemType::AgentMessage) => {
@@ -3623,10 +3661,26 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
     type Error = ConvertError;
 
     fn try_from(items: Vec<openai::OutputItem>) -> Result<Vec<Message>, Self::Error> {
+        <Self as TryFromLLM<ResponsesOutputItems<_>>>::try_from(ResponsesOutputItems(
+            items.into_iter().map(Ok),
+        ))
+    }
+}
+
+struct ResponsesOutputItems<I>(I);
+
+impl<I> TryFromLLM<ResponsesOutputItems<I>> for Vec<Message>
+where
+    I: IntoIterator<Item = Result<openai::OutputItem, ConvertError>>,
+{
+    type Error = ConvertError;
+
+    fn try_from(items: ResponsesOutputItems<I>) -> Result<Vec<Message>, Self::Error> {
         let mut messages: Vec<Message> = Vec::new();
         let mut last_tool_search_call_id: Option<String> = None;
 
-        for mut item in items {
+        for item in items.0 {
+            let mut item = item?;
             let item_id = item.id.clone();
             let is_tool_search_call = matches!(
                 item.output_item_type,
@@ -5879,6 +5933,75 @@ mod tests {
     use crate::serde_json::json;
     use crate::TransformResult;
     use bytes::Bytes;
+
+    #[test]
+    fn streamed_responses_import_matches_batch_conversion() {
+        fn batch(candidate: &serde_json::Value) -> Option<Vec<Message>> {
+            if let Some(items) = try_parse_vec_or_single::<openai::InputItem>(candidate) {
+                if let Some(messages) = try_convert_non_empty(items) {
+                    return non_empty_messages(merge_adjacent_reasoning_assistant_messages(
+                        messages,
+                    ));
+                }
+            }
+            if let Some(items) = try_parse_vec_or_single::<openai::OutputItem>(candidate) {
+                if let Some(messages) = try_convert_non_empty(items) {
+                    return non_empty_messages(merge_adjacent_reasoning_assistant_messages(
+                        messages,
+                    ));
+                }
+            }
+            None
+        }
+        for candidate in [
+            json!([]),
+            json!("not an item"),
+            json!({"role": "user", "content": "café 日本語 🚀"}),
+            json!([
+                {"type": "reasoning", "id": "r", "summary": [{"type": "summary_text", "text": "reasoning"}], "encrypted_content": "encrypted"},
+                {"type": "message", "id": "m", "role": "assistant", "content": [{"type": "output_text", "text": "answer", "annotations": []}]}
+            ]),
+            json!([
+                {"role": "user", "content": "valid prefix"},
+                {"role": 123, "content": "invalid late item"}
+            ]),
+            json!([
+                {"type": "tool_search_call", "id": "tsc_1", "call_id": null, "status": "completed", "execution": "server", "arguments": {}},
+                {"type": "tool_search_output", "id": "tso_1", "call_id": null, "status": "completed", "execution": "server", "tools": [{"type": "function", "name": "search_code", "description": "Search code."}]}
+            ]),
+            json!([
+                {"role": "user", "content": "valid prefix"},
+                {"type": "agent_message", "content": "unsupported conversion"}
+            ]),
+        ] {
+            assert_eq!(
+                serde_json::to_value(try_from_responses_items_candidate(&candidate)).unwrap(),
+                serde_json::to_value(batch(&candidate)).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn opaque_type_probe_preserves_canonical_validation() {
+        for candidate in [
+            json!(null),
+            json!([]),
+            json!({"role": "assistant", "content": "ordinary message"}),
+            json!({"type": "unknown", "id": "c", "encrypted_content": "e"}),
+            json!({"type": "compaction", "id": "c", "encrypted_content": "e"}),
+            json!({"type": "compaction", "id": "c", "encrypted_content": "e", "role": 123}),
+            json!({"type": "compaction", "id": "c", "encrypted_content": "e", "content": 123}),
+            json!({"type": "compaction", "id": 123, "encrypted_content": "e"}),
+            json!({"type": "compaction", "encrypted_content": "e"}),
+        ] {
+            let expected = openai::InputItem::deserialize(&candidate).is_ok_and(|item| {
+                item.input_item_type == Some(openai::InputItemType::Compaction)
+                    && item.id.is_some()
+                    && item.encrypted_content.is_some()
+            });
+            assert_eq!(is_opaque_item_for_import(&candidate), expected);
+        }
+    }
 
     fn wav_base64() -> String {
         base64::engine::general_purpose::STANDARD.encode(include_bytes!(
