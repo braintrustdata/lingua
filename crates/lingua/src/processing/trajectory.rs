@@ -1,6 +1,8 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+#[allow(dead_code)]
+mod voice;
 pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };

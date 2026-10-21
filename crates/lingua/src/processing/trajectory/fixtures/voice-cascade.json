@@ -1,0 +1,1281 @@
+{
+  "spans": [
+    {
+      "id": "r-session",
+      "span_id": "s-session",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "session"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 30
+      },
+      "metadata": {
+        "audio.recordings": [
+          {
+            "id": "call-0000",
+            "recording_group_id": "call",
+            "state": "pending",
+            "sources": [
+              {
+                "boundary": "session_input",
+                "channel_index": 0
+              },
+              {
+                "boundary": "local_audio_output",
+                "channel_index": 1
+              }
+            ],
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 0,
+              "recording_start_offset_ms": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-session-start",
+      "span_id": "s-session-start",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.session_start"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 0.5
+      },
+      "span_parents": [
+        "s-session"
+      ]
+    },
+    {
+      "id": "r-u1",
+      "span_id": "s-u1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 5
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-u1",
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u1-a",
+      "span_id": "s-u1-a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 1.0,
+        "end": 3.0
+      },
+      "span_parents": [
+        "s-u1"
+      ],
+      "metadata": {
+        "turn.id": "s-u1",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt1a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt1b",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": []
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Draw how a voice agent works."
+        }
+      ]
+    },
+    {
+      "id": "r-stt1a",
+      "span_id": "s-stt1a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt"
+      },
+      "metrics": {
+        "start": 1.4,
+        "end": 3.0
+      },
+      "span_parents": [
+        "s-u1"
+      ],
+      "metadata": {
+        "turn.id": "s-u1"
+      },
+      "output": [
+        {
+          "role": "user",
+          "content": "Draw how a voice agent"
+        }
+      ]
+    },
+    {
+      "id": "r-stt1b",
+      "span_id": "s-stt1b",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt"
+      },
+      "metrics": {
+        "start": 2.9,
+        "end": 3.7
+      },
+      "span_parents": [
+        "s-u1"
+      ],
+      "metadata": {
+        "turn.id": "s-u1"
+      },
+      "output": [
+        {
+          "role": "user",
+          "content": "works."
+        }
+      ]
+    },
+    {
+      "id": "r-u1-b",
+      "span_id": "s-u1-b",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 3.1,
+        "end": 3.7
+      },
+      "span_parents": [
+        "s-u1"
+      ],
+      "metadata": {
+        "turn.id": "s-u1",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt1a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt1b",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u1-c",
+      "span_id": "s-u1-c",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 4.0,
+        "end": 4.3
+      },
+      "span_parents": [
+        "s-u1"
+      ],
+      "metadata": {
+        "turn.id": "s-u1",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt1a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt1b",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u1-eou",
+      "span_id": "s-u1-eou",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_wait"
+      },
+      "metrics": {
+        "start": 4.3,
+        "end": 4.8
+      },
+      "span_parents": [
+        "s-u1"
+      ],
+      "metadata": {
+        "turn.id": "s-u1"
+      }
+    },
+    {
+      "id": "r-a1",
+      "span_id": "s-a1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 3.7,
+        "end": 15
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "audio.selections": [],
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-llm1",
+      "span_id": "s-llm1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 3.8,
+        "end": 5.4
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "input_context"
+            },
+            "context": {
+              "spanId": "s-u1-a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ]
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "You are a concise voice assistant."
+        },
+        {
+          "role": "user",
+          "content": "Draw how a voice agent works."
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_call",
+              "tool_call_id": "call-1",
+              "tool_name": "draw_diagram",
+              "arguments": {
+                "type": "valid",
+                "value": {
+                  "title": "Voice agent"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r-llm1-run",
+      "span_id": "s-llm1-run",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run"
+      },
+      "metrics": {
+        "start": 3.8,
+        "end": 5.4
+      },
+      "span_parents": [
+        "s-llm1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1"
+      }
+    },
+    {
+      "id": "r-tool1",
+      "span_id": "s-tool1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "tool",
+        "name": "draw_diagram"
+      },
+      "metrics": {
+        "start": 5.4,
+        "end": 5.5
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "requested_by"
+            },
+            "context": {
+              "spanId": "s-llm1",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "tool_call_id": "call-1"
+      },
+      "input": {
+        "title": "Voice agent"
+      },
+      "output": {
+        "status": "cancelled"
+      }
+    },
+    {
+      "id": "r-llm2",
+      "span_id": "s-llm2",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 5.5,
+        "end": 7.0
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "input_context"
+            },
+            "context": {
+              "spanId": "s-u1-a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "s-tool1",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ]
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "You are a concise voice assistant."
+        },
+        {
+          "role": "user",
+          "content": "Draw how a voice agent works."
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_call",
+              "tool_call_id": "call-1",
+              "tool_name": "draw_diagram",
+              "arguments": {
+                "type": "valid",
+                "value": {
+                  "title": "Voice agent"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_call_id": "call-1",
+              "tool_name": "draw_diagram",
+              "output": {
+                "status": "cancelled"
+              }
+            }
+          ]
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "The diagram shows: 1. User speaks. 2. Recognized text goes to the model."
+        }
+      ]
+    },
+    {
+      "id": "r-tts1",
+      "span_id": "s-tts1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "tts"
+      },
+      "metrics": {
+        "start": 7.0,
+        "end": 12.0
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "s-llm2",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-tts1-request",
+      "span_id": "s-tts1-request",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request"
+      },
+      "metrics": {
+        "start": 7.0,
+        "end": 12.0
+      },
+      "span_parents": [
+        "s-tts1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1"
+      }
+    },
+    {
+      "id": "r-a1-speech",
+      "span_id": "s-a1-speech",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 7.3,
+        "end": 14.9
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "s-llm2",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": [],
+        "contrib.livekit.interrupted": true
+      },
+      "output": [
+        {
+          "role": "assistant",
+          "content": "The diagram shows: 1. User speaks. 2. Recognized"
+        }
+      ]
+    },
+    {
+      "id": "r-u2",
+      "span_id": "s-u2",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 7.5,
+        "end": 16.5
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-u2",
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u2-a",
+      "span_id": "s-u2-a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 7.5,
+        "end": 7.7
+      },
+      "span_parents": [
+        "s-u2"
+      ],
+      "metadata": {
+        "turn.id": "s-u2",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt2",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": []
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Just show me."
+        }
+      ]
+    },
+    {
+      "id": "r-u2-b",
+      "span_id": "s-u2-b",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 10.5,
+        "end": 11.5
+      },
+      "span_parents": [
+        "s-u2"
+      ],
+      "metadata": {
+        "turn.id": "s-u2",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt2",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u2-c",
+      "span_id": "s-u2-c",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 12.7,
+        "end": 15.1
+      },
+      "span_parents": [
+        "s-u2"
+      ],
+      "metadata": {
+        "turn.id": "s-u2",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt2",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-stt2",
+      "span_id": "s-stt2",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt"
+      },
+      "metrics": {
+        "start": 14.4,
+        "end": 16.5
+      },
+      "span_parents": [
+        "s-u2"
+      ],
+      "metadata": {
+        "turn.id": "s-u2"
+      },
+      "output": [
+        {
+          "role": "user",
+          "content": "Just show me."
+        }
+      ]
+    },
+    {
+      "id": "r-a2",
+      "span_id": "s-a2",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 16.5,
+        "end": 18.4
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-a2",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-llm3",
+      "span_id": "s-llm3",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 16.5,
+        "end": 17.5
+      },
+      "span_parents": [
+        "s-a2"
+      ],
+      "metadata": {
+        "turn.id": "s-a2",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "input_context"
+            },
+            "context": {
+              "spanId": "s-u1-a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "s-tool1",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "input_context"
+            },
+            "context": {
+              "spanId": "s-a1-speech",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "input_context"
+            },
+            "context": {
+              "spanId": "s-u2-a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ]
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "You are a concise voice assistant."
+        },
+        {
+          "role": "user",
+          "content": "Draw how a voice agent works."
+        },
+        {
+          "role": "assistant",
+          "content": "The diagram shows: 1. User speaks. 2. Recognized"
+        },
+        {
+          "role": "user",
+          "content": "Just show me."
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_call",
+              "tool_call_id": "call-2",
+              "tool_name": "draw_diagram",
+              "arguments": {
+                "type": "valid",
+                "value": {
+                  "title": "Voice agent pipeline"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r-tool2",
+      "span_id": "s-tool2",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "tool",
+        "name": "draw_diagram"
+      },
+      "metrics": {
+        "start": 17.5,
+        "end": 17.6
+      },
+      "span_parents": [
+        "s-a2"
+      ],
+      "metadata": {
+        "turn.id": "s-a2",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "requested_by"
+            },
+            "context": {
+              "spanId": "s-llm3",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "tool_call_id": "call-2"
+      },
+      "input": {
+        "title": "Voice agent pipeline"
+      },
+      "output": {
+        "status": "published"
+      }
+    },
+    {
+      "id": "r-llm4",
+      "span_id": "s-llm4",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 17.6,
+        "end": 18.4
+      },
+      "span_parents": [
+        "s-a2"
+      ],
+      "metadata": {
+        "turn.id": "s-a2",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "input_context"
+            },
+            "context": {
+              "spanId": "s-u2-a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "s-tool2",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ]
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "You are a concise voice assistant."
+        },
+        {
+          "role": "user",
+          "content": "Just show me."
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_call",
+              "tool_call_id": "call-2",
+              "tool_name": "draw_diagram",
+              "arguments": {
+                "type": "valid",
+                "value": {
+                  "title": "Voice agent pipeline"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_call_id": "call-2",
+              "tool_name": "draw_diagram",
+              "output": {
+                "status": "published"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r-u3",
+      "span_id": "s-u3",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 18.2,
+        "end": 21.9
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-u3",
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u3-a",
+      "span_id": "s-u3-a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 18.4,
+        "end": 20.5
+      },
+      "span_parents": [
+        "s-u3"
+      ],
+      "metadata": {
+        "turn.id": "s-u3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "transcribed_by"
+            },
+            "context": {
+              "spanId": "s-stt3",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": []
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Okay. Thanks."
+        }
+      ]
+    },
+    {
+      "id": "r-stt3",
+      "span_id": "s-stt3",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt"
+      },
+      "metrics": {
+        "start": 19.7,
+        "end": 21.9
+      },
+      "span_parents": [
+        "s-u3"
+      ],
+      "metadata": {
+        "turn.id": "s-u3"
+      },
+      "output": [
+        {
+          "role": "user",
+          "content": "Okay. Thanks."
+        }
+      ]
+    },
+    {
+      "id": "r-a3",
+      "span_id": "s-a3",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 21.9,
+        "end": 26.0
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-a3",
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-llm5",
+      "span_id": "s-llm5",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 21.9,
+        "end": 22.6
+      },
+      "span_parents": [
+        "s-a3"
+      ],
+      "metadata": {
+        "turn.id": "s-a3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "input_context"
+            },
+            "context": {
+              "spanId": "s-u2-a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "input_context"
+            },
+            "context": {
+              "spanId": "s-u3-a",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ]
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "You are a concise voice assistant."
+        },
+        {
+          "role": "user",
+          "content": "Just show me."
+        },
+        {
+          "role": "user",
+          "content": "Okay. Thanks."
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "You're welcome! Let me know if you need anything else."
+        }
+      ]
+    },
+    {
+      "id": "r-tts3",
+      "span_id": "s-tts3",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "tts"
+      },
+      "metrics": {
+        "start": 22.6,
+        "end": 25.0
+      },
+      "span_parents": [
+        "s-a3"
+      ],
+      "metadata": {
+        "turn.id": "s-a3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "s-llm5",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-a3-speech",
+      "span_id": "s-a3-speech",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 22.5,
+        "end": 26.0
+      },
+      "span_parents": [
+        "s-a3"
+      ],
+      "metadata": {
+        "turn.id": "s-a3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "s-llm5",
+              "traceFlags": 1,
+              "traceId": "s-session"
+            }
+          }
+        ],
+        "audio.selections": [],
+        "contrib.livekit.interrupted": true
+      },
+      "output": [
+        {
+          "role": "assistant",
+          "content": "You're welcome! Let me know if you need anything"
+        }
+      ]
+    },
+    {
+      "id": "r-u4",
+      "span_id": "s-u4",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 21.9,
+        "end": 26.5
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-u4"
+      }
+    },
+    {
+      "id": "r-u4-a",
+      "span_id": "s-u4-a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 22.0,
+        "end": 22.4
+      },
+      "span_parents": [
+        "s-u4"
+      ],
+      "metadata": {
+        "turn.id": "s-u4",
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u4-b",
+      "span_id": "s-u4-b",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 23.8,
+        "end": 25.0
+      },
+      "span_parents": [
+        "s-u4"
+      ],
+      "metadata": {
+        "turn.id": "s-u4",
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-session-close",
+      "span_id": "s-session-close",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.session_close"
+      },
+      "metrics": {
+        "start": 26.5,
+        "end": 30
+      },
+      "span_parents": [
+        "s-session"
+      ]
+    }
+  ]
+}

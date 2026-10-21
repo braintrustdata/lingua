@@ -18,6 +18,9 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "trajectory_role",
     "request_kind",
     "compaction",
+    "turn.id",
+    "audio.selections",
+    "contrib.livekit.interrupted",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,6 +45,70 @@ pub struct SpanContext {
     #[serde(default)]
     pub analysis: bool,
     pub compaction: Option<Compaction>,
+    #[serde(default)]
+    pub voice: VoiceContext,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Speaker {
+    User,
+    Agent,
+}
+
+impl Speaker {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::User => "user",
+            Self::Agent => "agent",
+        }
+    }
+}
+
+/// Cascaded voice spans, identified by their recorded task names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceKind {
+    Turn(Speaker),
+    Speech(Speaker),
+    Operation,
+}
+
+impl VoiceKind {
+    fn from_span(kind: Option<&str>, name: Option<&str>) -> Option<Self> {
+        if kind.is_some_and(|kind| kind != "task") {
+            return None;
+        }
+        match name? {
+            "user_turn" => Some(Self::Turn(Speaker::User)),
+            "agent_turn" => Some(Self::Turn(Speaker::Agent)),
+            "user_speech" => Some(Self::Speech(Speaker::User)),
+            "agent_speech" => Some(Self::Speech(Speaker::Agent)),
+            "stt" | "tts" => Some(Self::Operation),
+            _ => None,
+        }
+    }
+}
+
+/// Voice metadata from a span header. Invalid voice metadata is reported only for voice traces.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct VoiceContext {
+    pub kind: Option<VoiceKind>,
+    pub turn_id: Option<String>,
+    pub interrupted: Option<bool>,
+    pub selections: Option<Vec<SelectionMetadata>>,
+    #[serde(default)]
+    pub errors: Vec<String>,
+}
+
+/// An `audio.selections` entry: offsets into a recording described by `recording_span_id`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectionMetadata {
+    pub recording_span_id: Option<String>,
+    pub recording_id: String,
+    pub start_offset_ms: f64,
+    pub end_offset_ms: f64,
+    pub channel_index: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -132,6 +199,12 @@ struct Metadata {
     trajectory_role: Option<json::Value>,
     request_kind: Option<json::Value>,
     compaction: Option<json::Value>,
+    #[serde(rename = "turn.id")]
+    voice_turn_id: Option<json::Value>,
+    #[serde(rename = "audio.selections")]
+    audio_selections: Option<json::Value>,
+    #[serde(rename = "contrib.livekit.interrupted")]
+    livekit_interrupted: Option<json::Value>,
 }
 
 fn metadata_field<T: serde::de::DeserializeOwned>(
@@ -180,6 +253,26 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         || request_kind.as_deref() == Some("reviewer");
     let compaction =
         metadata_field::<CompactionHint>(metadata.compaction, "compaction", &mut errors);
+    let mut voice_errors = Vec::new();
+    let voice = VoiceContext {
+        kind: VoiceKind::from_span(
+            source.span_attributes.kind.as_deref(),
+            source.span_attributes.name.as_deref(),
+        ),
+        turn_id: metadata_field(metadata.voice_turn_id, "turn.id", &mut voice_errors),
+        interrupted: metadata_field(
+            metadata.livekit_interrupted,
+            "contrib.livekit.interrupted",
+            &mut voice_errors,
+        ),
+        selections: metadata_field(
+            metadata.audio_selections,
+            "audio.selections",
+            &mut voice_errors,
+        ),
+        errors: voice_errors,
+    };
+
     let start = source.metrics.start.and_then(timestamp).or(source.created);
     let end = source
         .metrics
@@ -289,6 +382,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
     source.header.turn = turn;
     source.header.analysis = analysis;
     source.header.compaction = compaction;
+    source.header.voice = voice;
     source.header.kind = source
         .span_attributes
         .kind
