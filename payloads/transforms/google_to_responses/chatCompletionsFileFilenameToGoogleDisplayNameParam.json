@@ -1,0 +1,103 @@
+{
+  "id": "resp_0cdc4fc63b82e79b006ad7e1db278087d0afa6a14f2276903a",
+  "object": "response",
+  "created_at": 1792532955,
+  "status": "completed",
+  "access_programs": null,
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1792532956,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0cdc4fc63b82e79b006ad7e1dc11e087d09f90acb72b45e92f",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABq1-Hc7rGcnzD1bV8ibA8T7fMsu3PWKd8VsjqqHqnsIceNYnwJccJTWIjD0X_eP1vKVp2O7cmf-E1pGp16hZXP-EVZzJrBC0XA6kGdONJxK-bHFQh0DiCJqQW8hXiwWMHO563kUF8cv29_v_jw63vNSGKhIqK2-BET-A2p2zV5J_rreth6qmMFBzW30qDlCkaRwT8cLGoG5dReKEJwuoQM2MVIuFzqLyMQRyR8Q1QUqOok6chvK7eMY4PBecmGPi0TxpvU67HD9OTWtVYywABou1bIkgCEzmOkveyuAwoAXAzc6eSYSgfaZxWpE7dj1PGDcxNmCVb1N1Yg_mpTjNuAxPG_E0gemL-x6a9oHCSI8THgLR6hVgay5FlDFCsDVu2REuhfCY4nsJ_NRWeqIeEYK1Bb2V0WcRULIjlVCKlGb1dOkCBtg6_V4lFYUd32FFXawmUHIMujqSaQNfCopAl0MoNPXmoI4fMOxmll0odWOz3w3Qz16j2PszZz5bGSP1TLqNwBYF2Efk3CwEHU7ot-eV3vIoYWqmhYIRoYko7_hZ8C6TNSgMG5Hw4opKGJ1tUhe1bGq2siDQh6MJFOwNIIxF2Lip_8HlUY7FyKV8r8hSM6TIf5ITfYkHr5sQ430wngbmoDjaLU9IgbmhhNl2ManSLWLql_rWQvovnz8tZw0jV1Z_UBLRFUa3iVcYPwUcU2RtgWUwnJjH1gy7H1NUUBmbyJXHaGGIXl5tH0L5_KX_HTTnEaMXbsEcutLcmAzDuWHTs8RqalTIsH8ydBHrOM8O8iuglLo21ET20cRRFgp70n37p8YOVle174zAXVIg14KC9Zsplg6t6oyrqfEuJLvDIZjbzEt1ZqwnAB9oVIUs7QQbj-EJ8rsOubS1NrIN95sGpkO-k2Y1D-oNM_oizNK4RCO-mg5IcXxd4jE9Z4lS12H52FnmwmlkFDNeZ-W6yAHLoamDdLUiI0ytU1_h906k4SSTZO4sDImEYv5xwdpLzjn7a4sdjjVAyS9KzTI0iA-6YG7K_ADR61Z19Y9dc21xS6WK4pWQslXikCUOuNZcVtl7atGJSs8zIoPKNWc2CJojLMg0BVLQXfF8Prno_vknjAjqyzuigItE88JBCRniWsXhKxcvmq0lGLYkkAzNG6D63U8_rAU2tqYQy2UmpZVoS0BuW8tyXHhwC4gBQHqRm6DOXXAIgpugD5SwGHRA3oY7gM7_YNyjUyp3BASHNXz8Lne2CVeEgnSeq_DKiFz7DeI7eZgJ7mvzaaRMpbOxt7fIEQChmxEFJ-DmHD5MkvDz26JH0pKjuPDZlez2FWlppeDZ-uV-lwmPISLf7eNeI1n3mPnnAwxj9HM909V-NMc8wsDJj6MQq4MZiDjHLrq9YhlEIHRNqLgV7ZMhYsxy1l6whmQoyVBIqqYS0WFu7r9e2n3sIeIUI5jLhJIvWlZIUoOtctYmLDtfm9kbKeUHvq3SsvGkq-Y-Snwvi6SY7mZOMSnoZQbzz0pNuhC82_GJBgkeu-RnLa0l-1ta8x2PD0eU_NgLG854gvBkIZ0BElmeGn9u2If9W1GMlkPG1Rz6dZ-8k=",
+      "summary": []
+    },
+    {
+      "id": "msg_0cdc4fc63b82e79b006ad7e1dc24b087d0b53b6cf3f3e49ec5",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The document says: “Hello from Lingua.”"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 40,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 29,
+    "output_tokens_details": {
+      "reasoning_tokens": 13
+    },
+    "total_tokens": 69
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "The document says: “Hello from Lingua.”"
+}
