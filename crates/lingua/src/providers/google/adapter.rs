@@ -16,7 +16,11 @@ use crate::providers::google::capabilities::{
     effort_to_thinking_level, supports_disabling_thinking, thinking_level_to_effort,
     GoogleCapabilities, GoogleThinkingStyle,
 };
-use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
+use crate::providers::google::convert::{
+    validate_candidate_has_no_continuation_state, validate_generation_config_is_portable,
+    validate_part_is_portable, validate_request_has_no_continuation_state,
+    SYNTHETIC_CALL_ID_PREFIX,
+};
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
     Content as GoogleContent, GenerateContentResponse, GenerationConfig, ServiceTier,
@@ -117,6 +121,14 @@ fn is_discovery_only_message(message: &Message) -> bool {
     }
 }
 
+/// Typed view of the Google extras bag, used to refuse re-emitting continuation
+/// state through a request whose `contents` have been rebuilt.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct GoogleContinuationExtrasView {
+    continuation_token: Option<String>,
+}
+
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct GoogleStreamPart {
@@ -164,6 +176,15 @@ impl ProviderAdapter for GoogleAdapter {
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let model = typed_params.model.clone();
+
+        // Google-owned request semantics must be refused before any field can be
+        // dropped; same-format passthrough preserves them without coming here.
+        validate_request_has_no_continuation_state(typed_params.continuation_token.as_deref())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        if let Some(config) = &typed_params.generation_config {
+            validate_generation_config_is_portable(config)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        }
 
         // Extract typed contents (partial move - other fields remain accessible)
         let contents = typed_params.contents.ok_or_else(|| {
@@ -283,6 +304,15 @@ impl ProviderAdapter for GoogleAdapter {
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
         // Extract system messages (Google requires them in systemInstruction, not contents)
         validate_system_messages_have_no_audio(&req.messages)?;
+        // A continuation token requires `contents` to replicate the previous
+        // prompt byte for byte; this path rewrites them, so refuse instead.
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::Google) {
+            let extras_view: GoogleContinuationExtrasView =
+                serde_json::from_value(Value::Object(extras.clone()))
+                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+            validate_request_has_no_continuation_state(extras_view.continuation_token.as_deref())
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+        }
         let mut messages = req.messages.clone();
         let system_contents = extract_system_messages(&mut messages);
 
@@ -568,6 +598,12 @@ impl ProviderAdapter for GoogleAdapter {
         let mut finish_reasons = Vec::new();
 
         for candidate in response.candidates.iter().flatten() {
+            validate_candidate_has_no_continuation_state(
+                candidate.continuation_token.as_deref(),
+                candidate.finish_reason.as_ref(),
+            )
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
             if let Some(content) = &candidate.content {
                 let universal = <Message as TryFromLLM<GoogleContent>>::try_from(content.clone())
                     .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -731,11 +767,22 @@ impl ProviderAdapter for GoogleAdapter {
         let mut choices = Vec::new();
 
         for candidate in candidates {
+            validate_candidate_has_no_continuation_state(
+                candidate.continuation_token.as_deref(),
+                candidate.finish_reason.as_ref(),
+            )
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
             let index = candidate.index.unwrap_or(0) as u32;
             let parts = candidate
                 .content
                 .and_then(|content| content.parts)
                 .unwrap_or_default();
+
+            for part in &parts {
+                validate_part_is_portable(part)
+                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+            }
 
             let mut text_segments = Vec::new();
             let mut reasoning = Vec::new();
@@ -1183,6 +1230,7 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::FinishReason as GoogleFinishReason;
     use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
@@ -2305,5 +2353,146 @@ mod tests {
             .expect("placeholder candidate should be present");
         assert_eq!(candidates.len(), 1);
         assert!(typed.usage_metadata.is_some());
+    }
+
+    #[test]
+    fn test_google_continuation_token_and_continuation_finish_reason_round_trip_natively() {
+        let request_wire = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Write a long essay."}]}],
+            "continuationToken": "ct_opaque_handle"
+        });
+        let request: GenerateContentRequest =
+            serde_json::from_value(request_wire.clone()).expect("native Google request");
+        assert_eq!(
+            request.continuation_token.as_deref(),
+            Some("ct_opaque_handle")
+        );
+        assert_eq!(serde_json::to_value(&request).unwrap(), request_wire);
+
+        let response_wire = json!({
+            "candidates": [{
+                "index": 0,
+                "content": {"role": "model", "parts": [{"text": "Part one"}]},
+                "finishReason": "CONTINUATION",
+                "continuationToken": "ct_opaque_handle"
+            }]
+        });
+        let response: GenerateContentResponse =
+            serde_json::from_value(response_wire.clone()).expect("native Google response");
+        let candidate = &response.candidates.as_ref().unwrap()[0];
+        assert_eq!(
+            candidate.finish_reason,
+            Some(GoogleFinishReason::Continuation)
+        );
+        assert_eq!(
+            candidate.continuation_token.as_deref(),
+            Some("ct_opaque_handle")
+        );
+        assert_eq!(serde_json::to_value(&response).unwrap(), response_wire);
+
+        // The same payloads must not survive a converting path.
+        let adapter = GoogleAdapter;
+        let request_error = adapter.request_to_universal(request_wire).unwrap_err();
+        assert!(
+            request_error.to_string().contains("continuationToken"),
+            "{request_error}"
+        );
+        let response_error = adapter
+            .response_to_universal(response_wire.clone())
+            .unwrap_err();
+        assert!(
+            response_error.to_string().contains("continuationToken"),
+            "{response_error}"
+        );
+        let stream_error = adapter.stream_to_universal(response_wire).unwrap_err();
+        assert!(
+            stream_error.to_string().contains("continuationToken"),
+            "{stream_error}"
+        );
+    }
+
+    #[test]
+    fn test_google_continuation_finish_reason_alone_is_not_a_terminal_turn() {
+        let adapter = GoogleAdapter;
+        let chunk = json!({
+            "candidates": [{
+                "index": 0,
+                "content": {"role": "model", "parts": [{"text": "Part one"}]},
+                "finishReason": "CONTINUATION"
+            }]
+        });
+
+        let error = adapter.stream_to_universal(chunk).unwrap_err();
+        assert!(error.to_string().contains("CONTINUATION"), "{error}");
+    }
+
+    #[test]
+    fn test_google_continuation_request_is_rejected_on_non_passthrough_export() {
+        let adapter = GoogleAdapter;
+        let mut params = UniversalParams::default();
+        params.extras.insert(
+            ProviderFormat::Google,
+            serde_json::from_value(json!({"continuationToken": "ct_opaque_handle"})).unwrap(),
+        );
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Write a long essay.".to_string()),
+            }],
+            params,
+        };
+
+        // request_from_universal rebuilds `contents`, which breaks the byte-identity
+        // contract the continuation token depends on.
+        let error = adapter.request_from_universal(&req).unwrap_err();
+        assert!(error.to_string().contains("continuationToken"), "{error}");
+    }
+
+    #[test]
+    fn test_google_audio_transcription_config_is_rejected_on_request_import() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Transcribe this."}]}],
+            "generationConfig": {
+                "audioTranscriptionConfig": {"diarization": true, "mode": "VERBATIM"}
+            }
+        });
+
+        let error = adapter.request_to_universal(payload).unwrap_err();
+        assert!(
+            error.to_string().contains("audioTranscriptionConfig"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn test_google_voice_config_voice_is_rejected_on_request_import() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Read this aloud."}]}],
+            "generationConfig": {
+                "speechConfig": {"voiceConfig": {"voice": "voicekey_xxx"}}
+            }
+        });
+
+        let error = adapter.request_to_universal(payload).unwrap_err();
+        assert!(error.to_string().contains("voiceConfig.voice"), "{error}");
+    }
+
+    #[test]
+    fn test_google_stream_chunk_with_provider_only_part_is_rejected() {
+        let adapter = GoogleAdapter;
+        let chunk = json!({
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{"audioTranscription": {"text": "hello there"}}]
+                }
+            }]
+        });
+
+        let error = adapter.stream_to_universal(chunk).unwrap_err();
+        assert!(error.to_string().contains("audioTranscription"), "{error}");
     }
 }

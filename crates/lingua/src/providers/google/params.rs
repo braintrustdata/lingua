@@ -23,6 +23,9 @@ pub struct GoogleParams {
     pub model: Option<String>,
     pub contents: Option<Vec<Content>>,
 
+    /// Opaque handle resuming a turn that stopped with `finishReason: CONTINUATION`.
+    pub continuation_token: Option<String>,
+
     // === System prompt ===
     pub system_instruction: Option<Value>,
 
