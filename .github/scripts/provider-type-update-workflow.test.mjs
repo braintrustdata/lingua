@@ -59,7 +59,10 @@ test("only the host inference proxy receives the reusable credential", () => {
 test("all jobs check out the immutable workflow revision without persisted credentials", () => {
   assert.equal(workflow.match(/ref: \$\{\{ github.sha \}\}/g)?.length, 3);
   assert.equal(workflow.match(/persist-credentials: false/g)?.length, 3);
-  assert.match(job("propose"), /if: github.ref == 'refs\/heads\/main'/);
+  assert.match(
+    job("propose"),
+    /if: >-\s+github\.ref == 'refs\/heads\/main' \|\|\s+\(github\.event_name == 'workflow_dispatch' &&\s+github\.ref == 'refs\/heads\/codex\/provider-implementation-efficiency'\)/
+  );
 });
 
 test("publication never executes candidate code and only opens drafts", () => {

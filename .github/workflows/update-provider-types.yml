@@ -79,7 +79,10 @@ jobs:
 
   propose:
     needs: provider_matrix
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/codex/provider-implementation-efficiency')
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:
