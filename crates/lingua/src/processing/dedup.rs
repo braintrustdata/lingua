@@ -137,115 +137,119 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
             "parts".hash(hasher);
             parts.len().hash(hasher);
             for part in parts {
-                match part {
-                    AssistantContentPart::Text(text_part) => {
-                        "text".hash(hasher);
-                        hash_text_content_part(text_part, hasher);
-                    }
-                    AssistantContentPart::File {
-                        data,
-                        filename,
-                        media_type,
-                        ..
-                    } => {
-                        "file".hash(hasher);
-                        data.hash(hasher);
-                        filename.hash(hasher);
-                        media_type.hash(hasher);
-                    }
-                    AssistantContentPart::Reasoning {
-                        text,
-                        encrypted_content,
-                    } => {
-                        "reasoning".hash(hasher);
-                        text.hash(hasher);
-                        encrypted_content.hash(hasher);
-                    }
-                    AssistantContentPart::ToolCall {
-                        tool_call_id,
-                        tool_name,
-                        arguments,
-                        status,
-                        caller,
-                        ..
-                    } => {
-                        "tool_call".hash(hasher);
-                        tool_call_id.hash(hasher);
-                        tool_name.hash(hasher);
-                        status.hash(hasher);
-                        caller.hash(hasher);
-                        // ToolCallArguments doesn't derive Hash, so handle each variant
-                        match arguments {
-                            crate::universal::ToolCallArguments::Valid(map) => {
-                                "valid".hash(hasher);
-                                map.hash(hasher);
-                            }
-                            crate::universal::ToolCallArguments::Invalid(s) => {
-                                "invalid".hash(hasher);
-                                s.hash(hasher);
-                            }
-                            crate::universal::ToolCallArguments::Custom(s) => {
-                                "custom".hash(hasher);
-                                s.hash(hasher);
-                            }
-                        }
-                    }
-                    AssistantContentPart::ToolDiscoveryCall {
-                        tool_call_id,
-                        discovery_tool_name,
-                        query,
-                        arguments,
-                        status,
-                        execution,
-                        ..
-                    } => {
-                        "tool_discovery_call".hash(hasher);
-                        tool_call_id.hash(hasher);
-                        discovery_tool_name.hash(hasher);
-                        query.hash(hasher);
-                        arguments.hash(hasher);
-                        status.hash(hasher);
-                        execution.hash(hasher);
-                    }
-                    AssistantContentPart::ToolResult {
-                        tool_call_id,
-                        tool_name,
-                        output,
-                        caller,
-                        ..
-                    } => {
-                        "tool_result".hash(hasher);
-                        tool_call_id.hash(hasher);
-                        tool_name.hash(hasher);
-                        output.hash(hasher);
-                        caller.hash(hasher);
-                    }
-                    AssistantContentPart::Program {
-                        call_id,
-                        code,
-                        fingerprint,
-                        id,
-                    } => {
-                        "program".hash(hasher);
-                        call_id.hash(hasher);
-                        code.hash(hasher);
-                        fingerprint.hash(hasher);
-                        id.hash(hasher);
-                    }
-                    AssistantContentPart::ProgramOutput {
-                        call_id,
-                        result,
-                        status,
-                        id,
-                    } => {
-                        "program_output".hash(hasher);
-                        call_id.hash(hasher);
-                        result.hash(hasher);
-                        status.hash(hasher);
-                        id.hash(hasher);
-                    }
+                hash_assistant_part(part, hasher);
+            }
+        }
+    }
+}
+
+pub(crate) fn hash_assistant_part(part: &AssistantContentPart, hasher: &mut DefaultHasher) {
+    match part {
+        AssistantContentPart::Text(text_part) => {
+            "text".hash(hasher);
+            hash_text_content_part(text_part, hasher);
+        }
+        AssistantContentPart::File {
+            data,
+            filename,
+            media_type,
+            ..
+        } => {
+            "file".hash(hasher);
+            data.hash(hasher);
+            filename.hash(hasher);
+            media_type.hash(hasher);
+        }
+        AssistantContentPart::Reasoning {
+            text,
+            encrypted_content,
+        } => {
+            "reasoning".hash(hasher);
+            text.hash(hasher);
+            encrypted_content.hash(hasher);
+        }
+        AssistantContentPart::ToolCall {
+            tool_call_id,
+            tool_name,
+            arguments,
+            status,
+            caller,
+            ..
+        } => {
+            "tool_call".hash(hasher);
+            tool_call_id.hash(hasher);
+            tool_name.hash(hasher);
+            status.hash(hasher);
+            caller.hash(hasher);
+            // ToolCallArguments doesn't derive Hash, so handle each variant
+            match arguments {
+                crate::universal::ToolCallArguments::Valid(map) => {
+                    "valid".hash(hasher);
+                    map.hash(hasher);
+                }
+                crate::universal::ToolCallArguments::Invalid(s) => {
+                    "invalid".hash(hasher);
+                    s.hash(hasher);
+                }
+                crate::universal::ToolCallArguments::Custom(s) => {
+                    "custom".hash(hasher);
+                    s.hash(hasher);
                 }
             }
+        }
+        AssistantContentPart::ToolDiscoveryCall {
+            tool_call_id,
+            discovery_tool_name,
+            query,
+            arguments,
+            status,
+            execution,
+            ..
+        } => {
+            "tool_discovery_call".hash(hasher);
+            tool_call_id.hash(hasher);
+            discovery_tool_name.hash(hasher);
+            query.hash(hasher);
+            arguments.hash(hasher);
+            status.hash(hasher);
+            execution.hash(hasher);
+        }
+        AssistantContentPart::ToolResult {
+            tool_call_id,
+            tool_name,
+            output,
+            caller,
+            ..
+        } => {
+            "tool_result".hash(hasher);
+            tool_call_id.hash(hasher);
+            tool_name.hash(hasher);
+            output.hash(hasher);
+            caller.hash(hasher);
+        }
+        AssistantContentPart::Program {
+            call_id,
+            code,
+            fingerprint,
+            id,
+        } => {
+            "program".hash(hasher);
+            call_id.hash(hasher);
+            code.hash(hasher);
+            fingerprint.hash(hasher);
+            id.hash(hasher);
+        }
+        AssistantContentPart::ProgramOutput {
+            call_id,
+            result,
+            status,
+            id,
+        } => {
+            "program_output".hash(hasher);
+            call_id.hash(hasher);
+            result.hash(hasher);
+            status.hash(hasher);
+            id.hash(hasher);
         }
     }
 }
@@ -255,9 +259,23 @@ fn can_normalize_text_part_to_string(part: &TextContentPart) -> bool {
 }
 
 fn hash_text_content_part(part: &TextContentPart, hasher: &mut DefaultHasher) {
-    part.text.hash(hasher);
-    part.encrypted_content.hash(hasher);
-    hash_cache_control(&part.cache_control, hasher);
+    hash_text_fields(
+        &part.text,
+        part.encrypted_content.as_deref(),
+        &part.cache_control,
+        hasher,
+    );
+}
+
+pub(crate) fn hash_text_fields(
+    text: &str,
+    encrypted_content: Option<&str>,
+    cache_control: &Option<CacheControl>,
+    hasher: &mut DefaultHasher,
+) {
+    text.hash(hasher);
+    encrypted_content.hash(hasher);
+    hash_cache_control(cache_control, hasher);
 }
 
 fn hash_cache_control(cache_control: &Option<CacheControl>, hasher: &mut DefaultHasher) {

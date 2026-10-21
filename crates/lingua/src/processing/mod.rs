@@ -1,4 +1,5 @@
 pub mod adapters;
+pub mod borrowed;
 pub mod dedup;
 pub mod import;
 mod json_repair;

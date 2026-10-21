@@ -224,6 +224,12 @@ fn generate_openai_types_with_quicktype(
 
     // Write generated types
     std::fs::write(dest_path, &processed_output)?;
+    let borrowed_status = std::process::Command::new("python3")
+        .arg("scripts/generate_borrowed_responses.py")
+        .status()?;
+    if !borrowed_status.success() {
+        return Err("Borrowed Responses type generation failed".into());
+    }
 
     // Format with cargo fmt
     let _ = std::process::Command::new("cargo")

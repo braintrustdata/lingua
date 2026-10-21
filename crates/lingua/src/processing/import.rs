@@ -1,3 +1,4 @@
+use super::borrowed::{MessageView, SpanRef, TextContent, TextMessage};
 use crate::import_parse::{try_parsers_in_order, MessageParser};
 mod ai_sdk;
 mod langchain;
@@ -80,9 +81,22 @@ pub struct Span {
     pub other: serde_json::Map<String, Value>,
 }
 
-/// Try to convert a value to lingua messages by attempting multiple format conversions
+fn owned_message_views(messages: Vec<Message>) -> Vec<MessageView<'static>> {
+    messages.into_iter().map(MessageView::Owned).collect()
+}
+
 fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<Message> {
-    if let Some(messages) = try_parse_ai_sdk_for_import(data) {
+    try_converting_to_message_views(data, import)
+        .into_iter()
+        .map(MessageView::into_owned)
+        .collect()
+}
+
+fn try_converting_to_message_views<'a>(
+    data: &'a Value,
+    import: &mut MessageImport,
+) -> Vec<MessageView<'a>> {
+    if let Some(messages) = try_parse_ai_sdk_for_import(data).map(owned_message_views) {
         return messages;
     }
 
@@ -92,22 +106,22 @@ fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<M
                 .as_array()
                 .is_some_and(|items| items.iter().any(is_opaque_item)))
     {
-        return try_parse_mixed_messages_for_import(data, import).unwrap_or_default();
+        return try_parse_mixed_message_views_for_import(data, import).unwrap_or_default();
     }
 
-    if let Some(messages) = try_choices_array_parsing(data, import) {
+    if let Some(messages) = try_choices_array_parsing(data, import).map(owned_message_views) {
         return messages;
     }
 
-    if let Some(messages) = try_parse_provider_messages_for_import(data) {
+    if let Some(messages) = try_parse_provider_message_views_for_import(data) {
         return messages;
     }
 
-    if let Some(messages) = try_parse_pydantic_ai_for_import(data) {
+    if let Some(messages) = try_parse_pydantic_ai_for_import(data).map(owned_message_views) {
         return messages;
     }
 
-    if let Some(messages) = try_parse_langchain_for_import(data) {
+    if let Some(messages) = try_parse_langchain_for_import(data).map(owned_message_views) {
         return messages;
     }
 
@@ -142,7 +156,7 @@ fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<M
                 "messages", "prompt", "input", "output", "choices", "result", "response",
             ] {
                 if let Some(nested) = obj.get(key) {
-                    let nested_messages = try_converting_to_messages(nested, import);
+                    let nested_messages = try_converting_to_message_views(nested, import);
                     if !nested_messages.is_empty() {
                         return nested_messages;
                     }
@@ -152,10 +166,14 @@ fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<M
         return Vec::new();
     }
 
-    if let Some(messages) = try_parse_mixed_messages_for_import(data, import) {
+    if let Some(messages) = try_parse_mixed_message_views_for_import(data, import) {
         return messages;
     }
 
+    owned_message_views(try_converting_owned_tail(data, import))
+}
+
+fn try_converting_owned_tail(data: &Value, import: &mut MessageImport) -> Vec<Message> {
     // If data is a single message object (not an array), wrap it in an array for parsing
     let wrapped;
     let data_to_parse = if let Value::Object(obj) = data {
@@ -240,16 +258,21 @@ fn provider_parsers_for_import() -> Vec<MessageParser> {
     ]
 }
 
-fn try_parse_mixed_messages_for_import(
-    data: &Value,
+fn try_parse_mixed_message_views_for_import<'a>(
+    data: &'a Value,
     import: &mut MessageImport,
-) -> Option<Vec<Message>> {
-    let items = data.as_array()?;
-    let provider_parsers = provider_parsers_for_import();
+) -> Option<Vec<MessageView<'a>>> {
+    try_parse_message_view_items_for_import(data.as_array()?.iter(), import)
+}
+
+fn try_parse_message_view_items_for_import<'a>(
+    items: impl IntoIterator<Item = &'a Value>,
+    import: &mut MessageImport,
+) -> Option<Vec<MessageView<'a>>> {
     let mut messages = Vec::new();
     let errors_before = import.errors.len();
 
-    for (index, item) in items.iter().enumerate() {
+    for (index, item) in items.into_iter().enumerate() {
         if import.options.preserve_unsupported && is_opaque_item(item) {
             import.opaque.push(OpaqueItem {
                 index: Some(index),
@@ -261,7 +284,7 @@ fn try_parse_mixed_messages_for_import(
         // Native Anthropic thinking blocks must use the canonical parser so adjacent text
         // metadata survives. Keep the existing parser order for every other role message.
         #[cfg(feature = "anthropic")]
-        let mut parsed_messages = try_parse_anthropic_for_import(item)
+        let parsed_messages = try_parse_anthropic_for_import(item)
             .or_else(|| {
                 let wrapped_item = Value::Array(vec![item.clone()]);
                 try_parse_anthropic_for_import(&wrapped_item)
@@ -279,24 +302,28 @@ fn try_parse_mixed_messages_for_import(
                     )
                 })
             });
+        #[cfg(feature = "anthropic")]
+        let mut parsed_messages = parsed_messages.map(owned_message_views);
         #[cfg(not(feature = "anthropic"))]
         let mut parsed_messages = None;
 
         #[cfg(feature = "openai")]
         if parsed_messages.is_none() {
-            parsed_messages =
-                try_parse_reasoning_assistant_message(item).map(|message| vec![message]);
+            parsed_messages = try_parse_reasoning_assistant_message(item)
+                .map(|message| vec![MessageView::Owned(message)]);
         }
 
         if parsed_messages.is_none() {
-            parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
+            parsed_messages = try_parse_provider_message_views_for_import(item).or_else(|| {
                 let wrapped_item = Value::Array(vec![item.clone()]);
-                try_parsers_in_order(&wrapped_item, &provider_parsers)
+                try_parsers_in_order(&wrapped_item, &provider_parsers_for_import())
+                    .map(owned_message_views)
             });
         }
 
         if parsed_messages.is_none() {
-            parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
+            parsed_messages =
+                parse_lenient_message_item(item).map(|message| vec![MessageView::Owned(message)]);
         }
 
         #[cfg(feature = "openai")]
@@ -304,7 +331,7 @@ fn try_parse_mixed_messages_for_import(
             if let Some((messages, warning)) =
                 try_parse_responses_with_opaque_metadata_for_import(item)
             {
-                parsed_messages = Some(messages);
+                parsed_messages = Some(owned_message_views(messages));
                 import
                     .warnings
                     .push(format!("Message item {index}: {warning}"));
@@ -341,10 +368,22 @@ fn try_parse_mixed_messages_for_import(
     }
 }
 
-fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
-    let provider_parsers = provider_parsers_for_import();
-
-    try_parsers_in_order(data, &provider_parsers)
+fn try_parse_provider_message_views_for_import(data: &Value) -> Option<Vec<MessageView<'_>>> {
+    #[cfg(feature = "openai")]
+    if let Some(messages) =
+        crate::providers::openai::convert::try_parse_openai_borrowed_for_import(data)
+    {
+        return Some(messages);
+    }
+    let parsers: Vec<MessageParser> = vec![
+        #[cfg(feature = "anthropic")]
+        try_parse_anthropic_for_import,
+        #[cfg(feature = "google")]
+        try_parse_google_for_import,
+        #[cfg(feature = "bedrock")]
+        try_parse_bedrock_for_import,
+    ];
+    try_parsers_in_order(data, &parsers).map(owned_message_views)
 }
 
 #[cfg(feature = "anthropic")]
@@ -918,6 +957,15 @@ struct SpanMessages {
 /// convert provider messages into the Lingua format. Best-effort imports also retain
 /// unsupported items separately, without treating them as conversational messages,
 /// and report warnings when imported messages omit provider metadata.
+fn nonempty_span_value(value: &Value) -> bool {
+    match value {
+        Value::Null => false,
+        Value::Array(values) => !values.is_empty(),
+        Value::Object(fields) => !fields.is_empty(),
+        _ => true,
+    }
+}
+
 fn import_span_messages(
     input: Option<Value>,
     output: Option<Value>,
@@ -928,12 +976,6 @@ fn import_span_messages(
     let mut import = MessageImport {
         options,
         ..Default::default()
-    };
-    let nonempty = |value: &Value| match value {
-        Value::Null => false,
-        Value::Array(values) => !values.is_empty(),
-        Value::Object(fields) => !fields.is_empty(),
-        _ => true,
     };
     let parse = |value: Value, field: &str, import: &mut MessageImport| {
         if options.preserve_unsupported && is_opaque_item(&value) {
@@ -969,7 +1011,7 @@ fn import_span_messages(
         }
         messages
     };
-    let mut input = match input.filter(nonempty) {
+    let mut input = match input.filter(nonempty_span_value) {
         Some(Value::String(text)) => vec![Message::User {
             content: UserContent::String(text),
         }],
@@ -977,7 +1019,7 @@ fn import_span_messages(
         None => Vec::new(),
     };
     let opaque_input = std::mem::take(&mut import.opaque);
-    let output = match output.filter(nonempty) {
+    let output = match output.filter(nonempty_span_value) {
         Some(Value::String(text)) if !text.is_empty() => vec![Message::Assistant {
             content: AssistantContent::String(text),
             id: None,
@@ -1039,6 +1081,56 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
             messages.input.into_iter().chain(messages.output)
         })
         .collect()
+}
+
+pub fn import_role_message_refs<'a>(
+    items: impl IntoIterator<Item = &'a Value>,
+) -> Vec<MessageView<'a>> {
+    let mut import = MessageImport {
+        options: ImportOptions {
+            preserve_unsupported: true,
+        },
+        ..Default::default()
+    };
+    try_parse_message_view_items_for_import(items, &mut import).unwrap_or_default()
+}
+
+pub fn import_messages_from_span_refs<'a>(
+    spans: impl IntoIterator<Item = SpanRef<'a>>,
+) -> Vec<MessageView<'a>> {
+    let mut messages = Vec::new();
+    for span in spans {
+        let mut import = MessageImport {
+            options: ImportOptions {
+                preserve_unsupported: true,
+            },
+            ..Default::default()
+        };
+        let mut input = match span.input.filter(|value| nonempty_span_value(value)) {
+            Some(Value::String(text)) => vec![MessageView::Text(TextMessage::User {
+                content: TextContent::String(std::borrow::Cow::Borrowed(text)),
+            })],
+            Some(value) => try_converting_to_message_views(value, &mut import),
+            None => Vec::new(),
+        };
+        if let Some(system) = span.metadata.and_then(import_system_message_from_metadata) {
+            if !input.iter().any(MessageView::is_system) {
+                input.insert(0, MessageView::Owned(system));
+            }
+        }
+        messages.extend(input);
+        match span.output.filter(|value| nonempty_span_value(value)) {
+            Some(Value::String(text)) if !text.is_empty() => {
+                messages.push(MessageView::Text(TextMessage::Assistant {
+                    content: TextContent::String(std::borrow::Cow::Borrowed(text)),
+                    id: None,
+                }))
+            }
+            Some(Value::String(_)) | None => {}
+            Some(value) => messages.extend(try_converting_to_message_views(value, &mut import)),
+        }
+    }
+    messages
 }
 
 /// Import and deduplicate messages from spans in a single operation

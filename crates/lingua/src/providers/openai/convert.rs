@@ -1421,6 +1421,10 @@ pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Ve
         }
     }
 
+    try_parse_openai_after_chat(data)
+}
+
+fn try_parse_openai_after_chat(data: &serde_json::Value) -> Option<Vec<Message>> {
     if let Some(messages) = try_parse_responses_items_for_import(data) {
         return Some(messages);
     }
@@ -1447,6 +1451,266 @@ pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Ve
     }
 
     None
+}
+
+pub(crate) fn try_parse_openai_borrowed_for_import(
+    data: &serde_json::Value,
+) -> Option<Vec<crate::processing::borrowed::MessageView<'_>>> {
+    use crate::processing::borrowed::MessageView;
+    if let Some(messages) = try_borrow_chat_text(data) {
+        return Some(messages);
+    }
+    if let Some(provider_messages) =
+        try_parse_vec_or_single::<ChatCompletionRequestMessageExt>(data)
+    {
+        if let Some(messages) = try_convert_non_empty(provider_messages) {
+            return Some(
+                merge_adjacent_reasoning_assistant_messages(messages)
+                    .into_iter()
+                    .map(MessageView::Owned)
+                    .collect(),
+            );
+        }
+    }
+    if let Some(messages) = try_borrow_responses_text(data) {
+        return Some(messages);
+    }
+    try_parse_openai_after_chat(data)
+        .map(|messages| messages.into_iter().map(MessageView::Owned).collect())
+}
+
+fn try_borrow_responses_text(
+    data: &serde_json::Value,
+) -> Option<Vec<crate::processing::borrowed::MessageView<'_>>> {
+    use crate::processing::borrowed::{MessageView, TextContent, TextMessage, TextPart};
+    let items = match data {
+        serde_json::Value::Array(items) => items.as_slice(),
+        serde_json::Value::Object(_) => std::slice::from_ref(data),
+        _ => return None,
+    };
+    let mut messages = Vec::new();
+    let mut owned_start = 0;
+    for (index, value) in items.iter().enumerate() {
+        if let Some(message) = try_borrow_responses_text_item(value) {
+            append_owned_responses_items(&items[owned_start..index], &mut messages)?;
+            messages.push(MessageView::Text(message));
+            owned_start = index + 1;
+        }
+    }
+    append_owned_responses_items(&items[owned_start..], &mut messages)?;
+    let mut result: Vec<MessageView<'_>> = Vec::with_capacity(messages.len());
+    for message in messages {
+        let merge =
+            result.last().is_some_and(MessageView::is_reasoning_only) && message.is_assistant();
+        if merge {
+            let Some(TextMessage::Assistant {
+                content: TextContent::Array(mut parts),
+                id,
+            }) = result.pop().and_then(MessageView::into_text_assistant)
+            else {
+                unreachable!()
+            };
+            let TextMessage::Assistant {
+                content,
+                id: next_id,
+            } = message.into_text_assistant()?
+            else {
+                unreachable!()
+            };
+            match content {
+                TextContent::Array(next) => parts.extend(next),
+                TextContent::String(text) => parts.push(TextPart::Text {
+                    text,
+                    cache_control: None,
+                    provider_options: None,
+                }),
+            }
+            result.push(MessageView::Text(TextMessage::Assistant {
+                content: TextContent::Array(parts),
+                id: next_id.or(id),
+            }));
+        } else {
+            result.push(message);
+        }
+    }
+
+    if result.is_empty() {
+        return None;
+    }
+    for message in &mut result {
+        if let MessageView::Text(TextMessage::Assistant {
+            content: TextContent::Array(parts),
+            ..
+        }) = message
+        {
+            parts.shrink_to_fit();
+        }
+    }
+    result.shrink_to_fit();
+    Some(result)
+}
+
+fn append_owned_responses_items<'a>(
+    items: &'a [serde_json::Value],
+    messages: &mut Vec<crate::processing::borrowed::MessageView<'a>>,
+) -> Option<()> {
+    let parsed = items.iter().map(|value| {
+        openai::InputItem::deserialize(value).map_err(|error| {
+            ConvertError::ContentConversionFailed {
+                reason: error.to_string(),
+            }
+        })
+    });
+    let owned =
+        <Vec<Message> as TryFromLLM<ResponsesInputItems<_>>>::try_from(ResponsesInputItems(parsed))
+            .ok()?;
+    messages.extend(
+        owned
+            .into_iter()
+            .map(crate::processing::borrowed::MessageView::Owned),
+    );
+    Some(())
+}
+
+fn try_borrow_responses_text_item(
+    value: &serde_json::Value,
+) -> Option<crate::processing::borrowed::TextMessage<'_>> {
+    use super::borrowed_generated as borrowed;
+    use crate::processing::borrowed::{TextContent, TextMessage, TextPart};
+    use std::borrow::Cow;
+    let probe = OpaqueItemTypeProbe::deserialize(value).ok()?;
+    if !matches!(
+        probe.item_type,
+        None | Some(openai::InputItemType::Message | openai::InputItemType::Reasoning)
+    ) {
+        return None;
+    }
+    let mut input = borrowed::InputItem::deserialize(value).ok()?;
+    let message = match input.input_item_type {
+        Some(openai::InputItemType::Reasoning) => {
+            let mut first = true;
+            let mut parts = Vec::new();
+            for summary in input.summary.unwrap_or_default() {
+                parts.push(TextPart::Reasoning {
+                    text: summary.text.0,
+                    encrypted_content: if first {
+                        first = false;
+                        input.encrypted_content.take().map(|text| text.0)
+                    } else {
+                        None
+                    },
+                });
+            }
+            if parts.is_empty() {
+                parts.push(TextPart::Reasoning {
+                    text: Cow::Borrowed(""),
+                    encrypted_content: input.encrypted_content.take().map(|text| text.0),
+                });
+            }
+            TextMessage::Assistant {
+                content: TextContent::Array(parts),
+                id: input.id.map(|text| text.0),
+            }
+        }
+        None | Some(openai::InputItemType::Message) => {
+            let role = input.role?;
+            let is_assistant = role == openai::InputItemRole::Assistant;
+            let content = match input.content? {
+                borrowed::InputItemContent::String(text) => TextContent::String(text.0),
+                borrowed::InputItemContent::InputContentArray(parts) => {
+                    let mut content = Vec::with_capacity(parts.len());
+                    for part in parts {
+                        if !matches!(
+                            part.input_content_type,
+                            openai::InputItemContentListType::InputText
+                                | openai::InputItemContentListType::OutputText
+                        ) {
+                            return None;
+                        }
+                        let provider_options = if is_assistant {
+                            responses_text_provider_options(&part.annotations, &part.logprobs)
+                                .ok()?
+                        } else {
+                            None
+                        };
+                        content.push(TextPart::Text {
+                            text: part.text?.0,
+                            cache_control: cache_control_from_responses_prompt_cache_breakpoint(
+                                part.prompt_cache_breakpoint.as_ref(),
+                            ),
+                            provider_options,
+                        });
+                    }
+                    TextContent::Array(content)
+                }
+            };
+            match role {
+                openai::InputItemRole::System => TextMessage::System { content },
+                openai::InputItemRole::Developer => TextMessage::Developer { content },
+                openai::InputItemRole::User => TextMessage::User { content },
+                openai::InputItemRole::Assistant => TextMessage::Assistant {
+                    content,
+                    id: input.id.map(|text| text.0),
+                },
+            }
+        }
+        _ => return None,
+    };
+    Some(message)
+}
+
+fn try_borrow_chat_text(
+    data: &serde_json::Value,
+) -> Option<Vec<crate::processing::borrowed::MessageView<'_>>> {
+    use super::borrowed_generated as borrowed;
+    use crate::processing::borrowed::{MessageView, TextContent, TextMessage, TextPart};
+    let items = match data {
+        serde_json::Value::Array(items) => items.as_slice(),
+        serde_json::Value::Object(_) => std::slice::from_ref(data),
+        _ => return None,
+    };
+    let mut result = Vec::with_capacity(items.len());
+    for value in items {
+        let input = borrowed::ChatCompletionRequestMessageExt::deserialize(value).ok()?;
+        let borrowed::ChatCompletionRequestMessageContentExt::String(text) = input.content? else {
+            return None;
+        };
+        let text = text.0;
+        let has_cache_control = input.cache_control.is_some();
+        let cache_control = cache_control_from_value(input.cache_control);
+        let is_assistant = input.role == openai::ChatCompletionRequestMessageRole::Assistant;
+        if is_assistant
+            && (input.reasoning.is_some()
+                || input.reasoning_signature.is_some()
+                || input.tool_calls.is_some())
+        {
+            return None;
+        }
+        let content = if (is_assistant && cache_control.is_some() && !text.is_empty())
+            || (!is_assistant && has_cache_control)
+        {
+            TextContent::Array(vec![TextPart::Text {
+                text,
+                cache_control,
+                provider_options: None,
+            }])
+        } else {
+            TextContent::String(text)
+        };
+        let message = match input.role {
+            openai::ChatCompletionRequestMessageRole::System => TextMessage::System { content },
+            openai::ChatCompletionRequestMessageRole::Developer => {
+                TextMessage::Developer { content }
+            }
+            openai::ChatCompletionRequestMessageRole::User => TextMessage::User { content },
+            openai::ChatCompletionRequestMessageRole::Assistant => {
+                TextMessage::Assistant { content, id: None }
+            }
+            _ => return None,
+        };
+        result.push(MessageView::Text(message));
+    }
+    (!result.is_empty()).then_some(result)
 }
 
 /// Convert OpenAI InputItem collection to universal Message collection
@@ -2312,6 +2576,44 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
     }
 }
 
+fn responses_text_provider_options(
+    annotations: &Option<Vec<openai::Annotation>>,
+    logprobs: &Option<Vec<openai::LogProbability>>,
+) -> Result<Option<crate::universal::ProviderOptions>, ConvertError> {
+    let mut options = serde_json::Map::new();
+    if let Some(annotations) = annotations {
+        if !annotations.is_empty() {
+            options.insert(
+                "annotations".to_string(),
+                serde_json::to_value(annotations).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "annotations".to_string(),
+                        error: e.to_string(),
+                    }
+                })?,
+            );
+        }
+    }
+    if let Some(logprobs) = logprobs {
+        if !logprobs.is_empty() {
+            options.insert(
+                "logprobs".to_string(),
+                serde_json::to_value(logprobs).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "logprobs".to_string(),
+                        error: e.to_string(),
+                    }
+                })?,
+            );
+        }
+    }
+    if options.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(crate::universal::message::ProviderOptions { options }))
+    }
+}
+
 impl TryFromLLM<openai::InputContent> for AssistantContentPart {
     type Error = ConvertError;
 
@@ -2323,40 +2625,8 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
                 // Build provider_options to preserve annotations and logprobs
-                let provider_options = {
-                    let mut options = serde_json::Map::new();
-                    if let Some(annotations) = &value.annotations {
-                        if !annotations.is_empty() {
-                            options.insert(
-                                "annotations".to_string(),
-                                serde_json::to_value(annotations).map_err(|e| {
-                                    ConvertError::JsonSerializationFailed {
-                                        field: "annotations".to_string(),
-                                        error: e.to_string(),
-                                    }
-                                })?,
-                            );
-                        }
-                    }
-                    if let Some(logprobs) = &value.logprobs {
-                        if !logprobs.is_empty() {
-                            options.insert(
-                                "logprobs".to_string(),
-                                serde_json::to_value(logprobs).map_err(|e| {
-                                    ConvertError::JsonSerializationFailed {
-                                        field: "logprobs".to_string(),
-                                        error: e.to_string(),
-                                    }
-                                })?,
-                            );
-                        }
-                    }
-                    if options.is_empty() {
-                        None
-                    } else {
-                        Some(crate::universal::message::ProviderOptions { options })
-                    }
-                };
+                let provider_options =
+                    responses_text_provider_options(&value.annotations, &value.logprobs)?;
 
                 AssistantContentPart::Text(TextContentPart {
                     text: value

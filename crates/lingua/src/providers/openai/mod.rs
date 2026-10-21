@@ -7,6 +7,7 @@ OpenAI OpenAPI specification.
 */
 
 pub mod adapter;
+pub(crate) mod borrowed_generated;
 pub mod capabilities;
 pub mod convert;
 pub mod detect;
