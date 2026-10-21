@@ -42,10 +42,6 @@ pub struct GoogleParams {
     // === Service tier ===
     pub service_tier: Option<ServiceTier>,
 
-    // === Provider-only request state ===
-    pub continuation_token: Option<String>,
-    pub labels: Option<BTreeMap<String, String>>,
-
     /// Unknown fields - automatically captured by serde flatten.
     /// These are provider-specific fields not in the canonical set.
     #[serde(flatten)]

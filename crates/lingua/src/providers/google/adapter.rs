@@ -16,14 +16,11 @@ use crate::providers::google::capabilities::{
     effort_to_thinking_level, supports_disabling_thinking, thinking_level_to_effort,
     GoogleCapabilities, GoogleThinkingStyle,
 };
-use crate::providers::google::convert::{
-    reject_google_provider_only_part, SYNTHETIC_CALL_ID_PREFIX,
-};
+use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
-    Candidate, Content as GoogleContent, FinishReason as GoogleFinishReason,
-    GenerateContentResponse, GenerationConfig, ServiceTier, ThinkingConfig, ThinkingLevel,
-    Tool as GoogleTool, ToolConfig, UsageMetadata,
+    Content as GoogleContent, GenerateContentResponse, GenerationConfig, ServiceTier,
+    ThinkingConfig, ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
@@ -61,72 +58,6 @@ fn validate_system_messages_have_no_audio(messages: &[Message]) -> Result<(), Tr
         ));
     }
 
-    Ok(())
-}
-
-fn unsupported_google_field(field: &str, to: &'static str) -> TransformError {
-    TransformError::ToUniversalFailed(
-        ConvertError::UnsupportedMapping {
-            from: format!("Google {field}"),
-            to,
-        }
-        .to_string(),
-    )
-}
-
-/// Rejects provider-only request fields that have no provider-neutral meaning.
-fn reject_google_provider_only_request(params: &GoogleParams) -> Result<(), TransformError> {
-    const TARGET: &str = "Lingua universal request";
-    if params.continuation_token.is_some() {
-        return Err(unsupported_google_field("continuationToken", TARGET));
-    }
-    if params.labels.is_some() {
-        return Err(unsupported_google_field("labels", TARGET));
-    }
-    if let Some(config) = &params.generation_config {
-        if config.audio_transcription_config.is_some() {
-            return Err(unsupported_google_field(
-                "generationConfig.audioTranscriptionConfig",
-                TARGET,
-            ));
-        }
-        if let Some(speech) = &config.speech_config {
-            let speaker_voices = speech
-                .multi_speaker_voice_config
-                .iter()
-                .flat_map(|multi| multi.speaker_voice_configs.iter().flatten())
-                .filter_map(|speaker| speaker.voice_config.as_ref());
-            if speech
-                .voice_config
-                .iter()
-                .chain(speaker_voices)
-                .any(|voice| voice.voice.is_some())
-            {
-                return Err(unsupported_google_field(
-                    "generationConfig.speechConfig voiceConfig.voice",
-                    TARGET,
-                ));
-            }
-        }
-    }
-    Ok(())
-}
-
-/// Rejects provider-only candidate state such as opaque continuation tokens.
-fn reject_google_provider_only_candidate(candidate: &Candidate) -> Result<(), TransformError> {
-    const TARGET: &str = "Lingua universal response";
-    if candidate.continuation_token.is_some() {
-        return Err(unsupported_google_field("continuationToken", TARGET));
-    }
-    if matches!(
-        candidate.finish_reason,
-        Some(GoogleFinishReason::Continuation)
-    ) {
-        return Err(unsupported_google_field(
-            "finishReason CONTINUATION",
-            TARGET,
-        ));
-    }
     Ok(())
 }
 
@@ -231,7 +162,6 @@ impl ProviderAdapter for GoogleAdapter {
         // Single parse: typed params now includes typed contents and generation_config
         let typed_params: GoogleParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-        reject_google_provider_only_request(&typed_params)?;
 
         let model = typed_params.model.clone();
 
@@ -638,7 +568,6 @@ impl ProviderAdapter for GoogleAdapter {
         let mut finish_reasons = Vec::new();
 
         for candidate in response.candidates.iter().flatten() {
-            reject_google_provider_only_candidate(candidate)?;
             if let Some(content) = &candidate.content {
                 let universal = <Message as TryFromLLM<GoogleContent>>::try_from(content.clone())
                     .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -802,16 +731,11 @@ impl ProviderAdapter for GoogleAdapter {
         let mut choices = Vec::new();
 
         for candidate in candidates {
-            reject_google_provider_only_candidate(&candidate)?;
             let index = candidate.index.unwrap_or(0) as u32;
             let parts = candidate
                 .content
                 .and_then(|content| content.parts)
                 .unwrap_or_default();
-            for part in &parts {
-                reject_google_provider_only_part(part)
-                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-            }
 
             let mut text_segments = Vec::new();
             let mut reasoning = Vec::new();
@@ -2381,209 +2305,5 @@ mod tests {
             .expect("placeholder candidate should be present");
         assert_eq!(candidates.len(), 1);
         assert!(typed.usage_metadata.is_some());
-    }
-
-    fn assert_unsupported_mapping(error: TransformError, field: &str) {
-        let TransformError::ToUniversalFailed(reason) = error else {
-            panic!("expected a to-universal failure, got {error:?}");
-        };
-        assert!(reason.contains("Unsupported mapping"), "{reason}");
-        assert!(reason.contains(field), "{reason}");
-    }
-
-    /// Asserts that native Google payloads pass through byte-for-byte while the
-    /// adapter refuses to convert them to universal form.
-    fn assert_google_provider_only_passthrough(
-        request: Option<Value>,
-        response: Option<Value>,
-        field: &str,
-    ) {
-        use crate::processing::transform::{
-            transform_request, transform_response, transform_stream_chunk, TransformResult,
-        };
-        use bytes::Bytes;
-
-        let adapter = GoogleAdapter;
-        if let Some(request) = request {
-            let bytes = Bytes::from(serde_json::to_vec(&request).unwrap());
-            let result = transform_request(bytes.clone(), ProviderFormat::Google, None).unwrap();
-            assert!(matches!(result.result, TransformResult::PassThrough(ref b) if *b == bytes));
-            assert_unsupported_mapping(adapter.request_to_universal(request).unwrap_err(), field);
-        }
-        if let Some(response) = response {
-            let bytes = Bytes::from(serde_json::to_vec(&response).unwrap());
-            let result = transform_response(bytes.clone(), ProviderFormat::Google).unwrap();
-            assert!(matches!(result.result, TransformResult::PassThrough(ref b) if *b == bytes));
-            let chunk = transform_stream_chunk(bytes.clone(), ProviderFormat::Google).unwrap();
-            assert!(matches!(chunk, TransformResult::PassThrough(ref b) if *b == bytes));
-            assert_unsupported_mapping(
-                adapter.response_to_universal(response.clone()).unwrap_err(),
-                field,
-            );
-            assert_unsupported_mapping(adapter.stream_to_universal(response).unwrap_err(), field);
-        }
-    }
-
-    #[test]
-    fn test_google_continuation_token_native_passthrough() {
-        assert_google_provider_only_passthrough(
-            Some(json!({
-                "contents": [{"role": "user", "parts": [{"text": "Continue"}]}],
-                "continuationToken": "opaque"
-            })),
-            None,
-            "continuationToken",
-        );
-        assert_google_provider_only_passthrough(
-            None,
-            Some(json!({
-                "candidates": [{
-                    "index": 0,
-                    "content": {"role": "model", "parts": [{"text": "Partial"}]},
-                    "continuationToken": "opaque"
-                }]
-            })),
-            "continuationToken",
-        );
-        assert_google_provider_only_passthrough(
-            None,
-            Some(json!({
-                "candidates": [{
-                    "index": 0,
-                    "content": {"role": "model", "parts": [{"text": "Partial"}]},
-                    "finishReason": "CONTINUATION"
-                }]
-            })),
-            "CONTINUATION",
-        );
-    }
-
-    #[test]
-    fn test_google_request_labels_native_passthrough() {
-        assert_google_provider_only_passthrough(
-            Some(json!({
-                "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
-                "labels": {"team": "search"}
-            })),
-            None,
-            "labels",
-        );
-    }
-
-    #[test]
-    fn test_google_audio_transcription_native_passthrough() {
-        assert_google_provider_only_passthrough(
-            Some(json!({
-                "contents": [{"role": "user", "parts": [{"text": "Transcribe"}]}],
-                "generationConfig": {"audioTranscriptionConfig": {"diarization": true}}
-            })),
-            None,
-            "audioTranscriptionConfig",
-        );
-        assert_google_provider_only_passthrough(
-            Some(json!({
-                "contents": [{"role": "user", "parts": [{"text": "Hi"}]}, {
-                    "role": "model",
-                    "parts": [{"audioTranscription": {"text": "Hello"}}]
-                }]
-            })),
-            Some(json!({
-                "candidates": [{
-                    "index": 0,
-                    "content": {
-                        "role": "model",
-                        "parts": [{"audioTranscription": {"text": "Hello"}}]
-                    }
-                }]
-            })),
-            "audioTranscription",
-        );
-    }
-
-    #[test]
-    fn test_google_media_processing_native_passthrough() {
-        assert_google_provider_only_passthrough(
-            Some(json!({
-                "contents": [{
-                    "role": "user",
-                    "parts": [{
-                        "fileData": {"fileUri": "gs://b/v.mp4", "mimeType": "video/mp4"},
-                        "mediaProcessing": "AGENTIC"
-                    }]
-                }]
-            })),
-            Some(json!({
-                "candidates": [{
-                    "index": 0,
-                    "content": {
-                        "role": "model",
-                        "parts": [{
-                            "inlineData": {"mimeType": "video/mp4", "data": "AAAA"},
-                            "mediaProcessing": "STATIC"
-                        }]
-                    }
-                }]
-            })),
-            "mediaProcessing",
-        );
-    }
-
-    #[test]
-    fn test_google_speech_metadata_native_passthrough() {
-        assert_google_provider_only_passthrough(
-            Some(json!({
-                "contents": [{"role": "user", "parts": [{"text": "Read aloud"}]}],
-                "generationConfig": {
-                    "speechConfig": {"voiceConfig": {"voice": "voice_abc"}}
-                }
-            })),
-            None,
-            "voice",
-        );
-        assert_google_provider_only_passthrough(
-            Some(json!({
-                "contents": [{
-                    "role": "user",
-                    "parts": [{"text": "Hi", "speechMetadata": {"speaker": "Joe"}}]
-                }]
-            })),
-            Some(json!({
-                "candidates": [{
-                    "index": 0,
-                    "content": {
-                        "role": "model",
-                        "parts": [{"text": "Hi", "speechMetadata": {"style": "calm"}}]
-                    }
-                }]
-            })),
-            "speechMetadata",
-        );
-    }
-
-    #[test]
-    fn test_google_server_tool_call_native_passthrough() {
-        let part = json!({
-            "toolCall": {
-                "id": "srv_1",
-                "toolType": "GOOGLE_SEARCH_WEB",
-                "toolName": "google_search",
-                "args": {"query": "news"}
-            }
-        });
-        assert_google_provider_only_passthrough(
-            Some(json!({
-                "contents": [
-                    {"role": "user", "parts": [{"text": "News?"}]},
-                    {"role": "model", "parts": [part.clone()]}
-                ]
-            })),
-            Some(json!({
-                "candidates": [{
-                    "index": 0,
-                    "content": {"role": "model", "parts": [part]}
-                }]
-            })),
-            "toolCall",
-        );
     }
 }

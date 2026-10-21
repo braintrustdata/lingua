@@ -197,22 +197,6 @@
   ],
   "perTestCase": [
     {
-      "testCase": "chatCompletionsFileFilenameToGoogleDisplayNameParam",
-      "source": "*",
-      "target": "Anthropic",
-      "errors": [
-        { "pattern": "Lingua file filename to Anthropic document input", "reason": "Anthropic document titles have no lossless filename contract; named files are explicitly unsupported" }
-      ]
-    },
-    {
-      "testCase": "chatCompletionsFileFilenameToGoogleDisplayNameParam",
-      "source": "*",
-      "target": "Bedrock",
-      "errors": [
-        { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
-      ]
-    },
-    {
       "testCase": "outputFormatJsonSchemaParam",
       "source": "Anthropic",
       "target": "Anthropic",
@@ -1520,6 +1504,14 @@
     {
       "testCase": "chatCompletionsUrlBackedAudioFileParam",
       "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].filename", "reason": "Google fileData has no filename field; it preserves the remote URI and inferred audio MIME type" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedAudioFileParam",
+      "source": "ChatCompletions",
       "target": "Responses",
       "errors": [
         { "pattern": "Lingua file content with MIME type audio/mp3 to OpenAI Responses input_file", "reason": "OpenAI Responses input_file does not support audio files" }
@@ -1544,6 +1536,14 @@
     {
       "testCase": "chatCompletionsUrlBackedVideoFileParam",
       "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].filename", "reason": "Google fileData has no filename field; it preserves the remote URI and inferred video MIME type" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedVideoFileParam",
+      "source": "ChatCompletions",
       "target": "Responses",
       "errors": [
         { "pattern": "Lingua file content with MIME type video/mp4 to OpenAI Responses input_file", "reason": "OpenAI Responses input_file does not support video files" }
@@ -1563,6 +1563,14 @@
       "target": "Bedrock",
       "errors": [
         { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].filename", "reason": "Google fileData has no filename field; it preserves the GCS URI and inferred video MIME type for Vertex" }
       ]
     },
     {

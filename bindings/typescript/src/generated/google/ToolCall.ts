@@ -23,10 +23,6 @@ args: unknown,
  */
 id: string | null, 
 /**
- * Optional. The name of the tool that was called.
- */
-toolName: string | null, 
-/**
  * Required. The type of tool that was called.
  */
 toolType: ToolType | null, };
