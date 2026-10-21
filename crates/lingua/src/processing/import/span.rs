@@ -19,6 +19,7 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "request_kind",
     "compaction",
     "turn.id",
+    "links",
     "audio.selections",
     "contrib.livekit.interrupted",
 ];
@@ -95,10 +96,33 @@ impl VoiceKind {
 pub struct VoiceContext {
     pub kind: Option<VoiceKind>,
     pub turn_id: Option<String>,
+    #[serde(default)]
+    pub links: Vec<SpanLink>,
     pub interrupted: Option<bool>,
     pub selections: Option<Vec<SelectionMetadata>>,
     #[serde(default)]
     pub errors: Vec<String>,
+}
+
+/// A `metadata.links` entry: a relationship from this span to another logged span.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpanLink {
+    pub attributes: SpanLinkAttributes,
+    pub context: SpanLinkContext,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpanLinkAttributes {
+    #[serde(rename = "braintrust.relationship.type")]
+    pub relationship: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpanLinkContext {
+    #[serde(rename = "spanId")]
+    pub span_id: String,
+    #[serde(rename = "traceId")]
+    pub trace_id: Option<String>,
 }
 
 /// An `audio.selections` entry: offsets into a recording described by `recording_span_id`.
@@ -201,6 +225,7 @@ struct Metadata {
     compaction: Option<json::Value>,
     #[serde(rename = "turn.id")]
     voice_turn_id: Option<json::Value>,
+    links: Option<json::Value>,
     #[serde(rename = "audio.selections")]
     audio_selections: Option<json::Value>,
     #[serde(rename = "contrib.livekit.interrupted")]
@@ -260,6 +285,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             source.span_attributes.name.as_deref(),
         ),
         turn_id: metadata_field(metadata.voice_turn_id, "turn.id", &mut voice_errors),
+        links: metadata_field(metadata.links, "links", &mut voice_errors).unwrap_or_default(),
         interrupted: metadata_field(
             metadata.livekit_interrupted,
             "contrib.livekit.interrupted",

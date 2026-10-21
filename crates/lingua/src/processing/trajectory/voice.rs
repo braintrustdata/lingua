@@ -1,6 +1,6 @@
 use super::PreparedSpan;
 use crate::processing::import::{Speaker, VoiceKind};
-use crate::universal::trajectory::{AudioSelection, Utterance, Voice, VoiceTurn};
+use crate::universal::trajectory::{AudioSelection, Link, Utterance, Voice, VoiceTurn};
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, UserContent, UserContentPart,
 };
@@ -81,6 +81,32 @@ fn build_root(spans: &[PreparedSpan], indices: &[usize]) -> Option<VoiceBuild> {
                 span_id: span.id.clone(),
                 message,
             }),
+        }
+    }
+    let root = &spans[indices[0]].root_span_id;
+    let mut links = Vec::new();
+    for &index in &indices {
+        let span = &spans[index];
+        for link in &span.source.voice.links {
+            let target = &link.context;
+            let in_trace = target
+                .trace_id
+                .as_ref()
+                .is_none_or(|trace_id| trace_id == root);
+            match by_span_id.get(target.span_id.as_str()).filter(|_| in_trace) {
+                Some(&to) => links.push(Link {
+                    from: span.id.clone(),
+                    relationship: link.attributes.relationship.clone(),
+                    to: spans[to].id.clone(),
+                }),
+                None => warnings.push(VoiceWarning {
+                    span_id: span.id.clone(),
+                    message: format!(
+                        "Unresolved {} link to span {}",
+                        link.attributes.relationship, target.span_id
+                    ),
+                }),
+            }
         }
     }
     let mut utterances = Vec::new();
@@ -174,7 +200,7 @@ fn build_root(spans: &[PreparedSpan], indices: &[usize]) -> Option<VoiceBuild> {
             recordings: Vec::new(),
             utterances,
             turns,
-            links: Vec::new(),
+            links,
         },
         warnings,
     })
