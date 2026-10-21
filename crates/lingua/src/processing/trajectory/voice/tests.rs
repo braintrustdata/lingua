@@ -1,6 +1,7 @@
 use super::*;
 use crate::processing::import::{import_span, Span};
 use crate::serde_json::{self as json, json, Value};
+use crate::universal::trajectory::Link;
 use serde::Deserialize;
 
 fn fixture_spans(fixture: &str) -> Vec<Span> {
@@ -343,6 +344,105 @@ fn explicit_audio_selections_keep_recording_and_channel_offsets() {
         .utterances
         .iter()
         .all(|utterance| utterance.audio.is_empty()));
+}
+
+#[test]
+fn links_resolve_to_model_request_response_and_work_rows() {
+    let spans = cascade();
+    let build = build_one(&spans);
+    let links = &build.voice.links;
+    let targets = |from: &str, relationship: &str| -> Vec<&str> {
+        links
+            .iter()
+            .filter(|link| link.from == from && link.relationship == relationship)
+            .map(|link| link.to.as_str())
+            .collect()
+    };
+    assert_eq!(targets("r-u1-b", "transcribed_by"), ["r-stt1a", "r-stt1b"]);
+    assert_eq!(targets("r-tool1", "requested_by"), ["r-llm1"]);
+    assert_eq!(targets("r-a1-speech", "generated_by"), ["r-llm2"]);
+    assert_eq!(targets("r-llm2", "consumes_tool_result"), ["r-tool1"]);
+    assert_eq!(
+        targets("r-llm3", "input_context"),
+        ["r-u1-a", "r-a1-speech", "r-u2-a"]
+    );
+    assert!(build.warnings.is_empty(), "{:?}", build.warnings);
+
+    let trajectories = super::super::assemble(
+        &spans
+            .iter()
+            .cloned()
+            .map(|span| import_span(span).unwrap())
+            .collect::<Vec<_>>(),
+        &[],
+        false,
+    )
+    .unwrap();
+    let mut model_ids = std::collections::HashSet::new();
+    for turn in &trajectories[0].turns {
+        model_ids.insert(turn.request_id.clone());
+        model_ids.extend(turn.response_id.clone());
+        model_ids.extend(turn.work.iter().map(|step| step.id.clone()));
+    }
+    let model_row = |id: &str| id.starts_with("r-llm") || id.starts_with("r-tool");
+    let linked = links.iter().map(|link| link.to.as_str());
+    let owned = build
+        .voice
+        .turns
+        .iter()
+        .flat_map(|turn| turn.step_ids.iter().map(String::as_str));
+    for id in linked.chain(owned).filter(|id| model_row(id)) {
+        assert!(
+            model_ids.contains(id),
+            "{id} is not a model/tool row in Trajectory.turns"
+        );
+    }
+    let requests: Vec<_> = trajectories[0]
+        .turns
+        .iter()
+        .map(|turn| turn.request_id.as_str())
+        .collect();
+    assert!(requests.contains(&"r-llm1"));
+}
+
+#[test]
+fn unresolved_links_are_reported_not_kept() {
+    let spans = spans(vec![
+        span_json("session", "session", "task", None, 0.0, json!({})),
+        span_json(
+            "speech",
+            "user_speech",
+            "task",
+            Some("session"),
+            1.0,
+            json!({"links": [
+                {"attributes": {"braintrust.relationship.type": "transcribed_by"}, "context": {"spanId": "s-missing", "traceId": "s-session"}},
+                {"attributes": {"braintrust.relationship.type": "transcribed_by"}, "context": {"spanId": "s-session", "traceId": "other-trace"}},
+                {"attributes": {"braintrust.relationship.type": "input_context"}, "context": {"spanId": "s-session"}},
+            ]}),
+        ),
+    ]);
+    let build = build_one(&spans);
+    assert_eq!(
+        build.voice.links,
+        [Link {
+            from: "r-speech".to_string(),
+            relationship: "input_context".to_string(),
+            to: "r-session".to_string(),
+        }]
+    );
+    let messages: Vec<_> = build
+        .warnings
+        .iter()
+        .map(|warning| warning.message.as_str())
+        .collect();
+    assert_eq!(
+        messages,
+        [
+            "Unresolved transcribed_by link to span s-missing",
+            "Unresolved transcribed_by link to span s-session",
+        ]
+    );
 }
 
 #[test]
