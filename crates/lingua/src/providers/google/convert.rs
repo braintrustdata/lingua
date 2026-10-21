@@ -51,6 +51,122 @@ struct GoogleAssistantPartProviderOptions {
 }
 
 // ============================================================================
+// Provider-only semantics
+// ============================================================================
+
+/// Target named by every provider-only rejection below.
+const UNIVERSAL_TARGET: &str = "the universal message format";
+
+fn unsupported_google_semantic(from: &str) -> ConvertError {
+    ConvertError::UnsupportedMapping {
+        from: from.to_string(),
+        to: UNIVERSAL_TARGET,
+    }
+}
+
+/// Reject parts carrying semantics owned by Google's own execution stack.
+///
+/// These fields are modeled natively and survive same-format passthrough
+/// byte-for-byte. They have no provider-neutral meaning, so every transforming
+/// path must stop here instead of dropping the field or downgrading the part.
+pub(super) fn validate_part_is_portable(part: &GooglePart) -> Result<(), ConvertError> {
+    if part.audio_transcription.is_some() {
+        return Err(unsupported_google_semantic(
+            "Google `audioTranscription` part (hosted speech-recognition output with speaker labels and word offsets)",
+        ));
+    }
+    if part.media_processing.is_some() {
+        return Err(unsupported_google_semantic(
+            "Google `mediaProcessing` part directive (provider-side media processing selection)",
+        ));
+    }
+    if part.speech_metadata.is_some() {
+        return Err(unsupported_google_semantic(
+            "Google `speechMetadata` part directive (hosted speech-synthesis speaker and style)",
+        ));
+    }
+    if part.tool_call.is_some() {
+        return Err(unsupported_google_semantic(
+            "Google `toolCall` part (server-side tool invocation the client must echo back)",
+        ));
+    }
+    Ok(())
+}
+
+/// The speaker identifier of the first voice configuration that declares one.
+fn speech_voice_identifier(config: &GenerationConfig) -> Option<&String> {
+    let speech_config = config.speech_config.as_ref()?;
+    if let Some(voice) = speech_config
+        .voice_config
+        .as_ref()
+        .and_then(|voice_config| voice_config.voice.as_ref())
+    {
+        return Some(voice);
+    }
+    speech_config
+        .multi_speaker_voice_config
+        .as_ref()?
+        .speaker_voice_configs
+        .as_ref()?
+        .iter()
+        .find_map(|speaker| {
+            speaker
+                .voice_config
+                .as_ref()
+                .and_then(|voice_config| voice_config.voice.as_ref())
+        })
+}
+
+/// Reject generation configuration that drives Google-hosted speech pipelines.
+pub(super) fn validate_generation_config_is_portable(
+    config: &GenerationConfig,
+) -> Result<(), ConvertError> {
+    if config.audio_transcription_config.is_some() {
+        return Err(unsupported_google_semantic(
+            "Google `audioTranscriptionConfig` (hosted speech-recognition pipeline configuration)",
+        ));
+    }
+    if speech_voice_identifier(config).is_some() {
+        return Err(unsupported_google_semantic(
+            "Google `voiceConfig.voice` (hosted speech-synthesis speaker identifier)",
+        ));
+    }
+    Ok(())
+}
+
+/// Reject a request that resumes a previous turn through Google's continuation
+/// protocol, which binds the token to a byte-identical `contents` replay.
+pub(super) fn validate_request_has_no_continuation_state(
+    continuation_token: Option<&str>,
+) -> Result<(), ConvertError> {
+    if continuation_token.is_some() {
+        return Err(unsupported_google_semantic(
+            "Google `continuationToken` (opaque resumable-turn replay handle)",
+        ));
+    }
+    Ok(())
+}
+
+/// Reject a candidate that is suspended mid-turn by Google's continuation
+/// protocol, so a resumable turn is never presented as an ordinary terminal one.
+pub(super) fn validate_candidate_has_no_continuation_state(
+    continuation_token: Option<&str>,
+    finish_reason: Option<&GoogleFinishReason>,
+) -> Result<(), ConvertError> {
+    if continuation_token.is_some() {
+        return Err(unsupported_google_semantic(
+            "Google `continuationToken` (opaque resumable-turn replay handle)",
+        ));
+    }
+    if matches!(finish_reason, Some(GoogleFinishReason::Continuation)) {
+        return Err(unsupported_google_semantic(
+            "Google `CONTINUATION` finish reason (turn suspended at the per-request token limit)",
+        ));
+    }
+    Ok(())
+}
+
+// ============================================================================
 // Google Content -> Universal Message
 // ============================================================================
 
@@ -187,6 +303,10 @@ impl TryFromLLM<GoogleContent> for Message {
                 field: "parts".to_string(),
             })?
         };
+
+        for part in &parts {
+            validate_part_is_portable(part)?;
+        }
 
         match role {
             "model" => {
@@ -447,6 +567,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -457,6 +578,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
                                                 mime_type: Some(mime_type),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -467,6 +589,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(mime_type),
                                                 data: Some(data),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -481,6 +604,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                         inline_data: Some(GoogleBlob {
                                             mime_type: Some(mime_type.to_string()),
                                             data: Some(data),
+                                            display_name: None,
                                         }),
                                         ..Default::default()
                                     });
@@ -496,6 +620,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -516,6 +641,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
                                                 mime_type: Some(mime_type),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -524,6 +650,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(media_type),
                                                 data: Some(data),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -627,6 +754,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                         inline_data: Some(GoogleBlob {
                                             data: data_str,
                                             mime_type: Some(media_type),
+                                            display_name: None,
                                         }),
                                         ..Default::default()
                                     });
@@ -1430,6 +1558,7 @@ impl From<&UniversalUsage> for UsageMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::{AudioTranscriptionConfigMode, MediaProcessing};
     use crate::serde_json::json;
     use serde::Deserialize;
 
@@ -1749,6 +1878,7 @@ mod tests {
                     inline_data: Some(GoogleBlob {
                         mime_type: Some(mime_type.to_string()),
                         data: Some("UklGRg==".to_string()),
+                        display_name: None,
                     }),
                     ..Default::default()
                 }]),
@@ -1798,6 +1928,7 @@ mod tests {
                 inline_data: Some(GoogleBlob {
                     mime_type: Some("text/plain".to_string()),
                     data: Some("Sample text.".to_string()),
+                    display_name: None,
                 }),
                 ..Default::default()
             }]),
@@ -2690,5 +2821,250 @@ mod tests {
         let parsed: GenerationConfig =
             serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
         assert_eq!(parsed.enable_affective_dialog, Some(true));
+    }
+
+    fn google_content_with_part(role: &str, part: Value) -> GoogleContent {
+        serde_json::from_value(json!({ "role": role, "parts": [part] }))
+            .expect("Google content is natively representable")
+    }
+
+    fn unsupported_semantic(content: GoogleContent) -> String {
+        let error = <Message as TryFromLLM<GoogleContent>>::try_from(content)
+            .expect_err("provider-only Google semantics have no universal representation");
+        assert!(
+            matches!(error, ConvertError::UnsupportedMapping { .. }),
+            "expected an unsupported-mapping error, got {error:?}"
+        );
+        error.to_string()
+    }
+
+    #[test]
+    fn test_google_audio_transcription_part_round_trips_natively() {
+        let wire = json!({
+            "audioTranscription": {
+                "speakerLabel": "spk_1",
+                "text": "hello there",
+                "words": [
+                    {"word": "hello", "startOffset": "0s", "endOffset": "0.4s"},
+                    {"word": "there", "startOffset": "0.4s", "endOffset": "0.9s"}
+                ]
+            }
+        });
+
+        let part: GooglePart = serde_json::from_value(wire.clone()).unwrap();
+        let transcription = part.audio_transcription.as_ref().unwrap();
+        assert_eq!(transcription.speaker_label.as_deref(), Some("spk_1"));
+        assert_eq!(transcription.words.as_ref().unwrap().len(), 2);
+        assert_eq!(serde_json::to_value(&part).unwrap(), wire);
+    }
+
+    #[test]
+    fn test_google_audio_transcription_part_is_rejected_instead_of_dropped() {
+        let message = unsupported_semantic(google_content_with_part(
+            "model",
+            json!({"audioTranscription": {"text": "hello there"}}),
+        ));
+        assert!(message.contains("audioTranscription"), "{message}");
+    }
+
+    #[test]
+    fn test_google_media_processing_directive_round_trips_natively() {
+        let wire = json!({
+            "inlineData": {"mimeType": "video/mp4", "data": "AAAA"},
+            "mediaProcessing": "AGENTIC"
+        });
+
+        let part: GooglePart = serde_json::from_value(wire.clone()).unwrap();
+        assert_eq!(part.media_processing, Some(MediaProcessing::Agentic));
+        assert_eq!(serde_json::to_value(&part).unwrap(), wire);
+    }
+
+    #[test]
+    fn test_google_agentic_media_processing_is_rejected_instead_of_downgraded() {
+        // The media itself converts fine; keeping it while dropping the directive
+        // would silently turn provider-side navigation into a static attachment.
+        let message = unsupported_semantic(google_content_with_part(
+            "user",
+            json!({
+                "inlineData": {"mimeType": "video/mp4", "data": "AAAA"},
+                "mediaProcessing": "AGENTIC"
+            }),
+        ));
+        assert!(message.contains("mediaProcessing"), "{message}");
+
+        for directive in ["STATIC", "MEDIA_PROCESSING_UNSPECIFIED"] {
+            // The directive's meaning must not depend on its value.
+            let message = unsupported_semantic(google_content_with_part(
+                "user",
+                json!({
+                    "inlineData": {"mimeType": "video/mp4", "data": "AAAA"},
+                    "mediaProcessing": directive
+                }),
+            ));
+            assert!(message.contains("mediaProcessing"), "{message}");
+        }
+    }
+
+    #[test]
+    fn test_google_speech_metadata_part_round_trips_natively() {
+        let wire = json!({
+            "text": "Welcome aboard.",
+            "speechMetadata": {"speaker": "Narrator", "style": "calm"}
+        });
+
+        let part: GooglePart = serde_json::from_value(wire.clone()).unwrap();
+        let speech_metadata = part.speech_metadata.as_ref().unwrap();
+        assert_eq!(speech_metadata.speaker.as_deref(), Some("Narrator"));
+        assert_eq!(speech_metadata.style.as_deref(), Some("calm"));
+        assert_eq!(serde_json::to_value(&part).unwrap(), wire);
+    }
+
+    #[test]
+    fn test_google_speech_metadata_is_rejected_instead_of_dropped() {
+        for role in ["user", "model"] {
+            let message = unsupported_semantic(google_content_with_part(
+                role,
+                json!({
+                    "text": "Welcome aboard.",
+                    "speechMetadata": {"speaker": "Narrator", "style": "calm"}
+                }),
+            ));
+            assert!(message.contains("speechMetadata"), "{message}");
+        }
+    }
+
+    #[test]
+    fn test_google_server_tool_call_with_tool_name_round_trips_natively() {
+        let wire = json!({
+            "toolCall": {
+                "id": "tc_1",
+                "toolName": "google_search_web",
+                "toolType": "GOOGLE_SEARCH_WEB",
+                "args": {"query": "weather"}
+            }
+        });
+
+        let part: GooglePart = serde_json::from_value(wire.clone()).unwrap();
+        let tool_call = part.tool_call.as_ref().unwrap();
+        assert_eq!(tool_call.tool_name.as_deref(), Some("google_search_web"));
+        assert_eq!(serde_json::to_value(&part).unwrap(), wire);
+    }
+
+    #[test]
+    fn test_google_server_tool_call_is_rejected_instead_of_dropped() {
+        let message = unsupported_semantic(google_content_with_part(
+            "model",
+            json!({
+                "toolCall": {
+                    "id": "tc_1",
+                    "toolName": "google_search_web",
+                    "toolType": "GOOGLE_SEARCH_WEB"
+                }
+            }),
+        ));
+        assert!(message.contains("toolCall"), "{message}");
+    }
+
+    #[test]
+    fn test_google_function_call_part_remains_portable_alongside_server_tool_call() {
+        // Caller-defined function tools stay on the portable functionCall path.
+        let content = google_content_with_part(
+            "model",
+            json!({"functionCall": {"name": "get_weather", "args": {"city": "SF"}}}),
+        );
+
+        let message = <Message as TryFromLLM<GoogleContent>>::try_from(content)
+            .expect("caller-defined function calls remain portable");
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = message
+        else {
+            panic!("a model functionCall converts to an assistant message");
+        };
+        assert!(matches!(
+            parts.as_slice(),
+            [AssistantContentPart::ToolCall { tool_name, .. }] if tool_name == "get_weather"
+        ));
+    }
+
+    #[test]
+    fn test_google_audio_transcription_config_round_trips_natively() {
+        let wire = json!({
+            "audioTranscriptionConfig": {
+                "customVocabulary": ["Lingua"],
+                "diarization": true,
+                "languageCodes": ["en-US"],
+                "languageHints": {"languageCodes": ["en-US", "fr-FR"]},
+                "mode": "SMART",
+                "wordTimestamp": true
+            }
+        });
+
+        let config: GenerationConfig = serde_json::from_value(wire.clone()).unwrap();
+        let transcription_config = config.audio_transcription_config.as_ref().unwrap();
+        assert_eq!(
+            transcription_config.mode,
+            Some(AudioTranscriptionConfigMode::Smart)
+        );
+        let reserialized = serde_json::to_value(&config).unwrap();
+        assert_eq!(
+            reserialized["audioTranscriptionConfig"],
+            wire["audioTranscriptionConfig"]
+        );
+
+        let error = validate_generation_config_is_portable(&config)
+            .expect_err("a hosted transcription pipeline has no universal representation");
+        assert!(
+            error.to_string().contains("audioTranscriptionConfig"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn test_google_voice_config_voice_round_trips_natively() {
+        for voice in ["Orus", "voice_xxx", "voicekey_xxx"] {
+            let wire = json!({
+                "speechConfig": {"voiceConfig": {"voice": voice}}
+            });
+
+            let config: GenerationConfig = serde_json::from_value(wire.clone()).unwrap();
+            assert_eq!(speech_voice_identifier(&config), Some(&voice.to_string()));
+            let reserialized = serde_json::to_value(&config).unwrap();
+            assert_eq!(reserialized["speechConfig"], wire["speechConfig"]);
+
+            // Every voice form is refused uniformly, without prefix sniffing.
+            let error = validate_generation_config_is_portable(&config)
+                .expect_err("hosted speech synthesis has no universal representation");
+            assert!(error.to_string().contains("voiceConfig.voice"), "{error}");
+        }
+    }
+
+    #[test]
+    fn test_google_multi_speaker_voice_is_rejected_like_single_voice() {
+        let config: GenerationConfig = serde_json::from_value(json!({
+            "speechConfig": {
+                "multiSpeakerVoiceConfig": {
+                    "speakerVoiceConfigs": [
+                        {"speaker": "Narrator", "voiceConfig": {"voice": "voice_xxx"}}
+                    ]
+                }
+            }
+        }))
+        .unwrap();
+
+        let error = validate_generation_config_is_portable(&config)
+            .expect_err("hosted speech synthesis has no universal representation");
+        assert!(error.to_string().contains("voiceConfig.voice"), "{error}");
+    }
+
+    #[test]
+    fn test_google_prebuilt_voice_config_without_voice_stays_portable() {
+        let config: GenerationConfig = serde_json::from_value(json!({
+            "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": "Kore"}}}
+        }))
+        .unwrap();
+
+        assert!(validate_generation_config_is_portable(&config).is_ok());
     }
 }

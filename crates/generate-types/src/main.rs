@@ -2476,6 +2476,78 @@ mod google_post_process_tests {
     }
 
     #[test]
+    fn google_public_schema_name_normalization_is_deterministic_and_order_independent() {
+        let definition_names = |refs: &[&str]| {
+            create_essential_google_schemas(&discovery_spec_with_media_resolution_refs(refs))
+                .unwrap()["definitions"]
+                .as_object()
+                .unwrap()
+                .keys()
+                .cloned()
+                .collect::<Vec<_>>()
+        };
+
+        let expected = vec![
+            "GenerateContentRequest".to_string(),
+            "GenerateContentResponse".to_string(),
+            "MediaResolution".to_string(),
+            "SpeechMetadata".to_string(),
+        ];
+        assert_eq!(
+            definition_names(&["V1mainMediaResolution", "SpeechMetadata"]),
+            expected
+        );
+        assert_eq!(
+            definition_names(&["SpeechMetadata", "V1mainMediaResolution"]),
+            expected
+        );
+
+        // Rejecting a collision is a decision about the schema ids, not about
+        // which one the generator happened to visit first.
+        for refs in [
+            ["MediaResolution", "V1mainMediaResolution"],
+            ["V1mainMediaResolution", "MediaResolution"],
+        ] {
+            let error =
+                create_essential_google_schemas(&discovery_spec_with_media_resolution_refs(&refs))
+                    .unwrap_err();
+            assert!(error.contains("Google schema name normalization collision"));
+            assert!(error.contains("'MediaResolution'"));
+            assert!(error.contains("'V1mainMediaResolution'"));
+        }
+    }
+
+    #[test]
+    fn google_v1main_prefix_strip_does_not_collide_for_new_part_support_types() {
+        let spec_path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../specs/google/discovery.json"
+        );
+        let spec: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(spec_path).expect("Google Discovery spec is checked in"),
+        )
+        .expect("Google Discovery spec is valid JSON");
+
+        let generated = create_essential_google_schemas(&spec)
+            .expect("the reachable Google schema subgraph has no public-name collision");
+        let definitions = generated["definitions"].as_object().unwrap();
+
+        for name in [
+            "AudioTranscription",
+            "AudioTranscriptionConfig",
+            "WordInfo",
+            "SpeechMetadata",
+            "MediaResolution",
+        ] {
+            assert!(definitions.contains_key(name), "missing definition {name}");
+        }
+        assert!(
+            !definitions.keys().any(|name| name.starts_with("V1main")),
+            "internal V1main prefixes must not reach public type names"
+        );
+    }
+
+    #[test]
     fn rejects_google_public_schema_name_collisions() {
         let spec = discovery_spec_with_media_resolution_refs(&[
             "MediaResolution",
