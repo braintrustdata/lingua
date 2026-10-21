@@ -76,6 +76,16 @@ function nonEmptyStringArray(value) {
   );
 }
 
+// Case names are identifiers, never shell fragments, paths, or comma lists.
+export function isCaptureCase(value) {
+  return (
+    typeof value === "string" &&
+    value.length <= 128 &&
+    /^[A-Za-z]/.test(value) &&
+    !/[^A-Za-z0-9_-]/.test(value)
+  );
+}
+
 function push(errors, condition, path, message) {
   if (!condition) {
     errors.push(`${path}: ${message}`);
@@ -378,9 +388,9 @@ export function validatePlan(plan, expectedProvider) {
         push(
           errors,
           Array.isArray(change.tests.payload_cases) &&
-            change.tests.payload_cases.every(nonEmptyString),
+            change.tests.payload_cases.every(isCaptureCase),
           `${path}.tests.payload_cases`,
-          "must be an array of strings"
+          "must be an array of case identifiers (letter followed by letters, digits, underscores, or hyphens; at most 128 characters)"
         );
         push(
           errors,
@@ -450,9 +460,9 @@ export function validatePlan(plan, expectedProvider) {
           push(
             errors,
             live.cases === undefined ||
-              (Array.isArray(live.cases) && live.cases.every(nonEmptyString)),
+              (Array.isArray(live.cases) && live.cases.every(isCaptureCase)),
             `${path}.tests.live_capture.cases`,
-            "must be an array of case names when present"
+            "must be an array of case identifiers (letter followed by letters, digits, underscores, or hyphens; at most 128 characters) when present"
           );
           push(
             errors,
@@ -619,10 +629,14 @@ export function captureCases(plan) {
     if (blockerIds.has(change.id)) continue;
     if (change.mapping?.decision === "provider_only") continue;
     for (const name of change.tests?.payload_cases ?? []) {
+      if (!isCaptureCase(name))
+        throw new Error("Invalid payload capture case identifier.");
       cases.add(name);
     }
     if (change.tests?.live_capture?.required) {
       for (const name of change.tests.live_capture.cases ?? []) {
+        if (!isCaptureCase(name))
+          throw new Error("Invalid live capture case identifier.");
         cases.add(name);
       }
     }

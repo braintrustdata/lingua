@@ -119,8 +119,9 @@ and continue independent items.
 5. Check the item with the helper, or run its focused tests when working outside
    the automation. Resolve failures before moving to the next item. Broad
    validation runs separately in the workflow.
-6. Do not call live provider APIs. The workflow runs planned live captures in
-   a separate secret-scoped step.
+6. Do not call live provider APIs. Automated updates have no provider
+   credentials. Planned live captures remain incomplete until a human reviews
+   the payload code and completes capture in a reviewed environment.
 7. Re-read the plan and inspect `git diff` before finishing. Every affected
    surface must have an implementation or test.
 

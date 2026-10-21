@@ -2,477 +2,172 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const workflow = readFileSync(
-  new URL("../workflows/update-provider-types.yml", import.meta.url),
-  "utf8"
+const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
+const workflow = read("../workflows/update-provider-types.yml");
+const worker = read("provider-type-update-worker.mjs");
+const controller = read("provider-type-update-isolation.mjs");
+const publisher = read("provider-type-update-publish.mjs");
+const dockerfile = read("../provider-type-update/Dockerfile");
+const prompts = Object.fromEntries(
+  ["repair", "plan", "implement", "repair-validation", "verify", "autofix"].map(
+    (name) => [name, read(`../provider-type-update/prompts/${name}.md`)]
+  )
 );
-const autofixWorkflow = readFileSync(
-  new URL("../workflows/provider-type-codex-autofix.yml", import.meta.url),
-  "utf8"
-);
-const claudeRetryAction = readFileSync(
-  new URL("../actions/claude-code-with-retry/action.yml", import.meta.url),
-  "utf8"
-);
-const providerUpdateSkill = readFileSync(
-  new URL(
-    "../../.claude/skills/provider-type-update/SKILL.md",
-    import.meta.url
-  ),
-  "utf8"
-);
-const providerAuditors = [
-  "provider-spec-auditor.md",
-  "provider-capability-auditor.md",
-  "provider-semantic-auditor.md",
-  "provider-coverage-auditor.md",
-].map((name) =>
-  readFileSync(new URL(`../../.claude/agents/${name}`, import.meta.url), "utf8")
-);
+const skill = read("../../.claude/skills/provider-type-update/SKILL.md");
+const autofix = read("../workflows/provider-type-codex-autofix.yml");
+const job = (name) =>
+  workflow.split(`  ${name}:\n`)[1]?.split(/^  [\w-]+:\n/m)[0];
 
-test("uses the validation runner for initial and repaired CI checks", () => {
-  for (const [name, operation] of [
-    ["Run focused provider tests", "provider-tests"],
-    ["Run focused provider tests after mechanical repair", "provider-tests"],
-    ["Run generator tests", "generator-tests"],
-    ["Run generator tests after mechanical repair", "generator-tests"],
-    ["Validate build", "build"],
-    ["Validate build after mechanical repair", "build"],
-    ["Run clippy", "clippy"],
-    ["Run clippy after mechanical repair", "clippy"],
+test("agent, validation, and publication run in separate jobs with minimum permissions", () => {
+  assert.match(workflow, /permissions: \{\}/);
+  for (const name of ["propose", "validate", "publish"]) {
+    assert.match(job(name), /runs-on: ubuntu-latest/);
+  }
+  assert.match(job("propose"), /contents: read/);
+  assert.doesNotMatch(
+    job("propose"),
+    /contents: write|pull-requests: write|github_token:/
+  );
+  assert.match(job("validate"), /contents: read/);
+  assert.doesNotMatch(
+    job("validate"),
+    /secrets\.|contents: write|pull-requests: write/
+  );
+  assert.match(job("publish"), /contents: write\s+pull-requests: write/);
+  assert.match(job("publish"), /needs: \[provider_matrix, propose, validate\]/);
+});
+
+test("only the host inference proxy receives the reusable credential", () => {
+  assert.equal(workflow.match(/secrets\./g)?.length, 1);
+  assert.match(
+    workflow,
+    /BRAINTRUST_API_KEY: \$\{\{ secrets\.BRAINTRUST_API_KEY \}\}/
+  );
+  assert.match(
+    controller,
+    /createInferenceProxy\(\{\s*key: process\.env\.BRAINTRUST_API_KEY,?\s*\}\)/
+  );
+  assert.match(controller, /ANTHROPIC_API_KEY=\$\{proxy.token\}/);
+  assert.doesNotMatch(controller, /ANTHROPIC_API_KEY=\$\{process.env/);
+  assert.doesNotMatch(worker, /BRAINTRUST_API_KEY|github.token|GITHUB_TOKEN/);
+  assert.doesNotMatch(
+    workflow,
+    /LINGUA_CAPTURE_|claude-code-with-retry|actions\/cache/
+  );
+});
+
+test("all jobs check out the immutable workflow revision without persisted credentials", () => {
+  assert.equal(workflow.match(/ref: \$\{\{ github.sha \}\}/g)?.length, 3);
+  assert.equal(workflow.match(/persist-credentials: false/g)?.length, 3);
+  assert.match(job("propose"), /if: github.ref == 'refs\/heads\/main'/);
+});
+
+test("publication never executes candidate code and only opens drafts", () => {
+  const publication = job("publish");
+  assert.doesNotMatch(
+    publication,
+    /run:.*(?:cargo |pnpm |npm |make |\.\/)|uses: \.\//
+  );
+  assert.doesNotMatch(publication, /secrets\.|auto-sync|draft: false/);
+  assert.equal(publication.match(/draft: true/g)?.length, 2);
+  assert.equal(
+    publication.match(/GIT_CONFIG_KEY_0: core.hooksPath/g)?.length,
+    2
+  );
+  assert.match(publisher, /metadata.sha256 !== patchDigest\(patch\)/);
+  assert.match(publisher, /verified.sha256 !== metadata.sha256/);
+  assert.match(publisher, /applyProposal\(/);
+});
+
+test("untrusted case names and other model output never become workflow shell source", () => {
+  assert.doesNotMatch(
+    workflow,
+    /\$\{\{ steps\.(?:capture_cases|integration_plan|integration_implementation).*\}\}/
+  );
+  for (const name of ["propose", "validate", "publish"]) {
+    assert.match(job(name), /PROVIDER: \$\{\{ matrix.provider \}\}/);
+    assert.match(job(name), /\.mjs .*"\$PROVIDER"/);
+  }
+  assert.doesNotMatch(JSON.stringify(prompts), /\$\{\{/);
+});
+
+test("artifacts are fixed-name sanitized exports rather than raw logs or agent directories", () => {
+  assert.doesNotMatch(
+    workflow,
+    /provider-type-update-checks|\.log\b|\/home\/|\.claude\/|path:.*RUNNER_TEMP.*$/m
+  );
+  assert.match(controller, /redactValue\(report, redact\)/);
+  assert.match(controller, /redactPatch\(patch\) !== patch/);
+  assert.match(controller, /stdio: \["ignore", "ignore", "ignore"\]/);
+  assert.doesNotMatch(controller, /docker\(\["cp"/);
+});
+
+test("the immutable worker preserves bounded planning, repair, and verification", () => {
+  assert.match(worker, /phase\("plan", 1800000, 50\)/);
+  assert.match(worker, /phase\("implement", 2400000, 100\)/);
+  assert.match(worker, /phase\("repair-validation", 1800000, 60\)/);
+  assert.match(worker, /phase\("verify", 1200000, 40\)/);
+  for (const action of [
+    "provider-tests",
+    "generator-tests",
+    "build",
+    "clippy",
   ]) {
-    const step = workflow.split(`- name: ${name}\n`)[1]?.split("- name:")[0];
-    assert.ok(
-      step?.includes(
-        `node .github/scripts/provider-type-update-check.mjs ${operation}`
-      ),
-      name
+    assert.match(
+      worker,
+      new RegExp(`provider-type-update-check\\.mjs",\\s*"${action}"`)
     );
   }
-  assert.match(workflow, /runner\.temp }}\/provider-type-update-checks\n/);
+  assert.match(worker, /immutable-plan/);
+  assert.match(dockerfile, /@anthropic-ai\/claude-code@2.1.304/);
+  assert.match(dockerfile, /USER 1000:1000/);
 });
 
-test("submits plan and verification candidates through the artifact helper", () => {
+test("the semantic policy and provider-only audit contract survive isolation", () => {
+  assert.match(prompts.plan, /First invoke only `@provider-spec-auditor`/);
   assert.match(
-    workflow,
-    /Bash\(node \.github\/scripts\/provider-type-update-check\.mjs submit-plan:\*\)/
-  );
-  assert.match(
-    workflow,
-    /Bash\(node \.github\/scripts\/provider-type-update-check\.mjs submit-verification:\*\)/
+    prompts.plan,
+    /Classify provider-hosted execution[\s\S]*`provider_only`/
   );
   assert.match(
-    workflow,
-    /provider-type-update-check\.mjs submit-plan \$\{\{ runner\.temp }}\/provider-type-update-plan-candidate\.json/
-  );
-  assert.match(
-    workflow,
-    /provider-type-update-check\.mjs submit-verification \$\{\{ runner\.temp }}\/provider-type-update-verification-candidate\.json/
-  );
-});
-
-test("regenerates provider Rust after implementation before safety checks", () => {
-  const regeneration = workflow.indexOf(
-    "- name: Regenerate Rust provider types after implementation"
-  );
-  const semanticPolicy = workflow.indexOf(
-    "- name: Enforce provider semantic policy"
-  );
-
-  assert.notEqual(regeneration, -1);
-  assert.notEqual(semanticPolicy, -1);
-  assert.ok(regeneration < semanticPolicy);
-  assert.match(
-    workflow,
-    /run: make generate-provider-types PROVIDER="\$\{\{ matrix\.provider \}\}"/
-  );
-});
-
-test("lets planning invoke its auditors and implementation run required commands", () => {
-  assert.match(
-    workflow,
-    /--allowedTools "Agent,Skill,Read,Glob,Grep,LS,Write,Bash\(git diff:\*\)/
-  );
-  assert.doesNotMatch(workflow, /Agent\(provider-spec-auditor\)/);
-  assert.match(
-    workflow,
-    /Bash\(make generate-provider-types:\*\).*Bash\(make generate-types:\*\)/
-  );
-  assert.match(workflow, /Bash\(cargo clippy:\*\)/);
-  assert.match(
-    workflow,
-    /If you change `crates\/generate-types`, run\s+`make generate-provider-types/
-  );
-});
-
-test("limits implementation interpreter access to the validation helper", () => {
-  const implementation = workflow
-    .split("- name: Implement generated provider integration\n")[1]
-    .split("- name: Remove staged implementation plan")[0];
-  const allowed = implementation.match(/--allowedTools "([^"]+)"/)[1];
-  assert.doesNotMatch(allowed, /Bash\((node|python3):\*\)/);
-  assert.match(
-    allowed,
-    /Bash\(node \.github\/scripts\/provider-type-update-check\.mjs:\*\)/
-  );
-});
-
-test("separates deterministic generated-name fixes from semantic blockers", () => {
-  assert.match(
-    workflow,
-    /A generated-name normalization or\s+collision repair must be its own unblocked change id/
-  );
-  assert.match(
-    workflow,
-    /Public-name normalization and collision repairs are deterministic\s+generator work/
-  );
-});
-
-test("classifies hosted and harness protocols as provider-only", () => {
-  assert.match(
-    workflow,
-    /Classify provider-hosted execution and provider-defined harness protocols[\s\S]*`provider_only`/
-  );
-  assert.match(
-    workflow,
-    /Generic caller-defined function tools remain candidates for portable mapping/
-  );
-  assert.match(
-    providerUpdateSkill,
-    /Provider-only boundary[\s\S]*code execution[\s\S]*same-format passthrough/
-  );
-  assert.match(
-    providerAuditors[2],
-    /provider-owned execution or\s+provider-defined harness state[\s\S]*provider-only/
-  );
-});
-
-test("implements provider-only changes as passthrough plus rejection", () => {
-  assert.match(
-    workflow,
+    prompts.implement,
     /For every `provider_only` item:[\s\S]*byte-preserving same-format passthrough[\s\S]*explicit unsupported error/
   );
   assert.match(
-    workflow,
-    /For every `provider_only` item:[\s\S]*offline end-to-end test[\s\S]*public transform entry point/
+    prompts.verify,
+    /For every `provider_only` plan item, verify native wire acceptance/
   );
   assert.match(
-    providerUpdateSkill,
-    /offline end-to-end test[\s\S]*public transform entry point/
+    prompts.verify,
+    /Treat any universal-model expansion or expected-difference entry/
   );
   assert.match(
-    workflow,
-    /Do not add universal fields, cross-provider mappings, expected-difference entries,[\s\S]*payload cases, or live captures for `provider_only` items/
+    worker,
+    /\/opt\/updater\/provider-type-update-semantic-policy.mjs/
   );
+  assert.match(
+    skill,
+    /Planned live captures remain incomplete until a human reviews/
+  );
+  assert.match(prompts.plan, /Live capture is deferred to human review/);
 });
 
-test("verification enforces the provider-only boundary", () => {
-  assert.match(
-    workflow,
-    /For every `provider_only` plan item, verify native wire acceptance,[\s\S]*same-format passthrough[\s\S]*cross-provider rejection/
-  );
-  assert.match(
-    workflow,
-    /Treat any universal-model expansion or expected-difference entry for a[\s\S]*`provider_only` item as blocking/
-  );
-});
-
-test("publishes provider-only scope decisions in the PR body", () => {
-  assert.match(
-    workflow,
-    /provider-type-update-plan\.mjs render-provider-only[\s\S]*provider-type-update-plan\.json/
-  );
-});
-
-test("runs each provider-update Claude phase at most once", () => {
-  assert.equal(
-    workflow.match(/uses: \.\/\.github\/actions\/claude-code-with-retry/g)
-      ?.length,
-    5
-  );
-  assert.equal(
-    autofixWorkflow.match(
-      /uses: \.\/\.github\/actions\/claude-code-with-retry/g
-    )?.length,
-    1
-  );
-  assert.doesNotMatch(workflow, /uses: anthropics\/claude-code-action/);
-  assert.doesNotMatch(autofixWorkflow, /uses: anthropics\/claude-code-action/);
-  assert.equal(
-    claudeRetryAction.match(
-      /uses: anthropics\/claude-code-action@db77d4d3c98f3f6380e7cd45ffba2342a3dbde3c/g
-    )?.length,
-    2
-  );
-  assert.match(
-    claudeRetryAction,
-    /- name: Check Claude Code outcome\s+id: outcome\s+if: always\(\)/
-  );
-  assert.match(
-    claudeRetryAction,
-    /::error::Claude Code failed on both bounded attempts/
-  );
-  assert.equal(workflow.match(/retry_on_failure: "false"/g)?.length, 5);
-  assert.match(
-    claudeRetryAction,
-    /steps\.primary\.outcome == 'failure' &&\s+inputs\.retry_on_failure == 'true'/
-  );
-  assert.match(
-    claudeRetryAction,
-    /Claude Code failed and retry is disabled for this phase/
-  );
-});
-
-test("retries partial generation before invoking Claude repair", () => {
-  const initialGeneration = workflow.indexOf(
-    "- name: Update provider specifications and types"
-  );
-  const deterministicRetry = workflow.indexOf(
-    "- name: Retry provider update after partial generation"
-  );
-  const claudeRepair = workflow.indexOf("- name: Repair failed generation");
-
-  assert.ok(initialGeneration < deterministicRetry);
-  assert.ok(deterministicRetry < claudeRepair);
-  assert.match(
-    workflow,
-    /steps\.generate\.outcome == 'failure' &&\s+steps\.retry\.outcome == 'failure'/
-  );
-  assert.match(
-    workflow,
-    /require_ready "provider generation after repair" "\$\{\{ steps\.repair_retry\.outcome \}\}"/
-  );
-});
-
-test("runs integration planning at medium effort", () => {
-  const planningStart = workflow.indexOf(
-    "- name: Plan generated provider integration"
-  );
-  const planningEnd = workflow.indexOf(
-    "- name: Validate integration plan",
-    planningStart
-  );
-  const planningStep = workflow.slice(planningStart, planningEnd);
-
-  assert.notEqual(planningStart, -1);
-  assert.notEqual(planningEnd, -1);
-  assert.match(planningStep, /--model claude-opus-5-5\s+--effort medium/);
-  assert.match(planningStep, /timeout-minutes: 30/);
-  assert.match(planningStep, /--max-turns 50/);
-  assert.match(planningStep, /display_report: "false"/);
-  assert.match(planningStep, /retry_on_failure: "false"/);
-  assert.match(planningStep, /exactly `Wrote provider update plan\.`/);
-});
-
-test("stages semantic auditing instead of multiplying full-diff reviews", () => {
-  assert.match(
-    workflow,
-    /First invoke only `@provider-spec-auditor`[\s\S]*If that inventory contains semantic changes/
-  );
-  assert.match(
-    workflow,
-    /They must not independently re-audit the complete\s+raw specification diff/
-  );
-  assert.match(
-    providerUpdateSkill,
-    /Run `provider-spec-auditor` first[\s\S]*Do not have each agent independently\s+re-read the complete raw specification diff/
-  );
-  assert.match(providerAuditors[0], /maxTurns: 25/);
-  assert.match(providerAuditors[0], /under 2,500 words/);
-  for (const auditor of providerAuditors.slice(1)) {
-    assert.match(
-      auditor,
-      /Do not\s+independently re-audit the complete raw\s+specification diff/
-    );
-  }
-});
-
-test("uses one bounded repair pass and revalidates before publication", () => {
-  assert.equal(
-    workflow.match(/- name: Repair deterministic provider validation/g)?.length,
-    1
-  );
-  assert.match(
-    workflow,
-    /TRACE_PHASE: repair deterministic provider validation/
-  );
-  assert.match(
-    workflow,
-    /require_ready "mechanical validation" "\$\{\{ steps\.mechanical_validation\.outcome \}\}"/
-  );
-  assert.match(workflow, /steps\.publication_readiness\.outcome == 'success'/);
-});
-
-test("uses validated artifacts instead of raw Claude step outcomes", () => {
-  assert.doesNotMatch(workflow, /require_success "integration plan"/);
-  assert.doesNotMatch(workflow, /require_success "implementation"/);
-  assert.doesNotMatch(workflow, /require_success "read-only verification"/);
+test("review autofix uses trusted isolation code and rechecks the patch after validation", () => {
+  const propose = autofix.split("  propose:\n")[1].split("  validate:\n")[0];
   assert.doesNotMatch(
-    workflow,
-    /steps\.integration_plan\.outcome != 'success'/
+    propose,
+    /uses: \.\/|run:.*(?:cargo|pnpm|npm install)|anthropic_api_key|contents: write|pull-requests: write/
   );
-  assert.doesNotMatch(
-    workflow,
-    /steps\.integration_implementation\.outcome != 'success'/
-  );
-  assert.doesNotMatch(
-    workflow,
-    /steps\.integration_verification\.outcome != 'success'/
-  );
-  assert.equal(
-    workflow.match(
-      /steps\.stage_plan\.outcome == 'success' &&\s+steps\.post_implementation_plan\.outcome == 'success' &&\s+steps\.mechanical_validation\.outcome == 'success'/g
-    )?.length,
-    3
-  );
-});
-
-test("treats missing AI artifacts as a draft instead of a failed run", () => {
-  const readinessStart = workflow.indexOf(
-    "- name: Assess publication safety and mode"
-  );
-  const readinessEnd = workflow.indexOf(
-    "- name: Build PR body",
-    readinessStart
-  );
-  const readinessStep = workflow.slice(readinessStart, readinessEnd);
-  const failureStart = workflow.indexOf(
-    "- name: Fail workflow if validation failed"
-  );
-  const failureEnd = workflow.indexOf("- name: Summary", failureStart);
-  const failureStep = workflow.slice(failureStart, failureEnd);
-
-  assert.doesNotMatch(readinessStep, /require_success "plan validation"/);
-  assert.doesNotMatch(readinessStep, /require_success "plan staging"/);
-  assert.doesNotMatch(readinessStep, /require_success "verification report"/);
+  assert.equal(propose.match(/persist-credentials: false/g)?.length, 2);
+  assert.equal(propose.match(/secrets\./g)?.length, 1);
   assert.match(
-    readinessStep,
-    /"integration plan:\$\{\{ steps\.plan_validation\.outcome \}\}"/
+    propose,
+    /node trusted\/\.github\/scripts\/provider-type-update-isolation.mjs autofix/
   );
-  assert.match(
-    readinessStep,
-    /steps\.verification_report\.outputs\.verdict \}\}" != "pass"/
-  );
-  assert.match(readinessStep, /mode="draft"/);
-  assert.doesNotMatch(failureStep, /plan_validation|verification_report/);
-  assert.match(
-    failureStep,
-    /steps\.publication_readiness\.outcome != 'success'/
-  );
-});
-
-test("retries final PR publication without rerunning the provider update", () => {
-  assert.equal(
-    workflow.match(
-      /uses: peter-evans\/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676/g
-    )?.length,
-    2
-  );
-  assert.match(
-    workflow,
-    /- name: Retry continuation PR publication\s+id: create_pr_retry\s+if: steps\.create_pr\.outcome == 'failure'/
-  );
-  assert.match(
-    workflow,
-    /steps\.create_pr\.outcome != 'success' &&\s+steps\.create_pr_retry\.outcome != 'success'/
-  );
-});
-
-test("turns deterministic validation failures into continuation drafts", () => {
-  for (const check of [
-    "mechanical validation",
-    "Lingua WASM build",
-    "payload fixture sync",
-    "payload tests",
-    "typed boundary check",
-    "cross-provider guard",
-    "capture case extraction",
-  ]) {
-    assert.match(workflow, new RegExp(`require_ready "${check}"`));
-    assert.doesNotMatch(workflow, new RegExp(`require_safe "${check}"`));
-  }
-  assert.match(workflow, /review_reasons\+=/);
-  assert.match(workflow, /mode="draft"/);
-  assert.match(workflow, /This draft preserves the automation's partial work/);
-});
-
-test("fails no-change runs after initial TypeScript generation errors", () => {
-  const failureStart = workflow.indexOf(
-    "- name: Fail workflow if validation failed"
-  );
-  const failureEnd = workflow.indexOf("- name: Summary", failureStart);
-  const failureStep = workflow.slice(failureStart, failureEnd);
-  const summaryStep = workflow.slice(failureEnd);
-
-  assert.match(
-    failureStep,
-    /steps\.changes\.outputs\.has_changes != 'true'[\s\S]*steps\.ts_types\.outcome == 'failure'/
-  );
-  assert.match(
-    summaryStep,
-    /steps\.ts_types\.outcome.*failure[\s\S]*TypeScript generation failed/
-  );
-});
-
-test("publication safety hard-stops only unsafe paths or an unrecoverable local patch", () => {
-  assert.match(
-    workflow,
-    /require_safe "provider update path policy" "\$\{\{ steps\.path_policy\.outcome \}\}"/
-  );
-  assert.match(
-    workflow,
-    /require_safe "provider update path policy" "\$\{\{ steps\.post_repair_path_policy\.outcome \}\}"/
-  );
-  assert.match(
-    workflow,
-    /require_safe "recoverable patch" "\$\{\{ steps\.update_patch\.outcome \}\}"/
-  );
-  assert.equal(workflow.match(/require_safe "/g)?.length, 3);
-  assert.doesNotMatch(workflow, /require_safe "provider semantic policy"/);
-});
-
-test("bounds Claude phases and suppresses oversized action reports", () => {
-  for (const [name, minutes] of [
-    ["Repair failed generation", 30],
-    ["Plan generated provider integration", 30],
-    ["Implement generated provider integration", 40],
-    ["Repair deterministic provider validation", 30],
-    ["Verify generated provider integration", 20],
-  ]) {
-    assert.match(
-      workflow,
-      new RegExp(`- name: ${name}[\\s\\S]*?timeout-minutes: ${minutes}`)
-    );
-  }
-  assert.equal(workflow.match(/display_report: "false"/g)?.length, 5);
-  assert.doesNotMatch(workflow, /display_report: "true"/);
-  assert.match(claudeRetryAction, /display_report:[\s\S]*?default: "false"/);
-  assert.match(workflow, /exactly `Wrote provider update verification\.`/);
-
-  const claudeStart = autofixWorkflow.indexOf(
-    "- name: Propose fixes for the Codex review"
-  );
-  const claudeEnd = autofixWorkflow.indexOf("- name:", claudeStart + 10);
-  const claudeStep = autofixWorkflow.slice(claudeStart, claudeEnd);
-  assert.doesNotMatch(claudeStep, /timeout-minutes:/);
-  assert.match(autofixWorkflow, /propose:[\s\S]*?timeout-minutes: 90/);
-});
-
-test("protects AGENTS.md in planning, implementation, and path policy", () => {
-  assert.match(
-    workflow,
-    /`Makefile`, or `AGENTS\.md` in implementation targets/
-  );
-  assert.match(workflow, /Do not edit `plan\.md`, `AGENTS\.md`/);
-  assert.match(workflow, /':\(glob\)\*\*\/AGENTS\.md'/);
-});
-
-test("limits transform capture to providers with configured credentials", () => {
-  assert.match(
-    workflow,
-    /capture_providers=\(\).*ANTHROPIC_API_KEY.*AWS_BEARER_TOKEN_BEDROCK.*GOOGLE_API_KEY.*OPENAI_API_KEY/s
-  );
-  assert.match(workflow, /CAPTURE_PROVIDERS="\$capture_provider_list"/);
-  assert.doesNotMatch(workflow, /GOOGLE_APPLICATION_CREDENTIALS:/);
-  assert.doesNotMatch(workflow, /VERTEX_PROJECT:/);
+  const publish = autofix.split("  publish:\n")[1].split("  report:\n")[0];
+  assert.match(publish, /path: trusted/);
+  assert.match(publish, /path: reviewed/);
+  assert.match(publish, /provider-type-update-apply.mjs/);
+  assert.match(publish, /GIT_CONFIG_KEY_0: core.hooksPath/);
+  assert.doesNotMatch(publish, /run:.*(?:cargo|pnpm|npm install)|uses: \.\//);
 });

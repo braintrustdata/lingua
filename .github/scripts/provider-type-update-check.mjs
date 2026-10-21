@@ -10,7 +10,9 @@ import {
   openSync,
   readFileSync,
   renameSync,
+  rmSync,
   writeFileSync,
+  writeSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
@@ -20,6 +22,13 @@ import {
   validatePlan,
   validateVerification,
 } from "./provider-type-update-plan.mjs";
+import {
+  checkEnvironment,
+  redactor,
+  redactValue,
+} from "./provider-type-update-security.mjs";
+
+const redact = redactor();
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const artifactRoot = process.env.RUNNER_TEMP || tmpdir();
@@ -34,7 +43,11 @@ const providers = new Set(["openai", "anthropic", "google"]);
 function saveJson(path, value) {
   mkdirSync(dirname(path), { recursive: true });
   const temporary = `${path}.${process.pid}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`);
+  writeFileSync(
+    temporary,
+    `${JSON.stringify(redactValue(value, redact), null, 2)}\n`,
+    { mode: 0o600 }
+  );
   renameSync(temporary, path);
 }
 
@@ -134,7 +147,11 @@ function plannedChecks(plan) {
 
 function sourceState() {
   const git = (args) =>
-    execFileSync("git", args, { cwd: root, maxBuffer: 64 * 1024 * 1024 });
+    execFileSync("git", args, {
+      cwd: root,
+      env: checkEnvironment(),
+      maxBuffer: 64 * 1024 * 1024,
+    });
   const digest = createHash("sha256");
   digest.update(git(["diff", "--no-ext-diff", "--binary", "HEAD", "--"]));
   const paths = git(["ls-files", "--others", "--exclude-standard", "-z"])
@@ -153,20 +170,25 @@ function sourceState() {
 }
 
 async function execute(check, logPath, timeoutMs) {
-  const fd = openSync(logPath, "w");
+  // Raw child output is private and never lives in the artifact directory.
+  const rawDirectory = mkdtempSync(join(tmpdir(), "provider-check-private-"));
+  const rawPath = join(rawDirectory, "output");
+  const fd = openSync(rawPath, "w", 0o600);
   const started = Date.now();
   let timedOut = false;
   let interrupted = false;
   let spawnError;
   let killTimer;
+  let outputLimitExceeded = false;
+  let outputBytes = 0;
+  const maxOutputBytes = 16 * 1024 * 1024;
   const grouped = process.platform !== "win32";
   const child = spawn(check.argv[0], check.argv.slice(1), {
     cwd: root,
-    env: { ...process.env, CARGO_TERM_COLOR: "never" },
+    env: checkEnvironment(),
     detached: grouped,
-    stdio: ["ignore", fd, fd],
+    stdio: ["ignore", "pipe", "pipe"],
   });
-  closeSync(fd);
   const kill = (signal) => {
     try {
       if (grouped && child.pid) process.kill(-child.pid, signal);
@@ -179,6 +201,16 @@ async function execute(check, logPath, timeoutMs) {
     kill("SIGTERM");
     killTimer = setTimeout(() => kill("SIGKILL"), 2000);
   };
+  for (const stream of [child.stdout, child.stderr])
+    stream.on("data", (chunk) => {
+      const remaining = Math.max(0, maxOutputBytes - outputBytes);
+      if (remaining) writeSync(fd, chunk.subarray(0, remaining));
+      outputBytes += chunk.length;
+      if (outputBytes > maxOutputBytes && !outputLimitExceeded) {
+        outputLimitExceeded = true;
+        kill("SIGKILL");
+      }
+    });
   const onInterrupt = () => {
     interrupted = true;
     stop();
@@ -200,21 +232,32 @@ async function execute(check, logPath, timeoutMs) {
   if ((timedOut || interrupted) && grouped) kill("SIGKILL");
   process.removeListener("SIGTERM", onInterrupt);
   process.removeListener("SIGINT", onInterrupt);
-  const output = readFileSync(logPath, "utf8");
+  closeSync(fd);
+  let output;
+  try {
+    output = redact(readFileSync(rawPath, "utf8"));
+    writeFileSync(logPath, output, { mode: 0o600 });
+  } finally {
+    rmSync(rawDirectory, { recursive: true, force: true });
+  }
   const tests = [
     ...output.matchAll(/^test (.+) \.\.\. (ok|FAILED|ignored)\b/gm),
   ].map((match) => ({ name: match[1], status: match[2] }));
   const passed = tests.filter((test) => test.status === "ok").length;
   const failed = tests.filter((test) => test.status === "FAILED").length;
-  const error = timedOut
-    ? `Validation exceeded its ${timeoutMs}ms remaining deadline.`
-    : (interrupted ? "Validation was interrupted." : null) ||
-      spawnError ||
-      (exitCode !== 0 ? `Command exited with ${exitCode ?? signal}.` : null) ||
-      (check.tests && !passed
-        ? "No passing tests ran; check the test filter."
-        : null) ||
-      (failed ? `${failed} test(s) failed.` : null);
+  const error = outputLimitExceeded
+    ? "Validation exceeded the 16 MiB diagnostic output limit."
+    : timedOut
+      ? `Validation exceeded its ${timeoutMs}ms remaining deadline.`
+      : (interrupted ? "Validation was interrupted." : null) ||
+        spawnError ||
+        (exitCode !== 0
+          ? `Command exited with ${exitCode ?? signal}.`
+          : null) ||
+        (check.tests && !passed
+          ? "No passing tests ran; check the test filter."
+          : null) ||
+        (failed ? `${failed} test(s) failed.` : null);
   return {
     name: check.name,
     argv: check.argv,
@@ -392,13 +435,13 @@ async function main([action, value, provider, ...extra]) {
         : {}),
     })),
   };
-  console.log(JSON.stringify(summary, null, 2));
+  console.log(JSON.stringify(redactValue(summary, redact), null, 2));
   if (report.status === "fail") process.exitCode = 1;
 }
 
 try {
   await main(process.argv.slice(2));
 } catch (error) {
-  console.log(JSON.stringify({ status: "fail", error: error.message }));
+  console.log(JSON.stringify({ status: "fail", error: redact(error.message) }));
   process.exitCode = 1;
 }

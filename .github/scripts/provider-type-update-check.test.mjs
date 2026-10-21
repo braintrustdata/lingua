@@ -89,6 +89,7 @@ function fixture(t, cargoBody) {
   for (const name of [
     "provider-type-update-plan.mjs",
     "provider-type-update-check.mjs",
+    "provider-type-update-security.mjs",
   ]) {
     copyFileSync(new URL(name, import.meta.url), join(scripts, name));
   }
@@ -179,6 +180,58 @@ test("runs focused tests from the repository and saves source-bound evidence and
   assert.notEqual(
     changed.output.source.working_tree_sha256,
     result.output.source.working_tree_sha256
+  );
+});
+
+test("checks cannot inherit credentials or interpreter injection variables", (t) => {
+  const f = fixture(
+    t,
+    `${passing}
+for (const name of ["BRAINTRUST_API_KEY", "ANTHROPIC_AUTH_TOKEN", "OPENAI_API_KEY", "GITHUB_TOKEN", "ACTIONS_RUNTIME_TOKEN", "NODE_OPTIONS", "PYTHONPATH", "LD_PRELOAD"]) {
+  if (process.env[name]) { console.error("inherited " + name); process.exit(1); }
+}
+`
+  );
+  const result = f.run(["item", "example"], {
+    BRAINTRUST_API_KEY: "fixture-braintrust-credential",
+    ANTHROPIC_AUTH_TOKEN: "fixture-anthropic-credential",
+    OPENAI_API_KEY: "fixture-openai-credential",
+    GITHUB_TOKEN: "fixture-github-credential",
+    ACTIONS_RUNTIME_TOKEN: "fixture-actions-credential",
+    PYTHONPATH: "/fixture/python",
+  });
+  assert.equal(result.code, 0);
+});
+
+test("redacts literal and encoded credentials before persisting logs or reports", (t) => {
+  const secret = "fixture-sensitive-credential+/=";
+  const f = fixture(
+    t,
+    `console.error(${JSON.stringify(secret)}); console.error(${JSON.stringify(Buffer.from(secret).toString("base64"))}); process.exit(1);`
+  );
+  const result = f.run(["item", "example"], { BRAINTRUST_API_KEY: secret });
+  assert.equal(result.code, 1);
+  for (const text of [
+    JSON.stringify(result.output),
+    readFileSync(result.output.report_path, "utf8"),
+    readFileSync(result.output.checks[0].log_path, "utf8"),
+  ]) {
+    assert.ok(!text.includes(secret));
+    assert.ok(!text.includes(Buffer.from(secret).toString("base64")));
+    assert.match(text, /REDACTED/);
+  }
+});
+
+test("bounds diagnostics from a runaway subprocess", (t) => {
+  const f = fixture(
+    t,
+    'process.stdout.write("x".repeat(17 * 1024 * 1024)); setInterval(() => {}, 1000);'
+  );
+  const result = f.run(["item", "example"]);
+  assert.equal(result.code, 1);
+  assert.match(result.output.checks[0].error, /diagnostic output limit/);
+  assert.ok(
+    readFileSync(result.output.checks[0].log_path).length <= 16 * 1024 * 1024
   );
 });
 
@@ -467,17 +520,17 @@ test("terminates a timed-out process group and preserves its diagnostics", async
     t,
     `
 import { spawn } from "node:child_process";
-spawn(process.execPath, ["-e", 'process.on("SIGTERM", () => {}); setTimeout(() => require("node:fs").writeFileSync("escaped", "bad"), 1000)'], { stdio: "ignore" });
+spawn(process.execPath, ["-e", 'process.on("SIGTERM", () => {}); setTimeout(() => require("node:fs").writeFileSync("escaped", "bad"), 4000)'], { stdio: "ignore" });
 console.log("waiting on child");
 setInterval(() => {}, 1000);
 `
   );
   const result = f.run(["item", "example"], {
-    PROVIDER_UPDATE_CHECK_TIMEOUT_MS: "300",
+    PROVIDER_UPDATE_CHECK_TIMEOUT_MS: "1500",
   });
   assert.equal(result.code, 1);
   assert.match(result.output.checks[0].error, /deadline/);
   assert.match(result.output.checks[0].diagnostics, /waiting on child/);
-  await new Promise((done) => setTimeout(done, 1100));
+  await new Promise((done) => setTimeout(done, 4100));
   assert.equal(existsSync(join(f.repo, "escaped")), false);
 });

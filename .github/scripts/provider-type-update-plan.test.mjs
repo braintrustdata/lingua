@@ -141,6 +141,38 @@ test("accepts a complete plan and extracts unique capture cases", () => {
   assert.deepEqual(captureCases(plan), ["anthropicContextWindowExceeded"]);
 });
 
+test("rejects shell syntax, workflow output injection, paths, and comma lists in every capture field", () => {
+  for (const name of [
+    "$(printf REVIEW_INJECTION_CONFIRMED >&2)",
+    "`id`",
+    'case"; id; #',
+    "one,two",
+    "one\ninjected=true",
+    "one\rvalue",
+    "../case",
+    "-option",
+    "case with spaces",
+    "case;id",
+    "case|id",
+    "case$HOME",
+    "a".repeat(129),
+    "case\n",
+  ]) {
+    const plan = validPlan();
+    plan.changes[0].tests.payload_cases = [name];
+    plan.changes[0].tests.live_capture.cases = [name];
+    const errors = validatePlan(plan).join("\n");
+    assert.match(errors, /payload_cases.*case identifiers/, name);
+    assert.match(errors, /live_capture.cases.*case identifiers/, name);
+  }
+  for (const name of ["streamParam", "tool-case_2", "a".repeat(128)]) {
+    const plan = validPlan();
+    plan.changes[0].tests.payload_cases = [name];
+    plan.changes[0].tests.live_capture.cases = [name];
+    assert.deepEqual(validatePlan(plan), []);
+  }
+});
+
 test("implementation checklist preserves executable requirements without repeating audit reports", () => {
   const plan = providerOnlyPlan();
   const original = structuredClone(plan);
