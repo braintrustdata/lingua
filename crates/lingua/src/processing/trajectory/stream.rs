@@ -55,6 +55,11 @@ pub enum TrajectoryEvent {
         scope: TrajectoryScope,
         id: String,
     },
+    /// Replaces the scope's voice projection.
+    Voice {
+        scope: TrajectoryScope,
+        voice: Box<Voice>,
+    },
     Failure {
         root_span_id: String,
         span_id: String,
@@ -562,6 +567,15 @@ impl TrajectoryStream {
         for &index in &stream.voice_payloads {
             stream.ready[index] = false;
         }
+        for (root_span_id, build) in voice::build(&stream.spans) {
+            stream.initial_events.push(TrajectoryEvent::Voice {
+                scope: TrajectoryScope {
+                    root_span_id,
+                    owner_span_id: None,
+                },
+                voice: Box::new(build.voice),
+            });
+        }
         Ok(stream)
     }
 
@@ -647,13 +661,30 @@ impl TrajectoryStream {
         let index = self.pending_index(&span)?;
         self.spans[index] = span;
         self.ready[index] = true;
-        if self.roles[index] == Role::Ignored {
+        let voice = self.voice_payloads.contains(&index);
+        if self.roles[index] == Role::Ignored && !voice {
             self.spans[index].release_payload();
         }
         if !self.task_resolved[index] {
             self.resolve_task(index);
         }
-        self.drain()
+        let mut events = self.drain()?;
+        if voice {
+            events.extend(self.rebuild_voice(index));
+        }
+        Ok(events)
+    }
+
+    fn rebuild_voice(&self, index: usize) -> Option<TrajectoryEvent> {
+        let root_span_id = &self.spans[index].root_span_id;
+        let build = voice::build(&self.spans).remove(root_span_id)?;
+        Some(TrajectoryEvent::Voice {
+            scope: TrajectoryScope {
+                root_span_id: root_span_id.clone(),
+                owner_span_id: None,
+            },
+            voice: Box::new(build.voice),
+        })
     }
 
     fn resolve_task(&mut self, index: usize) {
@@ -724,7 +755,11 @@ impl TrajectoryStream {
         self.ready[index] = true;
         self.spans[index].release_payload();
         self.resolve_task(index);
-        self.drain()
+        let mut events = self.drain()?;
+        if self.voice_payloads.contains(&index) {
+            events.extend(self.rebuild_voice(index));
+        }
+        Ok(events)
     }
 
     fn pending_index(&self, span: &PreparedSpan) -> Result<usize> {
@@ -1271,19 +1306,33 @@ impl TrajectoryStream {
                     message: failure.message,
                 }),
         );
-        let mut warnings: Vec<_> = self
-            .spans
-            .iter()
-            .enumerate()
-            .filter(|(index, span)| !self.owners[index].skipped && !span.warnings.is_empty())
-            .map(|(_, span)| span)
-            .collect();
-        warnings.sort_by(|a, b| a.id.cmp(&b.id));
-        for span in warnings {
+        let mut warnings = BTreeMap::<&str, (&str, Vec<&str>)>::new();
+        for (index, span) in self.spans.iter().enumerate() {
+            if !self.owners[&index].skipped && !span.warnings.is_empty() {
+                warnings.insert(
+                    &span.id,
+                    (
+                        &span.root_span_id,
+                        span.warnings.iter().map(String::as_str).collect(),
+                    ),
+                );
+            }
+        }
+        let voice = voice::build(&self.spans);
+        for (root_span_id, build) in &voice {
+            for warning in &build.warnings {
+                warnings
+                    .entry(&warning.span_id)
+                    .or_insert_with(|| (root_span_id, Vec::new()))
+                    .1
+                    .push(&warning.message);
+            }
+        }
+        for (span_id, (root_span_id, messages)) in warnings {
             events.push(TrajectoryEvent::Warning {
-                root_span_id: span.root_span_id.clone(),
-                span_id: span.id.clone(),
-                message: span.warnings.join("; "),
+                root_span_id: root_span_id.to_string(),
+                span_id: span_id.to_string(),
+                message: messages.join("; "),
             });
         }
         events.push(TrajectoryEvent::Done);
@@ -1444,6 +1493,13 @@ impl TrajectoryCollector {
             }
             TrajectoryEvent::Interrupted { scope, id } => {
                 self.turn(&scope, &id)?.turn.interrupted = Some(true)
+            }
+            TrajectoryEvent::Voice { scope, voice } => {
+                self.scopes
+                    .get_mut(&scope)
+                    .ok_or("Unknown trajectory scope")?
+                    .header
+                    .voice = Some(*voice);
             }
             TrajectoryEvent::Failure {
                 root_span_id,

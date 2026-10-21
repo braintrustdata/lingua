@@ -1,7 +1,6 @@
 mod stream;
 #[cfg(test)]
 mod tests;
-#[allow(dead_code)]
 mod voice;
 pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
@@ -11,7 +10,7 @@ use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanCo
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    Agent, AgentResponse, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work, WorkStep,
+    Agent, AgentResponse, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Voice, Work, WorkStep,
 };
 use crate::universal::{AssistantContent, AssistantContentPart, Message};
 use crate::UniversalUsage;
