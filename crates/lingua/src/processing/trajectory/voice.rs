@@ -367,4 +367,6 @@ fn assistant_text(content: &AssistantContent) -> Option<String> {
 }
 
 #[cfg(test)]
+mod stream_tests;
+#[cfg(test)]
 mod tests;
