@@ -55,6 +55,17 @@ pub enum TrajectoryEvent {
         scope: TrajectoryScope,
         id: String,
     },
+    /// The scope's voice projection from span headers, before speech payloads load.
+    Voice {
+        scope: TrajectoryScope,
+        voice: Box<Voice>,
+    },
+    /// Text recorded by a speech span's loaded payload.
+    UtteranceText {
+        scope: TrajectoryScope,
+        id: String,
+        text: String,
+    },
     Failure {
         root_span_id: String,
         span_id: String,
@@ -415,6 +426,7 @@ pub struct TrajectoryStream {
     resumed: HashSet<usize>,
     order: Vec<usize>,
     voice_payloads: Vec<usize>,
+    voice_warnings: Vec<(String, voice::VoiceWarning)>,
     cursor: usize,
     exclude_system: bool,
     finished: bool,
@@ -525,6 +537,7 @@ impl TrajectoryStream {
             by_id,
             order: Vec::new(),
             voice_payloads: Vec::new(),
+            voice_warnings: Vec::new(),
             failures,
             owners,
             parents,
@@ -561,6 +574,21 @@ impl TrajectoryStream {
         });
         for &index in &stream.voice_payloads {
             stream.ready[index] = false;
+        }
+        for (root_span_id, build) in voice::build(&stream.spans) {
+            stream.voice_warnings.extend(
+                build
+                    .warnings
+                    .into_iter()
+                    .map(|warning| (root_span_id.clone(), warning)),
+            );
+            stream.initial_events.push(TrajectoryEvent::Voice {
+                scope: TrajectoryScope {
+                    root_span_id,
+                    owner_span_id: None,
+                },
+                voice: Box::new(build.voice),
+            });
         }
         Ok(stream)
     }
@@ -647,13 +675,43 @@ impl TrajectoryStream {
         let index = self.pending_index(&span)?;
         self.spans[index] = span;
         self.ready[index] = true;
+        let text = self.utterance_text(index);
         if self.roles[index] == Role::Ignored {
             self.spans[index].release_payload();
         }
         if !self.task_resolved[index] {
             self.resolve_task(index);
         }
-        self.drain()
+        let mut events = self.drain()?;
+        events.extend(text);
+        Ok(events)
+    }
+
+    fn utterance_text(&mut self, index: usize) -> Option<TrajectoryEvent> {
+        let span = &self.spans[index];
+        let Some(VoiceKind::Speech(speaker)) = span.source.voice.kind else {
+            return None;
+        };
+        let text = match voice::speech_text(span, speaker) {
+            Ok(text) => text?,
+            Err(message) => {
+                let warning = voice::VoiceWarning {
+                    span_id: span.id.clone(),
+                    message,
+                };
+                self.voice_warnings
+                    .push((span.root_span_id.clone(), warning));
+                return None;
+            }
+        };
+        Some(TrajectoryEvent::UtteranceText {
+            scope: TrajectoryScope {
+                root_span_id: span.root_span_id.clone(),
+                owner_span_id: None,
+            },
+            id: span.id.clone(),
+            text,
+        })
     }
 
     fn resolve_task(&mut self, index: usize) {
@@ -1271,19 +1329,30 @@ impl TrajectoryStream {
                     message: failure.message,
                 }),
         );
-        let mut warnings: Vec<_> = self
-            .spans
-            .iter()
-            .enumerate()
-            .filter(|(index, span)| !self.owners[index].skipped && !span.warnings.is_empty())
-            .map(|(_, span)| span)
-            .collect();
-        warnings.sort_by(|a, b| a.id.cmp(&b.id));
-        for span in warnings {
+        let mut warnings = BTreeMap::<&str, (&str, Vec<&str>)>::new();
+        for (index, span) in self.spans.iter().enumerate() {
+            if !self.owners[&index].skipped && !span.warnings.is_empty() {
+                warnings.insert(
+                    &span.id,
+                    (
+                        &span.root_span_id,
+                        span.warnings.iter().map(String::as_str).collect(),
+                    ),
+                );
+            }
+        }
+        for (root_span_id, warning) in &self.voice_warnings {
+            warnings
+                .entry(&warning.span_id)
+                .or_insert_with(|| (root_span_id, Vec::new()))
+                .1
+                .push(&warning.message);
+        }
+        for (span_id, (root_span_id, messages)) in warnings {
             events.push(TrajectoryEvent::Warning {
-                root_span_id: span.root_span_id.clone(),
-                span_id: span.id.clone(),
-                message: span.warnings.join("; "),
+                root_span_id: root_span_id.to_string(),
+                span_id: span_id.to_string(),
+                message: messages.join("; "),
             });
         }
         events.push(TrajectoryEvent::Done);
@@ -1444,6 +1513,26 @@ impl TrajectoryCollector {
             }
             TrajectoryEvent::Interrupted { scope, id } => {
                 self.turn(&scope, &id)?.turn.interrupted = Some(true)
+            }
+            TrajectoryEvent::Voice { scope, voice } => {
+                self.scopes
+                    .get_mut(&scope)
+                    .ok_or("Unknown trajectory scope")?
+                    .header
+                    .voice = Some(*voice);
+            }
+            TrajectoryEvent::UtteranceText { scope, id, text } => {
+                self.scopes
+                    .get_mut(&scope)
+                    .and_then(|collected| collected.header.voice.as_mut())
+                    .and_then(|voice| {
+                        voice
+                            .utterances
+                            .iter_mut()
+                            .find(|utterance| utterance.id == id)
+                    })
+                    .ok_or("Unknown voice utterance")?
+                    .text = Some(text);
             }
             TrajectoryEvent::Failure {
                 root_span_id,

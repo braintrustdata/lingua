@@ -284,7 +284,7 @@ fn audio_recording(
 }
 
 /// The speech span's own recorded text: user input or agent output, never STT or model text.
-fn speech_text(span: &PreparedSpan, speaker: Speaker) -> Result<Option<String>, String> {
+pub(super) fn speech_text(span: &PreparedSpan, speaker: Speaker) -> Result<Option<String>, String> {
     let texts: Vec<_> = match speaker {
         Speaker::User => span
             .input
@@ -336,5 +336,7 @@ fn assistant_text(content: &AssistantContent) -> Option<String> {
     }
 }
 
+#[cfg(test)]
+mod stream_tests;
 #[cfg(test)]
 mod tests;
