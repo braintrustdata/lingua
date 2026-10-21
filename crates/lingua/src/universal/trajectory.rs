@@ -31,8 +31,11 @@ pub struct Trajectory {
 /// Recorded speech and native voice turns. Model and tool work stays in `Trajectory.turns`.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Voice {
+    /// By `start_unix_ms`.
     pub recordings: Vec<AudioRecording>,
+    /// By `start_time`.
     pub utterances: Vec<Utterance>,
+    /// By `start_time`.
     pub turns: Vec<VoiceTurn>,
     pub links: Vec<Link>,
 }
@@ -44,13 +47,6 @@ pub struct Link {
     /// Such as `transcribed_by` or `input_context`.
     pub relationship: String,
     pub to: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-pub enum Speaker {
-    User,
-    Agent,
 }
 
 /// An audio attachment and what its channels hold.
@@ -88,7 +84,8 @@ pub struct AudioSelection {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 pub struct Utterance {
     pub id: String,
-    pub speaker: Speaker,
+    /// `"user"` or `"agent"`.
+    pub speaker: String,
     pub start_time: DateTime<Utc>,
     #[ts(optional)]
     pub end_time: Option<DateTime<Utc>>,
@@ -103,14 +100,16 @@ pub struct Utterance {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 pub struct VoiceTurn {
     pub id: String,
-    pub speaker: Speaker,
+    /// `"user"` or `"agent"`.
+    pub speaker: String,
     pub start_time: DateTime<Utc>,
     #[ts(optional)]
     pub end_time: Option<DateTime<Utc>>,
     #[ts(optional)]
     pub interrupted: Option<bool>,
+    /// In spoken order.
     pub utterance_ids: Vec<String>,
-    /// STT, TTS, LLM, and tool rows the turn owns.
+    /// STT, TTS, LLM, and tool rows the turn owns, by `start_time`.
     pub step_ids: Vec<String>,
 }
 
