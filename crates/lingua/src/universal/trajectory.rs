@@ -20,10 +20,98 @@ pub struct Trajectory {
     #[ts(optional)]
     pub findings: Option<Vec<Finding>>,
     pub turns: Vec<Turn>,
+    #[ts(optional)]
+    pub voice: Option<Voice>,
     #[ts(type = "Record<string, unknown>")]
     pub metadata: Map<String, Value>,
     #[ts(optional)]
     pub version: Option<String>,
+}
+
+/// Recorded speech and native voice turns. Model and tool work stays in `Trajectory.turns`.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct Voice {
+    pub recordings: Vec<AudioRecording>,
+    pub utterances: Vec<Utterance>,
+    pub turns: Vec<VoiceTurn>,
+    pub links: Vec<Link>,
+}
+
+/// A relationship a span logged to another span, by row ID.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct Link {
+    pub from: String,
+    /// Such as `transcribed_by` or `input_context`.
+    pub relationship: String,
+    pub to: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum Speaker {
+    User,
+    Agent,
+}
+
+/// An audio attachment and what its channels hold.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct AudioRecording {
+    /// Row holding the attachment.
+    pub row_id: String,
+    pub recording_id: String,
+    /// JSON pointer into the row, such as `/input/audio/call-0000`.
+    pub attachment_ref: String,
+    pub start_unix_ms: f64,
+    #[ts(optional)]
+    pub mime_type: Option<String>,
+    #[ts(optional)]
+    pub duration_ms: Option<f64>,
+    /// Recorded boundary for each channel index, such as `session_input`.
+    pub channels: Vec<String>,
+}
+
+/// Offsets from the start of the recording `recording_id` in row `row_id`.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct AudioSelection {
+    pub row_id: String,
+    pub recording_id: String,
+    #[ts(optional)]
+    pub channel: Option<u32>,
+    pub start_ms: f64,
+    pub end_ms: f64,
+}
+
+/// A source-reported speech interval, not an exact acoustic boundary or delivered text.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct Utterance {
+    pub id: String,
+    pub speaker: Speaker,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub text: Option<String>,
+    #[ts(optional)]
+    pub interrupted: Option<bool>,
+    pub audio: Vec<AudioSelection>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct VoiceTurn {
+    pub id: String,
+    pub speaker: Speaker,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub interrupted: Option<bool>,
+    pub utterance_ids: Vec<String>,
+    /// STT, TTS, LLM, and tool rows the turn owns.
+    pub step_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

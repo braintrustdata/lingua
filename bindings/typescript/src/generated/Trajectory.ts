@@ -4,5 +4,6 @@ import type { Finding } from "./Finding";
 import type { Scope } from "./Scope";
 import type { Section } from "./Section";
 import type { Turn } from "./Turn";
+import type { Voice } from "./Voice";
 
-export type Trajectory = { scope: Array<Scope>, agent: Agent, sections?: Array<Section>, findings?: Array<Finding>, turns: Array<Turn>, metadata: Record<string, unknown>, version?: string, };
+export type Trajectory = { scope: Array<Scope>, agent: Agent, sections?: Array<Section>, findings?: Array<Finding>, turns: Array<Turn>, voice?: Voice, metadata: Record<string, unknown>, version?: string, };

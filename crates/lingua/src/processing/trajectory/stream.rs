@@ -844,6 +844,7 @@ impl TrajectoryStream {
                         instructions: None,
                     },
                     turns: Vec::new(),
+                    voice: None,
                     sections: None,
                     findings: None,
                     metadata: Default::default(),
