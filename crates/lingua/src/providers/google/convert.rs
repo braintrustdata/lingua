@@ -54,6 +54,26 @@ struct GoogleAssistantPartProviderOptions {
 // Google Content -> Universal Message
 // ============================================================================
 
+/// Rejects Google part fields whose semantics depend on provider-owned
+/// execution or resources and therefore have no universal representation.
+pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
+    let field = if part.audio_transcription.is_some() {
+        "audioTranscription"
+    } else if part.media_processing.is_some() {
+        "mediaProcessing"
+    } else if part.speech_metadata.is_some() {
+        "speechMetadata"
+    } else if part.tool_call.is_some() {
+        "toolCall"
+    } else {
+        return Ok(());
+    };
+    Err(ConvertError::UnsupportedMapping {
+        from: format!("Google part {field}"),
+        to: "Lingua universal message",
+    })
+}
+
 fn text_part(text: String) -> GooglePart {
     GooglePart {
         text: Some(text),
@@ -63,6 +83,50 @@ fn text_part(text: String) -> GooglePart {
 
 fn mime_type_from_url(url: &str) -> String {
     infer_mime_type_from_reference(None, Some(url)).unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string())
+}
+
+fn google_file_part(
+    data: String,
+    filename: Option<String>,
+    media_type: String,
+) -> Result<GooglePart, ConvertError> {
+    if let Some(block) = parse_base64_data_url(&data) {
+        Ok(GooglePart {
+            inline_data: Some(GoogleBlob {
+                mime_type: Some(block.media_type),
+                data: Some(block.data),
+                display_name: filename,
+            }),
+            ..Default::default()
+        })
+    } else if is_remote_media_uri(&data) {
+        let mime_type = if media_type == "application/octet-stream" {
+            infer_mime_type_from_reference(filename.as_deref(), Some(&data))
+        } else {
+            Some(media_type)
+        }
+        .ok_or_else(|| ConvertError::UnsupportedMapping {
+            from: "URL-backed file with an unknown MIME type".to_string(),
+            to: "Google fileData (provide a recognized filename or MIME-bearing data URL)",
+        })?;
+        Ok(GooglePart {
+            file_data: Some(GoogleFileData {
+                file_uri: Some(data),
+                mime_type: Some(mime_type),
+                display_name: filename,
+            }),
+            ..Default::default()
+        })
+    } else {
+        Ok(GooglePart {
+            inline_data: Some(GoogleBlob {
+                mime_type: Some(media_type),
+                data: Some(data),
+                display_name: filename,
+            }),
+            ..Default::default()
+        })
+    }
 }
 
 fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
@@ -193,6 +257,7 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut assistant_parts: Vec<AssistantContentPart> = Vec::new();
 
                 for part in &parts {
+                    reject_google_provider_only_part(part)?;
                     if let Some(t) = &part.text {
                         if part.thought == Some(true) {
                             // Thinking part: thought=true marks model's internal reasoning
@@ -267,8 +332,20 @@ impl TryFromLLM<GoogleContent> for Message {
                         if let Some(data) = &blob.data {
                             assistant_parts.push(AssistantContentPart::File {
                                 data: Value::String(data.clone()),
-                                filename: None,
+                                filename: blob.display_name.clone(),
                                 media_type: blob
+                                    .mime_type
+                                    .clone()
+                                    .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
+                                provider_options: None,
+                            });
+                        }
+                    } else if let Some(file) = &part.file_data {
+                        if let Some(uri) = &file.file_uri {
+                            assistant_parts.push(AssistantContentPart::File {
+                                data: Value::String(uri.clone()),
+                                filename: file.display_name.clone(),
+                                media_type: file
                                     .mime_type
                                     .clone()
                                     .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
@@ -290,6 +367,7 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut tool_parts: Vec<ToolContentPart> = Vec::new();
 
                 for part in &parts {
+                    reject_google_provider_only_part(part)?;
                     if let Some(t) = &part.text {
                         user_parts.push(UserContentPart::Text(TextContentPart {
                             text: t.clone(),
@@ -303,7 +381,16 @@ impl TryFromLLM<GoogleContent> for Message {
                                 .mime_type
                                 .clone()
                                 .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
-                            if mime_type.starts_with("image/") {
+                            // Named images/audio use File because the dedicated
+                            // universal variants cannot carry a filename.
+                            if let Some(filename) = &blob.display_name {
+                                user_parts.push(UserContentPart::File {
+                                    data: Value::String(data.clone()),
+                                    filename: Some(filename.clone()),
+                                    media_type: mime_type,
+                                    provider_options: None,
+                                });
+                            } else if mime_type.starts_with("image/") {
                                 user_parts.push(UserContentPart::Image {
                                     image: Value::String(data.clone()),
                                     media_type: Some(mime_type),
@@ -333,7 +420,7 @@ impl TryFromLLM<GoogleContent> for Message {
                                 .mime_type
                                 .clone()
                                 .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
-                            if mime_type.starts_with("image/") {
+                            if mime_type.starts_with("image/") && fd.display_name.is_none() {
                                 user_parts.push(UserContentPart::Image {
                                     image: Value::String(uri.clone()),
                                     media_type: Some(mime_type),
@@ -342,7 +429,7 @@ impl TryFromLLM<GoogleContent> for Message {
                             } else {
                                 user_parts.push(UserContentPart::File {
                                     data: Value::String(uri.clone()),
-                                    filename: None,
+                                    filename: fd.display_name.clone(),
                                     media_type: mime_type,
                                     provider_options: None,
                                 });
@@ -447,6 +534,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -457,6 +545,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
                                                 mime_type: Some(mime_type),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -467,6 +556,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(mime_type),
                                                 data: Some(data),
+                                                display_name: None,
                                             }),
                                             ..Default::default()
                                         });
@@ -481,6 +571,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                         inline_data: Some(GoogleBlob {
                                             mime_type: Some(mime_type.to_string()),
                                             data: Some(data),
+                                            display_name: None,
                                         }),
                                         ..Default::default()
                                     });
@@ -491,43 +582,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                     media_type,
                                     ..
                                 } => {
-                                    if let Some(block) = parse_base64_data_url(&data) {
-                                        converted.push(GooglePart {
-                                            inline_data: Some(GoogleBlob {
-                                                mime_type: Some(block.media_type),
-                                                data: Some(block.data),
-                                            }),
-                                            ..Default::default()
-                                        });
-                                    } else if is_remote_media_uri(&data) {
-                                        let mime_type = if media_type == "application/octet-stream" {
-                                            infer_mime_type_from_reference(
-                                                filename.as_deref(),
-                                                Some(&data),
-                                            )
-                                        } else {
-                                            Some(media_type)
-                                        }
-                                        .ok_or_else(|| ConvertError::UnsupportedMapping {
-                                            from: "URL-backed file with an unknown MIME type".to_string(),
-                                            to: "Google fileData (provide a recognized filename or MIME-bearing data URL)",
-                                        })?;
-                                        converted.push(GooglePart {
-                                            file_data: Some(GoogleFileData {
-                                                file_uri: Some(data),
-                                                mime_type: Some(mime_type),
-                                            }),
-                                            ..Default::default()
-                                        });
-                                    } else {
-                                        converted.push(GooglePart {
-                                            inline_data: Some(GoogleBlob {
-                                                mime_type: Some(media_type),
-                                                data: Some(data),
-                                            }),
-                                            ..Default::default()
-                                        });
-                                    }
+                                    converted.push(google_file_part(data, filename, media_type)?);
                                 }
                                 _ => {}
                             }
@@ -617,19 +672,18 @@ impl TryFromLLM<Message> for GoogleContent {
                                     });
                                 }
                                 AssistantContentPart::File {
-                                    data, media_type, ..
+                                    data,
+                                    filename,
+                                    media_type,
+                                    ..
                                 } => {
-                                    let data_str = match data {
-                                        Value::String(s) => Some(s),
-                                        _ => None,
+                                    let Value::String(data) = data else {
+                                        return Err(ConvertError::UnsupportedMapping {
+                                            from: "Non-string universal file data".to_string(),
+                                            to: "Google media part",
+                                        });
                                     };
-                                    converted.push(GooglePart {
-                                        inline_data: Some(GoogleBlob {
-                                            data: data_str,
-                                            mime_type: Some(media_type),
-                                        }),
-                                        ..Default::default()
-                                    });
+                                    converted.push(google_file_part(data, filename, media_type)?);
                                 }
                                 _ => {}
                             }
@@ -1749,6 +1803,7 @@ mod tests {
                     inline_data: Some(GoogleBlob {
                         mime_type: Some(mime_type.to_string()),
                         data: Some("UklGRg==".to_string()),
+                        display_name: None,
                     }),
                     ..Default::default()
                 }]),
@@ -1798,6 +1853,7 @@ mod tests {
                 inline_data: Some(GoogleBlob {
                     mime_type: Some("text/plain".to_string()),
                     data: Some("Sample text.".to_string()),
+                    display_name: None,
                 }),
                 ..Default::default()
             }]),
@@ -1822,6 +1878,138 @@ mod tests {
             },
             other => panic!("expected user message, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn test_display_name_import_roundtrip() {
+        for role in ["user", "model"] {
+            for mime_type in ["application/pdf", "image/png", "audio/wav"] {
+                for referenced in [false, true] {
+                    for display_name in ["sample.bin", ""] {
+                        let data = if referenced {
+                            "https://example.com/media"
+                        } else {
+                            "c2FtcGxl"
+                        };
+                        let part = if referenced {
+                            GooglePart {
+                                file_data: Some(GoogleFileData {
+                                    file_uri: Some(data.to_string()),
+                                    mime_type: Some(mime_type.to_string()),
+                                    display_name: Some(display_name.to_string()),
+                                }),
+                                ..Default::default()
+                            }
+                        } else {
+                            GooglePart {
+                                inline_data: Some(GoogleBlob {
+                                    data: Some(data.to_string()),
+                                    mime_type: Some(mime_type.to_string()),
+                                    display_name: Some(display_name.to_string()),
+                                }),
+                                ..Default::default()
+                            }
+                        };
+                        let original = GoogleContent {
+                            role: Some(role.to_string()),
+                            parts: Some(vec![part]),
+                        };
+                        let message =
+                            <Message as TryFromLLM<GoogleContent>>::try_from(original.clone())
+                                .unwrap();
+                        let (file_data, filename, media_type) = match &message {
+                            Message::User {
+                                content: UserContent::Array(parts),
+                            } => match &parts[..] {
+                                [UserContentPart::File {
+                                    data,
+                                    filename,
+                                    media_type,
+                                    ..
+                                }] => (data, filename, media_type),
+                                other => panic!("Expected one named file, got {other:?}"),
+                            },
+                            Message::Assistant {
+                                content: AssistantContent::Array(parts),
+                                ..
+                            } => match &parts[..] {
+                                [AssistantContentPart::File {
+                                    data,
+                                    filename,
+                                    media_type,
+                                    ..
+                                }] => (data, filename, media_type),
+                                other => panic!("Expected one named file, got {other:?}"),
+                            },
+                            other => panic!("Expected file content, got {other:?}"),
+                        };
+                        assert_eq!(file_data, &Value::String(data.to_string()));
+                        assert_eq!(filename.as_deref(), Some(display_name));
+                        assert_eq!(media_type, mime_type);
+                        let roundtrip =
+                            <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+                        assert_eq!(roundtrip, original);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_display_name_export() {
+        for assistant in [false, true] {
+            for filename in [None, Some("report.pdf"), Some("")] {
+                for (data, referenced) in [
+                    ("c2FtcGxl", false),
+                    ("data:application/pdf;base64,c2FtcGxl", false),
+                    ("https://example.com/report.pdf", true),
+                    ("gs://test-bucket/report.pdf", true),
+                ] {
+                    let file = json!({
+                        "type": "file", "data": data, "filename": filename,
+                        "media_type": "application/pdf"
+                    });
+                    let message: Message = serde_json::from_value(json!({
+                        "role": if assistant { "assistant" } else { "user" },
+                        "content": [file]
+                    }))
+                    .unwrap();
+                    let content =
+                        <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+                    let parts = content.parts.unwrap();
+                    assert_eq!(parts.len(), 1);
+                    if referenced {
+                        let file = parts[0].file_data.as_ref().expect("Expected fileData");
+                        assert_eq!(file.display_name.as_deref(), filename);
+                        assert_eq!(file.file_uri.as_deref(), Some(data));
+                        assert_eq!(file.mime_type.as_deref(), Some("application/pdf"));
+                        assert!(parts[0].inline_data.is_none());
+                    } else {
+                        let blob = parts[0].inline_data.as_ref().expect("Expected inlineData");
+                        assert_eq!(blob.display_name.as_deref(), filename);
+                        assert_eq!(blob.data.as_deref(), Some("c2FtcGxl"));
+                        assert_eq!(blob.mime_type.as_deref(), Some("application/pdf"));
+                        assert!(parts[0].file_data.is_none());
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_display_name_rejects_non_string_assistant_file() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::File {
+                data: json!({"opaque": "handle"}),
+                filename: Some("report.pdf".to_string()),
+                media_type: "application/pdf".to_string(),
+                provider_options: None,
+            }]),
+            id: None,
+        };
+        let error = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap_err();
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        assert!(error.to_string().contains("Non-string universal file data"));
     }
 
     #[test]
@@ -2537,6 +2725,16 @@ mod tests {
         let reason = GoogleFinishReason::Escalation;
         let universal: FinishReason = FinishReason::from(&reason);
         assert_eq!(universal, FinishReason::ContentFilter);
+    }
+
+    #[test]
+    fn test_pup_limited_disabled_finish_reason_maps_to_other() {
+        let reason = GoogleFinishReason::PupLimitedDisabled;
+        let universal: FinishReason = FinishReason::from(&reason);
+        assert_eq!(
+            universal,
+            FinishReason::Other("PUP_LIMITED_DISABLED".to_string())
+        );
     }
 
     // --- Regression tests for the regenerated google provider types ---

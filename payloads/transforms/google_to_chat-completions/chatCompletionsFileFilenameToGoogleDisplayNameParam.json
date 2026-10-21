@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EbBzhcTxPVUYc54WaAS4XduWJRE5M",
+  "object": "chat.completion",
+  "created": 1792532949,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "- The document’s text (page 1) reads: \"Hello from Lingua.\"\n\nIf there is an image on the page with additional text not captured in the parsed text, I can view that image to extract any more content. Would you like me to inspect the image on this page?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 234,
+    "completion_tokens": 774,
+    "total_tokens": 1008,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 704,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
