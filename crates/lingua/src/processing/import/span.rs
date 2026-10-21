@@ -21,6 +21,7 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "turn.id",
     "links",
     "audio.selections",
+    "audio.recordings",
     "contrib.livekit.interrupted",
 ];
 
@@ -101,6 +102,8 @@ pub struct VoiceContext {
     pub interrupted: Option<bool>,
     pub selections: Option<Vec<SelectionMetadata>>,
     #[serde(default)]
+    pub recordings: Vec<RecordingMetadata>,
+    #[serde(default)]
     pub errors: Vec<String>,
 }
 
@@ -123,6 +126,38 @@ pub struct SpanLinkContext {
     pub span_id: String,
     #[serde(rename = "traceId")]
     pub trace_id: Option<String>,
+}
+
+/// An `audio.recordings` entry: an audio attachment, its timeline, and what its channels hold.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingMetadata {
+    pub id: String,
+    pub state: Option<String>,
+    pub attachment: Option<RecordingAttachment>,
+    pub timeline: Option<RecordingTimeline>,
+    #[serde(default)]
+    pub sources: Vec<RecordingSource>,
+    pub mime_type: Option<String>,
+    pub duration_ms: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingAttachment {
+    pub span_id: String,
+    #[serde(rename = "ref")]
+    pub reference: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingTimeline {
+    pub origin_unix_ms: f64,
+    pub recording_start_offset_ms: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingSource {
+    pub boundary: String,
+    pub channel_index: Option<u32>,
 }
 
 /// An `audio.selections` entry: offsets into a recording described by `recording_span_id`.
@@ -226,6 +261,8 @@ struct Metadata {
     #[serde(rename = "turn.id")]
     voice_turn_id: Option<json::Value>,
     links: Option<json::Value>,
+    #[serde(rename = "audio.recordings")]
+    audio_recordings: Option<json::Value>,
     #[serde(rename = "audio.selections")]
     audio_selections: Option<json::Value>,
     #[serde(rename = "contrib.livekit.interrupted")]
@@ -296,6 +333,12 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             "audio.selections",
             &mut voice_errors,
         ),
+        recordings: metadata_field(
+            metadata.audio_recordings,
+            "audio.recordings",
+            &mut voice_errors,
+        )
+        .unwrap_or_default(),
         errors: voice_errors,
     };
 

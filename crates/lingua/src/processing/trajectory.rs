@@ -7,7 +7,7 @@ pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };
 
-use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext};
+use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext, VoiceKind};
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
