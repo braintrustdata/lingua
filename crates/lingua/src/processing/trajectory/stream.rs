@@ -195,7 +195,7 @@ fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) 
         .iter()
         .enumerate()
         .map(|(index, span)| {
-            if owners[&index].skipped {
+            if owners[&index].skipped || span.source.voice.kind.is_some() {
                 return Role::Ignored;
             }
             match span.kind() {
@@ -718,6 +718,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice: _,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
