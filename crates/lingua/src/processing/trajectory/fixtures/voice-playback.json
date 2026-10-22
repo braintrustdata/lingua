@@ -1,0 +1,353 @@
+{
+  "spans": [
+    {
+      "id": "r-session",
+      "span_id": "s-session",
+      "root_span_id": "s-session",
+      "span_parents": [],
+      "span_attributes": {
+        "type": "task",
+        "name": "session"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 1
+      }
+    },
+    {
+      "id": "r-a0",
+      "span_id": "s-a0",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "metadata": {
+        "turn.id": "s-a0",
+        "contrib.livekit.playback_events": [
+          {
+            "name": "playbackFinished",
+            "attributes": {
+              "interrupted": true,
+              "synchronizedTranscript": "Spoken so far"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-a0-speech0",
+      "span_id": "s-a0-speech0",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a0"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 2,
+        "end": 3
+      },
+      "metadata": {
+        "turn.id": "s-a0",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-a1",
+      "span_id": "s-a1",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 6,
+        "end": 7
+      },
+      "metadata": {
+        "turn.id": "s-a1",
+        "contrib.livekit.playback_events": [
+          {
+            "name": "playbackFinished",
+            "attributes": {
+              "interrupted": true,
+              "synchronizedTranscript": "Playback text"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-a1-speech0",
+      "span_id": "s-a1-speech0",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a1"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 7,
+        "end": 8
+      },
+      "metadata": {
+        "turn.id": "s-a1",
+        "contrib.livekit.interrupted": true
+      },
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Logged text"
+        }
+      ]
+    },
+    {
+      "id": "r-a2",
+      "span_id": "s-a2",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 11,
+        "end": 12
+      },
+      "metadata": {
+        "turn.id": "s-a2",
+        "contrib.livekit.playback_events": [
+          {
+            "name": "playbackFinished",
+            "attributes": {
+              "interrupted": true,
+              "synchronizedTranscript": "First"
+            }
+          },
+          {
+            "name": "playbackFinished",
+            "attributes": {
+              "interrupted": true,
+              "synchronizedTranscript": "Second"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-a2-speech0",
+      "span_id": "s-a2-speech0",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a2"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 12,
+        "end": 13
+      },
+      "metadata": {
+        "turn.id": "s-a2",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-a2-speech1",
+      "span_id": "s-a2-speech1",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a2"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 13,
+        "end": 14
+      },
+      "metadata": {
+        "turn.id": "s-a2",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-a3",
+      "span_id": "s-a3",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 16,
+        "end": 17
+      },
+      "metadata": {
+        "turn.id": "s-a3",
+        "contrib.livekit.playback_events": [
+          {
+            "name": "playbackFinished",
+            "attributes": {
+              "interrupted": true,
+              "synchronizedTranscript": "Only one"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-a3-speech0",
+      "span_id": "s-a3-speech0",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a3"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 17,
+        "end": 18
+      },
+      "metadata": {
+        "turn.id": "s-a3",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-a3-speech1",
+      "span_id": "s-a3-speech1",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a3"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 18,
+        "end": 19
+      },
+      "metadata": {
+        "turn.id": "s-a3",
+        "contrib.livekit.interrupted": true
+      }
+    }
+  ],
+  "turns": [],
+  "voice": {
+    "recordings": [],
+    "turns": [
+      {
+        "id": "r-a0",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:01Z",
+        "end_time": "1970-01-01T00:00:02Z"
+      },
+      {
+        "id": "r-a1",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:06Z",
+        "end_time": "1970-01-01T00:00:07Z"
+      },
+      {
+        "id": "r-a2",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:11Z",
+        "end_time": "1970-01-01T00:00:12Z"
+      },
+      {
+        "id": "r-a3",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:16Z",
+        "end_time": "1970-01-01T00:00:17Z"
+      }
+    ],
+    "utterances": [
+      {
+        "id": "r-a0-speech0",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:02Z",
+        "end_time": "1970-01-01T00:00:03Z",
+        "audio": [],
+        "turn_id": "r-a0",
+        "interrupted": true,
+        "text": "Spoken so far"
+      },
+      {
+        "id": "r-a1-speech0",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:07Z",
+        "end_time": "1970-01-01T00:00:08Z",
+        "audio": [],
+        "turn_id": "r-a1",
+        "interrupted": true,
+        "text": "Logged text"
+      },
+      {
+        "id": "r-a2-speech0",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:12Z",
+        "end_time": "1970-01-01T00:00:13Z",
+        "audio": [],
+        "turn_id": "r-a2",
+        "interrupted": true
+      },
+      {
+        "id": "r-a2-speech1",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:13Z",
+        "end_time": "1970-01-01T00:00:14Z",
+        "audio": [],
+        "turn_id": "r-a2",
+        "interrupted": true,
+        "text": "Second"
+      },
+      {
+        "id": "r-a3-speech0",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:17Z",
+        "end_time": "1970-01-01T00:00:18Z",
+        "audio": [],
+        "turn_id": "r-a3",
+        "interrupted": true
+      },
+      {
+        "id": "r-a3-speech1",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:18Z",
+        "end_time": "1970-01-01T00:00:19Z",
+        "audio": [],
+        "turn_id": "r-a3",
+        "interrupted": true
+      }
+    ],
+    "steps": []
+  }
+}
