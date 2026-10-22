@@ -3,4 +3,4 @@
 /**
  * Offsets from the start of the recording `recording_id` in row `row_id`.
  */
-export type AudioSelection = { row_id: string, recording_id: string, channel?: number, start_ms: number, end_ms: number, };
+export type AudioClip = { row_id: string, recording_id: string, channel?: number, start_ms: number, end_ms: number, };

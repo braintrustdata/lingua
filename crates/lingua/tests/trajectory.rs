@@ -109,6 +109,16 @@ fn voice_round_trips_with_missing_fields_preserved() {
                 "start_unix_ms": 1792614968231.0,
                 "channels": ["session_input", "local_audio_output"]
             }],
+            "turns": [
+                { "id": "turn", "speaker": "user", "start_time": "2026-10-21T12:00:00Z" },
+                {
+                    "id": "reply-turn",
+                    "speaker": "agent",
+                    "start_time": "2026-10-21T12:00:02Z",
+                    "end_time": "2026-10-21T12:00:03Z",
+                    "interrupted": true
+                }
+            ],
             "utterances": [
                 { "id": "speech", "speaker": "user", "start_time": "2026-10-21T12:00:00Z", "audio": [] },
                 {
@@ -117,17 +127,14 @@ fn voice_round_trips_with_missing_fields_preserved() {
                     "start_time": "2026-10-21T12:00:02Z",
                     "end_time": "2026-10-21T12:00:03Z",
                     "text": "Partial",
-                    "interrupted": true,
-                    "audio": [{ "row_id": "session", "recording_id": "call-0000", "channel": 1, "start_ms": 2000.0, "end_ms": 2500.5 }]
+                    "audio": [{ "row_id": "session", "recording_id": "call-0000", "channel": 1, "start_ms": 2000.0, "end_ms": 2500.5 }],
+                    "turn_id": "reply-turn"
                 }
             ],
-            "turns": [{
-                "id": "turn",
-                "speaker": "user",
-                "start_time": "2026-10-21T12:00:00Z",
-                "utterance_ids": ["speech"],
-                "step_ids": ["stt", "llm"]
-            }]
+            "steps": [
+                { "id": "stt", "kind": "stt", "start_time": "2026-10-21T12:00:00Z", "turn_id": "turn" },
+                { "id": "llm", "kind": "llm", "start_time": "2026-10-21T12:00:01Z", "end_time": "2026-10-21T12:00:02Z" }
+            ]
         },
         "metadata": {},
     });
@@ -136,5 +143,8 @@ fn voice_round_trips_with_missing_fields_preserved() {
     assert_eq!(voice.utterances[0].text, None);
     assert!(voice.utterances[0].audio.is_empty());
     assert_eq!(voice.recordings[0].mime_type, None);
+    assert_eq!(voice.utterances[0].turn_id, None);
+    assert_eq!(voice.turns[0].interrupted, None);
+    assert_eq!(voice.turns[1].interrupted, Some(true));
     assert_eq!(serde_json::to_value(&trajectory).unwrap(), source);
 }
