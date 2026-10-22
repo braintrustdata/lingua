@@ -92,6 +92,9 @@ pub struct VoiceContext {
     pub recordings: Vec<RecordingMetadata>,
     #[serde(default)]
     pub errors: Vec<String>,
+    /// The header has voice array fields, which are read from the payload.
+    #[serde(default)]
+    pub payload: bool,
 }
 
 /// How one stretch of a turn's speech finished playing.
@@ -290,6 +293,9 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
     let compaction =
         metadata_field::<CompactionHint>(metadata.compaction, "compaction", &mut errors);
     let mut voice_errors = Vec::new();
+    let payload = metadata.audio_selections.is_some()
+        || metadata.audio_recordings.is_some()
+        || metadata.playback_events.is_some();
     let voice = VoiceContext {
         kind: livekit::voice_kind(
             source.span_attributes.kind.as_deref(),
@@ -322,6 +328,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         )
         .unwrap_or_default(),
         errors: voice_errors,
+        payload,
     };
 
     let start = source.metrics.start.and_then(timestamp).or(source.created);

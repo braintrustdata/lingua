@@ -2472,6 +2472,52 @@ fn voice_payloads_must_be_loaded_omitted_or_failed() {
 }
 
 #[test]
+fn voice_arrays_are_read_from_payloads() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-playback.json")).unwrap();
+    let headers = fixture.spans.iter().cloned().map(|mut source| {
+        source.input = None;
+        source.output = None;
+        if let Some(metadata) = source
+            .other
+            .get_mut("metadata")
+            .and_then(|value| value.as_object_mut())
+        {
+            for field in [
+                "audio.selections",
+                "audio.recordings",
+                "contrib.livekit.playback_events",
+            ] {
+                if let Some(value) = metadata.get_mut(field) {
+                    *value = crate::serde_json::json!({ "0": {} });
+                }
+            }
+        }
+        source
+    });
+    let mut stream = stream_from_sources(headers.collect()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).pop() {
+        let source = fixture
+            .spans
+            .iter()
+            .find(|span| span.other["id"] == id)
+            .unwrap();
+        collect(
+            &mut collector,
+            stream.push(import_span(source.clone()).unwrap()).unwrap(),
+        );
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let result = collector.snapshot().unwrap();
+    assert_eq!(
+        serde_json::to_value(&result[0].voice).unwrap(),
+        serde_json::to_value(&fixture.voice).unwrap(),
+    );
+    assert!(result[0].metadata.get("import_warnings").is_none());
+}
+
+#[test]
 fn recording_only_traces_have_voice() {
     let mut fixture: ImportFixture =
         serde_json::from_str(include_str!("fixtures/voice-recordings.json")).unwrap();

@@ -548,7 +548,8 @@ impl TrajectoryStream {
         stream.initial_events = events;
         for (index, span) in stream.spans.iter().enumerate() {
             if !stream.owners[&index].skipped
-                && matches!(span.source.voice.kind, Some(VoiceKind::Speech(_)))
+                && (span.source.voice.payload
+                    || matches!(span.source.voice.kind, Some(VoiceKind::Speech(_))))
             {
                 stream.ready[index] = false;
             }
@@ -607,7 +608,7 @@ impl TrajectoryStream {
             if pending.len() == limit {
                 break;
             }
-            if !self.ready[index] && matches!(span.source.voice.kind, Some(VoiceKind::Speech(_))) {
+            if !self.ready[index] && self.roles[index] == Role::Ignored {
                 pending.push(span.id.clone());
             }
         }
@@ -628,10 +629,8 @@ impl TrajectoryStream {
         self.push_prepared(PreparedSpan::new(span)?)
     }
 
-    pub fn push_prepared(&mut self, mut span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
+    pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
         let index = self.pending_index(&span)?;
-        // Keep voice metadata from the header scan when loading the payload.
-        span.source.voice = std::mem::take(&mut self.spans[index].source.voice);
         self.spans[index] = span;
         self.ready[index] = true;
         if !self.task_resolved[index] {
