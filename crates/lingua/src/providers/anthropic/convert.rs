@@ -883,6 +883,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
 
                             let UserContentPart::File {
                                 data: Value::String(data),
+                                filename,
                                 media_type,
                                 ..
                             } = part
@@ -907,6 +908,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             if media_type.starts_with("audio/") || media_type.starts_with("video/") {
                                 return Err(ConvertError::UnsupportedMapping {
                                     from: format!("Lingua file content with MIME type {}", media_type),
+                                    to: "Anthropic document input",
+                                });
+                            }
+
+                            if filename.is_some() {
+                                return Err(ConvertError::UnsupportedMapping {
+                                    from: "Lingua file filename".to_string(),
                                     to: "Anthropic document input",
                                 });
                             }
@@ -3425,7 +3433,7 @@ mod tests {
 
         let file_part = UserContentPart::File {
             data: serde_json::Value::String("base64encodeddata".to_string()),
-            filename: Some("test.pdf".to_string()),
+            filename: None,
             media_type: "application/pdf".to_string(),
             provider_options: Some(ProviderOptions { options: opts }),
         };
@@ -3457,6 +3465,24 @@ mod tests {
             assert_eq!(block.title, Some("Test Document".to_string()));
         } else {
             panic!("Expected InputContentBlockArray");
+        }
+    }
+
+    #[test]
+    fn test_named_file_to_anthropic_is_unsupported() {
+        for filename in ["report.pdf", ""] {
+            let message = Message::User {
+                content: UserContent::Array(vec![UserContentPart::File {
+                    data: Value::String("c2FtcGxl".to_string()),
+                    filename: Some(filename.to_string()),
+                    media_type: "application/pdf".to_string(),
+                    provider_options: None,
+                }]),
+            };
+            let error = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)
+                .expect_err("Anthropic must not silently discard a file's filename");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+            assert!(error.to_string().contains("Lingua file filename"));
         }
     }
 
@@ -3497,7 +3523,7 @@ mod tests {
         // Create a regular File content part (no anthropic_type marker)
         let file_part = UserContentPart::File {
             data: serde_json::Value::String("base64encodeddata".to_string()),
-            filename: Some("test.pdf".to_string()),
+            filename: None,
             media_type: "application/pdf".to_string(),
             provider_options: None, // No anthropic_type marker
         };
