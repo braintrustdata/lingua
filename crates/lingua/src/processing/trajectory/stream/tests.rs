@@ -169,3 +169,37 @@ fn emitted_payloads_and_per_span_history_are_released() {
             .all(|span| span.output.is_empty() && span.input_keys.is_empty()));
     }
 }
+
+#[test]
+fn payloads_keep_adapted_voice_headers() {
+    use crate::processing::import::{import_span, Span};
+    use serde::Deserialize;
+    let span = |id: &str, name: &str, parent: Option<&str>| {
+        Span::deserialize(crate::serde_json::json!({
+            "id": format!("r-{id}"),
+            "span_id": format!("s-{id}"),
+            "root_span_id": "s-session",
+            "span_parents": parent.map(|parent| vec![format!("s-{parent}")]),
+            "span_attributes": {"type": "task", "name": name},
+            "metrics": {"start": 1.0, "end": 2.0},
+            "input": [{"role": "user", "content": "Hello"}],
+        }))
+        .unwrap()
+    };
+    let session = span("session", "session", None);
+    let speech = span("speech", "user_speech", Some("session"));
+    let mut stream = TrajectoryStream::new(
+        [&session, &speech]
+            .map(|span| import_span(span.clone()).unwrap().header_only())
+            .to_vec(),
+        false,
+    )
+    .unwrap();
+    let index = stream.by_id["r-speech"];
+    stream.spans[index].source.voice.turn_id = Some("adapted".to_string());
+    stream.push(import_span(speech).unwrap()).unwrap();
+    assert_eq!(
+        stream.spans[index].source.voice.turn_id.as_deref(),
+        Some("adapted")
+    );
+}

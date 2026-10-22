@@ -661,8 +661,9 @@ impl TrajectoryStream {
         self.push_prepared(PreparedSpan::new(span)?)
     }
 
-    pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
+    pub fn push_prepared(&mut self, mut span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
         let index = self.pending_index(&span)?;
+        span.source.voice = std::mem::take(&mut self.spans[index].source.voice);
         self.spans[index] = span;
         self.ready[index] = true;
         if self.roles[index] == Role::Ignored {
