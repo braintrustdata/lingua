@@ -15,7 +15,7 @@ name: string,
 /**
  * JSON pointer into the row, such as `/input/audio/call-0000`.
  */
-attachment_ref: string, start_unix_ms: number, mime_type?: string, duration_ms?: number, 
+attachment_ref: string, start_time: string, mime_type?: string, duration_ms?: number, 
 /**
  * Recorded boundary for each channel index, such as `session_input`.
  */
