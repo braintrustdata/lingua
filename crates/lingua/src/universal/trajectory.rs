@@ -31,7 +31,7 @@ pub struct Trajectory {
 /// Recorded speech and voice work for a call. Model and tool payloads stay in `Trajectory.turns`.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Voice {
-    /// By `start_unix_ms`.
+    /// By `start_time`.
     pub recordings: Vec<AudioRecording>,
     /// Turns the source recorded, by `start_time`. Empty when the source records none.
     pub turns: Vec<VoiceTurn>,
@@ -99,7 +99,7 @@ pub struct AudioRecording {
     pub name: String,
     /// JSON pointer into the row, such as `/input/audio/call-0000`.
     pub attachment_ref: String,
-    pub start_unix_ms: f64,
+    pub start_time: DateTime<Utc>,
     #[ts(optional)]
     pub mime_type: Option<String>,
     #[ts(optional)]
@@ -115,9 +115,9 @@ pub struct AudioClip {
     pub recording_id: String,
     pub recording_name: String,
     #[ts(optional)]
-    pub channel: Option<u32>,
-    pub start_ms: f64,
-    pub end_ms: f64,
+    pub channel_index: Option<u32>,
+    pub start_offset_ms: f64,
+    pub end_offset_ms: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

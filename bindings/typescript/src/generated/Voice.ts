@@ -9,7 +9,7 @@ import type { VoiceTurn } from "./VoiceTurn";
  */
 export type Voice = { 
 /**
- * By `start_unix_ms`.
+ * By `start_time`.
  */
 recordings: Array<AudioRecording>, 
 /**

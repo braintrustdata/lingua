@@ -3,4 +3,4 @@
 /**
  * Offsets from the start of the recording identified by `recording_id` and `recording_name`.
  */
-export type AudioClip = { recording_id: string, recording_name: string, channel?: number, start_ms: number, end_ms: number, };
+export type AudioClip = { recording_id: string, recording_name: string, channel_index?: number, start_offset_ms: number, end_offset_ms: number, };

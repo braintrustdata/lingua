@@ -106,7 +106,7 @@ fn voice_round_trips_with_missing_fields_preserved() {
                 "id": "session",
                 "name": "call-0000",
                 "attachment_ref": "/input/audio/call-0000",
-                "start_unix_ms": 1792614968231.0,
+                "start_time": "2026-10-21T12:00:00Z",
                 "channels": ["session_input", "local_audio_output"]
             }],
             "turns": [
@@ -127,7 +127,7 @@ fn voice_round_trips_with_missing_fields_preserved() {
                     "end_time": "2026-10-21T12:00:03Z",
                     "text": "Partial",
                     "interrupted": true,
-                    "audio": [{ "recording_id": "session", "recording_name": "call-0000", "channel": 1, "start_ms": 2000.0, "end_ms": 2500.5 }],
+                    "audio": [{ "recording_id": "session", "recording_name": "call-0000", "channel_index": 1, "start_offset_ms": 2000.0, "end_offset_ms": 2500.5 }],
                     "turn_id": "reply-turn"
                 }
             ],
