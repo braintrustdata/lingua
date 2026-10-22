@@ -9,7 +9,6 @@ use crate::universal::{
 use chrono::DateTime;
 use std::collections::{BTreeMap, HashMap};
 
-/// A trace's voice projection and the diagnostics found while building it.
 #[derive(Debug, Clone)]
 pub(super) struct VoiceBuild {
     pub voice: Voice,
@@ -158,7 +157,6 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
     VoiceBuild { voice, warnings }
 }
 
-/// A playable recording, or `None` while the source reports it as not ready.
 fn audio_recording(
     recording: &RecordingMetadata,
     by_span_id: &HashMap<&str, &PreparedSpan>,

@@ -434,7 +434,6 @@ pub struct TrajectoryStream {
     initial_events: Vec<TrajectoryEvent>,
     resumed: HashSet<usize>,
     order: Vec<usize>,
-    voice_payloads: Vec<usize>,
     cursor: usize,
     exclude_system: bool,
     finished: bool,
@@ -546,7 +545,6 @@ impl TrajectoryStream {
             spans,
             by_id,
             order: Vec::new(),
-            voice_payloads: Vec::new(),
             failures,
             owners,
             parents,
@@ -566,23 +564,12 @@ impl TrajectoryStream {
         let mut events = Vec::new();
         stream.initialize(&mut events)?;
         stream.initial_events = events;
-        stream.voice_payloads = (0..stream.spans.len())
-            .filter(|index| {
-                !stream.owners[index].skipped
-                    && matches!(
-                        stream.spans[*index].source.voice.kind,
-                        Some(VoiceKind::Speech(_))
-                    )
-            })
-            .collect();
-        stream.voice_payloads.sort_by(|a, b| {
-            stream.spans[*a]
-                .start
-                .cmp(&stream.spans[*b].start)
-                .then(a.cmp(b))
-        });
-        for &index in &stream.voice_payloads {
-            stream.ready[index] = false;
+        for (index, span) in stream.spans.iter().enumerate() {
+            if !stream.owners[&index].skipped
+                && matches!(span.source.voice.kind, Some(VoiceKind::Speech(_)))
+            {
+                stream.ready[index] = false;
+            }
         }
         Ok(stream)
     }
@@ -591,21 +578,7 @@ impl TrajectoryStream {
         self.by_id.get(id).is_some_and(|&index| !self.ready[index])
     }
 
-    /// Model/tool payloads in assembly order, then speech payloads.
     pub fn pending_ids(&self, limit: usize) -> Vec<String> {
-        let mut pending = self.model_pending_ids(limit);
-        for &index in &self.voice_payloads {
-            if pending.len() == limit {
-                break;
-            }
-            if !self.ready[index] {
-                pending.push(self.spans[index].id.clone());
-            }
-        }
-        pending
-    }
-
-    fn model_pending_ids(&self, limit: usize) -> Vec<String> {
         let mut pending = Vec::new();
         let mut seen = HashSet::new();
         let mut blocked = false;
@@ -646,6 +619,14 @@ impl TrajectoryStream {
                 } else if !self.ready[index] {
                     pending.push(self.spans[index].id.clone());
                 }
+            }
+        }
+        for (index, span) in self.spans.iter().enumerate() {
+            if pending.len() == limit {
+                break;
+            }
+            if !self.ready[index] && matches!(span.source.voice.kind, Some(VoiceKind::Speech(_))) {
+                pending.push(span.id.clone());
             }
         }
         pending
@@ -913,12 +894,7 @@ impl TrajectoryStream {
         for (index, role) in self.roles.iter().enumerate() {
             if *role == Role::Ignored {
                 self.ready[index] = true;
-                if !matches!(
-                    self.spans[index].source.voice.kind,
-                    Some(VoiceKind::Speech(_))
-                ) {
-                    self.spans[index].release_payload();
-                }
+                self.spans[index].release_payload();
             }
         }
         self.remaining = scope_indices
