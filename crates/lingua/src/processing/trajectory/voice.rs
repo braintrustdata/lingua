@@ -54,6 +54,14 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
         .iter()
         .map(|span| (span.span_id.as_str(), *span))
         .collect();
+    let mut speech_by_turn = HashMap::<&str, Vec<&PreparedSpan>>::new();
+    for span in &spans {
+        if let (Some(VoiceKind::Speech(Speaker::Agent)), Some(turn_id)) =
+            (span.source.voice.kind, span.source.voice.turn_id.as_deref())
+        {
+            speech_by_turn.entry(turn_id).or_default().push(span);
+        }
+    }
     let mut voice = Voice {
         recordings: Vec::new(),
         turns: Vec::new(),
@@ -116,7 +124,7 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
                 }
                 let text = match speech_text(span, speaker) {
                     Ok(Some(text)) if !text.is_empty() => Some(text),
-                    Ok(_) => span.source.voice.fallback_text.clone(),
+                    Ok(_) => playback_text(span, &by_span_id, &speech_by_turn),
                     Err(message) => {
                         warn(message);
                         None
@@ -136,7 +144,6 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
             }
             Some(VoiceKind::Stt) => "stt",
             Some(VoiceKind::Tts) => "tts",
-            None if span.is_scorer() => continue,
             None => match span.kind() {
                 "llm" => "llm",
                 "tool" => "tool",
@@ -155,6 +162,27 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
         .recordings
         .sort_by_key(|recording| recording.start_time);
     VoiceBuild { voice, warnings }
+}
+
+// Only use the last playback transcript when each speech has a matching playback event.
+fn playback_text(
+    span: &PreparedSpan,
+    by_span_id: &HashMap<&str, &PreparedSpan>,
+    speech_by_turn: &HashMap<&str, Vec<&PreparedSpan>>,
+) -> Option<String> {
+    let turn_id = span.source.voice.turn_id.as_deref()?;
+    let turn = by_span_id.get(turn_id)?;
+    let speeches = speech_by_turn.get(turn_id)?;
+    let playback = turn.source.voice.playbacks.last()?;
+    if turn.source.voice.kind != Some(VoiceKind::Turn(Speaker::Agent))
+        || speeches.last()?.id != span.id
+        || speeches.len() != turn.source.voice.playbacks.len()
+        || span.source.voice.interrupted != Some(true)
+        || playback.interrupted != Some(true)
+    {
+        return None;
+    }
+    playback.transcript.clone()
 }
 
 fn audio_recording(

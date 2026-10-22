@@ -88,8 +88,6 @@ pub struct VoiceContext {
     pub selections: Vec<SelectionMetadata>,
     #[serde(default)]
     pub playbacks: Vec<Playback>,
-    /// Text for this speech when its own payload has none, set by a vendor's trace-level fixes.
-    pub fallback_text: Option<String>,
     #[serde(default)]
     pub recordings: Vec<RecordingMetadata>,
     #[serde(default)]
@@ -317,7 +315,6 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             )
             .unwrap_or_default(),
         ),
-        fallback_text: None,
         recordings: metadata_field(
             metadata.audio_recordings,
             "audio.recordings",
