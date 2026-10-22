@@ -91,6 +91,7 @@ pub struct Utterance {
     pub end_time: Option<DateTime<Utc>>,
     #[ts(optional)]
     pub text: Option<String>,
+    /// The source reported that this speech's playback was cut off.
     #[ts(optional)]
     pub interrupted: Option<bool>,
     pub audio: Vec<AudioSelection>,
@@ -105,8 +106,6 @@ pub struct VoiceTurn {
     pub start_time: DateTime<Utc>,
     #[ts(optional)]
     pub end_time: Option<DateTime<Utc>>,
-    #[ts(optional)]
-    pub interrupted: Option<bool>,
     /// In spoken order.
     pub utterance_ids: Vec<String>,
     /// STT, TTS, LLM, and tool rows the turn owns, by `start_time`.

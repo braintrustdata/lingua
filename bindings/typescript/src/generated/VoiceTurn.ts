@@ -4,7 +4,7 @@ export type VoiceTurn = { id: string,
 /**
  * `"user"` or `"agent"`.
  */
-speaker: string, start_time: string, end_time?: string, interrupted?: boolean, 
+speaker: string, start_time: string, end_time?: string, 
 /**
  * In spoken order.
  */
