@@ -93,9 +93,10 @@ pub struct VoiceStep {
 #[skip_serializing_none]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 pub struct AudioRecording {
-    /// Row holding the attachment.
-    pub row_id: String,
-    pub recording_id: String,
+    /// Row holding the attachment. With `name`, identifies the recording.
+    pub id: String,
+    /// The source's name for the recording, such as `call-0000`.
+    pub name: String,
     /// JSON pointer into the row, such as `/input/audio/call-0000`.
     pub attachment_ref: String,
     pub start_unix_ms: f64,
@@ -107,12 +108,12 @@ pub struct AudioRecording {
     pub channels: Vec<String>,
 }
 
-/// Offsets from the start of the recording `recording_id` in row `row_id`.
+/// Offsets from the start of the recording identified by `recording_id` and `recording_name`.
 #[skip_serializing_none]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 pub struct AudioClip {
-    pub row_id: String,
     pub recording_id: String,
+    pub recording_name: String,
     #[ts(optional)]
     pub channel: Option<u32>,
     pub start_ms: f64,
