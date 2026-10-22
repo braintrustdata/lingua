@@ -8,4 +8,8 @@ export type Utterance = { id: string,
 /**
  * `"user"` or `"agent"`.
  */
-speaker: string, start_time: string, end_time?: string, text?: string, interrupted?: boolean, audio: Array<AudioSelection>, };
+speaker: string, start_time: string, end_time?: string, text?: string, 
+/**
+ * The source reported that this speech's playback was cut off.
+ */
+interrupted?: boolean, audio: Array<AudioSelection>, };
