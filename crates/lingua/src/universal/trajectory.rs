@@ -37,16 +37,6 @@ pub struct Voice {
     pub utterances: Vec<Utterance>,
     /// By `start_time`.
     pub turns: Vec<VoiceTurn>,
-    pub links: Vec<Link>,
-}
-
-/// A relationship a span logged to another span, by row ID.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-pub struct Link {
-    pub from: String,
-    /// Such as `transcribed_by` or `input_context`.
-    pub relationship: String,
-    pub to: String,
 }
 
 /// An audio attachment and what its channels hold.
