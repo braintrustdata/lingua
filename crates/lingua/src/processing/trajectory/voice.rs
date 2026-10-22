@@ -1,6 +1,6 @@
 use super::PreparedSpan;
-use crate::processing::import::{Speaker, VoiceKind};
-use crate::universal::trajectory::{AudioSelection, Utterance, Voice, VoiceTurn};
+use crate::processing::import::{RecordingMetadata, Speaker, VoiceKind};
+use crate::universal::trajectory::{AudioRecording, AudioSelection, Utterance, Voice, VoiceTurn};
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, UserContent, UserContentPart,
 };
@@ -38,10 +38,10 @@ pub(super) fn build(spans: &[PreparedSpan]) -> BTreeMap<String, VoiceBuild> {
 }
 
 fn build_root(spans: &[PreparedSpan], indices: &[usize]) -> Option<VoiceBuild> {
-    if !indices
-        .iter()
-        .any(|index| spans[*index].source.voice.kind.is_some())
-    {
+    if !indices.iter().any(|index| {
+        let voice = &spans[*index].source.voice;
+        voice.kind.is_some() || !voice.recordings.is_empty()
+    }) {
         return None;
     }
     let mut indices = indices.to_vec();
@@ -83,9 +83,25 @@ fn build_root(spans: &[PreparedSpan], indices: &[usize]) -> Option<VoiceBuild> {
             }),
         }
     }
+    let mut recordings = Vec::new();
+    for &index in &indices {
+        let span = &spans[index];
+        for recording in &span.source.voice.recordings {
+            match audio_recording(recording, spans, &by_span_id) {
+                Ok(Some(recording)) => recordings.push(recording),
+                Ok(None) => {}
+                Err(message) => warnings.push(VoiceWarning {
+                    span_id: span.id.clone(),
+                    message: format!("Unsupported audio recording {}: {message}", recording.id),
+                }),
+            }
+        }
+    }
+    recordings.sort_by(|a, b| a.start_unix_ms.total_cmp(&b.start_unix_ms));
     let mut utterances = Vec::new();
     let mut turns = Vec::new();
     let mut positions = HashMap::new();
+    let mut text_warnings = Vec::new();
     for &index in &indices {
         let span = &spans[index];
         match span.source.voice.kind {
@@ -93,7 +109,7 @@ fn build_root(spans: &[PreparedSpan], indices: &[usize]) -> Option<VoiceBuild> {
                 let text = match speech_text(span, speaker) {
                     Ok(text) => text,
                     Err(message) => {
-                        warnings.push(VoiceWarning {
+                        text_warnings.push(VoiceWarning {
                             span_id: span.id.clone(),
                             message,
                         });
@@ -168,9 +184,10 @@ fn build_root(spans: &[PreparedSpan], indices: &[usize]) -> Option<VoiceBuild> {
             _ => {}
         }
     }
+    warnings.extend(text_warnings);
     Some(VoiceBuild {
         voice: Voice {
-            recordings: Vec::new(),
+            recordings,
             utterances,
             turns,
         },
@@ -220,6 +237,50 @@ fn owner(
         )),
         (recorded, ancestor) => Ok(recorded.or(ancestor)),
     }
+}
+
+/// A playable recording, or `None` while the source reports it as not yet ready.
+fn audio_recording(
+    recording: &RecordingMetadata,
+    spans: &[PreparedSpan],
+    by_span_id: &HashMap<&str, usize>,
+) -> Result<Option<AudioRecording>, String> {
+    if recording
+        .state
+        .as_deref()
+        .is_some_and(|state| state != "ready")
+    {
+        return Ok(None);
+    }
+    let attachment = recording.attachment.as_ref().ok_or("missing attachment")?;
+    let row = by_span_id.get(attachment.span_id.as_str()).ok_or_else(|| {
+        format!(
+            "attachment span {} is not in this trace",
+            attachment.span_id
+        )
+    })?;
+    let timeline = recording.timeline.as_ref().ok_or("missing timeline")?;
+    let mut sources: Vec<_> = recording.sources.iter().collect();
+    sources.sort_by_key(|source| source.channel_index);
+    let indexed = sources
+        .iter()
+        .enumerate()
+        .all(|(index, source)| source.channel_index == Some(index as u32));
+    if !indexed && !matches!(sources.as_slice(), [source] if source.channel_index.is_none()) {
+        return Err("channel indexes must be 0 through n - 1".to_string());
+    }
+    Ok(Some(AudioRecording {
+        row_id: spans[*row].id.clone(),
+        recording_id: recording.id.clone(),
+        attachment_ref: attachment.reference.clone(),
+        start_unix_ms: timeline.origin_unix_ms + timeline.recording_start_offset_ms,
+        mime_type: recording.mime_type.clone(),
+        duration_ms: recording.duration_ms,
+        channels: sources
+            .iter()
+            .map(|source| source.boundary.clone())
+            .collect(),
+    }))
 }
 
 /// The speech span's own recorded text: user input or agent output, never STT or model text.

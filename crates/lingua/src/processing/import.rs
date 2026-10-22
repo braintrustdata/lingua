@@ -35,8 +35,8 @@ use crate::universal::{
 };
 use serde::{Deserialize, Serialize};
 pub use span::{
-    import_span, import_span_with_options, ImportedSpan, SelectionMetadata, SpanContext, Speaker,
-    VoiceContext, VoiceKind, TRAJECTORY_METADATA_FIELDS,
+    import_span, import_span_with_options, ImportedSpan, RecordingMetadata, SelectionMetadata,
+    SpanContext, Speaker, VoiceContext, VoiceKind, TRAJECTORY_METADATA_FIELDS,
 };
 
 pub(crate) fn is_instruction(message: &Message) -> bool {

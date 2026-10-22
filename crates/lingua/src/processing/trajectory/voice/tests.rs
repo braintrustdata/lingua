@@ -1,6 +1,8 @@
+use super::super::{ImportFailure, ImportedSpan, TrajectoryCollector, TrajectoryStream};
 use super::*;
 use crate::processing::import::{import_span, Span};
 use crate::serde_json::{self as json, json, Value};
+use crate::universal::trajectory::AudioRecording;
 use serde::Deserialize;
 
 fn fixture_spans(fixture: &str) -> Vec<Span> {
@@ -346,6 +348,299 @@ fn explicit_audio_selections_keep_recording_and_channel_offsets() {
 }
 
 #[test]
+fn pending_recordings_wait_for_an_attachment() {
+    let build = build_one(&cascade());
+    assert!(build.voice.recordings.is_empty());
+    assert!(build.warnings.is_empty(), "{:?}", build.warnings);
+}
+
+fn session_with_recordings(recordings: Value) -> Vec<Span> {
+    spans(vec![
+        span_json(
+            "session",
+            "session",
+            "task",
+            None,
+            0.0,
+            json!({"audio.recordings": recordings}),
+        ),
+        span_json(
+            "speech",
+            "user_speech",
+            "task",
+            Some("session"),
+            1.0,
+            json!({}),
+        ),
+    ])
+}
+
+#[test]
+fn ready_recordings_describe_attachment_timeline_and_channels() {
+    let spans = session_with_recordings(json!([{
+        "id": "call-0000",
+        "recording_group_id": "call",
+        "state": "ready",
+        "attachment": {"span_id": "s-session", "ref": "/input/audio/call-0000"},
+        "timeline": {"basis": "local_input_arrival_and_output_playout", "origin_unix_ms": 1000, "recording_start_offset_ms": 250},
+        "sources": [
+            {"boundary": "local_audio_output", "channel_index": 1},
+            {"boundary": "session_input", "channel_index": 0}
+        ],
+        "mime_type": "audio/ogg",
+        "duration_ms": 27000
+    }]));
+    assert_eq!(
+        build_one(&spans).voice.recordings,
+        [AudioRecording {
+            row_id: "r-session".to_string(),
+            recording_id: "call-0000".to_string(),
+            attachment_ref: "/input/audio/call-0000".to_string(),
+            start_unix_ms: 1250.0,
+            mime_type: Some("audio/ogg".to_string()),
+            duration_ms: Some(27000.0),
+            channels: vec![
+                "session_input".to_string(),
+                "local_audio_output".to_string()
+            ],
+        }]
+    );
+}
+
+#[test]
+fn unusable_recordings_are_reported() {
+    let spans = session_with_recordings(json!([
+        {"id": "no-attachment", "timeline": {"origin_unix_ms": 0, "recording_start_offset_ms": 0}},
+        {"id": "gap", "attachment": {"span_id": "s-session", "ref": "/input/audio/gap"},
+         "timeline": {"origin_unix_ms": 0, "recording_start_offset_ms": 0},
+         "sources": [{"boundary": "session_input", "channel_index": 1}]},
+        {"id": "elsewhere", "attachment": {"span_id": "s-other", "ref": "/input/audio/x"},
+         "timeline": {"origin_unix_ms": 0, "recording_start_offset_ms": 0}}
+    ]));
+    let build = build_one(&spans);
+    assert!(build.voice.recordings.is_empty());
+    let messages: Vec<_> = build
+        .warnings
+        .iter()
+        .map(|warning| warning.message.as_str())
+        .collect();
+    assert_eq!(
+        messages,
+        [
+            "Unsupported audio recording no-attachment: missing attachment",
+            "Unsupported audio recording gap: channel indexes must be 0 through n - 1",
+            "Unsupported audio recording elsewhere: attachment span s-other is not in this trace",
+        ]
+    );
+    let invalid = session_with_recordings(json!([{"state": "ready"}]));
+    let warnings = build_one(&invalid).warnings;
+    assert_eq!(warnings[0].span_id, "r-session");
+    assert!(warnings[0]
+        .message
+        .starts_with("Invalid metadata.audio.recordings"));
+}
+
+pub(super) enum Load {
+    Full,
+    HeaderOnly,
+    Fail,
+}
+
+fn headers(spans: &[Span]) -> Vec<ImportedSpan> {
+    spans
+        .iter()
+        .map(|span| import_span(span.clone()).unwrap().header_only())
+        .collect()
+}
+
+pub(super) fn row_id(span: &Span) -> String {
+    import_span(span.clone()).unwrap().header.id.unwrap()
+}
+
+/// Loads every pending payload, choosing each span's outcome with `load`; `seed` shuffles order.
+pub(super) fn hydrate(
+    spans: &[Span],
+    seed: u64,
+    load: impl Fn(&str) -> Load,
+) -> (TrajectoryCollector, Vec<String>) {
+    let mut stream = TrajectoryStream::new(headers(spans), false).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    let mut requested = Vec::new();
+    let mut state = seed;
+    loop {
+        let mut ids = stream.pending_ids(64);
+        if ids.is_empty() {
+            break;
+        }
+        for index in (1..ids.len()).rev() {
+            state = state
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
+            ids.swap(index, (state >> 33) as usize % (index + 1));
+        }
+        for id in ids {
+            requested.push(id.clone());
+            let source = spans
+                .iter()
+                .find(|span| row_id(span) == id)
+                .unwrap()
+                .clone();
+            let events = match load(&id) {
+                Load::Full => stream.push(import_span(source).unwrap()),
+                Load::HeaderOnly => stream.push(import_span(source).unwrap().header_only()),
+                Load::Fail => stream.fail(&id, "Payload unavailable".to_string()),
+            }
+            .unwrap();
+            for event in events {
+                let wire = json::to_value(event).unwrap();
+                collector.push(json::from_value(wire).unwrap()).unwrap();
+            }
+        }
+    }
+    for event in stream.finish().unwrap() {
+        collector.push(event).unwrap();
+    }
+    (collector, requested)
+}
+
+#[test]
+fn speech_payloads_are_required_before_completion() {
+    let spans = cascade();
+    let mut stream = TrajectoryStream::new(headers(&spans), false).unwrap();
+    let pending = stream.pending_ids(usize::MAX);
+    for id in ["r-u1-a", "r-u1-b", "r-a1-speech", "r-u4-b"] {
+        assert!(
+            pending.iter().any(|pending| pending == id),
+            "{id} not pending"
+        );
+    }
+    for id in ["r-u1", "r-session", "r-stt1a", "r-tts1"] {
+        assert!(!stream.needs_payload(id), "{id} should not need a payload");
+    }
+    assert_eq!(
+        stream.finish().unwrap_err(),
+        "Trajectory stream has unresolved spans"
+    );
+}
+
+#[test]
+fn hydration_completes_after_loads_failures_and_omissions() {
+    let spans = cascade();
+    let (full, requested) = hydrate(&spans, 1, |_| Load::Full);
+    assert!(full.is_complete());
+    assert!(requested.iter().any(|id| id == "r-a3-speech"));
+    let (omitted, _) = hydrate(&spans, 2, |id| {
+        if id.contains("speech") || id.starts_with("r-u") {
+            Load::HeaderOnly
+        } else {
+            Load::Full
+        }
+    });
+    assert!(omitted.is_complete());
+    let (failed, _) = hydrate(&spans, 3, |id| {
+        if id == "r-a1-speech" || id == "r-u1-a" {
+            Load::Fail
+        } else {
+            Load::Full
+        }
+    });
+    assert!(failed.is_complete());
+    assert_eq!(
+        failed.snapshot().unwrap()[0].metadata["import_failures"],
+        json!([
+            {"span_id": "r-a1-speech", "message": "Payload unavailable"},
+            {"span_id": "r-u1-a", "message": "Payload unavailable"},
+        ])
+    );
+}
+
+#[test]
+fn speech_payloads_do_not_change_model_turns() {
+    let spans = cascade();
+    let model = |collector: &TrajectoryCollector| {
+        json::to_value(&collector.snapshot().unwrap()[0].turns).unwrap()
+    };
+    let (baseline, _) = hydrate(&spans, 0, |_| Load::Full);
+    for seed in 1..8 {
+        let (collector, _) = hydrate(&spans, seed, |id| {
+            if id.contains("speech") || id.starts_with("r-u") {
+                Load::HeaderOnly
+            } else {
+                Load::Full
+            }
+        });
+        assert_eq!(model(&collector), model(&baseline));
+    }
+    let turns = baseline.snapshot().unwrap()[0].turns.clone();
+    assert!(!turns.is_empty());
+    assert!(turns
+        .iter()
+        .all(|turn| turn.request_id.starts_with("r-llm")));
+}
+
+#[test]
+fn header_import_failures_still_finish() {
+    let spans = cascade();
+    let mut headers = headers(&spans);
+    headers.retain(|header| header.header.id.as_deref() != Some("r-u2-b"));
+    let failure = ImportFailure {
+        root_span_id: "s-session".to_string(),
+        span_id: "r-u2-b".to_string(),
+        message: "Invalid span fields".to_string(),
+    };
+    let mut stream = TrajectoryStream::with_failures(headers, vec![failure], false).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).pop() {
+        let source = spans
+            .iter()
+            .find(|span| row_id(span) == id)
+            .unwrap()
+            .clone();
+        for event in stream.push(import_span(source).unwrap()).unwrap() {
+            collector.push(event).unwrap();
+        }
+    }
+    for event in stream.finish().unwrap() {
+        collector.push(event).unwrap();
+    }
+    assert!(collector.is_complete());
+}
+
+#[test]
+fn unsupported_speech_payloads_are_reported_after_header_warnings() {
+    let mut speech = span_json(
+        "speech",
+        "user_speech",
+        "task",
+        Some("session"),
+        1.0,
+        json!({"turn.id": "s-gone"}),
+    );
+    speech["input"] = json!([
+        {"role": "user", "content": "One"},
+        {"role": "user", "content": "Two"}
+    ]);
+    let spans = spans(vec![
+        span_json("session", "session", "task", None, 0.0, json!({})),
+        speech,
+    ]);
+    let build = build_one(&spans);
+    assert_eq!(build.voice.utterances[0].text, None);
+    let messages: Vec<_> = build
+        .warnings
+        .iter()
+        .map(|warning| warning.message.as_str())
+        .collect();
+    assert_eq!(
+        messages,
+        [
+            "Unresolved voice turn.id s-gone: no native voice turn has that span ID",
+            "Unsupported speech payload: expected one text message",
+        ]
+    );
+}
+
+#[test]
 fn audio_selections_without_a_recording_row_are_reported() {
     let spans = spans(vec![
         span_json("session", "session", "task", None, 0.0, json!({})),
@@ -368,6 +663,25 @@ fn audio_selections_without_a_recording_row_are_reported() {
         warning.message
         == "Unresolved audio selection for recording call: recording_span_id is not in this trace"
     }));
+}
+
+#[test]
+fn recordings_are_ordered_by_start() {
+    let recording = |id: &str, offset: u32| {
+        json!({
+            "id": id,
+            "attachment": {"span_id": "s-session", "ref": format!("/input/audio/{id}")},
+            "timeline": {"origin_unix_ms": 1000, "recording_start_offset_ms": offset},
+        })
+    };
+    let spans = session_with_recordings(json!([recording("second", 500), recording("first", 0)]));
+    let ids: Vec<_> = build_one(&spans)
+        .voice
+        .recordings
+        .iter()
+        .map(|recording| recording.recording_id.clone())
+        .collect();
+    assert_eq!(ids, ["first", "second"]);
 }
 
 #[test]
