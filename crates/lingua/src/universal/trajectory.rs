@@ -28,15 +28,65 @@ pub struct Trajectory {
     pub version: Option<String>,
 }
 
-/// Recorded speech and native voice turns. Model and tool work stays in `Trajectory.turns`.
+/// Recorded speech and voice work for a call. Model and tool payloads stay in `Trajectory.turns`.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Voice {
     /// By `start_unix_ms`.
     pub recordings: Vec<AudioRecording>,
+    /// Turns the source recorded, by `start_time`. Empty when the source records none.
+    pub turns: Vec<VoiceTurn>,
     /// By `start_time`.
     pub utterances: Vec<Utterance>,
     /// By `start_time`.
-    pub turns: Vec<VoiceTurn>,
+    pub steps: Vec<VoiceStep>,
+}
+
+/// A turn the source recorded. Utterances and steps name it through `turn_id`.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct VoiceTurn {
+    pub id: String,
+    /// `"user"` or `"agent"`.
+    pub speaker: String,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    /// The source reported that this turn's playback was cut off.
+    #[ts(optional)]
+    pub interrupted: Option<bool>,
+}
+
+/// A source-reported speech interval, not an exact acoustic boundary or delivered text.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct Utterance {
+    pub id: String,
+    /// `"user"` or `"agent"`.
+    pub speaker: String,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub text: Option<String>,
+    pub audio: Vec<AudioClip>,
+    /// The owning turn, if any.
+    #[ts(optional)]
+    pub turn_id: Option<String>,
+}
+
+/// A row that did voice or model work, by row ID.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct VoiceStep {
+    pub id: String,
+    /// `"stt"`, `"tts"`, `"llm"`, or `"tool"`.
+    pub kind: String,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    /// The owning turn, if any.
+    #[ts(optional)]
+    pub turn_id: Option<String>,
 }
 
 /// An audio attachment and what its channels hold.
@@ -60,46 +110,13 @@ pub struct AudioRecording {
 /// Offsets from the start of the recording `recording_id` in row `row_id`.
 #[skip_serializing_none]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-pub struct AudioSelection {
+pub struct AudioClip {
     pub row_id: String,
     pub recording_id: String,
     #[ts(optional)]
     pub channel: Option<u32>,
     pub start_ms: f64,
     pub end_ms: f64,
-}
-
-/// A source-reported speech interval, not an exact acoustic boundary or delivered text.
-#[skip_serializing_none]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-pub struct Utterance {
-    pub id: String,
-    /// `"user"` or `"agent"`.
-    pub speaker: String,
-    pub start_time: DateTime<Utc>,
-    #[ts(optional)]
-    pub end_time: Option<DateTime<Utc>>,
-    #[ts(optional)]
-    pub text: Option<String>,
-    /// The source reported that this speech's playback was cut off.
-    #[ts(optional)]
-    pub interrupted: Option<bool>,
-    pub audio: Vec<AudioSelection>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-pub struct VoiceTurn {
-    pub id: String,
-    /// `"user"` or `"agent"`.
-    pub speaker: String,
-    pub start_time: DateTime<Utc>,
-    #[ts(optional)]
-    pub end_time: Option<DateTime<Utc>>,
-    /// In spoken order.
-    pub utterance_ids: Vec<String>,
-    /// STT, TTS, LLM, and tool rows the turn owns, by `start_time`.
-    pub step_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
