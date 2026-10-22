@@ -127,8 +127,7 @@ fn voice_round_trips_with_missing_fields_preserved() {
                 "start_time": "2026-10-21T12:00:00Z",
                 "utterance_ids": ["speech"],
                 "step_ids": ["stt", "llm"]
-            }],
-            "links": [{ "from": "speech", "relationship": "transcribed_by", "to": "stt" }]
+            }]
         },
         "metadata": {},
     });

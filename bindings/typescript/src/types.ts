@@ -61,7 +61,6 @@ export type { LLMAnalysis } from "./generated/LLMAnalysis";
 export type { Voice } from "./generated/Voice";
 export type { Utterance } from "./generated/Utterance";
 export type { VoiceTurn } from "./generated/VoiceTurn";
-export type { Link } from "./generated/Link";
 export type { AudioRecording } from "./generated/AudioRecording";
 export type { AudioSelection } from "./generated/AudioSelection";
 export type { OpaqueItem } from "./generated/OpaqueItem";
