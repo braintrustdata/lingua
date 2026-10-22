@@ -115,8 +115,7 @@ fn voice_round_trips_with_missing_fields_preserved() {
                     "id": "reply-turn",
                     "speaker": "agent",
                     "start_time": "2026-10-21T12:00:02Z",
-                    "end_time": "2026-10-21T12:00:03Z",
-                    "interrupted": true
+                    "end_time": "2026-10-21T12:00:03Z"
                 }
             ],
             "utterances": [
@@ -127,6 +126,7 @@ fn voice_round_trips_with_missing_fields_preserved() {
                     "start_time": "2026-10-21T12:00:02Z",
                     "end_time": "2026-10-21T12:00:03Z",
                     "text": "Partial",
+                    "interrupted": true,
                     "audio": [{ "row_id": "session", "recording_id": "call-0000", "channel": 1, "start_ms": 2000.0, "end_ms": 2500.5 }],
                     "turn_id": "reply-turn"
                 }
@@ -144,7 +144,7 @@ fn voice_round_trips_with_missing_fields_preserved() {
     assert!(voice.utterances[0].audio.is_empty());
     assert_eq!(voice.recordings[0].mime_type, None);
     assert_eq!(voice.utterances[0].turn_id, None);
-    assert_eq!(voice.turns[0].interrupted, None);
-    assert_eq!(voice.turns[1].interrupted, Some(true));
+    assert_eq!(voice.utterances[0].interrupted, None);
+    assert_eq!(voice.utterances[1].interrupted, Some(true));
     assert_eq!(serde_json::to_value(&trajectory).unwrap(), source);
 }
