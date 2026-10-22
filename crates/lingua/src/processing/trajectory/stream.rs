@@ -65,6 +65,10 @@ pub enum TrajectoryEvent {
         span_id: String,
         message: String,
     },
+    Voice {
+        root_span_id: String,
+        voice: Voice,
+    },
     Done,
 }
 
@@ -190,12 +194,28 @@ impl Role {
     }
 }
 
+pub(super) fn adapt_voice_traces(spans: &mut [ImportedSpan]) {
+    if !spans.iter().any(|span| span.header.voice.kind.is_some()) {
+        return;
+    }
+    let mut roots = HashMap::<Option<String>, Vec<&mut SpanContext>>::new();
+    for span in spans {
+        roots
+            .entry(span.header.root_span_id.clone())
+            .or_default()
+            .push(&mut span.header);
+    }
+    for mut root in roots.into_values() {
+        adapt_voice_trace(&mut root);
+    }
+}
+
 fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) -> Vec<Role> {
     let mut roles: Vec<_> = spans
         .iter()
         .enumerate()
         .map(|(index, span)| {
-            if owners[&index].skipped {
+            if owners[&index].skipped || span.source.voice.kind.is_some() {
                 return Role::Ignored;
             }
             match span.kind() {
@@ -414,6 +434,7 @@ pub struct TrajectoryStream {
     initial_events: Vec<TrajectoryEvent>,
     resumed: HashSet<usize>,
     order: Vec<usize>,
+    voice_payloads: Vec<usize>,
     cursor: usize,
     exclude_system: bool,
     finished: bool,
@@ -431,6 +452,8 @@ impl TrajectoryStream {
         exclude_system: bool,
     ) -> Result<Self> {
         let mut failures = failures;
+        let mut headers = headers;
+        adapt_voice_traces(&mut headers);
         let mut spans = Vec::with_capacity(headers.len());
         for header in headers {
             let context = header.header.clone();
@@ -523,6 +546,7 @@ impl TrajectoryStream {
             spans,
             by_id,
             order: Vec::new(),
+            voice_payloads: Vec::new(),
             failures,
             owners,
             parents,
@@ -542,6 +566,24 @@ impl TrajectoryStream {
         let mut events = Vec::new();
         stream.initialize(&mut events)?;
         stream.initial_events = events;
+        stream.voice_payloads = (0..stream.spans.len())
+            .filter(|index| {
+                !stream.owners[index].skipped
+                    && matches!(
+                        stream.spans[*index].source.voice.kind,
+                        Some(VoiceKind::Speech(_))
+                    )
+            })
+            .collect();
+        stream.voice_payloads.sort_by(|a, b| {
+            stream.spans[*a]
+                .start
+                .cmp(&stream.spans[*b].start)
+                .then(a.cmp(b))
+        });
+        for &index in &stream.voice_payloads {
+            stream.ready[index] = false;
+        }
         Ok(stream)
     }
 
@@ -549,7 +591,21 @@ impl TrajectoryStream {
         self.by_id.get(id).is_some_and(|&index| !self.ready[index])
     }
 
+    /// Model/tool payloads in assembly order, then speech payloads.
     pub fn pending_ids(&self, limit: usize) -> Vec<String> {
+        let mut pending = self.model_pending_ids(limit);
+        for &index in &self.voice_payloads {
+            if pending.len() == limit {
+                break;
+            }
+            if !self.ready[index] {
+                pending.push(self.spans[index].id.clone());
+            }
+        }
+        pending
+    }
+
+    fn model_pending_ids(&self, limit: usize) -> Vec<String> {
         let mut pending = Vec::new();
         let mut seen = HashSet::new();
         let mut blocked = false;
@@ -609,8 +665,9 @@ impl TrajectoryStream {
         self.push_prepared(PreparedSpan::new(span)?)
     }
 
-    pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
+    pub fn push_prepared(&mut self, mut span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
         let index = self.pending_index(&span)?;
+        span.source.voice = std::mem::take(&mut self.spans[index].source.voice);
         self.spans[index] = span;
         self.ready[index] = true;
         if !self.task_resolved[index] {
@@ -718,6 +775,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice: _,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
@@ -855,7 +913,12 @@ impl TrajectoryStream {
         for (index, role) in self.roles.iter().enumerate() {
             if *role == Role::Ignored {
                 self.ready[index] = true;
-                self.spans[index].release_payload();
+                if !matches!(
+                    self.spans[index].source.voice.kind,
+                    Some(VoiceKind::Speech(_))
+                ) {
+                    self.spans[index].release_payload();
+                }
             }
         }
         self.remaining = scope_indices
@@ -1208,7 +1271,7 @@ impl TrajectoryStream {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
         }
-        if self.order.iter().any(|index| !self.ready[*index]) {
+        if self.ready.iter().any(|ready| !ready) {
             return Err("Trajectory stream has unresolved spans".to_string());
         }
         let mut events = self.drain()?;
@@ -1247,6 +1310,28 @@ impl TrajectoryStream {
                 span_id: span.id.clone(),
                 message: span.warnings.join("; "),
             });
+        }
+        for (root_span_id, build) in voice::build(
+            self.spans
+                .iter()
+                .enumerate()
+                .filter(|(index, _)| !self.owners[index].skipped)
+                .map(|(_, span)| span),
+        ) {
+            for warning in build.warnings {
+                events.push(TrajectoryEvent::Warning {
+                    root_span_id: root_span_id.clone(),
+                    span_id: warning.span_id,
+                    message: warning.message,
+                });
+            }
+            events.push(TrajectoryEvent::Voice {
+                root_span_id,
+                voice: build.voice,
+            });
+        }
+        for span in &mut self.spans {
+            span.release_payload();
         }
         events.push(TrajectoryEvent::Done);
         self.finished = true;
@@ -1417,6 +1502,19 @@ impl TrajectoryCollector {
                 span_id,
                 message,
             } => self.import_diagnostic("import_warnings", root_span_id, span_id, message)?,
+            TrajectoryEvent::Voice {
+                root_span_id,
+                voice,
+            } => {
+                self.scopes
+                    .get_mut(&TrajectoryScope {
+                        root_span_id,
+                        owner_span_id: None,
+                    })
+                    .ok_or("Unknown trajectory scope")?
+                    .header
+                    .voice = Some(voice);
+            }
             TrajectoryEvent::Done => self.complete = true,
         }
         Ok(())
