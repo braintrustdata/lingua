@@ -1,9 +1,12 @@
 use super::PreparedSpan;
-use crate::processing::import::{Speaker, VoiceKind};
-use crate::universal::trajectory::{AudioClip, Utterance, Voice, VoiceStep, VoiceTurn};
+use crate::processing::import::{RecordingMetadata, Speaker, VoiceKind};
+use crate::universal::trajectory::{
+    AudioClip, AudioRecording, Utterance, Voice, VoiceStep, VoiceTurn,
+};
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, UserContent, UserContentPart,
 };
+use chrono::DateTime;
 use std::collections::{BTreeMap, HashMap};
 
 /// A trace's voice projection and the diagnostics found while building it.
@@ -19,7 +22,7 @@ pub(super) struct VoiceWarning {
     pub message: String,
 }
 
-/// Builds voice for traces with voice spans. Ownership comes only from `turn.id`.
+/// Builds voice for traces with voice spans or recordings. Owners come from `turn.id`.
 pub(super) fn build(spans: &[PreparedSpan]) -> BTreeMap<String, VoiceBuild> {
     let mut roots = BTreeMap::<&str, Vec<&PreparedSpan>>::new();
     for span in spans {
@@ -30,7 +33,11 @@ pub(super) fn build(spans: &[PreparedSpan]) -> BTreeMap<String, VoiceBuild> {
     }
     roots
         .into_iter()
-        .filter(|(_, spans)| spans.iter().any(|span| span.source.voice.kind.is_some()))
+        .filter(|(_, spans)| {
+            spans.iter().any(|span| {
+                span.source.voice.kind.is_some() || !span.source.voice.recordings.is_empty()
+            })
+        })
         .map(|(root, spans)| (root.to_string(), build_root(spans)))
         .collect()
 }
@@ -53,6 +60,7 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
         steps: Vec::new(),
     };
     let mut warnings = Vec::new();
+    let mut text_warnings = Vec::new();
     for span in spans {
         let mut warn = |message: String| {
             warnings.push(VoiceWarning {
@@ -62,6 +70,16 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
         };
         for error in &span.source.voice.errors {
             warn(error.clone());
+        }
+        for recording in &span.source.voice.recordings {
+            match audio_recording(recording, &by_span_id) {
+                Ok(Some(recording)) => voice.recordings.push(recording),
+                Ok(None) => {}
+                Err(message) => warn(format!(
+                    "Unsupported audio recording {}: {message}",
+                    recording.id
+                )),
+            }
         }
         let step_kind = match span.source.voice.kind {
             Some(VoiceKind::Turn(speaker)) => {
@@ -74,14 +92,7 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
                 continue;
             }
             Some(VoiceKind::Speech(speaker)) => {
-                let text = match speech_text(span, speaker) {
-                    Ok(Some(text)) if !text.is_empty() => Some(text),
-                    Ok(_) => span.source.voice.fallback_text.clone(),
-                    Err(message) => {
-                        warn(message);
-                        None
-                    }
-                };
+                let turn_id = turn_id(span, &by_span_id, &mut warn);
                 let mut audio = Vec::new();
                 for selection in span.source.voice.selections.iter().flatten() {
                     let row = selection
@@ -103,6 +114,17 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
                         end_offset_ms: selection.end_offset_ms,
                     });
                 }
+                let text = match speech_text(span, speaker) {
+                    Ok(Some(text)) if !text.is_empty() => Some(text),
+                    Ok(_) => span.source.voice.fallback_text.clone(),
+                    Err(message) => {
+                        text_warnings.push(VoiceWarning {
+                            span_id: span.id.clone(),
+                            message,
+                        });
+                        None
+                    }
+                };
                 voice.utterances.push(Utterance {
                     id: span.id.clone(),
                     speaker: speaker.as_str().to_string(),
@@ -111,7 +133,7 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
                     text,
                     interrupted: span.source.voice.interrupted,
                     audio,
-                    turn_id: turn_id(span, &by_span_id, &mut warn),
+                    turn_id,
                 });
                 continue;
             }
@@ -132,7 +154,57 @@ fn build_root(mut spans: Vec<&PreparedSpan>) -> VoiceBuild {
             turn_id: turn_id(span, &by_span_id, &mut warn),
         });
     }
+    voice
+        .recordings
+        .sort_by_key(|recording| recording.start_time);
+    warnings.extend(text_warnings);
     VoiceBuild { voice, warnings }
+}
+
+/// A playable recording, or `None` while the source reports it as not ready.
+fn audio_recording(
+    recording: &RecordingMetadata,
+    by_span_id: &HashMap<&str, &PreparedSpan>,
+) -> Result<Option<AudioRecording>, String> {
+    if recording
+        .state
+        .as_deref()
+        .is_some_and(|state| state != "ready")
+    {
+        return Ok(None);
+    }
+    let attachment = recording.attachment.as_ref().ok_or("missing attachment")?;
+    let row = by_span_id.get(attachment.span_id.as_str()).ok_or_else(|| {
+        format!(
+            "attachment span {} is not in this trace",
+            attachment.span_id
+        )
+    })?;
+    let timeline = recording.timeline.as_ref().ok_or("missing timeline")?;
+    let start_ms = timeline.origin_unix_ms + timeline.recording_start_offset_ms;
+    let start_time = DateTime::from_timestamp_micros((start_ms * 1000.0).round() as i64)
+        .ok_or("timeline is out of range")?;
+    let mut sources: Vec<_> = recording.sources.iter().collect();
+    sources.sort_by_key(|source| source.channel_index);
+    let contiguous = sources
+        .iter()
+        .enumerate()
+        .all(|(index, source)| source.channel_index.unwrap_or(0) as usize == index);
+    if !contiguous {
+        return Err("channel indexes must be 0 through n - 1".to_string());
+    }
+    Ok(Some(AudioRecording {
+        id: row.id.clone(),
+        name: recording.id.clone(),
+        attachment_ref: attachment.reference.clone(),
+        start_time,
+        mime_type: recording.mime_type.clone(),
+        duration_ms: recording.duration_ms,
+        channels: sources
+            .iter()
+            .map(|source| source.boundary.clone())
+            .collect(),
+    }))
 }
 
 /// The row of the turn span that the span's `turn.id` names.

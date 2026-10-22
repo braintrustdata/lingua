@@ -38,6 +38,7 @@ const BASE_METADATA_FIELDS: &[&str] = &[
 const VOICE_METADATA_FIELDS: &[&str] = &[
     "turn.id",
     "audio.selections",
+    "audio.recordings",
     "contrib.livekit.interrupted",
     livekit::PLAYBACK_EVENTS_FIELD,
 ];
@@ -105,6 +106,7 @@ pub struct VoiceContext {
     pub playbacks: Vec<Playback>,
     /// Text for this speech when its own payload has none, set by a vendor's trace-level fixes.
     pub fallback_text: Option<String>,
+    pub recordings: Vec<RecordingMetadata>,
     #[serde(default)]
     pub errors: Vec<String>,
 }
@@ -114,6 +116,38 @@ pub struct VoiceContext {
 pub struct Playback {
     pub interrupted: Option<bool>,
     pub transcript: Option<String>,
+}
+
+/// An `audio.recordings` entry: an audio attachment, its timeline, and what its channels hold.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingMetadata {
+    pub id: String,
+    pub state: Option<String>,
+    pub attachment: Option<RecordingAttachment>,
+    pub timeline: Option<RecordingTimeline>,
+    #[serde(default)]
+    pub sources: Vec<RecordingSource>,
+    pub mime_type: Option<String>,
+    pub duration_ms: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingAttachment {
+    pub span_id: String,
+    #[serde(rename = "ref")]
+    pub reference: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingTimeline {
+    pub origin_unix_ms: f64,
+    pub recording_start_offset_ms: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingSource {
+    pub boundary: String,
+    pub channel_index: Option<u32>,
 }
 
 /// An `audio.selections` entry: offsets into a recording described by `recording_span_id`.
@@ -220,6 +254,8 @@ struct Metadata {
     voice_interrupted: Option<json::Value>,
     #[serde(rename = "audio.selections")]
     audio_selections: Option<json::Value>,
+    #[serde(rename = "audio.recordings")]
+    audio_recordings: Option<json::Value>,
 }
 
 fn metadata_field<T: serde::de::DeserializeOwned>(
@@ -287,6 +323,12 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         ),
         playbacks: livekit::playbacks(source.metadata.as_ref()),
         fallback_text: None,
+        recordings: metadata_field(
+            metadata.audio_recordings,
+            "audio.recordings",
+            &mut voice_errors,
+        )
+        .unwrap_or_default(),
         errors: voice_errors,
     };
 

@@ -8,7 +8,7 @@ pub use stream::{
 };
 
 use crate::processing::import::{
-    adapt_voice_trace, is_instruction, ImportedSpan, OpaqueItem, SpanContext,
+    adapt_voice_trace, is_instruction, ImportedSpan, OpaqueItem, SpanContext, VoiceKind,
 };
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;

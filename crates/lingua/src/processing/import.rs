@@ -35,8 +35,8 @@ use crate::universal::{
 };
 use serde::{Deserialize, Serialize};
 pub use span::{
-    import_span, import_span_with_options, ImportedSpan, Playback, SelectionMetadata, SpanContext,
-    Speaker, VoiceContext, VoiceKind, TRAJECTORY_METADATA_FIELDS,
+    import_span, import_span_with_options, ImportedSpan, Playback, RecordingMetadata,
+    SelectionMetadata, SpanContext, Speaker, VoiceContext, VoiceKind, TRAJECTORY_METADATA_FIELDS,
 };
 
 /// Applies vendor fixes that need a whole trace's span headers, before trajectories are built.
