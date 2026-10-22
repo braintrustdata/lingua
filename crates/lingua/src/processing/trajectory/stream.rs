@@ -194,22 +194,6 @@ impl Role {
     }
 }
 
-pub(super) fn adapt_voice_traces(spans: &mut [ImportedSpan]) {
-    if !spans.iter().any(|span| span.header.voice.kind.is_some()) {
-        return;
-    }
-    let mut roots = HashMap::<Option<String>, Vec<&mut SpanContext>>::new();
-    for span in spans {
-        roots
-            .entry(span.header.root_span_id.clone())
-            .or_default()
-            .push(&mut span.header);
-    }
-    for mut root in roots.into_values() {
-        adapt_voice_trace(&mut root);
-    }
-}
-
 fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) -> Vec<Role> {
     let mut roles: Vec<_> = spans
         .iter()
@@ -451,8 +435,6 @@ impl TrajectoryStream {
         exclude_system: bool,
     ) -> Result<Self> {
         let mut failures = failures;
-        let mut headers = headers;
-        adapt_voice_traces(&mut headers);
         let mut spans = Vec::with_capacity(headers.len());
         for header in headers {
             let context = header.header.clone();
@@ -648,6 +630,7 @@ impl TrajectoryStream {
 
     pub fn push_prepared(&mut self, mut span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
         let index = self.pending_index(&span)?;
+        // Keep voice metadata from the header scan when loading the payload.
         span.source.voice = std::mem::take(&mut self.spans[index].source.voice);
         self.spans[index] = span;
         self.ready[index] = true;
