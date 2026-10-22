@@ -5,9 +5,13 @@
  */
 export type AudioRecording = { 
 /**
- * Row holding the attachment.
+ * Row holding the attachment. With `name`, identifies the recording.
  */
-row_id: string, recording_id: string, 
+id: string, 
+/**
+ * The source's name for the recording, such as `call-0000`.
+ */
+name: string, 
 /**
  * JSON pointer into the row, such as `/input/audio/call-0000`.
  */
