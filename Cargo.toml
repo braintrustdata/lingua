@@ -32,7 +32,7 @@ schemars = "0.8"
 schemafy = "0.6"
 
 # Optional providers
-aws-sdk-bedrockruntime = { version = "1.130.0", default-features = false }
+aws-sdk-bedrockruntime = { version = "1.148.0", default-features = false }
 
 # URL and media handling
 url = "2.5"
@@ -95,7 +95,7 @@ ordered-float = "4.2"
 aws-sigv4 = { version = "1.4.3" }
 aws-credential-types = { version = "1.2.14" }
 aws-smithy-runtime-api = { version = "1.12.0" }
-aws-smithy-eventstream = { version = "0.60.20" }
+aws-smithy-eventstream = { version = "0.61.4" }
 aws-smithy-types = { version = "1.4.7" }
 
 # Auth
