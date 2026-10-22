@@ -51,9 +51,6 @@ pub struct VoiceTurn {
     pub start_time: DateTime<Utc>,
     #[ts(optional)]
     pub end_time: Option<DateTime<Utc>>,
-    /// The source reported that this turn's playback was cut off.
-    #[ts(optional)]
-    pub interrupted: Option<bool>,
 }
 
 /// A source-reported speech interval, not an exact acoustic boundary or delivered text.
@@ -68,6 +65,9 @@ pub struct Utterance {
     pub end_time: Option<DateTime<Utc>>,
     #[ts(optional)]
     pub text: Option<String>,
+    /// The source reported that this speech's playback was cut off.
+    #[ts(optional)]
+    pub interrupted: Option<bool>,
     pub audio: Vec<AudioClip>,
     /// The owning turn, if any.
     #[ts(optional)]

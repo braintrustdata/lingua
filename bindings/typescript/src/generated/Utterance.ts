@@ -8,7 +8,11 @@ export type Utterance = { id: string,
 /**
  * `"user"` or `"agent"`.
  */
-speaker: string, start_time: string, end_time?: string, text?: string, audio: Array<AudioClip>, 
+speaker: string, start_time: string, end_time?: string, text?: string, 
+/**
+ * The source reported that this speech's playback was cut off.
+ */
+interrupted?: boolean, audio: Array<AudioClip>, 
 /**
  * The owning turn, if any.
  */

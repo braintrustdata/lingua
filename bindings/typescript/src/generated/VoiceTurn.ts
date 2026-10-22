@@ -7,8 +7,4 @@ export type VoiceTurn = { id: string,
 /**
  * `"user"` or `"agent"`.
  */
-speaker: string, start_time: string, end_time?: string, 
-/**
- * The source reported that this turn's playback was cut off.
- */
-interrupted?: boolean, };
+speaker: string, start_time: string, end_time?: string, };
