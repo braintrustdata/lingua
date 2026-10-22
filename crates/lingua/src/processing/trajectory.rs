@@ -1,11 +1,15 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+#[allow(dead_code)]
+mod voice;
 pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };
 
-use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext};
+use crate::processing::import::{
+    adapt_voice_trace, is_instruction, ImportedSpan, OpaqueItem, SpanContext,
+};
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{

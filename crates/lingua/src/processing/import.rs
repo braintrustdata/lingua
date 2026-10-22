@@ -1,6 +1,7 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
 mod ai_sdk;
 mod langchain;
+mod livekit;
 mod pydantic_ai;
 mod span;
 use crate::processing::import::ai_sdk::try_parse_ai_sdk_for_import;
@@ -34,8 +35,14 @@ use crate::universal::{
 };
 use serde::{Deserialize, Serialize};
 pub use span::{
-    import_span, import_span_with_options, ImportedSpan, SpanContext, TRAJECTORY_METADATA_FIELDS,
+    import_span, import_span_with_options, ImportedSpan, Playback, SelectionMetadata, SpanContext,
+    Speaker, VoiceContext, VoiceKind, TRAJECTORY_METADATA_FIELDS,
 };
+
+/// Applies vendor fixes that need a whole trace's span headers, before trajectories are built.
+pub(crate) fn adapt_voice_trace(spans: &mut [&mut SpanContext]) {
+    livekit::adapt_trace(spans);
+}
 
 pub(crate) fn is_instruction(message: &Message) -> bool {
     matches!(
