@@ -81,3 +81,70 @@ fn params_without_extras_remain_compatible() {
     let serialized = serde_json::to_value(&params).unwrap();
     assert!(!serialized.as_object().unwrap().contains_key("extras"));
 }
+
+#[test]
+fn trajectory_without_voice_serializes_unchanged() {
+    let source = serde_json::json!({
+        "scope": [{ "type": "trace", "trace_id": "trace" }],
+        "agent": { "metadata": {} },
+        "turns": [],
+        "metadata": {},
+    });
+    let trajectory: Trajectory = serde_json::from_value(source.clone()).unwrap();
+    assert!(trajectory.voice.is_none());
+    assert_eq!(serde_json::to_value(&trajectory).unwrap(), source);
+}
+
+#[test]
+fn voice_round_trips_with_missing_fields_preserved() {
+    let source = serde_json::json!({
+        "scope": [{ "type": "trace", "trace_id": "trace" }],
+        "agent": { "metadata": {} },
+        "turns": [],
+        "voice": {
+            "recordings": [{
+                "id": "session",
+                "name": "call-0000",
+                "attachment_ref": "/input/audio/call-0000",
+                "start_time": "2026-10-21T12:00:00Z",
+                "channels": ["session_input", "local_audio_output"]
+            }],
+            "turns": [
+                { "id": "turn", "speaker": "user", "start_time": "2026-10-21T12:00:00Z" },
+                {
+                    "id": "reply-turn",
+                    "speaker": "agent",
+                    "start_time": "2026-10-21T12:00:02Z",
+                    "end_time": "2026-10-21T12:00:03Z"
+                }
+            ],
+            "utterances": [
+                { "id": "speech", "speaker": "user", "start_time": "2026-10-21T12:00:00Z", "audio": [] },
+                {
+                    "id": "reply",
+                    "speaker": "agent",
+                    "start_time": "2026-10-21T12:00:02Z",
+                    "end_time": "2026-10-21T12:00:03Z",
+                    "text": "Partial",
+                    "interrupted": true,
+                    "audio": [{ "recording_id": "session", "recording_name": "call-0000", "channel_index": 1, "start_offset_ms": 2000.0, "end_offset_ms": 2500.5 }],
+                    "turn_id": "reply-turn"
+                }
+            ],
+            "steps": [
+                { "id": "stt", "kind": "stt", "start_time": "2026-10-21T12:00:00Z", "turn_id": "turn" },
+                { "id": "llm", "kind": "llm", "start_time": "2026-10-21T12:00:01Z", "end_time": "2026-10-21T12:00:02Z" }
+            ]
+        },
+        "metadata": {},
+    });
+    let trajectory: Trajectory = serde_json::from_value(source.clone()).unwrap();
+    let voice = trajectory.voice.as_ref().unwrap();
+    assert_eq!(voice.utterances[0].text, None);
+    assert!(voice.utterances[0].audio.is_empty());
+    assert_eq!(voice.recordings[0].mime_type, None);
+    assert_eq!(voice.utterances[0].turn_id, None);
+    assert_eq!(voice.utterances[0].interrupted, None);
+    assert_eq!(voice.utterances[1].interrupted, Some(true));
+    assert_eq!(serde_json::to_value(&trajectory).unwrap(), source);
+}

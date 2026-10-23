@@ -20,10 +20,104 @@ pub struct Trajectory {
     #[ts(optional)]
     pub findings: Option<Vec<Finding>>,
     pub turns: Vec<Turn>,
+    #[ts(optional)]
+    pub voice: Option<Voice>,
     #[ts(type = "Record<string, unknown>")]
     pub metadata: Map<String, Value>,
     #[ts(optional)]
     pub version: Option<String>,
+}
+
+/// Recorded speech and voice work for a call. Model and tool payloads stay in `Trajectory.turns`.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct Voice {
+    /// By `start_time`.
+    pub recordings: Vec<AudioRecording>,
+    /// Turns the source recorded, by `start_time`. Empty when the source records none.
+    pub turns: Vec<VoiceTurn>,
+    /// By `start_time`.
+    pub utterances: Vec<Utterance>,
+    /// By `start_time`.
+    pub steps: Vec<VoiceStep>,
+}
+
+/// A turn the source recorded. Utterances and steps name it through `turn_id`.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct VoiceTurn {
+    pub id: String,
+    /// `"user"` or `"agent"`.
+    pub speaker: String,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+}
+
+/// A source-reported speech interval, not an exact acoustic boundary or delivered text.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct Utterance {
+    pub id: String,
+    /// `"user"` or `"agent"`.
+    pub speaker: String,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub text: Option<String>,
+    /// The source reported that this speech's playback was cut off.
+    #[ts(optional)]
+    pub interrupted: Option<bool>,
+    pub audio: Vec<AudioClip>,
+    /// The owning turn, if any.
+    #[ts(optional)]
+    pub turn_id: Option<String>,
+}
+
+/// A row that did voice or model work, by row ID.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct VoiceStep {
+    pub id: String,
+    /// `"stt"`, `"tts"`, `"llm"`, or `"tool"`.
+    pub kind: String,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    /// The owning turn, if any.
+    #[ts(optional)]
+    pub turn_id: Option<String>,
+}
+
+/// An audio attachment and what its channels hold.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct AudioRecording {
+    /// Row holding the attachment. With `name`, identifies the recording.
+    pub id: String,
+    /// The source's name for the recording, such as `call-0000`.
+    pub name: String,
+    /// JSON pointer into the row, such as `/input/audio/call-0000`.
+    pub attachment_ref: String,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub mime_type: Option<String>,
+    #[ts(optional)]
+    pub duration_ms: Option<f64>,
+    /// Recorded boundary for each channel index, such as `session_input`.
+    pub channels: Vec<String>,
+}
+
+/// Offsets from the start of the recording identified by `recording_id` and `recording_name`.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct AudioClip {
+    pub recording_id: String,
+    pub recording_name: String,
+    #[ts(optional)]
+    pub channel_index: Option<u32>,
+    pub start_offset_ms: f64,
+    pub end_offset_ms: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
