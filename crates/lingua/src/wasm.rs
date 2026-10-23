@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen;
 use wasm_bindgen::prelude::*;
 
-use crate::import_value::has_message_structure;
+use crate::import_value::can_contain_messages;
 
 // Import our types and conversion traits
 use crate::providers::anthropic::convert::{
@@ -219,7 +219,7 @@ fn deserialize_import_spans(
     let parse_error = |error| JsValue::from_str(&format!("Failed to parse spans: {error}"));
     let spans: Vec<ImportSpan> = serde_wasm_bindgen::from_value(value).map_err(parse_error)?;
     let import_payload = |value: JsValue| {
-        if !has_message_structure(&value)? {
+        if !can_contain_messages(&value)? {
             return Ok(None);
         }
         serde_wasm_bindgen::from_value(value)

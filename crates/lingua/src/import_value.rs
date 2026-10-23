@@ -7,7 +7,7 @@ pub(crate) trait MessageValue: Sized {
     fn is_string(&self) -> bool;
     fn array_len(&self) -> Option<usize>;
     fn array_item(&self, index: usize) -> Result<Self, Self::Error>;
-    fn has_any_field(&self, fields: &[&str]) -> Result<bool, Self::Error>;
+    fn is_object(&self) -> bool;
 }
 
 impl MessageValue for &Value {
@@ -31,10 +31,8 @@ impl MessageValue for &Value {
         Ok(&items[index])
     }
 
-    fn has_any_field(&self, fields: &[&str]) -> Result<bool, Self::Error> {
-        Ok(
-            matches!(self, Value::Object(object) if fields.iter().any(|field| object.contains_key(*field))),
-        )
+    fn is_object(&self) -> bool {
+        matches!(self, Value::Object(_))
     }
 }
 
@@ -57,30 +55,12 @@ impl MessageValue for wasm_bindgen::JsValue {
         js_sys::Reflect::get(self, &wasm_bindgen::JsValue::from_f64(index as f64))
     }
 
-    fn has_any_field(&self, fields: &[&str]) -> Result<bool, Self::Error> {
-        use wasm_bindgen::JsCast;
-
-        if !self.is_object() {
-            return Ok(false);
-        }
-        if let Some(map) = self.dyn_ref::<js_sys::Map>() {
-            return Ok(fields
-                .iter()
-                .any(|field| map.has(&wasm_bindgen::JsValue::from_str(field))));
-        }
-        for key in js_sys::Reflect::own_keys(self)?.iter() {
-            if key
-                .as_string()
-                .is_some_and(|key| fields.contains(&key.as_str()))
-            {
-                return Ok(true);
-            }
-        }
-        Ok(false)
+    fn is_object(&self) -> bool {
+        wasm_bindgen::JsValue::is_object(self)
     }
 }
 
-pub(crate) fn has_message_structure<V: MessageValue>(value: &V) -> Result<bool, V::Error> {
+pub(crate) fn can_contain_messages<V: MessageValue>(value: &V) -> Result<bool, V::Error> {
     fn check<V: MessageValue>(value: &V, depth: usize) -> Result<bool, V::Error> {
         if depth == 64 || value.is_string() {
             return Ok(true);
@@ -95,35 +75,7 @@ pub(crate) fn has_message_structure<V: MessageValue>(value: &V) -> Result<bool, 
             return Ok(false);
         }
 
-        value.has_any_field(&[
-            "role",
-            "messages",
-            "message",
-            "content",
-            "type",
-            "prompt",
-            "system",
-            "input",
-            "output",
-            "choices",
-            "result",
-            "response",
-            "contents",
-            "candidates",
-            "parts",
-            "user_prompt",
-            "system_prompt",
-            "message_history",
-            "generations",
-            "lc",
-            "text",
-            "object",
-            "steps",
-            "responseMessages",
-            "toolCalls",
-            "toolResults",
-            "reasoning",
-        ])
+        Ok(value.is_object())
     }
 
     check(value, 0)
@@ -131,44 +83,40 @@ pub(crate) fn has_message_structure<V: MessageValue>(value: &V) -> Result<bool, 
 
 #[cfg(test)]
 mod tests {
-    use super::has_message_structure;
+    use super::can_contain_messages;
     use crate::serde_json::{json, Value};
 
     #[test]
-    fn rejects_non_message_values() {
+    fn rejects_non_message_value_kinds() {
         for value in [
             Value::Null,
             json!(false),
             json!(42),
             json!([]),
-            json!({ "unrelated": { "role": "user", "content": "Hello" } }),
-            json!([1, false, { "unrelated": "Hello" }]),
+            json!([1, false, [null, 42], []]),
         ] {
-            assert!(!has_message_structure(&&value).unwrap(), "{value}");
+            assert!(!can_contain_messages(&&value).unwrap(), "{value}");
         }
     }
 
     #[test]
-    fn admits_provider_and_framework_shapes() {
+    fn admits_all_object_shapes() {
         for value in [
             json!("Hello"),
-            json!({ "role": "user", "content": "Hello" }),
-            json!({ "contents": [{ "parts": [{ "text": "Hello" }] }] }),
-            json!({ "candidates": [{ "content": {} }] }),
-            json!({ "user_prompt": "Hello" }),
-            json!([{ "kind": "request", "parts": [] }]),
-            json!({ "generations": [] }),
-            json!([[{ "type": "human", "content": "Hello" }]]),
-            json!({ "steps": [] }),
-            json!({ "type": "function_call", "name": "lookup" }),
+            json!({}),
+            json!({ "unrelated": { "role": "user", "content": "Hello" } }),
+            json!({ "future_discriminator": "Hello" }),
+            json!({ "": null }),
+            json!([{ "future_discriminator": "Hello" }]),
+            json!([[{ "future_discriminator": "Hello" }]]),
         ] {
-            assert!(has_message_structure(&&value).unwrap(), "{value}");
+            assert!(can_contain_messages(&&value).unwrap(), "{value}");
         }
     }
 
     #[test]
     fn admits_arrays_beyond_the_inspection_depth() {
         let value = (0..65).fold(Value::Null, |value, _| Value::Array(vec![value]));
-        assert!(has_message_structure(&&value).unwrap());
+        assert!(can_contain_messages(&&value).unwrap());
     }
 }

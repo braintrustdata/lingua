@@ -119,8 +119,26 @@ const cases = [
     compatible: true,
   },
   {
+    name: "LLM span with 4 MiB extra field",
+    spans: fixture("chat-completions-basic.spans.json").map((span) => ({
+      ...span,
+      unrelated: largeText,
+    })),
+    compatible: true,
+  },
+  {
     name: "Unsupported 4 MiB object",
     spans: [{ input: unsupported }],
+    compatible: false,
+  },
+  {
+    name: "Primitive input and output",
+    spans: [{ input: 42, output: false }],
+    compatible: false,
+  },
+  {
+    name: "Primitive array",
+    spans: [{ input: Array.from({ length: 1024 }, (_, index) => index) }],
     compatible: false,
   },
   {

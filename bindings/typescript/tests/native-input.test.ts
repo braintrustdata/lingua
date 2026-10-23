@@ -11,7 +11,7 @@ describe.each([
     importMessages: importAndDeduplicateMessages,
   },
 ])("$name native input", ({ importMessages }) => {
-  test("rejects unsupported payloads without reading their contents", () => {
+  test("decodes objects with unrecognized fields before rejecting them", () => {
     let reads = 0;
     const unsupported = {
       get unrelated() {
@@ -23,7 +23,21 @@ describe.each([
     expect(
       importMessages([{ input: unsupported, output: [unsupported] }])
     ).toEqual([]);
-    expect(reads).toBe(0);
+    expect(reads).toBeGreaterThan(0);
+  });
+
+  test("skips unused span fields while importing LLM messages", () => {
+    const error = new Error("Unused span field was decoded");
+    const span = {
+      input: [{ role: "user", content: "Hello" }],
+      get unrelated() {
+        throw error;
+      },
+    };
+
+    expect(importMessages([span])).toEqual([
+      { role: "user", content: "Hello" },
+    ]);
   });
 
   test("imports supported output beside an unsupported input", () => {
@@ -43,7 +57,13 @@ describe.each([
     expect(messages).toEqual([
       { role: "assistant", content: "Hello", id: null },
     ]);
-    expect(reads).toBe(0);
+    expect(reads).toBeGreaterThan(0);
+  });
+
+  test("imports supported output beside scalar-only input", () => {
+    expect(
+      importMessages([{ input: [1, null, [false]], output: "Hello" }])
+    ).toEqual([{ role: "assistant", content: "Hello", id: null }]);
   });
 
   test("preserves metadata instructions when both payloads are unsupported", () => {
