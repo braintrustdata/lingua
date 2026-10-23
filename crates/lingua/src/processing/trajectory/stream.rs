@@ -65,6 +65,10 @@ pub enum TrajectoryEvent {
         span_id: String,
         message: String,
     },
+    Voice {
+        root_span_id: String,
+        voice: Voice,
+    },
     Done,
 }
 
@@ -195,7 +199,7 @@ fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) 
         .iter()
         .enumerate()
         .map(|(index, span)| {
-            if owners[&index].skipped {
+            if owners[&index].skipped || span.source.voice.kind.is_some() {
                 return Role::Ignored;
             }
             match span.kind() {
@@ -542,6 +546,14 @@ impl TrajectoryStream {
         let mut events = Vec::new();
         stream.initialize(&mut events)?;
         stream.initial_events = events;
+        for (index, span) in stream.spans.iter().enumerate() {
+            if !stream.owners[&index].skipped
+                && (span.source.voice.payload
+                    || matches!(span.source.voice.kind, Some(VoiceKind::Speech(_))))
+            {
+                stream.ready[index] = false;
+            }
+        }
         Ok(stream)
     }
 
@@ -590,6 +602,14 @@ impl TrajectoryStream {
                 } else if !self.ready[index] {
                     pending.push(self.spans[index].id.clone());
                 }
+            }
+        }
+        for (index, span) in self.spans.iter().enumerate() {
+            if pending.len() == limit {
+                break;
+            }
+            if !self.ready[index] && self.roles[index] == Role::Ignored {
+                pending.push(span.id.clone());
             }
         }
         pending
@@ -718,6 +738,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice: _,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
@@ -1208,7 +1229,7 @@ impl TrajectoryStream {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
         }
-        if self.order.iter().any(|index| !self.ready[*index]) {
+        if self.ready.iter().any(|ready| !ready) {
             return Err("Trajectory stream has unresolved spans".to_string());
         }
         let mut events = self.drain()?;
@@ -1247,6 +1268,28 @@ impl TrajectoryStream {
                 span_id: span.id.clone(),
                 message: span.warnings.join("; "),
             });
+        }
+        for (root_span_id, build) in voice::build(
+            self.spans
+                .iter()
+                .enumerate()
+                .filter(|(index, _)| !self.owners[index].skipped)
+                .map(|(_, span)| span),
+        ) {
+            for warning in build.warnings {
+                events.push(TrajectoryEvent::Warning {
+                    root_span_id: root_span_id.clone(),
+                    span_id: warning.span_id,
+                    message: warning.message,
+                });
+            }
+            events.push(TrajectoryEvent::Voice {
+                root_span_id,
+                voice: build.voice,
+            });
+        }
+        for span in &mut self.spans {
+            span.release_payload();
         }
         events.push(TrajectoryEvent::Done);
         self.finished = true;
@@ -1417,6 +1460,19 @@ impl TrajectoryCollector {
                 span_id,
                 message,
             } => self.import_diagnostic("import_warnings", root_span_id, span_id, message)?,
+            TrajectoryEvent::Voice {
+                root_span_id,
+                voice,
+            } => {
+                self.scopes
+                    .get_mut(&TrajectoryScope {
+                        root_span_id,
+                        owner_span_id: None,
+                    })
+                    .ok_or("Unknown trajectory scope")?
+                    .header
+                    .voice = Some(voice);
+            }
             TrajectoryEvent::Done => self.complete = true,
         }
         Ok(())
