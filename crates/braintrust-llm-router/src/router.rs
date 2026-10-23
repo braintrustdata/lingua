@@ -466,9 +466,9 @@ impl Router {
         let (payload, detected_format, actual_format, requires_json_response, lingua_passthrough) =
             if route.passthrough {
                 let body = if stream
-                    && !lingua::serde_json::from_slice::<StreamFlagMetadata>(&body)
+                    && lingua::serde_json::from_slice::<StreamFlagMetadata>(&body)
                         .ok()
-                        .is_some_and(|metadata| metadata.stream == Some(true))
+                        .is_none_or(|metadata| metadata.stream != Some(true))
                 {
                     enable_streaming_payload(body, route.format)
                 } else {
