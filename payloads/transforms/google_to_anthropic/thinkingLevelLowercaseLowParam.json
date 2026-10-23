@@ -1,0 +1,37 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011CfxGs8Yeob9md2qLKGSPD",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "The user is asking me to say \"ok\". This is a simple, straightforward request with no harmful content or issues. I'll comply with this request.",
+      "signature": "EqwDCroBCBIYAipAPXt0Gpszq8EPv9mPt6fdI1B2QdnTBbQoYDfoHruw1gC1njsVuKkB+64ODUQAYy0AAce8B0nlECtH8SNniwHy9zIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAamMs9YGEgwkrmycmL1/gSSdVeQaDKEgcJk/daIg/JDBcCIwx/n5gzuG6ieQkzPiIULk/gVFAkwG8obQlXjBG4oMO1njuaEg1EleH4dMgJNXXRYRKp4B98CV3a8jG3xQF4N80im7m5ahz+Tz41Dv85cobJArVsSox364o0gZgbkl269UZTy7/dJu6G8M8hWdmgir4eNJX79+q2B+P6yhF2VWcsNkTSJ10+LLHlpB0Y3y8Ip5zuPNhEdScszaHqF7+ojNbCu/fwSANLV7NFyp2lS/OEM9zGP/50cbGgHnvy2FcQrKuzNclt/34epXUWsrY8R7MqkYAQ=="
+    },
+    {
+      "type": "text",
+      "text": "ok"
+    }
+  ],
+  "container": null,
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 39,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 44,
+    "output_tokens_details": {
+      "thinking_tokens": 37
+    },
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  },
+  "diagnostics": null
+}

@@ -1,0 +1,35 @@
+{
+  "model": "gemini-3-flash-preview",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say ok."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "ok.",
+          "thoughtSignature": "EmUKYwFpFH0TtU/lyt8vMgu0TYiH3OFBpEh3sSKpWBVb00ZgRexpe2TE88XeM5mpcqdjELWBtcHXbINTWlJpjUPcf4APBnycYCob7qoNcbvRuNd0go24myx4QKPHfolN5RSUnLhRbg=="
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingLevel": "minimal"
+    }
+  }
+}
