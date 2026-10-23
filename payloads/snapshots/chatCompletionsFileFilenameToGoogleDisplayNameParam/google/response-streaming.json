@@ -1,0 +1,106 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "The attached document contains the text:\n\n\""
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 537,
+      "candidatesTokenCount": 9,
+      "totalTokenCount": 606,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        },
+        {
+          "modality": "IMAGE",
+          "tokenCount": 529
+        }
+      ],
+      "thoughtsTokenCount": 60,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.6-flash",
+    "responseId": "SN_XauLhDP3y-8YP3MaG2A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Hello from Lingua.\""
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 537,
+      "candidatesTokenCount": 14,
+      "totalTokenCount": 611,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        },
+        {
+          "modality": "IMAGE",
+          "tokenCount": 529
+        }
+      ],
+      "thoughtsTokenCount": 60,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.6-flash",
+    "responseId": "SN_XauLhDP3y-8YP3MaG2A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EpADCo0DAWkUfRPWCvx8h49WCQDNmKU91TkAZj3/hUwlyKy6A3tkT81IHyCuix1XTHrADOATawzPfK85ODp04hbDZOIDtrMJi+7mJxnC5dMAktiVuRSSknFpknQeXUKwHCeSpmQjOx2hgyBd7O8tC73HoVzY52UVfLP8t2kTwiL+tKDLoIe++JVisy1TreKnz7mtZ0gZDSBdSPAmABEF7SJsBID91X1caCGc8yzjT4cgF2/2gUItU4bnU3fRtfrARhwqE2xtnaEd6yIZFl0gcFV8C3QluiT7RT5c+uk3D5hLcFVwcCKhlR4yHg7MGqs4HMl5QWox654tOLW3YQ9bCcXYP35lZqauY3SrsnDMs9cRTegd2Bkdq0UtcXjQWQHZ5uKc+Hfj1AgXjHsM0ZhZaPA/OSc/phBORYw42n5k9mAT/NKSu8Z7+4rM3LbCjqJ1enPsWgNETHCH2dR0PuQeg492cEI4o74v7Eo5Tlpr4gL9TGhbChS7OOw5DCUDm/9ykDI0zu9xBcJV3CRwBBYHGEe42Q=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 537,
+      "candidatesTokenCount": 14,
+      "totalTokenCount": 611,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        },
+        {
+          "modality": "IMAGE",
+          "tokenCount": 529
+        }
+      ],
+      "thoughtsTokenCount": 60,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.6-flash",
+    "responseId": "SN_XauLhDP3y-8YP3MaG2A4"
+  }
+]

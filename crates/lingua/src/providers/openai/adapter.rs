@@ -61,6 +61,7 @@ enum OpenAICompatibleServiceTier {
 #[serde(rename_all = "snake_case")]
 enum OpenAICompatibleServiceTierExtension {
     OnDemand,
+    Standard,
 }
 
 fn attach_stream_service_tier(
@@ -89,6 +90,9 @@ fn served_service_tier_from_openai_compatible(
         }
         OpenAICompatibleServiceTier::Extension(OpenAICompatibleServiceTierExtension::OnDemand) => {
             ServedServiceTier::OnDemand
+        }
+        OpenAICompatibleServiceTier::Extension(OpenAICompatibleServiceTierExtension::Standard) => {
+            ServedServiceTier::Standard
         }
     }
 }
@@ -1056,6 +1060,16 @@ mod tests {
         ));
     }
 
+    fn assert_service_tier_omitted(value: Value) {
+        #[derive(Deserialize)]
+        struct ServiceTierView {
+            service_tier: Option<ServiceTier>,
+        }
+
+        let output: ServiceTierView = serde_json::from_value(value).unwrap();
+        assert!(output.service_tier.is_none());
+    }
+
     #[test]
     fn test_openai_detect_request() {
         let adapter = OpenAIAdapter;
@@ -1118,6 +1132,69 @@ mod tests {
         let output: StreamChunkView =
             serde_json::from_value(adapter.stream_from_universal(&universal).unwrap()).unwrap();
         assert_eq!(output.service_tier, Some(ServiceTier::Priority));
+    }
+
+    #[test]
+    fn test_openai_rejects_unknown_service_tier() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({"service_tier": "unknown_tier", "choices": []});
+        for error in [
+            adapter.response_to_universal(payload.clone()).unwrap_err(),
+            adapter.stream_to_universal(payload).unwrap_err(),
+        ] {
+            assert!(matches!(error, TransformError::ToUniversalFailed(_)));
+            assert!(error.to_string().contains("OpenAICompatibleServiceTier"));
+        }
+    }
+
+    #[test]
+    fn test_openai_response_accepts_standard_service_tier() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "id": "chatcmpl_standard_tier",
+            "object": "chat.completion",
+            "created": 1722960000,
+            "model": "gemini-3.1-flash-lite",
+            "service_tier": "standard",
+            "choices": [{
+                "index": 0,
+                "message": { "role": "assistant", "content": "hello" },
+                "finish_reason": "stop"
+            }],
+            "usage": { "prompt_tokens": 5, "completion_tokens": 1, "total_tokens": 6 }
+        });
+        let universal = adapter.response_to_universal(payload).unwrap();
+        assert_eq!(
+            universal.served_service_tier,
+            Some(ServedServiceTier::Standard)
+        );
+        let output = adapter.response_from_universal(&universal).unwrap();
+        assert_service_tier_omitted(output);
+    }
+
+    #[test]
+    fn test_openai_stream_accepts_standard_service_tier() {
+        let adapter = OpenAIAdapter;
+        for choices in [
+            json!([{"index": 0, "delta": {"content": "hello"}, "finish_reason": null}]),
+            json!([]),
+        ] {
+            let payload = json!({
+                "id": "chatcmpl_standard_tier",
+                "object": "chat.completion.chunk",
+                "model": "gemini-3.1-flash-lite",
+                "service_tier": "standard",
+                "choices": choices,
+                "usage": {"prompt_tokens": 5, "completion_tokens": 1, "total_tokens": 6}
+            });
+            let universal = adapter.stream_to_universal(payload).unwrap().unwrap();
+            assert_eq!(
+                universal.served_service_tier,
+                Some(ServedServiceTier::Standard)
+            );
+            let output = adapter.stream_from_universal(&universal).unwrap();
+            assert_service_tier_omitted(output);
+        }
     }
 
     #[test]

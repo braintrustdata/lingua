@@ -1,0 +1,68 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant",
+    "assistant"
+  ],
+  "mustContainText": [
+    "Continue the task",
+    "Continuing",
+    "Task complete"
+  ],
+  "expectedOpaqueInput": [
+    [
+      {
+        "index": 1,
+        "value": {
+          "type": "compaction",
+          "id": "cmp_mixed_input",
+          "encrypted_content": "synthetic_mixed_input_ciphertext",
+          "provider_extension": "preserved"
+        },
+        "kind": "compaction"
+      }
+    ],
+    [
+      {
+        "index": null,
+        "value": {
+          "type": "compaction",
+          "id": "cmp_standalone_input",
+          "encrypted_content": "synthetic_standalone_input_ciphertext",
+          "provider_extension": "preserved"
+        },
+        "kind": "compaction"
+      }
+    ]
+  ],
+  "expectedOpaqueOutput": [
+    [
+      {
+        "index": null,
+        "value": {
+          "type": "compaction",
+          "id": "cmp_standalone_output",
+          "encrypted_content": "synthetic_standalone_output_ciphertext",
+          "provider_extension": "preserved"
+        },
+        "kind": "compaction"
+      }
+    ],
+    [
+      {
+        "index": 0,
+        "value": {
+          "type": "compaction",
+          "id": "cmp_mixed_output",
+          "encrypted_content": "synthetic_mixed_output_ciphertext",
+          "provider_extension": "preserved"
+        },
+        "kind": "compaction"
+      }
+    ]
+  ],
+  "mustNotContainText": [
+    "encrypted_content"
+  ]
+}

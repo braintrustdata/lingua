@@ -10923,6 +10923,48 @@ data: {"response":{"id":"resp_transformed","model":"transformed","object":"respo
 "
 `;
 
+exports[`streaming: responses → chat-completions > responsesFinalAnswerStreamingParam > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_02445cd3e143d3f8016ad11835e78c87d1b7a5501ad554e743","model":"gpt-5.4-mini-2026-03-17","object":"chat.completion.chunk","service_tier":"auto"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_02445cd3e143d3f8016ad11835e78c87d1b7a5501ad554e743","model":"gpt-5.4-mini-2026-03-17","object":"chat.completion.chunk","service_tier":"auto"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"I","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"’m","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" shopping","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" for","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" a","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" new","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" laptop","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_02445cd3e143d3f8016ad11835e78c87d1b7a5501ad554e743","model":"gpt-5.4-mini-2026-03-17","object":"chat.completion.chunk","service_tier":"default","usage":{"completion_tokens":75,"completion_tokens_details":{"reasoning_tokens":61},"prompt_tokens":43,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":118}}
+
+data: [DONE]
+
+"
+`;
+
 exports[`streaming: responses → google > complexReasoningRequest > streaming 1`] = `
 "event: response.created
 data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":65,"output_tokens_details":{"reasoning_tokens":65},"total_tokens":140}},"sequence_number":0,"type":"response.created"}

@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The document says:\n\n\"Hello from Lingua.\"",
+            "thoughtSignature": "ErwCCrkCAWkUfRNxqRMy+R/RzbnF6aUgrFb964n8p3M6KzdwqHvSj1CBLYLagSnevXtxxrh8dIShMjKhVjhf694jI8CnigbvKb4JjE0RAQ22F4GUBz/1isLuHJiF3fZ7iU+XVa6v7p1aP7aLFVau834yN07x0p9GUznmwgFO2h3MRmZ8v2jop6d3bdonhvqLSyv1Vat/CMxtVC2H7ezwjijgFM5hXs3k52aNDHbvoZoPS3K462NDou/CkU0BH3TaOqm3cSYPl/+WhPMyxj8BCjOzhQ+LumDbp+jMzg1bShtsJiKCTftwA5bikxLBciqtn36U5v1GM+0Fv3edixI+B5lAXf5XeKnRVvAuvF1+YhiPEJwSv9+NWNOWLQMBkmm6oJhW5S0iq3Zm3vA8XG/Lcff+qoG/1J7SLa7Xl3EVJg=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 537,
+    "candidatesTokenCount": 11,
+    "totalTokenCount": 598,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 529
+      }
+    ],
+    "thoughtsTokenCount": 50,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.6-flash",
+  "responseId": "veHXauf7K_3V_uMP9_Oe4A4"
+}

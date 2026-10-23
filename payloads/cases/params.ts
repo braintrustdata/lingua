@@ -747,6 +747,49 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  chatCompletionsFileFilenameToGoogleDisplayNameParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "What does the attached document say?" },
+            {
+              type: "file",
+              file: {
+                filename: "greeting.pdf",
+                file_data:
+                  "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDkgPj4Kc3RyZWFtCkJUIC9GMSAxMiBUZiAyMCAxMDAgVGQgKEhlbGxvIGZyb20gTGluZ3VhLikgVGogRVQKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMxMSAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQxMAolJUVPRgo=",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "What does the attached document say?" },
+            {
+              inlineData: {
+                mimeType: "application/pdf",
+                data: "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDkgPj4Kc3RyZWFtCkJUIC9GMSAxMiBUZiAyMCAxMDAgVGQgKEhlbGxvIGZyb20gTGluZ3VhLikgVGogRVQKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMxMSAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQxMAolJUVPRgo=",
+                displayName: "greeting.pdf",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    bedrock: null,
+  },
+
   responsesInputFileUrlParam: {
     "chat-completions": null,
     responses: {
@@ -1071,6 +1114,29 @@ export const paramsCases: TestCaseCollection = {
           format: { type: "text" },
         },
       ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesFinalAnswerStreamingParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_MINI_REASONING_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "What are you shopping for today? Reply in one short sentence.",
+        },
+      ],
+      instructions:
+        "If you send a progress message, mark it as commentary. Send the answer as a final answer.",
+      reasoning: { effort: "low" },
+      max_output_tokens: 100,
+      store: false,
+      stream: true,
     },
     anthropic: null,
     google: null,

@@ -217,9 +217,18 @@ pub struct OpaqueItem {
     pub index: Option<usize>,
     #[ts(type = "unknown")]
     pub value: Value,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub kind: Option<OpaqueItemKind>,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     #[ts(as = "Option<bool>", optional)]
     pub is_metadata: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum OpaqueItemKind {
+    Compaction,
 }
 
 #[skip_serializing_none]

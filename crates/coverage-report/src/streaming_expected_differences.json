@@ -234,6 +234,8 @@
     {
       "testCase": "thinkingLevelLowercaseMinimalParam", "source": "Google", "target": "Vertex Anthropic",
       "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+      "testCase": "chatCompletionsFileFilenameToGoogleDisplayNameParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
     },
     {
       "testCase": "toolCallRequest", "source": "ChatCompletions", "target": "Responses",

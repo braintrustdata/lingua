@@ -1256,14 +1256,66 @@ impl TrajectoryStream {
 struct CollectedTurn {
     turn: Turn,
     work: BTreeMap<usize, WorkStep>,
-    order: usize,
 }
-type CollectedTrajectory = (Trajectory, BTreeMap<String, CollectedTurn>);
+
+struct CollectedTrajectory {
+    header: Trajectory,
+    turns: BTreeMap<String, CollectedTurn>,
+    order: BTreeMap<(DateTime<Utc>, usize), String>,
+}
 
 #[derive(Default)]
 pub struct TrajectoryCollector {
     scopes: BTreeMap<TrajectoryScope, CollectedTrajectory>,
     complete: bool,
+}
+
+/// A borrowed trajectory in snapshot order. Clone only the parts you need with
+/// `to_trajectory`, `TurnView::to_turn`, or `WorkView::to_step`.
+pub struct TrajectoryView<'a> {
+    pub scope: &'a TrajectoryScope,
+    pub header: &'a Trajectory,
+    pub turns: Vec<TurnView<'a>>,
+}
+
+/// `turn.work` is always empty; assembled work steps are in `work`.
+pub struct TurnView<'a> {
+    pub id: &'a str,
+    pub turn: &'a Turn,
+    pub work: Vec<WorkView<'a>>,
+}
+
+pub struct WorkView<'a> {
+    pub step: &'a WorkStep,
+    pub sub_agent: Option<TrajectoryView<'a>>,
+}
+
+impl TrajectoryView<'_> {
+    pub fn to_trajectory(&self) -> Trajectory {
+        let mut trajectory = self.header.clone();
+        trajectory
+            .turns
+            .extend(self.turns.iter().map(TurnView::to_turn));
+        trajectory
+    }
+}
+
+impl TurnView<'_> {
+    pub fn to_turn(&self) -> Turn {
+        let mut turn = self.turn.clone();
+        turn.work = self.work.iter().map(WorkView::to_step).collect();
+        turn
+    }
+}
+
+impl WorkView<'_> {
+    pub fn to_step(&self) -> WorkStep {
+        let mut step = self.step.clone();
+        if let Some(sub_agent) = &self.sub_agent {
+            step.sub_agent = Some(Box::new(sub_agent.to_trajectory()));
+        }
+        step
+    }
 }
 
 impl TrajectoryCollector {
@@ -1280,23 +1332,33 @@ impl TrajectoryCollector {
                 if self.scopes.contains_key(&scope) {
                     return Err("Duplicate trajectory scope".to_string());
                 }
-                self.scopes.insert(scope, (trajectory, BTreeMap::new()));
+                self.scopes.insert(
+                    scope,
+                    CollectedTrajectory {
+                        header: trajectory,
+                        turns: BTreeMap::new(),
+                        order: BTreeMap::new(),
+                    },
+                );
             }
             TrajectoryEvent::Turn { scope, id, turn } => {
-                let (_, turns) = self
+                let collected = self
                     .scopes
                     .get_mut(&scope)
                     .ok_or("Unknown trajectory scope")?;
-                if turns.contains_key(&id) {
+                if collected.turns.contains_key(&id) {
                     return Err("Duplicate trajectory turn".to_string());
                 }
-                let order = turns.len();
-                turns.insert(
+                let mut turn = *turn;
+                turn.work = Vec::new();
+                collected
+                    .order
+                    .insert((turn.start_time, collected.turns.len()), id.clone());
+                collected.turns.insert(
                     id,
                     CollectedTurn {
-                        turn: *turn,
+                        turn,
                         work: BTreeMap::new(),
-                        order,
                     },
                 );
             }
@@ -1366,14 +1428,15 @@ impl TrajectoryCollector {
         span_id: String,
         message: String,
     ) -> Result<()> {
-        let (trajectory, _) = self
+        let collected = self
             .scopes
             .get_mut(&TrajectoryScope {
                 root_span_id,
                 owner_span_id: None,
             })
             .ok_or("Unknown trajectory scope")?;
-        let diagnostics = trajectory
+        let diagnostics = collected
+            .header
             .metadata
             .entry(field)
             .or_insert_with(|| json::json!([]))
@@ -1386,50 +1449,68 @@ impl TrajectoryCollector {
     fn turn(&mut self, scope: &TrajectoryScope, id: &str) -> Result<&mut CollectedTurn> {
         self.scopes
             .get_mut(scope)
-            .and_then(|(_, turns)| turns.get_mut(id))
+            .and_then(|collected| collected.turns.get_mut(id))
             .ok_or_else(|| "Unknown trajectory turn".to_string())
     }
 
-    fn trajectory(
-        &self,
-        scope: &TrajectoryScope,
-        visiting: &mut HashSet<TrajectoryScope>,
-    ) -> Result<Trajectory> {
-        if !visiting.insert(scope.clone()) {
+    fn scope_view<'a>(
+        &'a self,
+        scope: &'a TrajectoryScope,
+        visiting: &mut HashSet<&'a TrajectoryScope>,
+    ) -> Result<TrajectoryView<'a>> {
+        if !visiting.insert(scope) {
             return Err("Cycle in trajectory scopes".to_string());
         }
-        let (header, turns) = self.scopes.get(scope).ok_or("Unknown trajectory scope")?;
-        let mut trajectory = header.clone();
-        let mut turns: Vec<_> = turns.values().collect();
-        turns.sort_by_key(|collected| (collected.turn.start_time, collected.order));
-        for collected in turns {
-            let mut turn = collected.turn.clone();
-            turn.work = collected
-                .work
-                .values()
-                .map(|step| {
-                    let mut step = step.clone();
-                    let child = TrajectoryScope {
-                        root_span_id: scope.root_span_id.clone(),
-                        owner_span_id: Some(step.id.clone()),
-                    };
-                    if self.scopes.contains_key(&child) {
-                        step.sub_agent = Some(Box::new(self.trajectory(&child, visiting)?));
-                    }
-                    Ok(step)
+        let collected = self.scopes.get(scope).ok_or("Unknown trajectory scope")?;
+        let turns = collected
+            .order
+            .values()
+            .map(|id| {
+                let turn = collected.turns.get(id).ok_or("Unknown trajectory turn")?;
+                let work = turn
+                    .work
+                    .values()
+                    .map(|step| {
+                        let child = TrajectoryScope {
+                            root_span_id: scope.root_span_id.clone(),
+                            owner_span_id: Some(step.id.clone()),
+                        };
+                        let sub_agent = match self.scopes.get_key_value(&child) {
+                            Some((child, _)) => Some(self.scope_view(child, visiting)?),
+                            None => None,
+                        };
+                        Ok(WorkView { step, sub_agent })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(TurnView {
+                    id,
+                    turn: &turn.turn,
+                    work,
                 })
-                .collect::<Result<Vec<_>>>()?;
-            trajectory.turns.push(turn);
-        }
+            })
+            .collect::<Result<Vec<_>>>()?;
         visiting.remove(scope);
-        Ok(trajectory)
+        Ok(TrajectoryView {
+            scope,
+            header: &collected.header,
+            turns,
+        })
     }
 
-    pub fn snapshot(&self) -> Result<Vec<Trajectory>> {
+    /// Root trajectories in snapshot order, borrowed instead of cloned.
+    pub fn view(&self) -> Result<Vec<TrajectoryView<'_>>> {
         self.scopes
             .keys()
             .filter(|scope| scope.owner_span_id.is_none())
-            .map(|scope| self.trajectory(scope, &mut HashSet::new()))
+            .map(|scope| self.scope_view(scope, &mut HashSet::new()))
             .collect()
+    }
+
+    pub fn snapshot(&self) -> Result<Vec<Trajectory>> {
+        Ok(self
+            .view()?
+            .iter()
+            .map(TrajectoryView::to_trajectory)
+            .collect())
     }
 }

@@ -19,17 +19,14 @@ use crate::providers::anthropic::convert::{
     anthropic_cache_control_from_universal, anthropic_input_messages_to_universal_messages,
     system_to_user_content, universal_messages_to_anthropic_input_messages,
 };
-use crate::providers::anthropic::detect::{
-    system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
-};
+use crate::providers::anthropic::detect::is_anthropic_request;
 use crate::providers::anthropic::generated::{
     ContentBlock, CreateMessageParams, EffortLevel, Message as AnthropicMessage, OutputConfig,
     ServiceTierEnum, ServiceTierServiceTier, Thinking, ThinkingType, Tool, ToolChoice,
     ToolChoiceType, Usage,
 };
-use crate::providers::anthropic::params::AnthropicExtrasView;
+use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicMessagesView};
 use crate::providers::anthropic::tool_discovery;
-use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{CacheControl, Message, UserContent, UserContentPart};
@@ -308,11 +305,11 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_anthropic_source(payload).is_ok()
+        is_anthropic_request(payload)
     }
 
     fn detect_passthrough_request(&self, payload: &Value) -> bool {
-        try_parse_anthropic(payload).is_ok()
+        is_anthropic_request(payload)
     }
 
     fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
@@ -330,6 +327,17 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
+        let message_directives = AnthropicMessagesView::deserialize(&payload)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        if message_directives
+            .messages
+            .iter()
+            .any(|message| message.output_config.is_some())
+        {
+            return Err(TransformError::ToUniversalFailed(
+                "Anthropic per-message output_config cannot be translated without changing turn-scoped effort semantics".to_string(),
+            ));
+        }
         let raw_payload_obj: Map<String, Value> = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
         let raw_params_view: AnthropicExtrasView =
@@ -427,31 +435,7 @@ impl ProviderAdapter for AnthropicAdapter {
         obj.insert("model".into(), Value::String(model.clone()));
 
         if let Some(raw_messages) = anthropic_extras_view.messages.as_ref() {
-            if system_messages_are_supported_and_well_placed(model, raw_messages)
-                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?
-            {
-                obj.insert("messages".into(), raw_messages.clone());
-            } else {
-                if msgs.is_empty() {
-                    let reason = if system_contents.is_empty() {
-                        "Anthropic requires at least one message in 'messages'.".to_string()
-                    } else {
-                        "Anthropic requires at least one non-system message; a system prompt alone cannot be sent because Anthropic stores system prompts in the top-level 'system' field and requires at least one user or assistant message in 'messages'.".to_string()
-                    };
-                    return Err(TransformError::ValidationFailed {
-                        target: ProviderFormat::Anthropic,
-                        reason,
-                    });
-                }
-                validate_no_non_leading_system_messages(&msgs)?;
-                let anthropic_messages = universal_messages_to_anthropic_input_messages(msgs)
-                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
-                obj.insert(
-                    "messages".into(),
-                    serde_json::to_value(anthropic_messages)
-                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-                );
-            }
+            obj.insert("messages".into(), raw_messages.clone());
         } else {
             if msgs.is_empty() {
                 let reason = if system_contents.is_empty() {

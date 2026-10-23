@@ -15815,6 +15815,59 @@ exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam
 }
 `;
 
+exports[`chat-completions → google > chatCompletionsFileFilenameToGoogleDisplayNameParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What does the attached document say?",
+        },
+        {
+          "inlineData": {
+            "data": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDkgPj4Kc3RyZWFtCkJUIC9GMSAxMiBUZiAyMCAxMDAgVGQgKEhlbGxvIGZyb20gTGluZ3VhLikgVGogRVQKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMxMSAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQxMAolJUVPRgo=",
+            "displayName": "greeting.pdf",
+            "mimeType": "application/pdf",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsFileFilenameToGoogleDisplayNameParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The document says:
+
+"Hello from Lingua."",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 61,
+    "completion_tokens_details": {
+      "reasoning_tokens": 50,
+    },
+    "prompt_tokens": 537,
+    "total_tokens": 598,
+  },
+}
+`;
+
 exports[`chat-completions → google > chatCompletionsGcsBackedVideoFileParam > request 1`] = `
 {
   "contents": [
@@ -15825,6 +15878,7 @@ exports[`chat-completions → google > chatCompletionsGcsBackedVideoFileParam > 
         },
         {
           "fileData": {
+            "displayName": "sample-200mb.mp4",
             "fileUri": "gs://lingua-test-bucket/sample-200mb.mp4",
             "mimeType": "video/mp4",
           },
@@ -15950,6 +16004,7 @@ exports[`chat-completions → google > chatCompletionsUrlBackedAudioFileParam > 
         },
         {
           "fileData": {
+            "displayName": "sample-3s.mp3",
             "fileUri": "https://samplelib.com/mp3/sample-3s.mp3",
             "mimeType": "audio/mp3",
           },
@@ -15970,25 +16025,25 @@ exports[`chat-completions → google > chatCompletionsUrlBackedAudioFileParam > 
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "(music)",
+        "content": "This audio clip contains only background music and no speech to transcribe.",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
   "id": "chatcmpl-transformed",
-  "model": "gemini-3.5-flash",
+  "model": "gemini-3.6-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 205,
+    "completion_tokens": 162,
     "completion_tokens_details": {
-      "reasoning_tokens": 202,
+      "reasoning_tokens": 149,
     },
     "prompt_tokens": 87,
     "prompt_tokens_details": {
       "audio_tokens": 80,
     },
-    "total_tokens": 292,
+    "total_tokens": 249,
   },
 }
 `;
@@ -16003,6 +16058,7 @@ exports[`chat-completions → google > chatCompletionsUrlBackedVideoFileParam > 
         },
         {
           "fileData": {
+            "displayName": "sample-5s.mp4",
             "fileUri": "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
             "mimeType": "video/mp4",
           },
@@ -16023,22 +16079,22 @@ exports[`chat-completions → google > chatCompletionsUrlBackedVideoFileParam > 
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "The video shows a sunny day in a park, with green trees, a paved path, a bench, and a road with cars and a bus driving by.",
+        "content": "The video shows a sunny day in a park next to a busy street. Lush green trees cast soft shadows over a grassy lawn, a paved walkway, and a wooden bench. In the background, cars, buses, and other traffic pass along the road beyond a trimmed green hedge.",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
   "id": "chatcmpl-transformed",
-  "model": "gemini-3.5-flash",
+  "model": "gemini-3.6-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 315,
+    "completion_tokens": 307,
     "completion_tokens_details": {
-      "reasoning_tokens": 283,
+      "reasoning_tokens": 251,
     },
-    "prompt_tokens": 550,
-    "total_tokens": 865,
+    "prompt_tokens": 551,
+    "total_tokens": 858,
   },
 }
 `;
@@ -19576,6 +19632,60 @@ Once you provide the text, I’ll generate the summary in your chosen format and
       "cached_tokens": 0,
     },
     "total_tokens": 1360,
+  },
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsFileFilenameToGoogleDisplayNameParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "What does the attached document say?",
+          "type": "input_text",
+        },
+        {
+          "file_data": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDkgPj4Kc3RyZWFtCkJUIC9GMSAxMiBUZiAyMCAxMDAgVGQgKEhlbGxvIGZyb20gTGluZ3VhLikgVGogRVQKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMxMSAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQxMAolJUVPRgo=",
+          "filename": "greeting.pdf",
+          "type": "input_file",
+        },
+      ],
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsFileFilenameToGoogleDisplayNameParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The document says:
+
+“Hello from Lingua.”",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0d2823fc49737ed4006ad7e1bbd6d087d0be1fa2b7818a86a3",
+  "model": "gpt-5.6-terra",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "usage": {
+    "completion_tokens": 14,
+    "prompt_tokens": 40,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 54,
   },
 }
 `;
@@ -25593,6 +25703,59 @@ exports[`google → anthropic > webSearchToolParam > response 1`] = `
 }
 `;
 
+exports[`google → chat-completions > chatCompletionsFileFilenameToGoogleDisplayNameParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What does the attached document say?",
+          "type": "text",
+        },
+        {
+          "file": {
+            "file_data": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDkgPj4Kc3RyZWFtCkJUIC9GMSAxMiBUZiAyMCAxMDAgVGQgKEhlbGxvIGZyb20gTGluZ3VhLikgVGogRVQKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMxMSAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQxMAolJUVPRgo=",
+            "filename": "greeting.pdf",
+          },
+          "type": "file",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > chatCompletionsFileFilenameToGoogleDisplayNameParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "- The document’s text (page 1) reads: "Hello from Lingua."
+
+If there is an image on the page with additional text not captured in the parsed text, I can view that image to extract any more content. Would you like me to inspect the image on this page?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 70,
+    "promptTokenCount": 234,
+    "thoughtsTokenCount": 704,
+    "totalTokenCount": 1008,
+  },
+}
+`;
+
 exports[`google → chat-completions > complexReasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -28241,6 +28404,61 @@ If you want, I can also prepare a short, current-news brief for you once you pas
     "promptTokenCount": 10,
     "thoughtsTokenCount": 1344,
     "totalTokenCount": 1612,
+  },
+}
+`;
+
+exports[`google → responses > chatCompletionsFileFilenameToGoogleDisplayNameParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "What does the attached document say?",
+          "type": "input_text",
+        },
+        {
+          "file_data": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDkgPj4Kc3RyZWFtCkJUIC9GMSAxMiBUZiAyMCAxMDAgVGQgKEhlbGxvIGZyb20gTGluZ3VhLikgVGogRVQKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMxMSAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQxMAolJUVPRgo=",
+          "filename": "greeting.pdf",
+          "type": "input_file",
+        },
+      ],
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`google → responses > chatCompletionsFileFilenameToGoogleDisplayNameParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+            "thoughtSignature": "gAAAAABq1-Hc7rGcnzD1bV8ibA8T7fMsu3PWKd8VsjqqHqnsIceNYnwJccJTWIjD0X_eP1vKVp2O7cmf-E1pGp16hZXP-EVZzJrBC0XA6kGdONJxK-bHFQh0DiCJqQW8hXiwWMHO563kUF8cv29_v_jw63vNSGKhIqK2-BET-A2p2zV5J_rreth6qmMFBzW30qDlCkaRwT8cLGoG5dReKEJwuoQM2MVIuFzqLyMQRyR8Q1QUqOok6chvK7eMY4PBecmGPi0TxpvU67HD9OTWtVYywABou1bIkgCEzmOkveyuAwoAXAzc6eSYSgfaZxWpE7dj1PGDcxNmCVb1N1Yg_mpTjNuAxPG_E0gemL-x6a9oHCSI8THgLR6hVgay5FlDFCsDVu2REuhfCY4nsJ_NRWeqIeEYK1Bb2V0WcRULIjlVCKlGb1dOkCBtg6_V4lFYUd32FFXawmUHIMujqSaQNfCopAl0MoNPXmoI4fMOxmll0odWOz3w3Qz16j2PszZz5bGSP1TLqNwBYF2Efk3CwEHU7ot-eV3vIoYWqmhYIRoYko7_hZ8C6TNSgMG5Hw4opKGJ1tUhe1bGq2siDQh6MJFOwNIIxF2Lip_8HlUY7FyKV8r8hSM6TIf5ITfYkHr5sQ430wngbmoDjaLU9IgbmhhNl2ManSLWLql_rWQvovnz8tZw0jV1Z_UBLRFUa3iVcYPwUcU2RtgWUwnJjH1gy7H1NUUBmbyJXHaGGIXl5tH0L5_KX_HTTnEaMXbsEcutLcmAzDuWHTs8RqalTIsH8ydBHrOM8O8iuglLo21ET20cRRFgp70n37p8YOVle174zAXVIg14KC9Zsplg6t6oyrqfEuJLvDIZjbzEt1ZqwnAB9oVIUs7QQbj-EJ8rsOubS1NrIN95sGpkO-k2Y1D-oNM_oizNK4RCO-mg5IcXxd4jE9Z4lS12H52FnmwmlkFDNeZ-W6yAHLoamDdLUiI0ytU1_h906k4SSTZO4sDImEYv5xwdpLzjn7a4sdjjVAyS9KzTI0iA-6YG7K_ADR61Z19Y9dc21xS6WK4pWQslXikCUOuNZcVtl7atGJSs8zIoPKNWc2CJojLMg0BVLQXfF8Prno_vknjAjqyzuigItE88JBCRniWsXhKxcvmq0lGLYkkAzNG6D63U8_rAU2tqYQy2UmpZVoS0BuW8tyXHhwC4gBQHqRm6DOXXAIgpugD5SwGHRA3oY7gM7_YNyjUyp3BASHNXz8Lne2CVeEgnSeq_DKiFz7DeI7eZgJ7mvzaaRMpbOxt7fIEQChmxEFJ-DmHD5MkvDz26JH0pKjuPDZlez2FWlppeDZ-uV-lwmPISLf7eNeI1n3mPnnAwxj9HM909V-NMc8wsDJj6MQq4MZiDjHLrq9YhlEIHRNqLgV7ZMhYsxy1l6whmQoyVBIqqYS0WFu7r9e2n3sIeIUI5jLhJIvWlZIUoOtctYmLDtfm9kbKeUHvq3SsvGkq-Y-Snwvi6SY7mZOMSnoZQbzz0pNuhC82_GJBgkeu-RnLa0l-1ta8x2PD0eU_NgLG854gvBkIZ0BElmeGn9u2If9W1GMlkPG1Rz6dZ-8k=",
+          },
+          {
+            "text": "The document says: “Hello from Lingua.”",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 16,
+    "promptTokenCount": 40,
+    "thoughtsTokenCount": 13,
+    "totalTokenCount": 69,
   },
 }
 `;

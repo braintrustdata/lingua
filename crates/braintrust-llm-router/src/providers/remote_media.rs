@@ -11,8 +11,8 @@ use lingua::providers::openai::generated::{
 };
 use lingua::universal::message::{AudioFormat, Message, UserContent, UserContentPart};
 use lingua::util::media::{
-    media_block_to_url, parse_base64_data_url, parse_file_metadata_from_url, FileMetadata,
-    MediaBlock,
+    infer_mime_type_from_reference, media_block_to_url, parse_base64_data_url,
+    parse_file_metadata_from_url, FileMetadata, MediaBlock,
 };
 use lingua::{ProviderFormat, TransformError};
 
@@ -27,6 +27,42 @@ use super::json_selection::{
 
 const MAX_REMOTE_MEDIA_BYTES: usize = 5 * 1024 * 1024;
 const MAX_REMOTE_PDF_BYTES: usize = 20 * 1024 * 1024;
+const MAX_REMOTE_AUDIO_BYTES: usize = 20 * 1024 * 1024;
+
+fn remote_media_limits(
+    url: &str,
+    declared_mime_type: Option<&str>,
+) -> (Option<&'static [&'static str]>, usize) {
+    let inferred_mime_type = if declared_mime_type.is_none() {
+        infer_mime_type_from_reference(None, Some(url))
+    } else {
+        None
+    };
+    if declared_mime_type
+        .or(inferred_mime_type.as_deref())
+        .is_some_and(|mime| {
+            matches!(
+                normalized_media_type(mime).as_str(),
+                "audio/wav" | "audio/mpeg"
+            )
+        })
+    {
+        return (
+            Some(&[
+                "audio/wav",
+                "audio/x-wav",
+                "video/audio/wav",
+                "audio/mpeg",
+                "audio/mp3",
+            ]),
+            MAX_REMOTE_AUDIO_BYTES,
+        );
+    }
+    if pdf_url_metadata(url).is_some() {
+        return (Some(&["application/pdf"]), MAX_REMOTE_PDF_BYTES);
+    }
+    (None, MAX_REMOTE_MEDIA_BYTES)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct RemoteMediaPolicy {
@@ -88,9 +124,13 @@ fn pdf_url_metadata(url: &str) -> Option<FileMetadata> {
     })
 }
 
-async fn normalize_pdf_images<F>(body: Bytes, fetch: &mut F) -> Result<Bytes>
+async fn normalize_pdf_images<F>(
+    body: Bytes,
+    target_format: ProviderFormat,
+    fetch: &mut F,
+) -> Result<Bytes>
 where
-    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+    F: for<'a> FnMut(&'a str, Option<&'a str>) -> FetchMediaFuture<'a>,
 {
     let mut replacements = Vec::new();
     for (pointer, part) in
@@ -108,7 +148,7 @@ where
             }
             ("file.pdf".to_string(), media)
         } else if let Some(metadata) = pdf_url_metadata(&image.url) {
-            let media = fetch(&image.url).await?;
+            let media = fetch(&image.url, None).await?;
             if normalized_media_type(&media.media_type) != "application/pdf" {
                 return Err(Error::InvalidRequest(
                     "PDF attachment URL did not return application/pdf".into(),
@@ -119,10 +159,18 @@ where
             continue;
         };
         media.media_type = "application/pdf".into();
+        // image_url has no filename. Anthropic documents cannot represent an
+        // inferred filename, so do not introduce one during normalization.
+        let filename = match target_format {
+            ProviderFormat::Anthropic
+            | ProviderFormat::BedrockAnthropic
+            | ProviderFormat::VertexAnthropic => None,
+            _ => Some(filename),
+        };
         replacements.push((
             pointer,
             File {
-                filename: Some(filename),
+                filename,
                 file_data: Some(media_block_to_url(&media)),
                 file_id: None,
             },
@@ -238,11 +286,11 @@ async fn inline_native_audio<F>(
     fetch: &mut F,
 ) -> Result<Bytes>
 where
-    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+    F: for<'a> FnMut(&'a str, Option<&'a str>) -> FetchMediaFuture<'a>,
 {
     let mut payload: lingua::serde_json::Value = lingua::serde_json::from_slice(&body)?;
     for remote in audio {
-        let media = fetch(&remote.url).await?;
+        let media = fetch(&remote.url, Some(&remote.mime_type)).await?;
         if normalized_media_type(&remote.mime_type) != normalized_media_type(&media.media_type) {
             return Err(Error::InvalidRequest(format!(
                 "remote audio MIME type {} does not match declared MIME type {}",
@@ -282,10 +330,15 @@ pub(crate) async fn prepare_request_with_remote_media(
         format,
         policy,
         rewrite_body_model,
-        move |url| {
+        move |url, declared_mime_type| {
             let additional_ca_bundle = additional_ca_bundle.clone();
             Box::pin(async move {
-                fetch_remote_media_as_base64(url, additional_ca_bundle.as_deref()).await
+                fetch_remote_media_as_base64(
+                    url,
+                    declared_mime_type,
+                    additional_ca_bundle.as_deref(),
+                )
+                .await
             })
         },
     )
@@ -294,17 +347,14 @@ pub(crate) async fn prepare_request_with_remote_media(
 
 async fn fetch_remote_media_as_base64(
     url: &str,
+    declared_mime_type: Option<&str>,
     additional_ca_bundle: Option<&str>,
 ) -> Result<MediaBlock> {
-    let is_pdf = pdf_url_metadata(url).is_some();
+    let (allowed_types, max_bytes) = remote_media_limits(url, declared_mime_type);
     lingua::util::media::convert_media_to_base64_with_additional_ca_bundle(
         url,
-        is_pdf.then_some(&["application/pdf"][..]),
-        Some(if is_pdf {
-            MAX_REMOTE_PDF_BYTES
-        } else {
-            MAX_REMOTE_MEDIA_BYTES
-        }),
+        allowed_types,
+        Some(max_bytes),
         additional_ca_bundle,
     )
     .await
@@ -317,13 +367,18 @@ pub(crate) async fn prepare_request_with_remote_media_and_fetch<F>(
     spec: &ModelSpec,
     format: ProviderFormat,
     policy: RemoteMediaPolicy,
-    fetch: F,
+    mut fetch: F,
 ) -> Result<PreparedRemoteMediaRequest>
 where
     F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
 {
     prepare_request_with_remote_media_and_fetch_with_model_rewrite(
-        body, spec, format, policy, true, fetch,
+        body,
+        spec,
+        format,
+        policy,
+        true,
+        |url, _declared_mime_type| fetch(url),
     )
     .await
 }
@@ -337,7 +392,7 @@ async fn prepare_request_with_remote_media_and_fetch_with_model_rewrite<F>(
     mut fetch: F,
 ) -> Result<PreparedRemoteMediaRequest>
 where
-    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+    F: for<'a> FnMut(&'a str, Option<&'a str>) -> FetchMediaFuture<'a>,
 {
     let parsed = lingua::parse_json_body(body)?;
     let source_adapter = adapters()
@@ -346,7 +401,7 @@ where
         .find(|adapter| adapter.detect_request(&parsed.value))
         .ok_or(TransformError::UnableToDetectRequestFormat)?;
     let normalized_body = if source_adapter.format() == ProviderFormat::ChatCompletions {
-        normalize_pdf_images(parsed.bytes.clone(), &mut fetch).await?
+        normalize_pdf_images(parsed.bytes.clone(), format, &mut fetch).await?
     } else {
         parsed.bytes.clone()
     };
@@ -430,7 +485,7 @@ async fn prepare_universal_remote_media_request<F>(
     fetch: &mut F,
 ) -> Result<Bytes>
 where
-    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+    F: for<'a> FnMut(&'a str, Option<&'a str>) -> FetchMediaFuture<'a>,
 {
     normalize_universal_request_for_target(&mut request, format);
     inline_remote_media_with_fetch(&mut request, policy, fetch).await?;
@@ -448,7 +503,7 @@ pub(crate) async fn inline_remote_media_with_fetch<F>(
     mut fetch: F,
 ) -> Result<()>
 where
-    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+    F: for<'a> FnMut(&'a str, Option<&'a str>) -> FetchMediaFuture<'a>,
 {
     for message in &mut request.messages {
         let content = match message {
@@ -474,7 +529,7 @@ where
                     if !is_remote_media_url(&url) {
                         continue;
                     }
-                    let media_block = fetch(&url).await?;
+                    let media_block = fetch(&url, None).await?;
                     *image = lingua::serde_json::Value::String(media_block.data);
                     *media_type = Some(media_block.media_type);
                 }
@@ -487,7 +542,7 @@ where
                     if !is_remote_media_url(&url) {
                         continue;
                     }
-                    let media_block = fetch(&url).await?;
+                    let media_block = fetch(&url, None).await?;
                     *data = lingua::serde_json::Value::String(media_block.data);
                     *media_type = media_block.media_type;
                 }
@@ -496,7 +551,7 @@ where
                     if !is_remote_media_url(&url) {
                         continue;
                     }
-                    let media_block = fetch(&url).await?;
+                    let media_block = fetch(&url, Some(audio_mime_type(format))).await?;
                     if !audio_format_matches_media_type(format, &media_block.media_type) {
                         return Err(Error::InvalidRequest(format!(
                             "remote audio MIME type {} does not match input_audio format {format:?}",
@@ -516,12 +571,15 @@ where
     Ok(())
 }
 
-fn audio_format_matches_media_type(format: &AudioFormat, media_type: &str) -> bool {
-    let expected = match format {
+fn audio_mime_type(format: &AudioFormat) -> &'static str {
+    match format {
         AudioFormat::Mp3 => "audio/mpeg",
         AudioFormat::Wav => "audio/wav",
-    };
-    normalized_media_type(media_type) == expected
+    }
+}
+
+fn audio_format_matches_media_type(format: &AudioFormat, media_type: &str) -> bool {
+    normalized_media_type(media_type) == audio_mime_type(format)
 }
 
 fn normalized_media_type(media_type: &str) -> String {
@@ -533,7 +591,7 @@ fn normalized_media_type(media_type: &str) -> String {
         .to_ascii_lowercase();
     match media_type.as_str() {
         "audio/mp3" => "audio/mpeg".into(),
-        "audio/x-wav" => "audio/wav".into(),
+        "audio/x-wav" | "video/audio/wav" => "audio/wav".into(),
         _ => media_type,
     }
 }
@@ -574,6 +632,242 @@ mod tests {
 
     fn openai_spec(model: &str) -> ModelSpec {
         spec(model, ProviderFormat::ChatCompletions)
+    }
+
+    #[test]
+    fn audio_attachment_downloads_allow_full_recordings_without_expanding_image_limits() {
+        for url in [
+            "https://example.com/conversation.wav",
+            "https://example.com/conversation.mp3",
+            "https://example.com/opaque-key?X-Amz-Expires=3600&response-content-type=audio%2Fwav",
+            "https://example.com/opaque-key?X-Amz-Expires=3600&response-content-disposition=attachment%3B%20filename%3D%22conversation.wav%22",
+        ] {
+            let (allowed, limit) = remote_media_limits(url, None);
+            assert!(allowed.unwrap().contains(&"audio/wav"));
+            assert!(limit >= 120 * 24_000 * 2 * 2 + 44);
+            assert_eq!(limit, 20 * 1024 * 1024);
+        }
+        for url in [
+            "https://example.com/image.png",
+            "https://example.com/opaque-key",
+        ] {
+            assert_eq!(remote_media_limits(url, None), (None, 5 * 1024 * 1024));
+        }
+        assert_eq!(
+            remote_media_limits("https://example.com/file.pdf", None),
+            (Some(&["application/pdf"][..]), 20 * 1024 * 1024)
+        );
+    }
+
+    struct LoopbackMediaFetch {
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl LoopbackMediaFetch {
+        fn allow() -> Self {
+            let previous = std::env::var_os("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS");
+            std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", "127.0.0.1/32");
+            Self { previous }
+        }
+    }
+
+    impl Drop for LoopbackMediaFetch {
+        fn drop(&mut self) {
+            match &self.previous {
+                Some(previous) => {
+                    std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", previous);
+                }
+                None => std::env::remove_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS"),
+            }
+        }
+    }
+
+    fn audio_request(format: ProviderFormat, mime_type: &str, data: &str) -> Bytes {
+        let payload = match format {
+            ProviderFormat::Google => json!({
+                "contents": [{"role": "user", "parts": [{
+                    "inlineData": {"mimeType": mime_type, "data": data}
+                }]}]
+            }),
+            ProviderFormat::ChatCompletions => json!({
+                "model": "test-model",
+                "messages": [{"role": "user", "content": [{
+                    "type": "input_audio",
+                    "input_audio": {
+                        "format": if mime_type == "audio/mpeg" { "mp3" } else { "wav" },
+                        "data": data
+                    }
+                }]}]
+            }),
+            _ => panic!("unsupported test format"),
+        };
+        Bytes::from(lingua::serde_json::to_vec(&payload).unwrap())
+    }
+
+    #[tokio::test]
+    #[serial_test::serial(remote_media_fetch)]
+    async fn google_wav_alias_downloads_small_and_full_recordings() {
+        use base64::Engine;
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let _loopback = LoopbackMediaFetch::allow();
+        let server = MockServer::start().await;
+        for size in [16, MAX_REMOTE_MEDIA_BYTES + 1] {
+            let data = vec![42; size];
+            let endpoint = format!("/{size}.wav");
+            Mock::given(method("GET"))
+                .and(path(&endpoint))
+                .respond_with(
+                    ResponseTemplate::new(200)
+                        .set_body_bytes(data.clone())
+                        .insert_header("Content-Type", "video/audio/wav"),
+                )
+                .expect(1)
+                .mount(&server)
+                .await;
+            let url = format!("{}{endpoint}", server.uri());
+            let prepared = prepare_request_with_remote_media(
+                audio_request(ProviderFormat::Google, "video/audio/wav", &url),
+                &google_spec("test-model"),
+                ProviderFormat::Google,
+                RemoteMediaPolicy::GOOGLE,
+                true,
+                None,
+            )
+            .await
+            .expect("Google's supported WAV MIME alias should pass download validation");
+            assert_eq!(
+                prepared.bytes,
+                audio_request(
+                    ProviderFormat::Google,
+                    "video/audio/wav",
+                    &base64::engine::general_purpose::STANDARD.encode(data),
+                )
+            );
+        }
+    }
+
+    #[tokio::test]
+    #[serial_test::serial(remote_media_fetch)]
+    async fn declared_audio_downloads_full_recordings_from_opaque_urls() {
+        use base64::Engine;
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let _loopback = LoopbackMediaFetch::allow();
+        let server = MockServer::start().await;
+        let data = vec![42; MAX_REMOTE_MEDIA_BYTES + 1];
+        let encoded = base64::engine::general_purpose::STANDARD.encode(&data);
+        for (index, (format, mime_type)) in [
+            (ProviderFormat::ChatCompletions, "audio/wav"),
+            (ProviderFormat::ChatCompletions, "audio/mpeg"),
+            (ProviderFormat::Google, "audio/wav"),
+            (ProviderFormat::Google, "audio/mpeg"),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let endpoint = format!("/asset/{index}");
+            Mock::given(method("GET"))
+                .and(path(&endpoint))
+                .respond_with(ResponseTemplate::new(200).set_body_raw(data.clone(), mime_type))
+                .expect(1)
+                .mount(&server)
+                .await;
+            let url = format!("{}{endpoint}", server.uri());
+            let prepared = prepare_request_with_remote_media(
+                audio_request(format, mime_type, &url),
+                &spec("test-model", format),
+                format,
+                RemoteMediaPolicy::for_format(format).unwrap(),
+                true,
+                None,
+            )
+            .await
+            .expect("declared audio should receive the larger limit without URL metadata");
+            assert_eq!(prepared.bytes, audio_request(format, mime_type, &encoded));
+        }
+    }
+
+    #[tokio::test]
+    #[serial_test::serial(remote_media_fetch)]
+    async fn audio_downloads_enforce_size_and_mime_limits() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let _loopback = LoopbackMediaFetch::allow();
+        let server = MockServer::start().await;
+        for (endpoint, mime_type, size, declared, expected_error) in [
+            (
+                "/image.png",
+                "image/png",
+                MAX_REMOTE_MEDIA_BYTES + 1,
+                None,
+                Some("5 MB limit"),
+            ),
+            (
+                "/file.pdf",
+                "application/pdf",
+                MAX_REMOTE_MEDIA_BYTES + 1,
+                None,
+                None,
+            ),
+            (
+                "/asset/oversized",
+                "audio/wav",
+                MAX_REMOTE_AUDIO_BYTES + 1,
+                Some("audio/wav"),
+                Some("20 MB limit"),
+            ),
+            (
+                "/asset/invalid",
+                "image/png",
+                16,
+                Some("audio/wav"),
+                Some("unsupported media type: image/png"),
+            ),
+        ] {
+            Mock::given(method("GET"))
+                .and(path(endpoint))
+                .respond_with(ResponseTemplate::new(200).set_body_raw(vec![42; size], mime_type))
+                .expect(1)
+                .mount(&server)
+                .await;
+            let url = format!("{}{endpoint}", server.uri());
+            let result = fetch_remote_media_as_base64(&url, declared, None).await;
+            match expected_error {
+                Some(expected_error) => {
+                    let error = result.expect_err("download should be rejected");
+                    assert!(matches!(error, Error::InvalidRequest(_)));
+                    assert!(error.to_string().contains(expected_error), "{error}");
+                }
+                None => assert_eq!(result.unwrap().media_type, mime_type),
+            }
+        }
+
+        Mock::given(method("GET"))
+            .and(path("/asset/mismatched"))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(vec![42; 16], "audio/mpeg"))
+            .expect(1)
+            .mount(&server)
+            .await;
+        let url = format!("{}/asset/mismatched", server.uri());
+        let error = prepare_request_with_remote_media(
+            audio_request(ProviderFormat::ChatCompletions, "audio/wav", &url),
+            &openai_spec("test-model"),
+            ProviderFormat::ChatCompletions,
+            RemoteMediaPolicy::OPENAI,
+            true,
+            None,
+        )
+        .await
+        .expect_err("a downloaded MP3 must not be accepted as declared WAV");
+        assert!(matches!(error, Error::InvalidRequest(_)));
+        assert!(error.to_string().contains("audio/mpeg"));
+        assert!(error
+            .to_string()
+            .contains("does not match declared MIME type audio/wav"));
     }
 
     #[tokio::test]
@@ -629,6 +923,43 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn playground_pdf_normalization_distinguishes_inferred_and_explicit_filenames() {
+        for format in [
+            ProviderFormat::Anthropic,
+            ProviderFormat::BedrockAnthropic,
+            ProviderFormat::VertexAnthropic,
+        ] {
+            let unnamed_pdf = Bytes::from_static(br#"{"model":"playground-model","messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:application/pdf;base64,JVBERi0xLjQ="}}]}]}"#);
+            prepare_request_with_remote_media_and_fetch(
+                unnamed_pdf,
+                &spec("claude-sonnet-4-6", format),
+                format,
+                RemoteMediaPolicy::for_format(format).unwrap(),
+                |_| panic!("inline PDFs must not fetch"),
+            )
+            .await
+            .expect("an unnamed PDF must normalize without introducing a filename");
+
+            let body = Bytes::from_static(br#"{"model":"playground-model","messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:application/pdf;base64,JVBERi0xLjQ="}},{"type":"file","file":{"filename":"report.pdf","file_data":"data:application/pdf;base64,JVBERi0xLjQ="}}]}]}"#);
+            let result = prepare_request_with_remote_media_and_fetch(
+                body,
+                &spec("claude-sonnet-4-6", format),
+                format,
+                RemoteMediaPolicy::for_format(format).unwrap(),
+                |_| panic!("inline PDFs must not fetch"),
+            )
+            .await;
+            let error =
+                result.expect_err("an explicit filename must still be rejected by Anthropic");
+            assert!(matches!(
+                error,
+                Error::Lingua(TransformError::FromUniversalFailed(_))
+            ));
+            assert!(error.to_string().contains("Lingua file filename"));
+        }
+    }
+
+    #[tokio::test]
     async fn playground_pdf_normalization_preserves_native_fields() {
         let body = json!({
             "model": "gpt-5-mini", "custom": {"keep": true},
@@ -666,7 +997,8 @@ mod tests {
         for mismatched_type in [false, true] {
             let result = normalize_pdf_images(
                 Bytes::from_static(br#"{"messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"https://example.com/file.pdf?secret=token"}}]}]}"#),
-                &mut move |_| Box::pin(async move {
+                ProviderFormat::ChatCompletions,
+                &mut move |_, _| Box::pin(async move {
                     if mismatched_type {
                         Ok(MediaBlock {media_type: "image/png".into(), data: "iVBORw0KGgo=".into()})
                     } else {
@@ -883,6 +1215,8 @@ mod tests {
             ("audio/wav", "audio/mpeg", false),
             ("audio/mpeg", "audio/wav", false),
             ("audio/wav", "Audio/X-Wav; charset=binary", true),
+            ("video/audio/wav", "audio/wav", true),
+            ("audio/wav", "video/audio/wav", true),
             ("audio/mp3", "audio/mpeg", true),
             ("audio/flac", "audio/flac", true),
         ] {

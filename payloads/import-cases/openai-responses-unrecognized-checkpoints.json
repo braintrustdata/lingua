@@ -1,0 +1,12 @@
+{
+  "input": [
+    { "role": "user", "content": "Continue the task" },
+    { "type": "compaction", "encrypted_content": "missing_id" },
+    { "type": "compaction", "id": "cmp_invalid", "encrypted_content": 42 },
+    {
+      "type": "provider_checkpoint",
+      "id": "checkpoint",
+      "encrypted_content": "synthetic_provider_ciphertext"
+    }
+  ]
+}

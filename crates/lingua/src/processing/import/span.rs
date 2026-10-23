@@ -236,11 +236,13 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
     );
     opaque_input.extend(compaction_input.map(|value| OpaqueItem {
         index: None,
+        kind: super::opaque_item_kind(&value),
         value,
         is_metadata: false,
     }));
     opaque_output.extend(compaction_output.map(|value| OpaqueItem {
         index: None,
+        kind: super::opaque_item_kind(&value),
         value,
         is_metadata: false,
     }));

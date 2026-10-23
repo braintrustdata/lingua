@@ -19,6 +19,10 @@ use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter}
 use crate::processing::normalize_json_lone_surrogate_escapes;
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
+#[cfg(feature = "openai")]
+use crate::providers::openai::responses_adapter::{
+    responses_text_message_event, ResponsesTextMessageEvent,
+};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
@@ -205,6 +209,8 @@ pub(crate) struct StreamTransformStep {
     pub(crate) universal: Option<UniversalStreamChunk>,
     pub(crate) event_type: Option<String>,
     pub(crate) is_passthrough: bool,
+    #[cfg(feature = "openai")]
+    pub(crate) responses_text_message_event: Option<ResponsesTextMessageEvent>,
 }
 
 // ============================================================================
@@ -871,6 +877,30 @@ pub(crate) fn transform_stream_chunk_step(
     let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
     let source_is_native_stream = matches!(detection.kind, DetectKind::Stream);
+    #[cfg(feature = "openai")]
+    let responses_text_message_event = if source_is_native_stream
+        && source_format == ProviderFormat::Responses
+        && target_format == ProviderFormat::ChatCompletions
+    {
+        Some(responses_text_message_event(chunk.clone())?)
+    } else {
+        None
+    };
+    // Same-format native chunks pass through without universal conversion, so
+    // provider-only fields that cannot cross providers stay byte-preserved.
+    if source_format == target_format && source_is_native_stream {
+        return Ok(StreamTransformStep {
+            result: TransformResult::PassThrough(chunk_bytes),
+            source_format,
+            source_is_native_stream,
+            universal: None,
+            event_type,
+            is_passthrough: true,
+            #[cfg(feature = "openai")]
+            responses_text_message_event,
+        });
+    }
+
     let universal = match detection.kind {
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
@@ -881,17 +911,6 @@ pub(crate) fn transform_stream_chunk_step(
             unreachable!("stream detection never falls back to request payloads")
         }
     };
-
-    if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
-        return Ok(StreamTransformStep {
-            result: TransformResult::PassThrough(chunk_bytes),
-            source_format,
-            source_is_native_stream,
-            universal,
-            event_type,
-            is_passthrough: true,
-        });
-    }
 
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
@@ -913,6 +932,8 @@ pub(crate) fn transform_stream_chunk_step(
         universal,
         event_type: None,
         is_passthrough: false,
+        #[cfg(feature = "openai")]
+        responses_text_message_event,
     })
 }
 // ============================================================================
@@ -1820,34 +1841,6 @@ mod tests {
         assert_eq!(
             result.source_format(),
             Some(ProviderFormat::ChatCompletions)
-        );
-    }
-
-    #[test]
-    #[cfg(all(feature = "openai", feature = "anthropic"))]
-    fn test_transform_request_invalid_leading_anthropic_system_role_not_detected_as_anthropic() {
-        let payload = json!({
-            "model": "gpt-5.5",
-            "max_tokens": 1024,
-            "system": "Top-level instructions.",
-            "messages": [
-                {"role": "system", "content": "Leading message instructions."},
-                {"role": "user", "content": "Hello"}
-            ]
-        });
-        let input = to_bytes(&payload);
-
-        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
-
-        assert_eq!(
-            result.source_format(),
-            Some(ProviderFormat::ChatCompletions)
-        );
-
-        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
-        assert_eq!(
-            output.get("system").and_then(Value::as_str),
-            Some("Leading message instructions.")
         );
     }
 

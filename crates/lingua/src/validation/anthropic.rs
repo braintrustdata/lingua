@@ -9,9 +9,7 @@ use crate::validation::{validate_json, ValidationError};
 /// Validates a JSON string as an Anthropic messages request
 pub fn validate_anthropic_request(json: &str) -> Result<CreateMessageParams, ValidationError> {
     let value: crate::serde_json::Value = validate_json(json)?;
-    if let Some(field) =
-        first_openai_only_field(&value).map_err(ValidationError::DeserializationFailed)?
-    {
+    if let Some(field) = first_openai_only_field(&value) {
         return Err(ValidationError::DeserializationFailed(format!(
             "OpenAI-only field `{}` is not valid Anthropic request syntax",
             field

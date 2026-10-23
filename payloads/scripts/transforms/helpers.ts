@@ -403,6 +403,14 @@ export function getTransformableCases(
 
 export const STREAMING_PAIRS: TransformPair[] = [
   {
+    source: "responses",
+    target: "chat-completions",
+    wasmSource: "OpenAI",
+    wasmTarget: "Responses",
+    captureProvider: "responses",
+    explicitStreamingOnly: true,
+  },
+  {
     source: "chat-completions",
     target: "anthropic",
     wasmSource: "OpenAI",

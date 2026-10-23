@@ -272,6 +272,32 @@ fn native_responses_requires_json_response(body: &[u8]) -> bool {
     }
 }
 
+fn native_anthropic_metadata(body: &[u8]) -> (Option<bool>, bool) {
+    #[derive(Deserialize)]
+    struct OutputConfigMetadata {
+        format: Option<serde::de::IgnoredAny>,
+    }
+
+    #[derive(Deserialize)]
+    struct ResponseFormatMetadata {
+        stream: Option<bool>,
+        output_config: Option<OutputConfigMetadata>,
+        output_format: Option<serde::de::IgnoredAny>,
+    }
+
+    match lingua::serde_json::from_slice::<ResponseFormatMetadata>(body) {
+        Ok(metadata) => (
+            metadata.stream,
+            metadata
+                .output_config
+                .and_then(|config| config.format)
+                .is_some()
+                || metadata.output_format.is_some(),
+        ),
+        Err(_) => (None, true),
+    }
+}
+
 #[cfg(test)]
 async fn prepare_provider_request(
     body: Bytes,
@@ -418,15 +444,24 @@ impl Router {
         stream: bool,
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
-        let native_responses = if !route.passthrough
-            && output_format == ProviderFormat::Responses
-            && route.format == ProviderFormat::Responses
-        {
-            lingua::serde_json::from_slice::<NativeResponsesMetadata>(&body)
+        let native_request = if route.passthrough || output_format != route.format {
+            None
+        } else {
+            match output_format {
+                ProviderFormat::Responses => lingua::serde_json::from_slice::<
+                    NativeResponsesMetadata,
+                >(&body)
                 .ok()
                 .filter(|metadata| metadata.messages.is_none() && metadata.contents.is_none())
-        } else {
-            None
+                .map(|metadata| {
+                    (
+                        metadata.stream,
+                        native_responses_requires_json_response(&body),
+                    )
+                }),
+                ProviderFormat::Anthropic => Some(native_anthropic_metadata(&body)),
+                _ => None,
+            }
         };
         let (payload, detected_format, actual_format, requires_json_response, lingua_passthrough) =
             if route.passthrough {
@@ -440,15 +475,16 @@ impl Router {
                     body
                 };
                 (body, None, route.format, false, true)
-            } else if let Some(metadata) = native_responses {
-                reject_remote_responses_audio(&body)?;
-                let requires_json_response = native_responses_requires_json_response(&body);
+            } else if let Some((native_stream, requires_json_response)) = native_request {
+                if route.format == ProviderFormat::Responses {
+                    reject_remote_responses_audio(&body)?;
+                }
                 let body = if options.rewrite_body_model {
                     rewrite_body_model_if_required(body, route.format, &route.spec.model)
                 } else {
                     body
                 };
-                let body = if stream && metadata.stream != Some(true) {
+                let body = if stream && native_stream != Some(true) {
                     enable_streaming_payload(body, route.format)
                 } else {
                     body
@@ -1072,6 +1108,10 @@ impl Router {
                 return Err(Error::NoProvider(output_format));
             }
             output_format
+        } else if provider.id() == "databricks"
+            && !DatabricksProvider::supports_responses(&spec.model)
+        {
+            catalog_format
         } else if provider_formats.contains(&ProviderFormat::Responses)
             && (spec.requires_responses_api()
                 || (output_format == ProviderFormat::Responses
@@ -1779,6 +1819,192 @@ mod tests {
             passthrough: false,
         };
         (router, route)
+    }
+
+    fn native_anthropic_test_route() -> (Router, ProviderRoute) {
+        let (router, route) = native_responses_test_route();
+        let route = ProviderRoute {
+            provider: Arc::new(FakeProvider {
+                name: "anthropic",
+                formats: vec![ProviderFormat::Anthropic],
+            }),
+            format: ProviderFormat::Anthropic,
+            spec: Arc::new(ModelSpec {
+                model: "claude-opus-5-5".to_string(),
+                format: ProviderFormat::Anthropic,
+                ..route.spec.as_ref().clone()
+            }),
+            ..route
+        };
+        (router, route)
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_preserves_body_without_schema_detection() {
+        let (router, route) = native_anthropic_test_route();
+        let body = Bytes::from_static(br#"{ "model": "claude-opus-5-5", "max_tokens": 1024, "messages": [{"role":"user","content":"Say OK."},{"role":"system","content":"Keep answers brief."},{"role":"system","content":[],"output_config":{"effort":"high"}}], "tools": [{"name":"echo","input_schema":{"type":"object"}}], "future_parameter": {"opaque":9007199254740993}, "stream": true }"#);
+        for stream in [false, true] {
+            let (prepared, metadata) = router
+                .create_prepared_request_internal(
+                    body.clone(),
+                    ProviderFormat::Anthropic,
+                    &route,
+                    stream,
+                    RequestPreparationOptions::default(),
+                )
+                .await
+                .expect("native Messages request prepares");
+            assert_eq!(prepared.payload, body);
+            assert_eq!(prepared.payload.as_ptr(), body.as_ptr());
+            assert_eq!(metadata.detected_input_format, ProviderFormat::Anthropic);
+            assert!(metadata.lingua_passthrough);
+            assert!(!prepared.requires_json_response);
+        }
+        let body = Bytes::from_static(br#"{"model":"claude-opus-5-5","messages":[{"role":"user","content":[{"type":"future_content_block","opaque":9007199254740993}]}],"output_config":{"effort":"future_effort"},"stream":true}"#);
+        let (prepared, metadata) = router
+            .create_prepared_request_internal(
+                body.clone(),
+                ProviderFormat::Anthropic,
+                &route,
+                true,
+                RequestPreparationOptions::default(),
+            )
+            .await
+            .expect("native Messages schema is owned by the provider");
+        assert_eq!(prepared.payload, body);
+        assert!(metadata.lingua_passthrough);
+        assert!(!prepared.requires_json_response);
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_forwards_pi_request_and_upstream_validation_error() {
+        use crate::providers::AnthropicConfig;
+        use wiremock::{
+            matchers::{body_bytes, method, path},
+            Mock, MockServer, ResponseTemplate,
+        };
+
+        let server = MockServer::start().await;
+        let body = Bytes::from_static(include_bytes!("../tests/fixtures/pi-seeded-anthropic.json"));
+        let error_body = r#"{"type":"error","error":{"type":"invalid_request_error","message":"provider validates native fields"}}"#;
+        Mock::given(method("POST"))
+            .and(path("/v1/messages"))
+            .and(body_bytes(body.to_vec()))
+            .respond_with(ResponseTemplate::new(400).set_body_raw(error_body, "application/json"))
+            .expect(1)
+            .mount(&server)
+            .await;
+        let (router, route) = native_anthropic_test_route();
+        let route = ProviderRoute {
+            provider: Arc::new(
+                AnthropicProvider::new(AnthropicConfig {
+                    endpoint: Url::parse(&format!("{}/v1/", server.uri())).unwrap(),
+                    ..AnthropicConfig::default()
+                })
+                .unwrap(),
+            ),
+            ..route
+        };
+        let (request, metadata) = router
+            .create_stream_request(body, ProviderFormat::Anthropic, &route, false)
+            .await
+            .expect("Pi request reaches the provider without translation");
+        assert!(metadata.lingua_passthrough);
+        let error = router
+            .complete_stream(request, &ClientHeaders::default(), None)
+            .await
+            .err()
+            .expect("upstream returns a validation error");
+        match error {
+            Error::Provider {
+                http: Some(http), ..
+            } => {
+                assert_eq!(http.status, 400);
+                assert_eq!(http.body, error_body);
+            }
+            error => panic!("expected the provider's error, got {error}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_preserves_fields_when_rewriting_model_and_stream() {
+        let (router, route) = native_anthropic_test_route();
+        let payload = lingua::serde_json::json!({
+            "model": "braintrust/claude-opus-5-5",
+            "messages": [{"role":"user","content":[{"type":"future_content_block","opaque":9007199254740993_u64}]}],
+            "stream": false,
+        });
+        for preserve_body_model in [false, true] {
+            let (request, metadata) = router
+                .create_stream_request(
+                    Bytes::from(lingua::serde_json::to_vec(&payload).unwrap()),
+                    ProviderFormat::Anthropic,
+                    &route,
+                    preserve_body_model,
+                )
+                .await
+                .expect("native stream prepares");
+            let mut expected = payload.clone();
+            expected["stream"] = lingua::serde_json::json!(true);
+            if !preserve_body_model {
+                expected["model"] = lingua::serde_json::json!(route.model());
+            }
+            let actual: Value = lingua::serde_json::from_slice(&request.inner.payload).unwrap();
+            assert_eq!(actual, expected);
+            assert!(metadata.lingua_passthrough);
+        }
+    }
+
+    #[tokio::test]
+    async fn native_anthropic_tracks_structured_output_without_translating() {
+        let (router, route) = native_anthropic_test_route();
+        for format in [
+            lingua::serde_json::json!({"output_config":{"format":{"type":"json_schema","schema":{"type":"object"}}}}),
+            lingua::serde_json::json!({"output_format":{"type":"json_schema","schema":{"type":"object"}}}),
+        ] {
+            let mut body = lingua::serde_json::json!({
+                "model": "claude-opus-5-5",
+                "messages": [{"role": "user", "content": "Say OK."}],
+            });
+            body.as_object_mut()
+                .unwrap()
+                .extend(format.as_object().unwrap().clone());
+            let body = Bytes::from(lingua::serde_json::to_vec(&body).unwrap());
+            let (request, metadata) = router
+                .create_request(body.clone(), ProviderFormat::Anthropic, &route, false)
+                .await
+                .expect("structured native request prepares");
+            assert_eq!(request.inner.payload, body);
+            assert!(request.inner.requires_json_response);
+            assert!(metadata.lingua_passthrough);
+        }
+    }
+
+    #[tokio::test]
+    async fn anthropic_route_still_translates_foreign_endpoints() {
+        let (router, route) = native_anthropic_test_route();
+        for (body, endpoint_format) in [
+            (
+                r#"{"model":"gpt-5-mini","messages":[{"role":"system","content":"Be helpful."},{"role":"user","content":"Hello"}]}"#,
+                ProviderFormat::ChatCompletions,
+            ),
+            (
+                r#"{"model":"gpt-5-mini","input":[{"role":"user","content":"Hello"}]}"#,
+                ProviderFormat::Responses,
+            ),
+            (
+                r#"{"contents":[{"role":"user","parts":[{"text":"Hello"}]}]}"#,
+                ProviderFormat::Google,
+            ),
+        ] {
+            let (request, metadata) = router
+                .create_request(Bytes::from(body), endpoint_format, &route, false)
+                .await
+                .expect("foreign request converts to Messages");
+            assert!(!metadata.lingua_passthrough);
+            let actual: Value = lingua::serde_json::from_slice(&request.inner.payload).unwrap();
+            assert!(lingua::providers::anthropic::try_parse_anthropic(&actual).is_ok());
+        }
     }
 
     #[tokio::test]
@@ -3529,6 +3755,78 @@ mod tests {
                     assert_eq!(metadata.provider_format, ProviderFormat::Responses);
                 }
             }
+        }
+    }
+
+    #[tokio::test]
+    async fn databricks_responses_only_use_preconfigured_gpt_endpoints() {
+        let provider = DatabricksProvider::from_config(
+            Some(&Url::parse("https://example.databricks.com").unwrap()),
+            None,
+            None,
+        )
+        .unwrap();
+        for (model, supports_responses) in [
+            ("custom-model", false),
+            ("gpt-6-astra", false),
+            ("external-openai", false),
+            ("databricks-gpt-oss-120b", false),
+            ("databricks-claude-sonnet-4-5", false),
+            ("databricks-gemini-3-1-pro", false),
+            ("databricks-gpt-4o", true),
+            ("databricks-gpt-50", true),
+            ("databricks-gpt-5", true),
+            ("databricks-gpt-5-6-sol", true),
+            ("databricks-gpt-6-1-sol", true),
+        ] {
+            let mut spec = openai_spec(model, ModelFlavor::Chat);
+            spec.available_providers = vec!["databricks".into()];
+            let mut catalog = ModelCatalog::empty();
+            catalog.insert(model.into(), spec);
+            let router = Router::builder()
+                .with_catalog(Arc::new(catalog))
+                .add_provider("databricks", provider.clone(), dummy_auth(), vec![])
+                .build()
+                .unwrap();
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::Responses, &[])
+                .unwrap();
+            assert_eq!(
+                routes[0].format,
+                if supports_responses {
+                    ProviderFormat::Responses
+                } else {
+                    ProviderFormat::ChatCompletions
+                },
+                "{model}"
+            );
+            if supports_responses {
+                for stream in [false, true] {
+                    let body = Bytes::from(
+                        serde_json::to_vec(&serde_json::json!({
+                            "model": model, "input": "Hello", "stream": stream,
+                            "tools": [{"type": "custom", "name": "exec"}]
+                        }))
+                        .unwrap(),
+                    );
+                    let (prepared, metadata) = router
+                        .create_prepared_request_internal(
+                            body.clone(),
+                            ProviderFormat::Responses,
+                            &routes[0],
+                            stream,
+                            RequestPreparationOptions::default(),
+                        )
+                        .await
+                        .unwrap();
+                    assert_eq!(prepared.payload, body);
+                    assert!(metadata.lingua_passthrough);
+                }
+            }
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
+                .unwrap();
+            assert_eq!(routes[0].format, ProviderFormat::ChatCompletions, "{model}");
         }
     }
 
