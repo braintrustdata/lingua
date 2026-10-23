@@ -1,4 +1,5 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
+use crate::import_value::has_message_structure;
 mod ai_sdk;
 mod langchain;
 mod pydantic_ai;
@@ -83,6 +84,10 @@ pub struct Span {
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<Message> {
+    if !has_message_structure(&data).unwrap() {
+        return Vec::new();
+    }
+
     if let Some(messages) = try_parse_ai_sdk_for_import(data) {
         return messages;
     }

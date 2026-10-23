@@ -8,6 +8,7 @@
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "pnpm build && vitest run",
+    "bench:import": "node --expose-gc benchmarks/import-spans.mjs",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build"
   },

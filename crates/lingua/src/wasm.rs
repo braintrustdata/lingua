@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen;
 use wasm_bindgen::prelude::*;
 
+use crate::import_value::has_message_structure;
+
 // Import our types and conversion traits
 use crate::providers::anthropic::convert::{
     anthropic_input_messages_to_universal_messages, universal_messages_to_anthropic_input_messages,
@@ -199,14 +201,58 @@ pub fn deduplicate_messages(value: JsValue) -> Result<JsValue, JsValue> {
     serialize_to_js(&deduplicated, "result")
 }
 
+#[derive(Deserialize)]
+struct ImportSpan {
+    #[serde(default, with = "serde_wasm_bindgen::preserve")]
+    input: JsValue,
+    #[serde(default, with = "serde_wasm_bindgen::preserve")]
+    output: JsValue,
+    #[serde(default, with = "serde_wasm_bindgen::preserve")]
+    metadata: JsValue,
+}
+
+fn deserialize_import_spans(
+    value: JsValue,
+) -> Result<Vec<crate::processing::import::Span>, JsValue> {
+    use crate::processing::import::Span;
+
+    let parse_error = |error| JsValue::from_str(&format!("Failed to parse spans: {error}"));
+    let spans: Vec<ImportSpan> = serde_wasm_bindgen::from_value(value).map_err(parse_error)?;
+    let import_payload = |value: JsValue| {
+        if !has_message_structure(&value)? {
+            return Ok(None);
+        }
+        serde_wasm_bindgen::from_value(value)
+            .map(Some)
+            .map_err(parse_error)
+    };
+
+    spans
+        .into_iter()
+        .map(|span| {
+            let mut other = crate::serde_json::Map::new();
+            if !span.metadata.is_null() && !span.metadata.is_undefined() {
+                other.insert(
+                    "metadata".to_owned(),
+                    serde_wasm_bindgen::from_value(span.metadata).map_err(parse_error)?,
+                );
+            }
+            Ok(Span {
+                input: import_payload(span.input)?,
+                output: import_payload(span.output)?,
+                other,
+            })
+        })
+        .collect()
+}
+
 /// Import messages from spans
 #[wasm_bindgen]
 pub fn import_messages_from_spans(value: JsValue) -> Result<JsValue, JsValue> {
-    use crate::processing::import::{import_messages_from_spans as import, Span};
+    use crate::processing::import::import_messages_from_spans as import;
 
     // Convert JS value to Vec<Span>
-    let spans: Vec<Span> = serde_wasm_bindgen::from_value(value)
-        .map_err(|e| JsValue::from_str(&format!("Failed to parse spans: {}", e)))?;
+    let spans = deserialize_import_spans(value)?;
 
     // Import messages
     let messages = import(spans);
@@ -218,11 +264,10 @@ pub fn import_messages_from_spans(value: JsValue) -> Result<JsValue, JsValue> {
 /// Import and deduplicate messages from spans in a single operation
 #[wasm_bindgen]
 pub fn import_and_deduplicate_messages(value: JsValue) -> Result<JsValue, JsValue> {
-    use crate::processing::import::{import_and_deduplicate_messages as import_dedup, Span};
+    use crate::processing::import::import_and_deduplicate_messages as import_dedup;
 
     // Convert JS value to Vec<Span>
-    let spans: Vec<Span> = serde_wasm_bindgen::from_value(value)
-        .map_err(|e| JsValue::from_str(&format!("Failed to parse spans: {}", e)))?;
+    let spans = deserialize_import_spans(value)?;
 
     // Import and deduplicate messages
     let messages = import_dedup(spans);
