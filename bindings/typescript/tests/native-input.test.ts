@@ -11,7 +11,7 @@ describe.each([
     importMessages: importAndDeduplicateMessages,
   },
 ])("$name native input", ({ importMessages }) => {
-  test("decodes objects with unrecognized fields before rejecting them", () => {
+  test("rejects unsupported objects without reading unrelated fields", () => {
     let reads = 0;
     const unsupported = {
       get unrelated() {
@@ -23,7 +23,86 @@ describe.each([
     expect(
       importMessages([{ input: unsupported, output: [unsupported] }])
     ).toEqual([]);
-    expect(reads).toBeGreaterThan(0);
+    expect(reads).toBe(0);
+  });
+
+  test("reads array accessors once across parser attempts and decoding", () => {
+    let reads = 0;
+    const input = Object.defineProperty([], "0", {
+      enumerable: true,
+      get() {
+        reads++;
+        if (reads > 1) {
+          throw new Error("Array item was read twice");
+        }
+        return { role: "user", content: "Hello" };
+      },
+    });
+
+    expect(importMessages([{ input }])).toEqual([
+      { role: "user", content: "Hello" },
+    ]);
+    expect(reads).toBe(1);
+  });
+
+  test("reads consumed object accessors once across parser attempts", () => {
+    let reads = 0;
+    const input = {
+      get contents() {
+        reads++;
+        if (reads > 1) {
+          throw new Error("Object field was read twice");
+        }
+        return [{ role: "user", parts: [{ text: "Hello" }] }];
+      },
+      get unrelated() {
+        throw new Error("Unrelated LLM input field was decoded");
+      },
+    };
+
+    expect(importMessages([{ input }])).toEqual([
+      { role: "user", content: "Hello" },
+    ]);
+    expect(reads).toBe(1);
+  });
+
+  test("reads proxied array elements once", () => {
+    let reads = 0;
+    const input = new Proxy([{ role: "user", content: "Hello" }], {
+      get(target, key, receiver) {
+        if (key === "0") {
+          reads++;
+          if (reads > 1) {
+            throw new Error("Proxy array element was read twice");
+          }
+        }
+        return Reflect.get(target, key, receiver);
+      },
+    });
+
+    expect(importMessages([{ input }])).toEqual([
+      { role: "user", content: "Hello" },
+    ]);
+    expect(reads).toBe(1);
+  });
+
+  test("rejects invalid enum values without throwing inspection errors", () => {
+    expect(
+      importMessages([{ input: { role: null, content: "Hello" } }])
+    ).toEqual([]);
+  });
+
+  test("propagates errors from consumed provider fields", () => {
+    const error = new Error("Cannot read provider input");
+    const input = {
+      get contents() {
+        throw error;
+      },
+    };
+
+    expect(() => importMessages([{ input }])).toThrow(
+      expect.objectContaining({ cause: error })
+    );
   });
 
   test("skips unused span fields while importing LLM messages", () => {
@@ -57,7 +136,7 @@ describe.each([
     expect(messages).toEqual([
       { role: "assistant", content: "Hello", id: null },
     ]);
-    expect(reads).toBeGreaterThan(0);
+    expect(reads).toBe(0);
   });
 
   test("imports supported output beside scalar-only input", () => {

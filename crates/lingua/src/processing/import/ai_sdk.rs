@@ -1,3 +1,4 @@
+use crate::import_value::{Field, ImportValue, InputKind};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
@@ -5,6 +6,66 @@ use crate::universal::{
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct AISDKInputCompat {
+    #[serde(default)]
+    system: Field<Value>,
+    #[serde(default)]
+    messages: Field<Value>,
+    #[serde(default)]
+    prompt: Field<Value>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AISDKOutputCompat {
+    #[serde(default)]
+    content: Field<Value>,
+    #[serde(default)]
+    reasoning: Field<Value>,
+    #[serde(default)]
+    text: Field<Value>,
+    #[serde(default)]
+    object: Field<Value>,
+    #[serde(default)]
+    tool_calls: Field<Value>,
+    #[serde(default)]
+    response_messages: Field<Value>,
+    #[serde(default)]
+    response: Field<Value>,
+    #[serde(default)]
+    steps: Field<Value>,
+    #[serde(default)]
+    tool_results: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    finish_reason: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    warnings: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    provider_metadata: Field<serde::de::IgnoredAny>,
+    #[serde(default, rename = "experimental_providerMetadata")]
+    experimental_provider_metadata: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    include_raw_chunks: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    usage: Field<serde::de::IgnoredAny>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AISDKResponseCompat {
+    #[serde(default)]
+    messages: Field<Value>,
+    #[serde(default)]
+    headers: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    body: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    model_id: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    timestamp: Field<serde::de::IgnoredAny>,
+}
 
 #[derive(Debug, Clone, Deserialize)]
 struct AISDKMessageCompat {
@@ -374,14 +435,6 @@ fn parse_message_sequence(value: &Value) -> Option<Vec<Message>> {
     }
 }
 
-fn has_input_wrapper_shape(data: &Value) -> bool {
-    let Value::Object(obj) = data else {
-        return false;
-    };
-
-    obj.contains_key("prompt") || obj.contains_key("system") || obj.contains_key("messages")
-}
-
 fn try_parse_prompt_value(value: &Value) -> Option<Vec<Message>> {
     match value {
         Value::String(text) => Some(vec![Message::User {
@@ -392,78 +445,69 @@ fn try_parse_prompt_value(value: &Value) -> Option<Vec<Message>> {
     }
 }
 
-fn try_parse_ai_sdk_input(data: &Value) -> Option<Vec<Message>> {
-    if !has_input_wrapper_shape(data) {
+fn try_parse_ai_sdk_input(data: &impl ImportValue) -> Option<Vec<Message>> {
+    if data.kind() != InputKind::Object {
         return None;
     }
-
-    let obj = data.as_object()?;
+    let input = data.parse::<AISDKInputCompat>()?;
     let mut messages = Vec::new();
-
-    if let Some(system_value) = obj.get("system") {
-        let content = parse_user_content(system_value.clone())?;
-        messages.push(Message::System { content });
+    if let Field::Present(system) = input.system {
+        messages.push(Message::System {
+            content: parse_user_content(system)?,
+        });
     }
-
-    if let Some(message_value) = obj.get("messages") {
-        if let Some(parsed) = parse_message_sequence(message_value) {
+    if let Field::Present(value) = input.messages {
+        if let Some(parsed) = parse_message_sequence(&value) {
             messages.extend(parsed);
         }
     }
-
-    if let Some(prompt_value) = obj.get("prompt") {
-        if let Some(parsed) = try_parse_prompt_value(prompt_value) {
+    if let Field::Present(prompt) = input.prompt {
+        if let Some(parsed) = try_parse_prompt_value(&prompt) {
             messages.extend(parsed);
         }
     }
-
-    if messages.is_empty() {
-        None
-    } else {
-        Some(messages)
-    }
+    crate::import_parse::non_empty_messages(messages)
 }
 
-fn has_ai_sdk_output_signal(obj: &serde_json::Map<String, Value>) -> bool {
-    if obj.contains_key("steps")
-        || obj.contains_key("responseMessages")
-        || obj.contains_key("toolCalls")
-        || obj.contains_key("toolResults")
-        || obj.contains_key("finishReason")
-        || obj.contains_key("warnings")
-        || obj.contains_key("providerMetadata")
-        || obj.contains_key("experimental_providerMetadata")
-        || obj.contains_key("includeRawChunks")
-        || obj.contains_key("reasoning")
+fn has_ai_sdk_output_signal(output: &AISDKOutputCompat) -> bool {
+    if output.steps.is_present()
+        || output.response_messages.is_present()
+        || output.tool_calls.is_present()
+        || output.tool_results.is_present()
+        || output.finish_reason.is_present()
+        || output.warnings.is_present()
+        || output.provider_metadata.is_present()
+        || output.experimental_provider_metadata.is_present()
+        || output.include_raw_chunks.is_present()
+        || output.reasoning.is_present()
     {
         return true;
     }
-
-    if obj.contains_key("object") && (obj.contains_key("response") || obj.contains_key("usage")) {
+    if output.object.is_present() && (output.response.is_present() || output.usage.is_present()) {
         return true;
     }
-
-    obj.get("response")
-        .and_then(|value| value.as_object())
-        .map(|response| {
-            response.contains_key("messages")
-                || response.contains_key("headers")
-                || response.contains_key("body")
-                || response.contains_key("modelId")
-                || response.contains_key("timestamp")
+    output
+        .response
+        .as_ref()
+        .and_then(|response| response.parse::<AISDKResponseCompat>())
+        .is_some_and(|response| {
+            response.messages.is_present()
+                || response.headers.is_present()
+                || response.body.is_present()
+                || response.model_id.is_present()
+                || response.timestamp.is_present()
         })
-        .unwrap_or(false)
 }
 
-fn build_assistant_message_from_fields(obj: &serde_json::Map<String, Value>) -> Option<Message> {
-    if let Some(content) = obj.get("content") {
+fn build_assistant_message_from_fields(output: &AISDKOutputCompat) -> Option<Message> {
+    if let Some(content) = output.content.as_ref() {
         let content = parse_assistant_content(content.clone())?;
         return Some(Message::Assistant { content, id: None });
     }
 
     let mut parts = Vec::new();
 
-    if let Some(reasoning) = obj.get("reasoning").and_then(value_to_string) {
+    if let Some(reasoning) = output.reasoning.as_ref().and_then(value_to_string) {
         if !reasoning.is_empty() {
             parts.push(AssistantContentPart::Reasoning {
                 text: reasoning,
@@ -472,7 +516,7 @@ fn build_assistant_message_from_fields(obj: &serde_json::Map<String, Value>) -> 
         }
     }
 
-    if let Some(text) = obj.get("text").and_then(value_to_string) {
+    if let Some(text) = output.text.as_ref().and_then(value_to_string) {
         if !text.is_empty() {
             parts.push(AssistantContentPart::Text(TextContentPart {
                 text,
@@ -483,12 +527,16 @@ fn build_assistant_message_from_fields(obj: &serde_json::Map<String, Value>) -> 
         }
     }
 
-    if let Some(tool_calls_value) = obj.get("toolCalls").and_then(|value| value.as_array()) {
+    if let Some(tool_calls_value) = output
+        .tool_calls
+        .as_ref()
+        .and_then(|value| value.as_array())
+    {
         parts.extend(parse_assistant_parts(tool_calls_value.clone()));
     }
 
     if parts.is_empty() {
-        if let Some(object_value) = obj.get("object") {
+        if let Some(object_value) = output.object.as_ref() {
             let text = serde_json::to_string(object_value).ok()?;
             return Some(Message::Assistant {
                 content: AssistantContent::String(text),
@@ -603,45 +651,41 @@ fn parse_step_message(step: &Value) -> Option<Message> {
         .find(|message| matches!(message, Message::Assistant { .. }))
 }
 
-fn try_parse_ai_sdk_output(data: &Value) -> Option<Vec<Message>> {
-    let obj = data.as_object()?;
-
-    if !has_ai_sdk_output_signal(obj) {
+fn try_parse_ai_sdk_output(data: &impl ImportValue) -> Option<Vec<Message>> {
+    if data.kind() != InputKind::Object {
         return None;
     }
-
-    if let Some(response_messages) = obj.get("responseMessages") {
-        if let Some(messages) = parse_message_sequence(response_messages) {
+    let output = data.parse::<AISDKOutputCompat>()?;
+    if !has_ai_sdk_output_signal(&output) {
+        return None;
+    }
+    if let Some(value) = output.response_messages.as_ref() {
+        if let Some(messages) = parse_message_sequence(value) {
             return Some(messages);
         }
     }
-
-    if let Some(response_messages) = obj
-        .get("response")
-        .and_then(|response| response.as_object())
-        .and_then(|response| response.get("messages"))
+    if let Some(response) = output
+        .response
+        .as_ref()
+        .and_then(|value| value.parse::<AISDKResponseCompat>())
     {
-        if let Some(messages) = parse_message_sequence(response_messages) {
-            return Some(messages);
+        if let Some(value) = response.messages.as_ref() {
+            if let Some(messages) = parse_message_sequence(value) {
+                return Some(messages);
+            }
         }
     }
-
-    if let Some(steps) = obj.get("steps").and_then(|value| value.as_array()) {
-        let messages: Vec<Message> = steps.iter().filter_map(parse_step_message).collect();
+    if let Some(steps) = output.steps.as_ref().and_then(Value::as_array) {
+        let messages: Vec<_> = steps.iter().filter_map(parse_step_message).collect();
         if !messages.is_empty() {
             return Some(messages);
         }
     }
-
-    build_assistant_message_from_fields(obj).map(|message| vec![message])
+    build_assistant_message_from_fields(&output).map(|message| vec![message])
 }
 
-pub(crate) fn try_parse_ai_sdk_for_import(data: &Value) -> Option<Vec<Message>> {
-    if let Some(messages) = try_parse_ai_sdk_input(data) {
-        return Some(messages);
-    }
-
-    try_parse_ai_sdk_output(data)
+pub(crate) fn try_parse_ai_sdk_for_import(data: &impl ImportValue) -> Option<Vec<Message>> {
+    try_parse_ai_sdk_input(data).or_else(|| try_parse_ai_sdk_output(data))
 }
 
 #[cfg(test)]

@@ -127,6 +127,14 @@ const cases = [
     compatible: true,
   },
   {
+    name: "Gemini with 4 MiB extra input field",
+    spans: fixture("gemini-basic-generate-content.spans.json").map((span) => ({
+      ...span,
+      input: { ...span.input, unrelated: largeText },
+    })),
+    compatible: true,
+  },
+  {
     name: "Unsupported 4 MiB object",
     spans: [{ input: unsupported }],
     compatible: false,
@@ -186,11 +194,16 @@ for (const { name, spans, compatible } of selectedCases) {
   const messages = candidate.import_messages_from_spans(spans);
   assert.equal(messages.length > 0, compatible, name);
   if (baseline) {
-    assert.deepEqual(
-      messages,
-      baseline.import_messages_from_spans(spans),
-      name
-    );
+    for (const operation of [
+      "import_messages_from_spans",
+      "import_and_deduplicate_messages",
+    ]) {
+      assert.deepEqual(
+        candidate[operation](spans),
+        baseline[operation](spans),
+        `${name}: ${operation}`
+      );
+    }
   }
 
   for (let i = 0; i < warmup; i++) {

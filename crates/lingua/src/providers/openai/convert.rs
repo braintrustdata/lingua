@@ -2,6 +2,7 @@ use crate::error::ConvertError;
 use crate::import_parse::{
     non_empty_messages, try_convert_non_empty, try_parse, try_parse_vec_or_single,
 };
+use crate::import_value::{ImportValue, InputKind};
 use crate::providers::openai::generated as openai;
 use crate::providers::openai::params::OpenAIResponsesExtrasView;
 use crate::providers::openai::tool_discovery;
@@ -626,7 +627,7 @@ fn parse_builtin_field<T: serde::de::DeserializeOwned>(
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 enum ResponsesImportKnownType {
     // Some SDK/frontend traces use compatibility shapes (`function_call_result`,
     // camelCase `callId`, JSON-valued `output`/`result`) that are not in the
@@ -647,15 +648,15 @@ enum ResponsesImportKnownType {
     ProgramOutput,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 enum ResponsesImportItemType {
     Known(ResponsesImportKnownType),
     Other(String),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct ResponsesImportCompatItem {
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+struct ResponsesImportCompatFields {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     item_type: Option<ResponsesImportItemType>,
     #[serde(default, alias = "callId", skip_serializing_if = "Option::is_none")]
@@ -676,6 +677,12 @@ struct ResponsesImportCompatItem {
     fingerprint: Option<String>,
     status: Option<String>,
     caller: Option<OpenAIProgramCaller>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ResponsesImportCompatItem {
+    #[serde(flatten)]
+    fields: ResponsesImportCompatFields,
     #[serde(flatten)]
     extra: serde_json::Map<String, serde_json::Value>,
 }
@@ -692,7 +699,16 @@ where
     }
 }
 
-fn normalize_responses_items_for_import(data: &serde_json::Value) -> Option<serde_json::Value> {
+fn normalize_responses_items_for_import(data: &impl ImportValue) -> Option<serde_json::Value> {
+    let fields = try_parse_vec_or_single::<ResponsesImportCompatFields>(data)?;
+    if fields
+        .iter()
+        .all(|fields| *fields == ResponsesImportCompatFields::default())
+    {
+        return None;
+    }
+    let value = data.to_value();
+    let data = value.as_ref();
     let wrapped;
     let candidate = if data.is_object() {
         wrapped = serde_json::Value::Array(vec![data.clone()]);
@@ -766,7 +782,7 @@ struct OpenAIToolCallProviderOptionsView {
     namespace: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 struct OpenAIProgramCaller {
     #[serde(rename = "type")]
@@ -774,7 +790,7 @@ struct OpenAIProgramCaller {
     caller_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 enum OpenAIProgramCallerType {
     Program,
@@ -1267,7 +1283,7 @@ fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Me
     merged
 }
 
-fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<Vec<Message>> {
+fn try_from_responses_items_candidate<V: ImportValue>(candidate: &V) -> Option<Vec<Message>> {
     if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate) {
         if let Some(messages) = try_convert_non_empty(provider_messages) {
             return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
@@ -1283,8 +1299,8 @@ fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<V
     None
 }
 
-pub(crate) fn try_parse_responses_items_for_import(
-    data: &serde_json::Value,
+pub(crate) fn try_parse_responses_items_for_import<V: ImportValue>(
+    data: &V,
 ) -> Option<Vec<Message>> {
     if let Some(messages) = try_from_responses_items_candidate(data) {
         return Some(messages);
@@ -1294,8 +1310,11 @@ pub(crate) fn try_parse_responses_items_for_import(
     try_from_responses_items_candidate(&normalized)
 }
 
-pub(crate) fn opaque_item_kind_for_import(data: &serde_json::Value) -> Option<OpaqueItemKind> {
-    let item = openai::InputItem::deserialize(data).ok()?;
+pub(crate) fn opaque_item_kind_for_import<V: ImportValue>(data: &V) -> Option<OpaqueItemKind> {
+    if data.kind() != InputKind::Object {
+        return None;
+    }
+    let item = try_parse::<openai::InputItem>(data)?;
     (item.input_item_type == Some(openai::InputItemType::Compaction)
         && item.id.is_some()
         && item.encrypted_content.is_some())
@@ -1388,7 +1407,7 @@ pub(crate) fn try_system_message_from_openai_metadata(
     })
 }
 
-pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
+pub(crate) fn try_parse_openai_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     // Prefer chat-completions request messages before Responses InputItem parsing.
     // Chat-completions arrays can deserialize as InputItems, but that path drops
     // assistant `tool_calls` arguments and is lossy for import.
