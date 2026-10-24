@@ -1,4 +1,5 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
+use crate::import_value::{Field, ImportValue, InputKind};
 mod ai_sdk;
 mod langchain;
 mod pydantic_ai;
@@ -56,9 +57,10 @@ struct MessageImport {
     errors: Vec<String>,
     warnings: Vec<String>,
     opaque: Vec<OpaqueItem>,
+    discard_opaque: bool,
 }
 
-fn opaque_item_kind(data: &Value) -> Option<OpaqueItemKind> {
+fn opaque_item_kind(data: &impl ImportValue) -> Option<OpaqueItemKind> {
     #[cfg(feature = "openai")]
     {
         crate::providers::openai::convert::opaque_item_kind_for_import(data)
@@ -82,7 +84,17 @@ pub struct Span {
 }
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
-fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<Message> {
+fn try_converting_to_messages<V: ImportValue>(
+    data: &V,
+    import: &mut MessageImport,
+) -> Vec<Message> {
+    if matches!(
+        data.kind(),
+        InputKind::Null | InputKind::Other | InputKind::String
+    ) {
+        return Vec::new();
+    }
+
     if let Some(messages) = try_parse_ai_sdk_for_import(data) {
         return messages;
     }
@@ -90,10 +102,11 @@ fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<M
     if is_role_message_array(data)
         || (import.options.preserve_unsupported
             && data
-                .as_array()
-                .is_some_and(|items| items.iter().any(|item| opaque_item_kind(item).is_some())))
+                .array()
+                .is_some_and(|mut items| items.any(|item| opaque_item_kind(&item).is_some())))
     {
-        return try_parse_mixed_messages_for_import(data, import).unwrap_or_default();
+        return try_parse_mixed_messages_for_import(data.to_value().as_ref(), import)
+            .unwrap_or_default();
     }
 
     if let Some(messages) = try_choices_array_parsing(data, import) {
@@ -112,46 +125,53 @@ fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<M
         return messages;
     }
 
-    // Cheap check to see if a value looks like it might contain messages.
-    // Returns early to avoid expensive deserialization attempts on non-message data.
-    let has_message_structure = match data {
-        // Check if it's an array where any element has "role" or nested "message.role".
-        Value::Array(arr) => arr.iter().any(|item| match item {
-            Value::Object(obj) => {
-                if obj.contains_key("role") {
-                    return true;
-                }
-                if let Some(Value::Object(msg)) = obj.get("message") {
-                    if msg.contains_key("role") {
-                        return true;
-                    }
-                }
-                false
-            }
-            _ => false,
-        }),
-        // Check if it's an object with "role" field (single message)
-        Value::Object(obj) => obj.contains_key("role"),
-        _ => false,
+    let has_message_structure = if let Some(mut items) = data.array() {
+        items.any(|item| {
+            item.kind() == InputKind::Object
+                && item.parse::<LegacyMessageCompat>().is_some_and(|item| {
+                    item.role.is_present()
+                        || item.message.as_ref().is_some_and(|message| {
+                            message
+                                .parse::<LegacyMessageCompat>()
+                                .is_some_and(|message| message.role.is_present())
+                        })
+                })
+        })
+    } else {
+        data.kind() == InputKind::Object
+            && data
+                .parse::<LegacyMessageCompat>()
+                .is_some_and(|item| item.role.is_present())
     };
 
-    // Early bailout: if data doesn't have message structure, skip expensive deserializations
     if !has_message_structure {
-        // Still try nested object search (for wrapped messages like {messages: [...]})
-        if let Value::Object(obj) = data {
-            for key in [
-                "messages", "prompt", "input", "output", "choices", "result", "response",
-            ] {
-                if let Some(nested) = obj.get(key) {
-                    let nested_messages = try_converting_to_messages(nested, import);
-                    if !nested_messages.is_empty() {
-                        return nested_messages;
-                    }
+        let wrapped = (data.kind() == InputKind::Object)
+            .then(|| data.parse::<NestedMessagesCompat>())
+            .flatten();
+        if let Some(wrapped) = wrapped {
+            for nested in [
+                wrapped.messages,
+                wrapped.prompt,
+                wrapped.input,
+                wrapped.output,
+                wrapped.choices,
+                wrapped.result,
+                wrapped.response,
+            ]
+            .into_iter()
+            .flatten()
+            {
+                let messages = try_converting_to_messages(&nested, import);
+                if !messages.is_empty() {
+                    return messages;
                 }
             }
         }
         return Vec::new();
     }
+
+    let materialized = data.to_value();
+    let data = materialized.as_ref();
 
     if let Some(messages) = try_parse_mixed_messages_for_import(data, import) {
         return messages;
@@ -216,19 +236,41 @@ fn try_converting_to_messages(data: &Value, import: &mut MessageImport) -> Vec<M
     Vec::new()
 }
 
-fn is_role_message_array(data: &Value) -> bool {
-    let Value::Array(items) = data else {
-        return false;
-    };
-
-    !items.is_empty()
-        && items.iter().all(|item| match item {
-            Value::Object(obj) => matches!(obj.get("role"), Some(Value::String(_))),
-            _ => false,
-        })
+#[derive(Deserialize)]
+struct RoleMessageCompat {
+    #[serde(rename = "role")]
+    _role: String,
 }
 
-fn provider_parsers_for_import() -> Vec<MessageParser> {
+#[derive(Deserialize)]
+struct LegacyMessageCompat {
+    #[serde(default)]
+    role: Field<serde::de::IgnoredAny>,
+    #[serde(default)]
+    message: Field<Value>,
+}
+
+#[derive(Deserialize)]
+struct NestedMessagesCompat {
+    messages: Option<Value>,
+    prompt: Option<Value>,
+    input: Option<Value>,
+    output: Option<Value>,
+    choices: Option<Value>,
+    result: Option<Value>,
+    response: Option<Value>,
+}
+
+fn is_role_message_array(data: &impl ImportValue) -> bool {
+    data.array().is_some_and(|mut items| {
+        items.len() > 0
+            && items.all(|item| {
+                item.kind() == InputKind::Object && item.parse::<RoleMessageCompat>().is_some()
+            })
+    })
+}
+
+fn provider_parsers_for_import<V: ImportValue>() -> Vec<MessageParser<V>> {
     vec![
         #[cfg(feature = "openai")]
         try_parse_openai_for_import,
@@ -257,12 +299,14 @@ fn try_parse_mixed_messages_for_import(
             None
         };
         if kind.is_some() {
-            import.opaque.push(OpaqueItem {
-                index: Some(index),
-                value: item.clone(),
-                kind,
-                is_metadata: false,
-            });
+            if !import.discard_opaque {
+                import.opaque.push(OpaqueItem {
+                    index: Some(index),
+                    value: item.clone(),
+                    kind,
+                    is_metadata: false,
+                });
+            }
             continue;
         }
         // Native Anthropic thinking blocks must use the canonical parser so adjacent text
@@ -350,7 +394,7 @@ fn try_parse_mixed_messages_for_import(
     }
 }
 
-fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_provider_messages_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let provider_parsers = provider_parsers_for_import();
 
     try_parsers_in_order(data, &provider_parsers)
@@ -878,38 +922,40 @@ fn parse_tool_content(value: &Value) -> Option<ToolContent> {
 ///
 /// This handles the output format: [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
 /// Extracts messages from the "message" field of each choice object.
-fn try_choices_array_parsing(data: &Value, import: &mut MessageImport) -> Option<Vec<Message>> {
-    let arr = data.as_array()?;
+#[derive(Deserialize)]
+struct ChoiceMessageCompat {
+    #[serde(default)]
+    message: Field<Value>,
+    #[serde(default)]
+    finish_reason: Field<serde::de::IgnoredAny>,
+}
+
+fn try_choices_array_parsing(
+    data: &impl ImportValue,
+    import: &mut MessageImport,
+) -> Option<Vec<Message>> {
+    if data.kind() != InputKind::Array {
+        return None;
+    }
+    if !data.array()?.all(|item| item.kind() == InputKind::Object) {
+        return None;
+    }
+    let choices = data.parse::<Vec<ChoiceMessageCompat>>()?;
     let mut messages = Vec::new();
-
-    for item in arr {
-        let obj = item.as_object()?;
-
-        // Check if this looks like a choice object (has "message" or "finish_reason").
-        // We still validate each element here to ensure the entire array is a valid choices array.
-        if !obj.contains_key("message") && !obj.contains_key("finish_reason") {
-            return None; // Not a choices array
+    for choice in choices {
+        if !choice.message.is_present() && !choice.finish_reason.is_present() {
+            return None;
         }
-
-        // Extract the message from the choice
-        if let Some(message_value) = obj.get("message") {
-            // The message is a single object, wrap in array for try_converting_to_messages
-            let wrapped = Value::Array(vec![message_value.clone()]);
-            let nested_messages = try_converting_to_messages(&wrapped, import);
-            if nested_messages.is_empty() {
-                // If element has "message" but we couldn't parse it, this is malformed
+        if let Field::Present(message) = choice.message {
+            let wrapped = Value::Array(vec![message]);
+            let nested = try_converting_to_messages(&wrapped, import);
+            if nested.is_empty() {
                 return None;
-            } else {
-                messages.extend(nested_messages);
             }
+            messages.extend(nested);
         }
     }
-
-    if messages.is_empty() {
-        None
-    } else {
-        Some(messages)
-    }
+    crate::import_parse::non_empty_messages(messages)
 }
 
 struct SpanMessages {
@@ -1019,6 +1065,58 @@ fn import_span_messages(
         errors: import.errors,
         warnings: import.warnings,
     }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn import_messages_from_values<V: ImportValue>(
+    input: &V,
+    output: &V,
+    metadata: Option<&Value>,
+) -> Vec<Message> {
+    let mut import = MessageImport {
+        options: ImportOptions {
+            preserve_unsupported: true,
+        },
+        discard_opaque: true,
+        ..Default::default()
+    };
+    let parse = |value: &V, import: &mut MessageImport| {
+        if opaque_item_kind(value).is_some() {
+            return Vec::new();
+        }
+        try_converting_to_messages(value, import)
+    };
+    let mut input = if input.kind() == InputKind::String {
+        vec![Message::User {
+            content: UserContent::String(input.parse::<String>().expect("string input")),
+        }]
+    } else {
+        parse(input, &mut import)
+    };
+    #[cfg(feature = "openai")]
+    if let Some(message) = metadata.and_then(try_system_message_from_openai_metadata) {
+        if !input
+            .iter()
+            .any(|message| matches!(message, Message::System { .. }))
+        {
+            input.insert(0, message);
+        }
+    }
+    let output = if output.kind() == InputKind::String {
+        let text = output.parse::<String>().expect("string output");
+        if text.is_empty() {
+            Vec::new()
+        } else {
+            vec![Message::Assistant {
+                content: AssistantContent::String(text),
+                id: None,
+            }]
+        }
+    } else {
+        parse(output, &mut import)
+    };
+    input.extend(output);
+    input
 }
 
 /// Import messages from a list of spans

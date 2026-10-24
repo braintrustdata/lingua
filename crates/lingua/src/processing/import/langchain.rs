@@ -1,3 +1,4 @@
+use crate::import_value::ImportValue;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
@@ -6,25 +7,9 @@ use crate::universal::{
 };
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(untagged)]
-enum LangChainInputCompat {
-    NestedMessages(Vec<Vec<LangChainMessageCompat>>),
-    MessagesWrapper {
-        messages: Vec<LangChainMessageCompat>,
-    },
-    Messages(Vec<LangChainMessageCompat>),
-    Single(LangChainMessageCompat),
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(untagged)]
-enum LangChainOutputCompat {
-    LlmResult(LangChainLlmResultCompat),
-    MessagesWrapper {
-        messages: Vec<LangChainMessageCompat>,
-    },
-    Single(LangChainMessageCompat),
+#[derive(Deserialize)]
+struct LangChainMessagesWrapperCompat {
+    messages: Vec<LangChainMessageCompat>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -595,40 +580,54 @@ fn try_parse_messages(messages: Vec<LangChainMessageCompat>) -> Option<Vec<Messa
     }
 }
 
-fn try_parse_input_shape(data: &Value) -> Option<Vec<Message>> {
-    let input = LangChainInputCompat::deserialize(data).ok()?;
-    match input {
-        LangChainInputCompat::NestedMessages(nested) => {
-            let first = nested.into_iter().next()?;
-            try_parse_messages(first)
-        }
-        LangChainInputCompat::MessagesWrapper { messages } => try_parse_messages(messages),
-        LangChainInputCompat::Messages(messages) => try_parse_messages(messages),
-        LangChainInputCompat::Single(message) => try_parse_messages(vec![message]),
-    }
+fn parse_message_source(data: &impl ImportValue) -> Option<LangChainMessageCompat> {
+    data.parse::<LangChainPythonMessageCompat>()
+        .map(LangChainMessageCompat::Python)
+        .or_else(|| {
+            data.parse::<LangChainJsMessageCompat>()
+                .map(LangChainMessageCompat::Js)
+        })
 }
 
-fn try_parse_output_shape(data: &Value) -> Option<Vec<Message>> {
-    let output = LangChainOutputCompat::deserialize(data).ok()?;
-    match output {
-        LangChainOutputCompat::LlmResult(result) => {
-            let first_batch = result.generations.into_iter().next()?;
-            let messages: Option<Vec<LangChainMessageCompat>> = first_batch
-                .into_iter()
-                .map(|generation| generation.message)
-                .collect();
-            try_parse_messages(messages?)
-        }
-        LangChainOutputCompat::MessagesWrapper { messages } => try_parse_messages(messages),
-        LangChainOutputCompat::Single(message) => try_parse_messages(vec![message]),
-    }
+fn parse_sequence_source(data: &impl ImportValue) -> Option<Vec<LangChainMessageCompat>> {
+    data.array()?
+        .map(|item| parse_message_source(&item))
+        .collect()
 }
 
-pub(crate) fn try_parse_langchain_for_import(data: &Value) -> Option<Vec<Message>> {
-    if let Some(messages) = try_parse_input_shape(data) {
-        return Some(messages);
+fn try_parse_input_shape(data: &impl ImportValue) -> Option<Vec<Message>> {
+    if let Some(items) = data.array() {
+        let nested: Option<Vec<_>> = items.map(|item| parse_sequence_source(&item)).collect();
+        if let Some(nested) = nested {
+            return try_parse_messages(nested.into_iter().next()?);
+        }
     }
-    try_parse_output_shape(data)
+    if let Some(wrapper) = data.parse::<LangChainMessagesWrapperCompat>() {
+        return try_parse_messages(wrapper.messages);
+    }
+    if let Some(messages) = parse_sequence_source(data) {
+        return try_parse_messages(messages);
+    }
+    try_parse_messages(vec![parse_message_source(data)?])
+}
+
+fn try_parse_output_shape(data: &impl ImportValue) -> Option<Vec<Message>> {
+    if let Some(result) = data.parse::<LangChainLlmResultCompat>() {
+        let first_batch = result.generations.into_iter().next()?;
+        let messages: Option<Vec<LangChainMessageCompat>> = first_batch
+            .into_iter()
+            .map(|generation| generation.message)
+            .collect();
+        return try_parse_messages(messages?);
+    }
+    if let Some(wrapper) = data.parse::<LangChainMessagesWrapperCompat>() {
+        return try_parse_messages(wrapper.messages);
+    }
+    try_parse_messages(vec![parse_message_source(data)?])
+}
+
+pub(crate) fn try_parse_langchain_for_import(data: &impl ImportValue) -> Option<Vec<Message>> {
+    try_parse_input_shape(data).or_else(|| try_parse_output_shape(data))
 }
 
 #[cfg(test)]
