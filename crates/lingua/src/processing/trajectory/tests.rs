@@ -2400,3 +2400,35 @@ fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
     assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
     assert_eq!(result[0]["turns"][0]["response_id"], "done");
 }
+
+#[test]
+fn voice_spans_resolve_to_owned_speech() {
+    #[derive(Deserialize)]
+    struct VoiceFixture {
+        spans: Vec<Span>,
+        resolved: Value,
+        owners: Value,
+    }
+    let fixtures: BTreeMap<String, VoiceFixture> =
+        serde_json::from_str(include_str!("fixtures/voice-resolve.json")).unwrap();
+    for (name, fixture) in fixtures {
+        let spans: Vec<_> = fixture
+            .spans
+            .into_iter()
+            .map(|source| PreparedSpan::new(import_span(source).unwrap()).unwrap())
+            .collect();
+        let spans: Vec<_> = spans.iter().collect();
+        let resolved = voice::resolve(spans.clone());
+        let owners = voice::assign_turns(&spans, &resolved.speech);
+        assert_eq!(
+            serde_json::to_value(&resolved).unwrap(),
+            fixture.resolved,
+            "{name}"
+        );
+        assert_eq!(
+            serde_json::to_value(&owners).unwrap(),
+            fixture.owners,
+            "{name}"
+        );
+    }
+}
