@@ -45,7 +45,14 @@ impl ImportValue for Value {
     }
 
     fn parse<T: DeserializeOwned>(&self) -> Option<T> {
-        T::deserialize(self).ok()
+        #[cfg(target_arch = "wasm32")]
+        {
+            js::parse_value(self)
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            T::deserialize(self).ok()
+        }
     }
 
     fn array(&self) -> Option<Self::Items<'_>> {

@@ -26,6 +26,27 @@ describe.each([
     expect(reads).toBe(0);
   });
 
+  test("preserves errors thrown by array element accessors", () => {
+    const original = new Error("Cannot read array element");
+    const input = Object.defineProperty([], "0", {
+      enumerable: true,
+      get() {
+        throw original;
+      },
+    });
+    let caught: unknown;
+    try {
+      importMessages([{ input }]);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(Error);
+    if (!(caught instanceof Error) || !("cause" in caught)) {
+      throw new Error("Expected the array accessor error");
+    }
+    expect(caught.cause).toBe(original);
+  });
+
   test("reads array accessors once across parser attempts and decoding", () => {
     let reads = 0;
     const input = Object.defineProperty([], "0", {
