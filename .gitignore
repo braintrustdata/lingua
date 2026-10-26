@@ -6,6 +6,7 @@ target
 node_modules/
 bindings/lingua-wasm/nodejs/
 bindings/lingua-wasm/web/
+bindings/lingua-wasm/web-trace/
 *.swp
 __pycache__
 *.so

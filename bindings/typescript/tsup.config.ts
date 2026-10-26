@@ -15,6 +15,7 @@ export default [
   {
     entry: {
       "index.browser": "src/index.browser.ts",
+      "index.trace": "src/index.trace.ts",
     },
     format: ["esm"],
     outDir: "dist",

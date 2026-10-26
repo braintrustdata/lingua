@@ -1,36 +1,4 @@
-type WasmModule = typeof import("@braintrust/lingua-wasm");
+import { createWasmRuntime } from "./create-wasm-runtime";
 
-let wasmInstance: WasmModule | null = null;
-let initialization: Promise<void> | null = null;
-
-export function getWasm(): WasmModule {
-  if (!wasmInstance) {
-    throw new Error("Lingua WASM not initialized");
-  }
-  return wasmInstance;
-}
-
-export function setWasm(module: WasmModule): void {
-  wasmInstance = module;
-}
-
-export function ensureOnce(
-  initializer: () => Promise<WasmModule> | WasmModule
-): Promise<void> {
-  if (!initialization) {
-    initialization = Promise.resolve(initializer())
-      .then((module) => {
-        setWasm(module);
-      })
-      .catch((error) => {
-        initialization = null;
-        throw error;
-      });
-  }
-  return initialization;
-}
-
-export function resetWasmForTests(): void {
-  wasmInstance = null;
-  initialization = null;
-}
+export const { getWasm, setWasm, ensureOnce, resetWasmForTests } =
+  createWasmRuntime<typeof import("@braintrust/lingua-wasm")>();

@@ -1,10 +1,25 @@
-import { describe, expect, test } from "vitest";
+import { readFileSync } from "node:fs";
+import { beforeAll, describe, expect, test } from "vitest";
+import * as trace from "../src/index.trace";
 import {
   importAndDeduplicateMessages,
   importMessagesFromSpans,
 } from "../src/index";
 
+beforeAll(async () => {
+  await trace.init(
+    readFileSync(
+      new URL("../../lingua-wasm/web-trace/lingua_bg.wasm", import.meta.url)
+    )
+  );
+});
+
 describe.each([
+  { name: "trace import", importMessages: trace.importMessagesFromSpans },
+  {
+    name: "trace import and deduplicate",
+    importMessages: trace.importAndDeduplicateMessages,
+  },
   { name: "import", importMessages: importMessagesFromSpans },
   {
     name: "import and deduplicate",
