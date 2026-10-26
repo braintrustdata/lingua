@@ -41,6 +41,7 @@ struct ImportFixture {
     import_options: ImportOptions,
     spans: Vec<Span>,
     turns: Vec<ExpectedTurn>,
+    speech: Option<Vec<Option<Vec<Utterance>>>>,
     #[serde(default)]
     worker_responses: Vec<String>,
     start_times: Option<Vec<DateTime<Utc>>>,
@@ -80,6 +81,17 @@ fn check_fixture(fixture: &ImportFixture) {
         }
         snapshot = Some(actual);
         assert_eq!(trajectories.len(), 1);
+        if let Some(speech) = &fixture.speech {
+            let actual: Vec<_> = trajectories[0]
+                .turns
+                .iter()
+                .map(|turn| &turn.speech)
+                .collect();
+            assert_eq!(
+                serde_json::to_value(actual).unwrap(),
+                serde_json::to_value(speech).unwrap(),
+            );
+        }
         if let Some(requests) = &fixture.requests {
             let actual: Vec<_> = trajectories[0]
                 .turns
@@ -780,6 +792,7 @@ fn generated_conversation(
     ImportFixture {
         spans,
         turns: expected,
+        speech: None,
         import_options: ImportOptions::default(),
         worker_responses,
         import_failures: Vec::new(),
@@ -2399,4 +2412,124 @@ fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
     assert_eq!(result[0]["turns"].as_array().unwrap().len(), 1);
     assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
     assert_eq!(result[0]["turns"][0]["response_id"], "done");
+}
+
+import_fixture!(voice_cascade, "fixtures/voice-cascade.json");
+import_fixture!(voice_playback, "fixtures/voice-playback.json");
+import_fixture!(voice_recordings, "fixtures/voice-recordings.json");
+
+#[test]
+fn voice_payloads_must_be_loaded_omitted_or_failed() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-cascade.json")).unwrap();
+    let baseline = run_fixture(&fixture, 1, false, &[]);
+    for fail_speech in [false, true] {
+        let mut stream = stream_from_sources(fixture.spans.clone()).unwrap();
+        let mut collector = TrajectoryCollector::default();
+        assert_eq!(
+            stream.finish().unwrap_err(),
+            "Trajectory stream has unresolved spans"
+        );
+        while let Some(id) = stream.pending_ids(1).pop() {
+            let source = fixture
+                .spans
+                .iter()
+                .find(|span| span.other["id"] == id)
+                .unwrap();
+            let span = import_span(source.clone()).unwrap();
+            let events = if matches!(span.header.voice.kind, Some(VoiceKind::Speech(_))) {
+                if fail_speech {
+                    stream.fail(&id, "Payload unavailable".into())
+                } else {
+                    stream.push(span.header_only())
+                }
+            } else {
+                stream.push(span)
+            }
+            .unwrap();
+            collect(&mut collector, events);
+        }
+        collect(&mut collector, stream.finish().unwrap());
+        assert!(collector.is_complete());
+        let result = collector.snapshot().unwrap();
+        let without_text = |turns: &[Turn]| {
+            let mut turns = turns.to_vec();
+            for utterance in turns
+                .iter_mut()
+                .filter_map(|turn| turn.speech.as_mut())
+                .flatten()
+            {
+                utterance.text = None;
+            }
+            serde_json::to_value(turns).unwrap()
+        };
+        assert_eq!(
+            without_text(&result[0].turns),
+            without_text(&baseline[0].turns)
+        );
+        let utterances: Vec<_> = result[0]
+            .turns
+            .iter()
+            .filter_map(|turn| turn.speech.as_ref())
+            .flatten()
+            .collect();
+        assert_eq!(utterances.len(), 11);
+        assert!(utterances.iter().all(|utterance| utterance.text.is_none()));
+        if fail_speech {
+            assert_eq!(
+                result[0].metadata["import_failures"]
+                    .as_array()
+                    .unwrap()
+                    .len(),
+                11
+            );
+        }
+    }
+}
+
+#[test]
+fn voice_arrays_are_read_from_payloads() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-playback.json")).unwrap();
+    let headers = fixture.spans.iter().cloned().map(|mut source| {
+        source.input = None;
+        source.output = None;
+        if let Some(metadata) = source
+            .other
+            .get_mut("metadata")
+            .and_then(|value| value.as_object_mut())
+        {
+            for field in [
+                "audio.selections",
+                "audio.recordings",
+                "contrib.livekit.playback_events",
+            ] {
+                if let Some(value) = metadata.get_mut(field) {
+                    *value = crate::serde_json::json!({ "0": {} });
+                }
+            }
+        }
+        source
+    });
+    let mut stream = stream_from_sources(headers.collect()).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).pop() {
+        let source = fixture
+            .spans
+            .iter()
+            .find(|span| span.other["id"] == id)
+            .unwrap();
+        collect(
+            &mut collector,
+            stream.push(import_span(source.clone()).unwrap()).unwrap(),
+        );
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let result = collector.snapshot().unwrap();
+    let speech: Vec<_> = result[0].turns.iter().map(|turn| &turn.speech).collect();
+    assert_eq!(
+        serde_json::to_value(speech).unwrap(),
+        serde_json::to_value(&fixture.speech).unwrap(),
+    );
+    assert!(result[0].metadata.get("import_warnings").is_none());
 }

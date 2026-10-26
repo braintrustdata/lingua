@@ -1,0 +1,186 @@
+{
+  "spans": [
+    {
+      "id": "r-session",
+      "span_id": "s-session",
+      "root_span_id": "s-session",
+      "span_parents": [],
+      "span_attributes": {
+        "type": "task",
+        "name": "session"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 1
+      }
+    },
+    {
+      "id": "r-a0",
+      "span_id": "s-a0",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 2
+      },
+      "metadata": {
+        "turn.id": "s-a0",
+        "contrib.livekit.playback_events": [
+          {
+            "name": "playbackFinished",
+            "attributes": {
+              "interrupted": true,
+              "synchronizedTranscript": "Spoken so far"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-a0-speech0",
+      "span_id": "s-a0-speech0",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a0"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 2,
+        "end": 3
+      },
+      "metadata": {
+        "turn.id": "s-a0",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-a2",
+      "span_id": "s-a2",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 11,
+        "end": 12
+      },
+      "metadata": {
+        "turn.id": "s-a2",
+        "contrib.livekit.playback_events": [
+          {
+            "name": "playbackFinished",
+            "attributes": {
+              "interrupted": true,
+              "synchronizedTranscript": "First"
+            }
+          },
+          {
+            "name": "playbackFinished",
+            "attributes": {
+              "interrupted": true,
+              "synchronizedTranscript": "Second"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-a2-speech0",
+      "span_id": "s-a2-speech0",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a2"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 12,
+        "end": 13
+      },
+      "metadata": {
+        "turn.id": "s-a2",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-a2-speech1",
+      "span_id": "s-a2-speech1",
+      "root_span_id": "s-session",
+      "span_parents": [
+        "s-a2"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 13,
+        "end": 14
+      },
+      "metadata": {
+        "turn.id": "s-a2",
+        "contrib.livekit.interrupted": true
+      }
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "r-a0",
+      "response_text": "",
+      "work_ids": [],
+      "user_texts": [],
+      "interrupted": true
+    },
+    {
+      "request_id": "r-a2",
+      "response_text": "",
+      "work_ids": [],
+      "user_texts": [],
+      "interrupted": true
+    }
+  ],
+  "speech": [
+    [
+      {
+        "id": "r-a0-speech0",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:02Z",
+        "end_time": "1970-01-01T00:00:03Z",
+        "text": "Spoken so far",
+        "interrupted": true
+      }
+    ],
+    [
+      {
+        "id": "r-a2-speech0",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:12Z",
+        "end_time": "1970-01-01T00:00:13Z",
+        "interrupted": true
+      },
+      {
+        "id": "r-a2-speech1",
+        "speaker": "agent",
+        "start_time": "1970-01-01T00:00:13Z",
+        "end_time": "1970-01-01T00:00:14Z",
+        "text": "Second",
+        "interrupted": true
+      }
+    ]
+  ]
+}

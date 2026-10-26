@@ -65,6 +65,11 @@ pub enum TrajectoryEvent {
         span_id: String,
         message: String,
     },
+    Speech {
+        scope: TrajectoryScope,
+        id: String,
+        speech: Vec<Utterance>,
+    },
     Done,
 }
 
@@ -195,7 +200,7 @@ fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) 
         .iter()
         .enumerate()
         .map(|(index, span)| {
-            if owners[&index].skipped {
+            if owners[&index].skipped || span.source.voice.kind.is_some() {
                 return Role::Ignored;
             }
             match span.kind() {
@@ -418,6 +423,8 @@ pub struct TrajectoryStream {
     exclude_system: bool,
     finished: bool,
     failures: Vec<ImportFailure>,
+    root_turns: BTreeMap<String, Vec<(DateTime<Utc>, String)>>,
+    turn_of: HashMap<usize, String>,
 }
 
 impl TrajectoryStream {
@@ -538,10 +545,20 @@ impl TrajectoryStream {
             cursor: 0,
             exclude_system,
             finished: false,
+            root_turns: BTreeMap::new(),
+            turn_of: HashMap::new(),
         };
         let mut events = Vec::new();
         stream.initialize(&mut events)?;
         stream.initial_events = events;
+        for (index, span) in stream.spans.iter().enumerate() {
+            if !stream.owners[&index].skipped
+                && (span.source.voice.payload
+                    || matches!(span.source.voice.kind, Some(VoiceKind::Speech(_))))
+            {
+                stream.ready[index] = false;
+            }
+        }
         Ok(stream)
     }
 
@@ -590,6 +607,14 @@ impl TrajectoryStream {
                 } else if !self.ready[index] {
                     pending.push(self.spans[index].id.clone());
                 }
+            }
+        }
+        for (index, span) in self.spans.iter().enumerate() {
+            if pending.len() == limit {
+                break;
+            }
+            if !self.ready[index] && self.roles[index] == Role::Ignored {
+                pending.push(span.id.clone());
             }
         }
         pending
@@ -718,6 +743,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice: _,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
@@ -1044,6 +1070,9 @@ impl TrajectoryStream {
         if self.resumed.contains(&index) {
             if let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start) {
                 events.extend(self.work(&scope, &target.id, index, target.position)?);
+                if key.tool.is_none() {
+                    self.turn_of.insert(index, target.id.clone());
+                }
                 target.position += 1;
                 target.end_time = target.end_time.max(span.source.end);
                 target.unfinished |= span.source.end.is_none();
@@ -1109,6 +1138,15 @@ impl TrajectoryStream {
                 .compaction
                 .and_then(|index| self.spans[index].source.end);
             state.unfinished = false;
+            let start_time = key
+                .compaction
+                .map_or(span.start, |index| self.spans[index].start);
+            if key.tool.is_none() {
+                self.root_turns
+                    .entry(key.root_span_id.clone())
+                    .or_default()
+                    .push((start_time, span.id.clone()));
+            }
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
                 id: span.id.clone(),
@@ -1129,14 +1167,13 @@ impl TrajectoryStream {
                     work: Vec::new(),
                     model: span.source.model.clone(),
                     params: None,
-                    start_time: key
-                        .compaction
-                        .map_or(span.start, |index| self.spans[index].start),
+                    start_time,
                     end_time: None,
                     interrupted: None,
                     compaction: key
                         .compaction
                         .and_then(|index| self.spans[index].source.compaction.clone()),
+                    speech: None,
                 }),
             });
         } else if boundary == BoundaryAction::AttachRequest {
@@ -1159,6 +1196,9 @@ impl TrajectoryStream {
             });
         }
         let id = state.id.as_deref().unwrap();
+        if key.tool.is_none() {
+            self.turn_of.insert(index, id.to_string());
+        }
         if response_rule == ResponseRule::ContinuedConversation {
             if let Some((previous, position)) = state.candidate.take() {
                 events.extend(self.work(&scope, id, previous, position)?);
@@ -1207,7 +1247,7 @@ impl TrajectoryStream {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
         }
-        if self.order.iter().any(|index| !self.ready[*index]) {
+        if self.ready.iter().any(|ready| !ready) {
             return Err("Trajectory stream has unresolved spans".to_string());
         }
         let mut events = self.drain()?;
@@ -1246,6 +1286,63 @@ impl TrajectoryStream {
                 span_id: span.id.clone(),
                 message: span.warnings.join("; "),
             });
+        }
+        let turn_of: HashMap<_, _> = self
+            .turn_of
+            .iter()
+            .map(|(index, id)| (self.spans[*index].id.as_str(), id.as_str()))
+            .collect();
+        let builds = voice::build(
+            self.spans
+                .iter()
+                .enumerate()
+                .filter(|(index, _)| !self.owners[index].skipped)
+                .map(|(_, span)| span),
+            &self.root_turns,
+            &turn_of,
+        );
+        for (root_span_id, (turns, warnings)) in builds {
+            let scope = TrajectoryScope {
+                root_span_id: root_span_id.clone(),
+                owner_span_id: None,
+            };
+            for warning in warnings {
+                events.push(TrajectoryEvent::Warning {
+                    root_span_id: root_span_id.clone(),
+                    span_id: warning.span_id,
+                    message: warning.message,
+                });
+            }
+            for voice::TurnSpeech {
+                id,
+                speech,
+                created,
+            } in turns
+            {
+                if let Some(turn) = created {
+                    events.push(TrajectoryEvent::Turn {
+                        scope: scope.clone(),
+                        id: id.clone(),
+                        turn: Box::new(turn),
+                    });
+                }
+                if speech.iter().any(|utterance| {
+                    utterance.speaker == Speaker::Agent && utterance.interrupted == Some(true)
+                }) {
+                    events.push(TrajectoryEvent::Interrupted {
+                        scope: scope.clone(),
+                        id: id.clone(),
+                    });
+                }
+                events.push(TrajectoryEvent::Speech {
+                    scope: scope.clone(),
+                    id,
+                    speech,
+                });
+            }
+        }
+        for span in &mut self.spans {
+            span.release_payload();
         }
         events.push(TrajectoryEvent::Done);
         self.finished = true;
@@ -1416,6 +1513,9 @@ impl TrajectoryCollector {
                 span_id,
                 message,
             } => self.import_diagnostic("import_warnings", root_span_id, span_id, message)?,
+            TrajectoryEvent::Speech { scope, id, speech } => {
+                self.turn(&scope, &id)?.turn.speech = Some(speech)
+            }
             TrajectoryEvent::Done => self.complete = true,
         }
         Ok(())

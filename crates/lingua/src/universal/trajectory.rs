@@ -150,6 +150,50 @@ pub struct Turn {
     pub interrupted: Option<bool>,
     #[ts(optional)]
     pub compaction: Option<Compaction>,
+    /// Speech heard and spoken during the turn, by `start_time`.
+    #[ts(optional)]
+    pub speech: Option<Vec<Utterance>>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum Speaker {
+    User,
+    Agent,
+}
+
+/// A source-reported speech interval, not an exact acoustic boundary or delivered text.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct Utterance {
+    pub id: String,
+    pub speaker: Speaker,
+    pub start_time: DateTime<Utc>,
+    #[ts(optional)]
+    pub end_time: Option<DateTime<Utc>>,
+    #[ts(optional)]
+    pub text: Option<String>,
+    /// The source reported that this speech's playback was cut off.
+    #[ts(optional)]
+    pub interrupted: Option<bool>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<AudioClip>>", optional)]
+    pub audio: Vec<AudioClip>,
+}
+
+/// Offsets from the start of the audio attachment at `attachment_ref` in row `row_id`.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct AudioClip {
+    pub row_id: String,
+    /// JSON pointer into the row, such as `/input/audio/call-0000`.
+    pub attachment_ref: String,
+    #[ts(optional)]
+    pub mime_type: Option<String>,
+    #[ts(optional)]
+    pub channel_index: Option<u32>,
+    pub start_offset_ms: f64,
+    pub end_offset_ms: f64,
 }
 
 #[skip_serializing_none]
