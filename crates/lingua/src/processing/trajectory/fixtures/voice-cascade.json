@@ -1283,8 +1283,11 @@
       "request_id": "r-llm1",
       "response_text": "The diagram shows: 1. User speaks. 2. Recognized text goes to the model.",
       "work_ids": [
+        "r-stt1a",
+        "r-stt1b",
         "r-llm1",
-        "r-tool1"
+        "r-tool1",
+        "r-tts1"
       ],
       "user_texts": [
         "Draw how a voice agent works."
@@ -1295,6 +1298,7 @@
       "request_id": "r-llm3",
       "response_text": "",
       "work_ids": [
+        "r-stt2",
         "r-llm3",
         "r-tool2",
         "r-llm4"
@@ -1306,7 +1310,10 @@
     {
       "request_id": "r-llm5",
       "response_text": "You're welcome! Let me know if you need anything else.",
-      "work_ids": [],
+      "work_ids": [
+        "r-stt3",
+        "r-tts3"
+      ],
       "user_texts": [
         "Okay. Thanks."
       ],

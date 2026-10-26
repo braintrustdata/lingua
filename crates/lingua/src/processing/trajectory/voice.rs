@@ -277,7 +277,7 @@ fn speech_text(span: &PreparedSpan, speaker: Speaker) -> Result<Option<String>, 
     }
 }
 
-fn user_text(content: &UserContent) -> Option<String> {
+pub(super) fn user_text(content: &UserContent) -> Option<String> {
     match content {
         UserContent::String(text) => Some(text.clone()),
         UserContent::Array(parts) => parts
