@@ -5,6 +5,7 @@ use crate::error::ConvertError;
 use crate::import_parse::{
     try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
+use crate::import_value::ImportValue;
 use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
     CreateMessageParams, CustomTool, JsonOutputFormat, JsonOutputFormatType, Tool, ToolChoice,
@@ -1854,8 +1855,8 @@ fn split_mixed_tool_discovery_message(message: Message) -> Vec<Message> {
     ]
 }
 
-pub(crate) fn try_parse_content_blocks_for_import(
-    data: &serde_json::Value,
+pub(crate) fn try_parse_content_blocks_for_import<V: ImportValue>(
+    data: &V,
 ) -> Option<Vec<Message>> {
     let blocks = try_parse_vec_or_single::<generated::ContentBlock>(data)?;
     try_convert_non_empty(blocks)
@@ -1885,29 +1886,29 @@ fn try_messages_from_anthropic_response(response: generated::Message) -> Option<
     try_convert_non_empty(response.content)
 }
 
-fn try_parse_input_messages_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
+fn try_parse_input_messages_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let messages = try_parse::<Vec<generated::InputMessage>>(data)?;
     anthropic_input_messages_to_universal_messages(messages).ok()
 }
 
-fn try_parse_anthropic_request_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
+fn try_parse_anthropic_request_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let request = try_parse::<CreateMessageParams>(data)?;
     try_messages_from_anthropic_request(request)
 }
 
-fn try_parse_anthropic_response_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
+fn try_parse_anthropic_response_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let response = try_parse::<generated::Message>(data)?;
     try_messages_from_anthropic_response(response)
 }
 
-pub(crate) fn try_parse_anthropic_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
-    const PARSERS: &[MessageParser] = &[
+pub(crate) fn try_parse_anthropic_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
+    let parsers: &[MessageParser<V>] = &[
         try_parse_content_blocks_for_import,
         try_parse_input_messages_for_import,
         try_parse_anthropic_request_for_import,
         try_parse_anthropic_response_for_import,
     ];
-    try_parsers_in_order(data, PARSERS)
+    try_parsers_in_order(data, parsers)
 }
 
 // Convert from Anthropic response ContentBlock to Universal Message

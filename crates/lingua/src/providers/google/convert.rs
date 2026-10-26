@@ -10,6 +10,7 @@ use crate::error::ConvertError;
 use crate::import_parse::{
     try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
+use crate::import_value::ImportValue;
 use crate::providers::google::generated::{
     Blob as GoogleBlob, Candidate as GoogleCandidate, CodeExecutionResult,
     Content as GoogleContent, ExecutableCode, FileData as GoogleFileData,
@@ -784,36 +785,36 @@ fn try_messages_from_google_candidates(candidates: Vec<GoogleCandidate>) -> Opti
     }
 }
 
-fn try_parse_google_content_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_google_content_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let contents = try_parse_vec_or_single::<GoogleContent>(data)?;
     try_messages_from_google_contents(contents)
 }
 
-fn try_parse_google_request_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_google_request_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let request = try_parse::<GenerateContentRequest>(data)?;
     let contents = request.contents?;
     try_messages_from_google_contents(contents)
 }
 
-fn try_parse_google_response_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_google_response_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let response = try_parse::<GenerateContentResponse>(data)?;
     let candidates = response.candidates?;
     try_messages_from_google_candidates(candidates)
 }
 
-fn try_parse_google_candidate_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_google_candidate_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let candidates = try_parse_vec_or_single::<GoogleCandidate>(data)?;
     try_messages_from_google_candidates(candidates)
 }
 
-pub(crate) fn try_parse_google_for_import(data: &Value) -> Option<Vec<Message>> {
-    const PARSERS: &[MessageParser] = &[
+pub(crate) fn try_parse_google_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
+    let parsers: &[MessageParser<V>] = &[
         try_parse_google_content_for_import,
         try_parse_google_request_for_import,
         try_parse_google_response_for_import,
         try_parse_google_candidate_for_import,
     ];
-    try_parsers_in_order(data, PARSERS)
+    try_parsers_in_order(data, parsers)
 }
 
 impl From<&FunctionDeclaration> for UniversalTool {
