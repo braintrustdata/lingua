@@ -1,0 +1,10 @@
+[
+  {"id": "r-session", "span_id": "s-session", "root_span_id": "s-session", "span_attributes": {"type": "task", "name": "livekit.agent_session"}, "metrics": {"start": 0, "end": 10}},
+  {"id": "r-llm1", "span_id": "s-llm1", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "llm", "name": "llm_response"}, "metrics": {"start": 0, "end": 2}},
+  {"id": "r-agent1", "span_id": "s-agent1", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "agent_speech"}, "metrics": {"start": 0.1, "end": 1.9}, "output": [{"role": "assistant", "content": "Hello"}]},
+  {"id": "r-user1", "span_id": "s-user1", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "user_speech"}, "metrics": {"start": 3, "end": 4}, "input": [{"role": "user", "content": "Where is my order?"}]},
+  {"id": "r-llm2", "span_id": "s-llm2", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "llm", "name": "llm_response"}, "metrics": {"start": 3.8, "end": 6}},
+  {"id": "r-agent2", "span_id": "s-agent2", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "agent_speech"}, "metrics": {"start": 3.9, "end": 5.9}},
+  {"id": "r-tool", "span_id": "s-tool", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "tool", "name": "lookup_order"}, "metrics": {"start": 4.5, "end": 4.6}},
+  {"id": "r-user2", "span_id": "s-user2", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "user_speech"}, "metrics": {"start": 7, "end": 8}}
+]

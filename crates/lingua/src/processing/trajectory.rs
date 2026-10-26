@@ -1,6 +1,9 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+// Shared by voice trajectory builders that have not landed yet.
+#[cfg_attr(not(test), allow(dead_code))]
+mod voice;
 pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };
