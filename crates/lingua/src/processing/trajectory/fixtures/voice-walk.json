@@ -1,0 +1,73 @@
+[
+  {
+    "name": "cascade-playback",
+    "spans": [
+      {"id": "r-session", "span_id": "s-session", "root_span_id": "s-session", "span_parents": [], "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 1}},
+      {"id": "r-a0", "span_id": "s-a0", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "agent_turn"}, "metrics": {"start": 1, "end": 2}, "metadata": {"turn.id": "s-a0", "contrib.livekit.playback_events": [{"name": "playbackFinished", "attributes": {"interrupted": true, "synchronizedTranscript": "Spoken so far"}}]}},
+      {"id": "r-a0-speech0", "span_id": "s-a0-speech0", "root_span_id": "s-session", "span_parents": ["s-a0"], "span_attributes": {"type": "task", "name": "agent_speech"}, "metrics": {"start": 2, "end": 3}, "metadata": {"turn.id": "s-a0", "contrib.livekit.interrupted": true}},
+      {"id": "r-a2", "span_id": "s-a2", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "agent_turn"}, "metrics": {"start": 11, "end": 12}, "metadata": {"turn.id": "s-a2", "contrib.livekit.playback_events": [{"name": "playbackFinished", "attributes": {"interrupted": true, "synchronizedTranscript": "First"}}, {"name": "playbackFinished", "attributes": {"interrupted": true, "synchronizedTranscript": "Second"}}]}},
+      {"id": "r-a2-speech0", "span_id": "s-a2-speech0", "root_span_id": "s-session", "span_parents": ["s-a2"], "span_attributes": {"type": "task", "name": "agent_speech"}, "metrics": {"start": 12, "end": 13}, "metadata": {"turn.id": "s-a2", "contrib.livekit.interrupted": true}},
+      {"id": "r-a2-speech1", "span_id": "s-a2-speech1", "root_span_id": "s-session", "span_parents": ["s-a2"], "span_attributes": {"type": "task", "name": "agent_speech"}, "metrics": {"start": 13, "end": 14}, "metadata": {"turn.id": "s-a2", "contrib.livekit.interrupted": true}}
+    ],
+    "events": [
+      {"tts": {"audio": [], "end_time": "1970-01-01T00:00:03Z", "id": "r-a0-speech0", "interrupted": true, "owner": "r-a0", "start_time": "1970-01-01T00:00:02Z", "text": "Spoken so far"}},
+      {"tts": {"audio": [], "end_time": "1970-01-01T00:00:13Z", "id": "r-a2-speech0", "interrupted": true, "owner": "r-a2", "start_time": "1970-01-01T00:00:12Z", "text": null}},
+      {"tts": {"audio": [], "end_time": "1970-01-01T00:00:14Z", "id": "r-a2-speech1", "interrupted": true, "owner": "r-a2", "start_time": "1970-01-01T00:00:13Z", "text": "Second"}}
+    ]
+  },
+  {
+    "name": "duplex",
+    "spans": [
+      {"id": "r-session", "span_id": "s-session", "root_span_id": "s-session", "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 9}},
+      {"id": "r-user", "span_id": "s-user", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "user_speech"}, "metrics": {"start": 1, "end": 2}, "input": [{"role": "user", "content": "Hi"}]},
+      {"id": "r-llm", "span_id": "s-llm", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "llm", "name": "llm_response"}, "metrics": {"start": 2, "end": 3}},
+      {"id": "r-agent", "span_id": "s-agent", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "agent_speech"}, "metrics": {"start": 3, "end": 4}, "output": [{"role": "assistant", "content": "Hello"}]}
+    ],
+    "events": [
+      {"stt": {"audio": [], "end_time": "1970-01-01T00:00:02Z", "id": "r-user", "interrupted": null, "owner": "r-session", "start_time": "1970-01-01T00:00:01Z", "text": "Hi"}},
+      {"tts": {"audio": [], "end_time": "1970-01-01T00:00:04Z", "id": "r-agent", "interrupted": null, "owner": "r-llm", "start_time": "1970-01-01T00:00:03Z", "text": "Hello"}}
+    ]
+  },
+  {
+    "name": "recordings",
+    "spans": [
+      {"id": "r-session", "span_id": "s-session", "root_span_id": "s-session", "span_parents": [], "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 1}, "metadata": {"audio.recordings": [{"id": "second", "attachment": {"span_id": "s-session", "ref": "/input/audio/second"}, "timeline": {"origin_unix_ms": 1000, "recording_start_offset_ms": 750}, "sources": [{"boundary": "local_audio_output", "channel_index": 1}, {"boundary": "session_input", "channel_index": 0}], "mime_type": "audio/ogg", "duration_ms": 27000}, {"id": "first", "attachment": {"span_id": "s-session", "ref": "/input/audio/first"}, "timeline": {"origin_unix_ms": 1000, "recording_start_offset_ms": 250}, "sources": [{"boundary": "local_audio_output", "channel_index": 1}, {"boundary": "session_input", "channel_index": 0}], "mime_type": "audio/ogg", "duration_ms": 27000}, {"id": "pending", "state": "pending"}]}},
+      {"id": "r-speech", "span_id": "s-speech", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "user_speech"}, "metrics": {"start": 1, "end": 2}, "metadata": {"audio.selections": [{"recording_span_id": "s-session", "recording_id": "first", "start_offset_ms": 750, "end_offset_ms": 1500.5, "channel_index": 0}]}, "input": [{"role": "user", "content": "Hello"}]},
+      {"id": "r-pending", "span_id": "s-pending", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "user_speech"}, "metrics": {"start": 2, "end": 3}, "metadata": {"audio.selections": [{"recording_span_id": "s-session", "recording_id": "pending", "start_offset_ms": 750, "end_offset_ms": 1500.5, "channel_index": 0}]}, "input": [{"role": "user", "content": "Later"}]}
+    ],
+    "events": [
+      {"recording": {"attachment_ref": "/input/audio/second", "channels": ["session_input", "local_audio_output"], "duration_ms": 27000.0, "id": "r-session", "mime_type": "audio/ogg", "name": "second", "start_time": "1970-01-01T00:00:01.750Z"}},
+      {"recording": {"attachment_ref": "/input/audio/first", "channels": ["session_input", "local_audio_output"], "duration_ms": 27000.0, "id": "r-session", "mime_type": "audio/ogg", "name": "first", "start_time": "1970-01-01T00:00:01.250Z"}},
+      {"stt": {"audio": [{"attachment_ref": "/input/audio/first", "channel_index": 0, "end_offset_ms": 1500.5, "recording_id": "r-session", "recording_name": "first", "start_offset_ms": 750.0}], "end_time": "1970-01-01T00:00:02Z", "id": "r-speech", "interrupted": null, "owner": "r-session", "start_time": "1970-01-01T00:00:01Z", "text": "Hello"}},
+      {"stt": {"audio": [], "end_time": "1970-01-01T00:00:03Z", "id": "r-pending", "interrupted": null, "owner": "r-session", "start_time": "1970-01-01T00:00:02Z", "text": "Later"}}
+    ]
+  },
+  {
+    "name": "recording-only",
+    "spans": [
+      {"id": "r-session", "span_id": "s-session", "root_span_id": "s-session", "span_parents": [], "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 1}, "metadata": {"audio.recordings": [{"id": "second", "attachment": {"span_id": "s-session", "ref": "/input/audio/second"}, "timeline": {"origin_unix_ms": 1000, "recording_start_offset_ms": 750}, "sources": [{"boundary": "local_audio_output", "channel_index": 1}, {"boundary": "session_input", "channel_index": 0}], "mime_type": "audio/ogg", "duration_ms": 27000}, {"id": "first", "attachment": {"span_id": "s-session", "ref": "/input/audio/first"}, "timeline": {"origin_unix_ms": 1000, "recording_start_offset_ms": 250}, "sources": [{"boundary": "local_audio_output", "channel_index": 1}, {"boundary": "session_input", "channel_index": 0}], "mime_type": "audio/ogg", "duration_ms": 27000}, {"id": "pending", "state": "pending"}]}}
+    ],
+    "events": [
+      {"recording": {"attachment_ref": "/input/audio/second", "channels": ["session_input", "local_audio_output"], "duration_ms": 27000.0, "id": "r-session", "mime_type": "audio/ogg", "name": "second", "start_time": "1970-01-01T00:00:01.750Z"}},
+      {"recording": {"attachment_ref": "/input/audio/first", "channels": ["session_input", "local_audio_output"], "duration_ms": 27000.0, "id": "r-session", "mime_type": "audio/ogg", "name": "first", "start_time": "1970-01-01T00:00:01.250Z"}}
+    ]
+  },
+  {
+    "name": "invalid-links",
+    "spans": [
+      {"id": "r-session", "span_id": "s-session", "root_span_id": "s-session", "span_parents": [], "span_attributes": {"type": "task", "name": "session"}, "metrics": {"start": 0, "end": 1}, "metadata": {"audio.recordings": [{"id": "no-attachment", "timeline": {"origin_unix_ms": 0, "recording_start_offset_ms": 0}}, {"id": "gap", "attachment": {"span_id": "s-session", "ref": "/input/audio/gap"}, "timeline": {"origin_unix_ms": 0, "recording_start_offset_ms": 0}, "sources": [{"boundary": "session_input", "channel_index": 1}]}, {"id": "elsewhere", "attachment": {"span_id": "s-other", "ref": "/input/audio/x"}, "timeline": {"origin_unix_ms": 0, "recording_start_offset_ms": 0}}, {"id": "no-timeline", "attachment": {"span_id": "s-session", "ref": "/input/audio/x"}}]}},
+      {"id": "r-speech", "span_id": "s-speech", "root_span_id": "s-session", "span_parents": ["s-session"], "span_attributes": {"type": "task", "name": "user_speech"}, "metrics": {"start": 1, "end": 2}, "metadata": {"turn.id": "s-gone", "audio.selections": [{"recording_id": "call", "start_offset_ms": 0, "end_offset_ms": 10}], "contrib.livekit.interrupted": "yes"}, "input": [{"role": "user", "content": "One"}, {"role": "user", "content": "Two"}]}
+    ],
+    "events": [
+      {"warning": ["r-session", "Unsupported audio recording no-attachment: missing attachment"]},
+      {"warning": ["r-session", "Unsupported audio recording gap: channel indexes must be 0 through n - 1"]},
+      {"warning": ["r-session", "Unsupported audio recording elsewhere: attachment span s-other is not in this trace"]},
+      {"warning": ["r-session", "Unsupported audio recording no-timeline: missing timeline"]},
+      {"warning": ["r-speech", "Invalid metadata.contrib.livekit.interrupted: invalid type: string \"yes\", expected a boolean"]},
+      {"warning": ["r-speech", "Unresolved voice turn.id s-gone: no voice turn has that span ID"]},
+      {"warning": ["r-speech", "Unresolved audio selection for recording call: recording_span_id is not in this trace"]},
+      {"warning": ["r-speech", "Unsupported speech payload: expected one text message"]},
+      {"stt": {"audio": [], "end_time": "1970-01-01T00:00:02Z", "id": "r-speech", "interrupted": null, "owner": null, "start_time": "1970-01-01T00:00:01Z", "text": null}}
+    ]
+  }
+]

@@ -2400,3 +2400,42 @@ fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
     assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
     assert_eq!(result[0]["turns"][0]["response_id"], "done");
 }
+
+#[derive(Default)]
+struct VoiceLog(Vec<Value>);
+
+impl<'a> voice::VoiceSink<'a> for VoiceLog {
+    fn recording(&mut self, recording: voice::Recording<'a>) {
+        self.0.push(json!({ "recording": recording }));
+    }
+    fn stt(&mut self, speech: voice::Speech<'a>) {
+        self.0.push(json!({ "stt": speech }));
+    }
+    fn tts(&mut self, speech: voice::Speech<'a>) {
+        self.0.push(json!({ "tts": speech }));
+    }
+    fn warning(&mut self, span_id: &'a str, message: std::borrow::Cow<'a, str>) {
+        self.0.push(json!({ "warning": [span_id, message] }));
+    }
+}
+
+#[test]
+fn voice_walk_drives_sink_in_start_order() {
+    #[derive(Deserialize)]
+    struct Case {
+        name: String,
+        spans: Vec<Span>,
+        events: Option<Vec<Value>>,
+    }
+    let cases: Vec<Case> = serde_json::from_str(include_str!("fixtures/voice-walk.json")).unwrap();
+    for case in cases {
+        let spans: Vec<_> = case
+            .spans
+            .into_iter()
+            .map(|span| PreparedSpan::new(import_span(span).unwrap()).unwrap())
+            .collect();
+        let mut log = VoiceLog::default();
+        voice::walk(spans.iter().collect(), &mut log);
+        assert_eq!(Some(log.0), case.events, "{}", case.name);
+    }
+}
