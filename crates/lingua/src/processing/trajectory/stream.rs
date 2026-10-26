@@ -86,6 +86,7 @@ struct TurnState {
     position: usize,
     end_time: Option<DateTime<Utc>>,
     unfinished: bool,
+    stt: Vec<usize>,
 }
 
 impl TurnState {
@@ -185,6 +186,7 @@ enum Role {
     Conversation,
     Analysis,
     Tool,
+    Voice,
     Task { fallback: bool },
 }
 
@@ -199,8 +201,13 @@ fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) 
         .iter()
         .enumerate()
         .map(|(index, span)| {
-            if owners[&index].skipped || span.source.voice.kind.is_some() {
+            if owners[&index].skipped {
                 return Role::Ignored;
+            }
+            match span.source.voice.kind {
+                Some(VoiceKind::Stt | VoiceKind::Tts) => return Role::Voice,
+                Some(_) => return Role::Ignored,
+                None => {}
             }
             match span.kind() {
                 "llm" if span.source.analysis => Role::Analysis,
@@ -964,7 +971,20 @@ impl TrajectoryStream {
         ) {
             return Ok(None);
         }
-        let work = if self.roles[index] == Role::Tool {
+        let work = if self.roles[index] == Role::Voice {
+            Work::ToolResult(Box::new(ToolResult {
+                input: None,
+                output: span
+                    .output
+                    .iter()
+                    .find_map(|message| match message {
+                        Message::User { content } => voice::user_text(content),
+                        _ => None,
+                    })
+                    .map(json::Value::String),
+                content: None,
+            }))
+        } else if self.roles[index] == Role::Tool {
             Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
                 format!("Missing imported tool result for {}", span.id)
             })?))
@@ -993,8 +1013,18 @@ impl TrajectoryStream {
             position,
             step: WorkStep {
                 id: span.id.clone(),
-                span_type: span.kind().to_string(),
-                name: span.source.name.clone(),
+                span_type: match span.source.voice.kind {
+                    Some(VoiceKind::Stt) => "stt",
+                    Some(VoiceKind::Tts) => "tts",
+                    _ => span.kind(),
+                }
+                .to_string(),
+                name: span
+                    .source
+                    .voice
+                    .kind
+                    .and(span.source.model.clone())
+                    .or(span.source.name.clone()),
                 error: span.source.error.clone(),
                 start_time: span.start,
                 end_time: span.source.end,
@@ -1063,6 +1093,21 @@ impl TrajectoryStream {
         let scope = self.scope(&key);
         let mut state = self.states.remove(&key).unwrap_or_default();
         let previous_candidate = state.candidate.map(|(index, _)| index);
+        if self.roles[index] == Role::Voice {
+            if span.source.voice.kind == Some(VoiceKind::Stt) {
+                state.stt.push(index);
+            } else if let Some(turn) = state
+                .id
+                .as_ref()
+                .map(|id| &self.spans[self.by_id[id]])
+                .filter(|turn| turn.source.voice.turn_id == span.source.voice.turn_id)
+            {
+                events.extend(self.work(&scope, &turn.id, index, state.position)?);
+                state.position += 1;
+            }
+            self.states.insert(key, state);
+            return Ok(());
+        }
         if self.resumed.contains(&index) {
             if let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start) {
                 events.extend(self.work(&scope, &target.id, index, target.position)?);
@@ -1161,6 +1206,10 @@ impl TrajectoryStream {
                         .and_then(|index| self.spans[index].source.compaction.clone()),
                 }),
             });
+            for stt in std::mem::take(&mut state.stt) {
+                events.extend(self.work(&scope, &span.id, stt, state.position)?);
+                state.position += 1;
+            }
         } else if boundary == BoundaryAction::AttachRequest {
             if key.compaction.is_none() && observation.interrupts {
                 if let Some(id) = &state.previous_id {
