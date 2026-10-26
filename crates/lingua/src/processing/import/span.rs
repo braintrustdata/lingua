@@ -1,4 +1,4 @@
-use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
+use super::{import_span_messages, is_instruction, livekit, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
 use crate::universal::{
@@ -18,6 +18,11 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "trajectory_role",
     "request_kind",
     "compaction",
+    // Voice metadata.
+    "turn.id",
+    "audio.selections",
+    "audio.recordings",
+    "contrib.livekit.interrupted",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,6 +47,76 @@ pub struct SpanContext {
     #[serde(default)]
     pub analysis: bool,
     pub compaction: Option<Compaction>,
+    #[serde(default)]
+    pub voice: VoiceContext,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Speaker {
+    User,
+    Agent,
+}
+
+/// A cascaded voice span: a turn, a speech interval, or an STT/TTS operation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceKind {
+    Turn(Speaker),
+    Speech(Speaker),
+    Stt,
+    Tts,
+}
+
+/// Voice metadata from a span header. Invalid voice metadata is reported only for voice traces.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct VoiceContext {
+    pub kind: Option<VoiceKind>,
+    pub turn_id: Option<String>,
+    pub interrupted: Option<bool>,
+    #[serde(default)]
+    pub selections: Vec<SelectionMetadata>,
+    #[serde(default)]
+    pub recordings: Vec<RecordingMetadata>,
+    #[serde(default)]
+    pub errors: Vec<String>,
+    /// The header has voice array fields, which are read from the payload.
+    #[serde(default)]
+    pub payload: bool,
+}
+
+/// An `audio.recordings` entry: an audio attachment and what its channels hold.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingMetadata {
+    pub id: String,
+    pub state: Option<String>,
+    pub attachment: Option<RecordingAttachment>,
+    #[serde(default)]
+    pub sources: Vec<RecordingSource>,
+    pub mime_type: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingAttachment {
+    pub span_id: String,
+    #[serde(rename = "ref")]
+    pub reference: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordingSource {
+    pub boundary: String,
+    pub channel_index: Option<u32>,
+}
+
+/// An `audio.selections` entry: offsets into a recording described by `recording_span_id`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectionMetadata {
+    pub recording_span_id: Option<String>,
+    pub recording_id: String,
+    pub start_offset_ms: f64,
+    pub end_offset_ms: f64,
+    pub channel_index: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -132,6 +207,14 @@ struct Metadata {
     trajectory_role: Option<json::Value>,
     request_kind: Option<json::Value>,
     compaction: Option<json::Value>,
+    #[serde(rename = "turn.id")]
+    voice_turn_id: Option<json::Value>,
+    #[serde(rename = "contrib.livekit.interrupted")]
+    voice_interrupted: Option<json::Value>,
+    #[serde(rename = "audio.selections")]
+    audio_selections: Option<json::Value>,
+    #[serde(rename = "audio.recordings")]
+    audio_recordings: Option<json::Value>,
 }
 
 fn metadata_field<T: serde::de::DeserializeOwned>(
@@ -180,6 +263,35 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         || request_kind.as_deref() == Some("reviewer");
     let compaction =
         metadata_field::<CompactionHint>(metadata.compaction, "compaction", &mut errors);
+    let mut voice_errors = Vec::new();
+    let payload = metadata.audio_selections.is_some() || metadata.audio_recordings.is_some();
+    let voice = VoiceContext {
+        kind: livekit::voice_kind(
+            source.span_attributes.kind.as_deref(),
+            source.span_attributes.name.as_deref(),
+        ),
+        turn_id: metadata_field(metadata.voice_turn_id, "turn.id", &mut voice_errors),
+        interrupted: metadata_field(
+            metadata.voice_interrupted,
+            "contrib.livekit.interrupted",
+            &mut voice_errors,
+        ),
+        selections: metadata_field(
+            metadata.audio_selections,
+            "audio.selections",
+            &mut voice_errors,
+        )
+        .unwrap_or_default(),
+        recordings: metadata_field(
+            metadata.audio_recordings,
+            "audio.recordings",
+            &mut voice_errors,
+        )
+        .unwrap_or_default(),
+        errors: voice_errors,
+        payload,
+    };
+
     let start = source.metrics.start.and_then(timestamp).or(source.created);
     let end = source
         .metrics
@@ -289,6 +401,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
     source.header.turn = turn;
     source.header.analysis = analysis;
     source.header.compaction = compaction;
+    source.header.voice = voice;
     source.header.kind = source
         .span_attributes
         .kind

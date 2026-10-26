@@ -1,0 +1,581 @@
+{
+  "spans": [
+    {
+      "id": "r-session",
+      "span_id": "s-session",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "session"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 30
+      },
+      "metadata": {
+        "audio.recordings": [
+          {
+            "id": "call-0000",
+            "recording_group_id": "call",
+            "state": "pending",
+            "sources": [
+              {
+                "boundary": "session_input",
+                "channel_index": 0
+              },
+              {
+                "boundary": "local_audio_output",
+                "channel_index": 1
+              }
+            ],
+            "timeline": {
+              "basis": "local_input_arrival_and_output_playout",
+              "origin_unix_ms": 0,
+              "recording_start_offset_ms": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r-u1",
+      "span_id": "s-u1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 5
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-u1",
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u1-a",
+      "span_id": "s-u1-a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 1.0,
+        "end": 3.0
+      },
+      "span_parents": [
+        "s-u1"
+      ],
+      "metadata": {
+        "turn.id": "s-u1",
+        "audio.selections": []
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Draw how a voice agent works."
+        }
+      ]
+    },
+    {
+      "id": "r-stt1a",
+      "span_id": "s-stt1a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt"
+      },
+      "metrics": {
+        "start": 1.4,
+        "end": 3.0
+      },
+      "span_parents": [
+        "s-u1"
+      ],
+      "metadata": {
+        "turn.id": "s-u1"
+      },
+      "output": [
+        {
+          "role": "user",
+          "content": "Draw how a voice agent"
+        }
+      ]
+    },
+    {
+      "id": "r-a1",
+      "span_id": "s-a1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 3.7,
+        "end": 15
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "audio.selections": [],
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-llm1",
+      "span_id": "s-llm1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 3.8,
+        "end": 5.4
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1"
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "You are a concise voice assistant."
+        },
+        {
+          "role": "user",
+          "content": "Draw how a voice agent works."
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_call",
+              "tool_call_id": "call-1",
+              "tool_name": "draw_diagram",
+              "arguments": {
+                "type": "valid",
+                "value": {
+                  "title": "Voice agent"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r-tool1",
+      "span_id": "s-tool1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "tool",
+        "name": "draw_diagram"
+      },
+      "metrics": {
+        "start": 5.4,
+        "end": 5.5
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "tool_call_id": "call-1"
+      },
+      "input": {
+        "title": "Voice agent"
+      },
+      "output": {
+        "status": "cancelled"
+      }
+    },
+    {
+      "id": "r-llm2",
+      "span_id": "s-llm2",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 5.5,
+        "end": 7.0
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1"
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "You are a concise voice assistant."
+        },
+        {
+          "role": "user",
+          "content": "Draw how a voice agent works."
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_call",
+              "tool_call_id": "call-1",
+              "tool_name": "draw_diagram",
+              "arguments": {
+                "type": "valid",
+                "value": {
+                  "title": "Voice agent"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_call_id": "call-1",
+              "tool_name": "draw_diagram",
+              "output": {
+                "status": "cancelled"
+              }
+            }
+          ]
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "The diagram shows: 1. User speaks. 2. Recognized text goes to the model."
+        }
+      ]
+    },
+    {
+      "id": "r-tts1",
+      "span_id": "s-tts1",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "tts"
+      },
+      "metrics": {
+        "start": 7.0,
+        "end": 12.0
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1"
+      }
+    },
+    {
+      "id": "r-a1-speech",
+      "span_id": "s-a1-speech",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 7.3,
+        "end": 14.9
+      },
+      "span_parents": [
+        "s-a1"
+      ],
+      "metadata": {
+        "turn.id": "s-a1",
+        "audio.selections": [],
+        "contrib.livekit.interrupted": true
+      },
+      "output": [
+        {
+          "role": "assistant",
+          "content": "The diagram shows: 1. User speaks. 2. Recognized"
+        }
+      ]
+    },
+    {
+      "id": "r-u2",
+      "span_id": "s-u2",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 7.5,
+        "end": 16.5
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-u2",
+        "audio.selections": []
+      }
+    },
+    {
+      "id": "r-u2-a",
+      "span_id": "s-u2-a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 7.5,
+        "end": 7.7
+      },
+      "span_parents": [
+        "s-u2"
+      ],
+      "metadata": {
+        "turn.id": "s-u2",
+        "audio.selections": []
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Just show me."
+        }
+      ]
+    },
+    {
+      "id": "r-a2",
+      "span_id": "s-a2",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 16.5,
+        "end": 18.4
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-a2",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-llm3",
+      "span_id": "s-llm3",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 16.5,
+        "end": 17.5
+      },
+      "span_parents": [
+        "s-a2"
+      ],
+      "metadata": {
+        "turn.id": "s-a2"
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "You are a concise voice assistant."
+        },
+        {
+          "role": "user",
+          "content": "Draw how a voice agent works."
+        },
+        {
+          "role": "assistant",
+          "content": "The diagram shows: 1. User speaks. 2. Recognized"
+        },
+        {
+          "role": "user",
+          "content": "Just show me."
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_call",
+              "tool_call_id": "call-2",
+              "tool_name": "draw_diagram",
+              "arguments": {
+                "type": "valid",
+                "value": {
+                  "title": "Voice agent pipeline"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r-u4",
+      "span_id": "s-u4",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 21.9,
+        "end": 26.5
+      },
+      "span_parents": [
+        "s-session"
+      ],
+      "metadata": {
+        "turn.id": "s-u4"
+      }
+    },
+    {
+      "id": "r-u4-a",
+      "span_id": "s-u4-a",
+      "root_span_id": "s-session",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 22.0,
+        "end": 22.4
+      },
+      "span_parents": [
+        "s-u4"
+      ],
+      "metadata": {
+        "turn.id": "s-u4",
+        "audio.selections": []
+      }
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "r-llm1",
+      "response_id": "r-llm2",
+      "response_text": "The diagram shows: 1. User speaks. 2. Recognized text goes to the model.",
+      "work_ids": [
+        "r-u1-a",
+        "r-stt1a",
+        "r-llm1",
+        "r-tool1",
+        "r-tts1",
+        "r-a1-speech"
+      ],
+      "user_texts": [
+        "Draw how a voice agent works."
+      ],
+      "interrupted": true
+    },
+    {
+      "request_id": "r-llm3",
+      "response_text": "",
+      "work_ids": [
+        "r-u2-a",
+        "r-llm3"
+      ],
+      "user_texts": [
+        "Just show me."
+      ],
+      "interrupted": true
+    },
+    {
+      "request_id": "r-u4",
+      "response_text": "",
+      "work_ids": [
+        "r-u4-a"
+      ],
+      "user_texts": []
+    }
+  ],
+  "voice_work": [
+    {
+      "id": "r-u1-a",
+      "span_type": "task",
+      "name": "user_speech",
+      "start_time": "1970-01-01T00:00:01Z",
+      "end_time": "1970-01-01T00:00:03Z",
+      "work": {
+        "type": "stt",
+        "transcript": "Draw how a voice agent works."
+      }
+    },
+    {
+      "id": "r-stt1a",
+      "span_type": "task",
+      "name": "stt",
+      "start_time": "1970-01-01T00:00:01.400Z",
+      "end_time": "1970-01-01T00:00:03Z",
+      "work": {
+        "type": "stt"
+      }
+    },
+    {
+      "id": "r-tts1",
+      "span_type": "task",
+      "name": "tts",
+      "start_time": "1970-01-01T00:00:07Z",
+      "end_time": "1970-01-01T00:00:12Z",
+      "work": {
+        "type": "tts"
+      }
+    },
+    {
+      "id": "r-a1-speech",
+      "span_type": "task",
+      "name": "agent_speech",
+      "start_time": "1970-01-01T00:00:07.300Z",
+      "end_time": "1970-01-01T00:00:14.900Z",
+      "work": {
+        "type": "tts",
+        "text": "The diagram shows: 1. User speaks. 2. Recognized",
+        "interrupted": true
+      }
+    },
+    {
+      "id": "r-u2-a",
+      "span_type": "task",
+      "name": "user_speech",
+      "start_time": "1970-01-01T00:00:07.500Z",
+      "end_time": "1970-01-01T00:00:07.700Z",
+      "work": {
+        "type": "stt",
+        "transcript": "Just show me."
+      }
+    },
+    {
+      "id": "r-u4-a",
+      "span_type": "task",
+      "name": "user_speech",
+      "start_time": "1970-01-01T00:00:22Z",
+      "end_time": "1970-01-01T00:00:22.400Z",
+      "work": {
+        "type": "stt"
+      }
+    }
+  ]
+}

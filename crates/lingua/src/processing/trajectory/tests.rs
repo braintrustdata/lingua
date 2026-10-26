@@ -41,6 +41,7 @@ struct ImportFixture {
     import_options: ImportOptions,
     spans: Vec<Span>,
     turns: Vec<ExpectedTurn>,
+    voice_work: Option<Value>,
     #[serde(default)]
     worker_responses: Vec<String>,
     start_times: Option<Vec<DateTime<Utc>>>,
@@ -80,6 +81,15 @@ fn check_fixture(fixture: &ImportFixture) {
         }
         snapshot = Some(actual);
         assert_eq!(trajectories.len(), 1);
+        if let Some(voice_work) = &fixture.voice_work {
+            let actual: Vec<_> = trajectories[0]
+                .turns
+                .iter()
+                .flat_map(|turn| &turn.work)
+                .filter(|step| matches!(step.work, Work::Stt(_) | Work::Tts(_)))
+                .collect();
+            assert_eq!(&serde_json::to_value(actual).unwrap(), voice_work);
+        }
         if let Some(requests) = &fixture.requests {
             let actual: Vec<_> = trajectories[0]
                 .turns
@@ -414,7 +424,9 @@ fn check_span_coverage(
             };
             let imported =
                 import_span_with_options(source.clone(), fixture.import_options).unwrap();
-            if imported.header.analysis || !matches!(imported.header.kind.as_str(), "llm" | "task")
+            if imported.header.analysis
+                || imported.header.voice.kind.is_some()
+                || !matches!(imported.header.kind.as_str(), "llm" | "task")
             {
                 continue;
             }
@@ -780,6 +792,7 @@ fn generated_conversation(
     ImportFixture {
         spans,
         turns: expected,
+        voice_work: None,
         import_options: ImportOptions::default(),
         worker_responses,
         import_failures: Vec::new(),
@@ -2400,3 +2413,6 @@ fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
     assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
     assert_eq!(result[0]["turns"][0]["response_id"], "done");
 }
+
+import_fixture!(voice_cascade, "fixtures/voice-cascade.json");
+import_fixture!(voice_duplex, "fixtures/voice-duplex.json");

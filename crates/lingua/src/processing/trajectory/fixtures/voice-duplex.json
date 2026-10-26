@@ -1,0 +1,686 @@
+{
+  "spans": [
+    {
+      "id": "32faf3fda16a6e96",
+      "span_id": "ec099e46fa1da84e",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.agent_session",
+        "exec_counter": 0
+      },
+      "metrics": {
+        "start": 1792089428.429,
+        "end": 1792089449.689171
+      },
+      "metadata": {
+        "audio.recordings": [
+          {
+            "attachment": {
+              "ref": "/input/audio/call-0000",
+              "span_id": "ec099e46fa1da84e"
+            },
+            "id": "call-0000",
+            "mime_type": "audio/ogg",
+            "sources": [
+              {
+                "boundary": "session_input",
+                "channel_index": 0
+              },
+              {
+                "boundary": "local_audio_output",
+                "channel_index": 1
+              }
+            ],
+            "state": "ready"
+          }
+        ]
+      }
+    },
+    {
+      "id": "f34aaa489e63f67e",
+      "span_id": "fa2686c96e34afda",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 8
+      },
+      "metrics": {
+        "start": 1792089430.381,
+        "end": 1792089432.3563108
+      },
+      "input": [],
+      "output": [
+        {
+          "content": "Hi, how can I help?",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "68e031159f3feede",
+      "span_id": "3cfd96ad876a52e1",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech",
+        "exec_counter": 9
+      },
+      "metrics": {
+        "start": 1792089430.387,
+        "end": 1792089432.355
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 3252,
+            "recording_id": "call-0000",
+            "recording_span_id": "ec099e46fa1da84e",
+            "start_offset_ms": 1952
+          }
+        ]
+      },
+      "output": [
+        {
+          "content": "Hi, how can I help?",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "8d9f25e48b7888cd",
+      "span_id": "b4b129f8d1e80c1e",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 10
+      },
+      "metrics": {
+        "start": 1792089433.721,
+        "end": 1792089435.4345667
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 6999,
+            "recording_id": "call-0000",
+            "recording_span_id": "ec099e46fa1da84e",
+            "start_offset_ms": 5287
+          }
+        ]
+      },
+      "input": [
+        {
+          "content": " Hi, can you tell me where a",
+          "role": "user"
+        }
+      ]
+    },
+    {
+      "id": "8bb24c01384ebf11",
+      "span_id": "724b542f5f6952c4",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 11
+      },
+      "metrics": {
+        "start": 1792089435.487,
+        "end": 1792089437.804721
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 9369,
+            "recording_id": "call-0000",
+            "recording_span_id": "ec099e46fa1da84e",
+            "start_offset_ms": 7053
+          }
+        ]
+      },
+      "input": [
+        {
+          "content": " demo 1042 is",
+          "role": "user"
+        }
+      ]
+    },
+    {
+      "id": "d855d11a6e8ee505",
+      "span_id": "b7c2237de758520e",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 12
+      },
+      "metrics": {
+        "start": 1792089437.286,
+        "end": 1792089439.2661483
+      },
+      "input": [
+        {
+          "content": "Hi, how can I help?",
+          "role": "assistant"
+        },
+        {
+          "content": " Hi, can you tell me where a",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_sRWHZLATdVVcZeifkZiZ6V0d",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": " Sure, I'll check that.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "62acd8e8ee191cbd",
+      "span_id": "e09b793a3b6505d4",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech",
+        "exec_counter": 13
+      },
+      "metrics": {
+        "start": 1792089437.288,
+        "end": 1792089439.263
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 8953,
+            "recording_id": "call-0000",
+            "recording_span_id": "ec099e46fa1da84e",
+            "start_offset_ms": 8853
+          }
+        ]
+      },
+      "output": [
+        {
+          "content": " Sure, I'll check that.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "46685b2fb3905fc6",
+      "span_id": "20eb745f0662fe82",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "tool",
+        "name": "lookup_order",
+        "exec_counter": 14
+      },
+      "metrics": {
+        "start": 1792089438.241,
+        "end": 1792089438.3643565
+      },
+      "input": {
+        "order_id": "1042"
+      },
+      "output": {
+        "delivery": "Friday",
+        "demo_data": true,
+        "order_id": "1042",
+        "status": "in_transit"
+      }
+    },
+    {
+      "id": "cf4ad22a4fce2f17",
+      "span_id": "b4e74ad754f892dd",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 15
+      },
+      "metrics": {
+        "start": 1792089441.032,
+        "end": 1792089445.7348232
+      },
+      "input": [
+        {
+          "content": "Hi, how can I help?",
+          "role": "assistant"
+        },
+        {
+          "content": " Hi, can you tell me where a",
+          "role": "user"
+        },
+        {
+          "content": " demo 1042 is",
+          "role": "user"
+        },
+        {
+          "content": " Sure, I'll check that.",
+          "role": "assistant"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_sRWHZLATdVVcZeifkZiZ6V0d",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1042\",\"status\":\"in_transit\",\"delivery\":\"Friday\",\"demo_data\":true}",
+          "role": "tool",
+          "tool_call_id": "call_sRWHZLATdVVcZeifkZiZ6V0d"
+        }
+      ],
+      "output": [
+        {
+          "content": " Order 1042 is in transit and expected to arrive Friday.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "3a80360be3632430",
+      "span_id": "a7d76d0048b38108",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech",
+        "exec_counter": 16
+      },
+      "metrics": {
+        "start": 1792089441.034,
+        "end": 1792089445.734
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 14299,
+            "recording_id": "call-0000",
+            "recording_span_id": "ec099e46fa1da84e",
+            "start_offset_ms": 12600
+          }
+        ]
+      },
+      "output": [
+        {
+          "content": " Order 1042 is in transit and expected to arrive Friday.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "2cb6e251a0e3e227",
+      "span_id": "25e6d8da0e2ac49c",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 17
+      },
+      "metrics": {
+        "start": 1792089446.998,
+        "end": 1792089448.1652882
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 0,
+            "end_offset_ms": 19729,
+            "recording_id": "call-0000",
+            "recording_span_id": "ec099e46fa1da84e",
+            "start_offset_ms": 18564
+          }
+        ]
+      },
+      "input": [
+        {
+          "content": " Alright, thank you",
+          "role": "user"
+        }
+      ]
+    },
+    {
+      "id": "fb1ff83447ce40a4",
+      "span_id": "801232dba27364b6",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 18
+      },
+      "metrics": {
+        "start": 1792089447.373,
+        "end": 1792089448.8794503
+      },
+      "input": [
+        {
+          "content": "Hi, how can I help?",
+          "role": "assistant"
+        },
+        {
+          "content": " Hi, can you tell me where a",
+          "role": "user"
+        },
+        {
+          "content": " demo 1042 is",
+          "role": "user"
+        },
+        {
+          "content": " Sure, I'll check that.",
+          "role": "assistant"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1042\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_sRWHZLATdVVcZeifkZiZ6V0d",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1042\",\"status\":\"in_transit\",\"delivery\":\"Friday\",\"demo_data\":true}",
+          "role": "tool",
+          "tool_call_id": "call_sRWHZLATdVVcZeifkZiZ6V0d"
+        },
+        {
+          "content": " Order 1042 is in transit and expected to arrive Friday.",
+          "role": "assistant"
+        }
+      ],
+      "output": [
+        {
+          "content": " You're welcome.",
+          "role": "assistant"
+        }
+      ]
+    },
+    {
+      "id": "f5e0b9990bdd4e42",
+      "span_id": "cea34c01ea725ac1",
+      "root_span_id": "9474f300fdfc76c9d3dad9c5c51a115c",
+      "span_parents": [
+        "ec099e46fa1da84e"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech",
+        "exec_counter": 19
+      },
+      "metrics": {
+        "start": 1792089447.375,
+        "end": 1792089448.878
+      },
+      "metadata": {
+        "audio.selections": [
+          {
+            "channel_index": 1,
+            "end_offset_ms": 19040,
+            "recording_id": "call-0000",
+            "recording_span_id": "ec099e46fa1da84e",
+            "start_offset_ms": 18940
+          }
+        ]
+      },
+      "output": [
+        {
+          "content": " You're welcome.",
+          "role": "assistant"
+        }
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "f34aaa489e63f67e",
+      "response_id": "f34aaa489e63f67e",
+      "response_text": "Hi, how can I help?",
+      "work_ids": [
+        "68e031159f3feede"
+      ],
+      "user_texts": []
+    },
+    {
+      "request_id": "d855d11a6e8ee505",
+      "response_id": "fb1ff83447ce40a4",
+      "response_text": " You're welcome.",
+      "work_ids": [
+        "8d9f25e48b7888cd",
+        "8bb24c01384ebf11",
+        "d855d11a6e8ee505",
+        "62acd8e8ee191cbd",
+        "46685b2fb3905fc6",
+        "cf4ad22a4fce2f17",
+        "3a80360be3632430",
+        "2cb6e251a0e3e227",
+        "f5e0b9990bdd4e42"
+      ],
+      "user_texts": [
+        " Hi, can you tell me where a"
+      ]
+    }
+  ],
+  "voice_work": [
+    {
+      "id": "68e031159f3feede",
+      "span_type": "task",
+      "name": "agent_speech",
+      "start_time": "2026-10-15T18:37:10.387Z",
+      "end_time": "2026-10-15T18:37:12.355Z",
+      "work": {
+        "type": "tts",
+        "text": "Hi, how can I help?",
+        "audio": [
+          {
+            "recording_id": "32faf3fda16a6e96",
+            "attachment_ref": "/input/audio/call-0000",
+            "mime_type": "audio/ogg",
+            "channel_index": 1,
+            "channel": "local_audio_output",
+            "start_offset_ms": 1952.0,
+            "end_offset_ms": 3252.0
+          }
+        ]
+      }
+    },
+    {
+      "id": "8d9f25e48b7888cd",
+      "span_type": "task",
+      "name": "user_speech",
+      "start_time": "2026-10-15T18:37:13.721Z",
+      "end_time": "2026-10-15T18:37:15.434566Z",
+      "work": {
+        "type": "stt",
+        "transcript": " Hi, can you tell me where a",
+        "audio": [
+          {
+            "recording_id": "32faf3fda16a6e96",
+            "attachment_ref": "/input/audio/call-0000",
+            "mime_type": "audio/ogg",
+            "channel_index": 0,
+            "channel": "session_input",
+            "start_offset_ms": 5287.0,
+            "end_offset_ms": 6999.0
+          }
+        ]
+      }
+    },
+    {
+      "id": "8bb24c01384ebf11",
+      "span_type": "task",
+      "name": "user_speech",
+      "start_time": "2026-10-15T18:37:15.487Z",
+      "end_time": "2026-10-15T18:37:17.804721Z",
+      "work": {
+        "type": "stt",
+        "transcript": " demo 1042 is",
+        "audio": [
+          {
+            "recording_id": "32faf3fda16a6e96",
+            "attachment_ref": "/input/audio/call-0000",
+            "mime_type": "audio/ogg",
+            "channel_index": 0,
+            "channel": "session_input",
+            "start_offset_ms": 7053.0,
+            "end_offset_ms": 9369.0
+          }
+        ]
+      }
+    },
+    {
+      "id": "62acd8e8ee191cbd",
+      "span_type": "task",
+      "name": "agent_speech",
+      "start_time": "2026-10-15T18:37:17.288Z",
+      "end_time": "2026-10-15T18:37:19.263Z",
+      "work": {
+        "type": "tts",
+        "text": " Sure, I'll check that.",
+        "audio": [
+          {
+            "recording_id": "32faf3fda16a6e96",
+            "attachment_ref": "/input/audio/call-0000",
+            "mime_type": "audio/ogg",
+            "channel_index": 1,
+            "channel": "local_audio_output",
+            "start_offset_ms": 8853.0,
+            "end_offset_ms": 8953.0
+          }
+        ]
+      }
+    },
+    {
+      "id": "3a80360be3632430",
+      "span_type": "task",
+      "name": "agent_speech",
+      "start_time": "2026-10-15T18:37:21.034Z",
+      "end_time": "2026-10-15T18:37:25.734Z",
+      "work": {
+        "type": "tts",
+        "text": " Order 1042 is in transit and expected to arrive Friday.",
+        "audio": [
+          {
+            "recording_id": "32faf3fda16a6e96",
+            "attachment_ref": "/input/audio/call-0000",
+            "mime_type": "audio/ogg",
+            "channel_index": 1,
+            "channel": "local_audio_output",
+            "start_offset_ms": 12600.0,
+            "end_offset_ms": 14299.0
+          }
+        ]
+      }
+    },
+    {
+      "id": "2cb6e251a0e3e227",
+      "span_type": "task",
+      "name": "user_speech",
+      "start_time": "2026-10-15T18:37:26.998Z",
+      "end_time": "2026-10-15T18:37:28.165288Z",
+      "work": {
+        "type": "stt",
+        "transcript": " Alright, thank you",
+        "audio": [
+          {
+            "recording_id": "32faf3fda16a6e96",
+            "attachment_ref": "/input/audio/call-0000",
+            "mime_type": "audio/ogg",
+            "channel_index": 0,
+            "channel": "session_input",
+            "start_offset_ms": 18564.0,
+            "end_offset_ms": 19729.0
+          }
+        ]
+      }
+    },
+    {
+      "id": "f5e0b9990bdd4e42",
+      "span_type": "task",
+      "name": "agent_speech",
+      "start_time": "2026-10-15T18:37:27.375Z",
+      "end_time": "2026-10-15T18:37:28.878Z",
+      "work": {
+        "type": "tts",
+        "text": " You're welcome.",
+        "audio": [
+          {
+            "recording_id": "32faf3fda16a6e96",
+            "attachment_ref": "/input/audio/call-0000",
+            "mime_type": "audio/ogg",
+            "channel_index": 1,
+            "channel": "local_audio_output",
+            "start_offset_ms": 18940.0,
+            "end_offset_ms": 19040.0
+          }
+        ]
+      }
+    }
+  ]
+}

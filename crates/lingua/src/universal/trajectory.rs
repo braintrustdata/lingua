@@ -257,4 +257,52 @@ pub enum Work {
     ToolResult(Box<ToolResult>),
     #[serde(rename = "llm_analysis")]
     LLMAnalysis(Box<LLMAnalysis>),
+    Stt(Box<Stt>),
+    Tts(Box<Tts>),
+}
+
+/// User speech or its recognition. The step's times are the source-reported interval.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct Stt {
+    /// The user's transcript as the source logged it.
+    #[ts(optional)]
+    pub transcript: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<AudioClip>>", optional)]
+    pub audio: Vec<AudioClip>,
+}
+
+/// Agent speech or its synthesis. The step's times are the source-reported interval.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct Tts {
+    /// The text the source reports as spoken, which can differ from the generated response.
+    #[ts(optional)]
+    pub text: Option<String>,
+    /// The source reported that playback was cut off.
+    #[ts(optional)]
+    pub interrupted: Option<bool>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<AudioClip>>", optional)]
+    pub audio: Vec<AudioClip>,
+}
+
+/// A stretch of an audio attachment, in milliseconds from the start of the recording.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct AudioClip {
+    /// Row holding the attachment.
+    pub recording_id: String,
+    /// JSON pointer into the row, such as `/input/audio/call-0000`.
+    pub attachment_ref: String,
+    #[ts(optional)]
+    pub mime_type: Option<String>,
+    #[ts(optional)]
+    pub channel_index: Option<u32>,
+    /// What the channel holds, such as `session_input`.
+    #[ts(optional)]
+    pub channel: Option<String>,
+    pub start_offset_ms: f64,
+    pub end_offset_ms: f64,
 }
