@@ -185,7 +185,10 @@ impl JsInput {
                 .nodes
                 .reserve(keys.length() as usize);
             for key in keys.iter().filter(JsValue::is_string) {
-                let descriptor = Reflect::get_own_property_descriptor(value.unchecked_ref(), &key)?;
+                let descriptor = Reflect::get_own_property_descriptor(
+                    value.unchecked_ref::<js_sys::Object>(),
+                    &key,
+                )?;
                 if descriptor.is_undefined()
                     || Reflect::get(&descriptor, &"enumerable".into())? != JsValue::TRUE
                 {
