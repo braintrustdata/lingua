@@ -1,5 +1,5 @@
 /**
- * Re-export conversion and validation functions from converters module
+ * Re-export message conversion and import functions from converters module
  */
 
 export {
@@ -22,33 +22,4 @@ export {
   deduplicateMessages,
   importMessagesFromSpans,
   importAndDeduplicateMessages,
-
-  // Chat Completions validation
-  validateChatCompletionsRequest,
-  validateChatCompletionsResponse,
-
-  // Responses API validation
-  validateResponsesRequest,
-  validateResponsesResponse,
-
-  // OpenAI validation (deprecated - use Chat Completions or Responses instead)
-  validateOpenAIRequest,
-  validateOpenAIResponse,
-
-  // Anthropic validation
-  validateAnthropicRequest,
-  validateAnthropicResponse,
-
-  // Stream chunk validation and transformation
-  validateChatCompletionsStreamChunk,
-  createTransformStreamSession,
-  transformStreamChunk,
-} from "./converters";
-
-// Re-export types
-export type {
-  StreamSessionChunk,
-  TransformStreamChunkResult,
-  TransformStreamSessionHandle,
-  ValidationResult,
 } from "./converters";
