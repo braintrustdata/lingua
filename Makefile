@@ -118,7 +118,7 @@ test-python: python ## Run Python tests
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	cargo clean
-	rm -rf bindings/lingua-wasm/nodejs bindings/lingua-wasm/web bindings/lingua-wasm/web-trace
+	rm -rf bindings/lingua-wasm/nodejs bindings/lingua-wasm/web bindings/lingua-wasm/nodejs-full
 	rm -rf bindings/typescript/dist bindings/typescript/node_modules
 	rm -rf bindings/typescript/src/generated
 	rm -rf bindings/python/.venv bindings/python/target

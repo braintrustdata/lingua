@@ -26,7 +26,7 @@ anthropic = []
 google = []
 bedrock = ["dep:aws-sdk-bedrockruntime"]
 python = ["dep:pyo3"]
-wasm-trace = []
+wasm-full = []
 
 [dependencies]
 serde.workspace = true

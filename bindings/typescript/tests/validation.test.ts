@@ -1,27 +1,14 @@
-/**
- * TypeScript Validation Tests
- *
- * These tests validate that:
- * 1. Each provider's request/response validates successfully
- * 2. Each provider's payload fails to validate as other providers' formats
- * 3. WASM validation functions work correctly from TypeScript
- */
-
-import { describe, test, expect } from "vitest";
+import { describe, expect, test } from "vitest";
+import * as full from "@braintrust/lingua-wasm/full";
 import {
-  validateChatCompletionsRequest,
-  validateChatCompletionsResponse,
-  validateChatCompletionsStreamChunk,
-  validateAnthropicRequest,
-  validateAnthropicResponse,
-  transformStreamChunk,
-} from "../src";
-import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
-import type { ChatCompletion } from "openai/resources/chat/completions";
-import type { MessageCreateParams } from "@anthropic-ai/sdk/resources/messages";
-import type { Message } from "@anthropic-ai/sdk/resources/messages";
+  type ChatCompletionCreateParamsNonStreaming,
+  type ChatCompletion,
+} from "openai/resources/chat/completions";
+import {
+  type MessageCreateParams,
+  type Message,
+} from "@anthropic-ai/sdk/resources/messages";
 
-// Test payloads for each provider - typed with SDK types for correctness
 const OPENAI_REQUEST_DATA: ChatCompletionCreateParamsNonStreaming = {
   model: "gpt-4",
   messages: [
@@ -95,144 +82,6 @@ const ANTHROPIC_RESPONSE_DATA: Message = {
 };
 const ANTHROPIC_RESPONSE = JSON.stringify(ANTHROPIC_RESPONSE_DATA);
 
-describe("OpenAI Chat Completions Validation", () => {
-  test("validates Chat Completions request successfully", () => {
-    const result = validateChatCompletionsRequest(OPENAI_REQUEST);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data).toBeDefined();
-      expect(result.data.model).toBe("gpt-4");
-    }
-  });
-
-  test("validates Chat Completions response successfully", () => {
-    const result = validateChatCompletionsResponse(OPENAI_RESPONSE);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data).toBeDefined();
-    }
-  });
-
-  test("Anthropic response fails to validate as Chat Completions", () => {
-    const result = validateChatCompletionsResponse(ANTHROPIC_RESPONSE);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toBeDefined();
-    }
-  });
-
-  test("rejects invalid JSON", () => {
-    const result = validateChatCompletionsRequest("{invalid json}");
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toContain("Deserialization failed");
-    }
-  });
-
-  test("rejects missing required fields", () => {
-    const invalid = JSON.stringify({ model: "gpt-4" }); // missing messages
-    const result = validateChatCompletionsRequest(invalid);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toBeDefined();
-    }
-  });
-});
-
-describe("Anthropic Validation", () => {
-  test("validates Anthropic request successfully", () => {
-    const result = validateAnthropicRequest(ANTHROPIC_REQUEST);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data).toBeDefined();
-    }
-  });
-
-  test("validates Anthropic response successfully", () => {
-    const result = validateAnthropicResponse(ANTHROPIC_RESPONSE);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data).toBeDefined();
-    }
-  });
-
-  test("OpenAI request fails to validate as Anthropic", () => {
-    const result = validateAnthropicRequest(OPENAI_REQUEST);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toBeDefined();
-    }
-  });
-
-  test("OpenAI response fails to validate as Anthropic", () => {
-    const result = validateAnthropicResponse(OPENAI_RESPONSE);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toBeDefined();
-    }
-  });
-
-  test("rejects invalid JSON", () => {
-    const result = validateAnthropicRequest("{invalid json}");
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toBeDefined();
-    }
-  });
-
-  test("rejects missing required fields", () => {
-    const invalid = JSON.stringify({ model: "claude-3-5-sonnet-20241022" }); // missing messages and max_tokens
-    const result = validateAnthropicRequest(invalid);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toBeDefined();
-    }
-  });
-});
-
-describe("Cross-provider validation", () => {
-  test("Chat Completions and Anthropic requests are distinct", () => {
-    // Chat Completions request should not validate as Anthropic
-    const result = validateAnthropicRequest(OPENAI_REQUEST);
-    expect(result.ok).toBe(false);
-
-    // Note: Anthropic request might validate as Chat Completions due to structural compatibility
-    // This is expected behavior - validation checks structure, not semantic correctness
-  });
-
-  test("Chat Completions and Anthropic responses are distinct", () => {
-    // Chat Completions response should not validate as Anthropic
-    const anthropicResult = validateAnthropicResponse(OPENAI_RESPONSE);
-    expect(anthropicResult.ok).toBe(false);
-
-    // Anthropic response should not validate as Chat Completions
-    const openaiResult = validateChatCompletionsResponse(ANTHROPIC_RESPONSE);
-    expect(openaiResult.ok).toBe(false);
-  });
-
-  test("validation returns parsed object on success", () => {
-    const result = validateChatCompletionsRequest(OPENAI_REQUEST);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data).toBeDefined();
-      expect(result.data.model).toBe("gpt-4");
-      expect(result.data.messages).toHaveLength(1);
-    }
-  });
-
-  test("validation returns error object on failure", () => {
-    const result = validateChatCompletionsRequest("{invalid json}");
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error).toBeDefined();
-      expect(result.error.message).toContain("Deserialization failed");
-    }
-  });
-});
-
-// Stream chunk test data
-// Note: finish_reason is required (non-nullable) in the generated OpenAPI types,
-// so only final chunks with a real finish_reason pass strict validation.
 const STREAM_CHUNK_FINAL = JSON.stringify({
   id: "chatcmpl-abc123",
   object: "chat.completion.chunk",
@@ -261,46 +110,82 @@ const STREAM_CHUNK_CONTENT = JSON.stringify({
   ],
 });
 
-describe("Chat Completions stream chunk validation", () => {
-  test("validates final chunk with finish_reason", () => {
-    const result = validateChatCompletionsStreamChunk(STREAM_CHUNK_FINAL);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data).toBeDefined();
-    }
-  });
+describe.each([
+  {
+    name: "Chat Completions",
+    validateRequest: full.validate_chat_completions_request,
+    validateResponse: full.validate_chat_completions_response,
+    request: OPENAI_REQUEST,
+    response: OPENAI_RESPONSE,
+    otherResponse: ANTHROPIC_RESPONSE,
+    model: "gpt-4",
+  },
+  {
+    name: "Anthropic",
+    validateRequest: full.validate_anthropic_request,
+    validateResponse: full.validate_anthropic_response,
+    request: ANTHROPIC_REQUEST,
+    response: ANTHROPIC_RESPONSE,
+    otherResponse: OPENAI_RESPONSE,
+    model: "claude-3-5-sonnet-20241022",
+  },
+])(
+  "full WASM $name validation",
+  ({
+    validateRequest,
+    validateResponse,
+    request,
+    response,
+    otherResponse,
+    model,
+  }) => {
+    test("returns the parsed request", () => {
+      expect(validateRequest(request)).toMatchObject({
+        model,
+        messages: expect.any(Array),
+      });
+    });
+    test("returns the parsed response", () => {
+      expect(validateResponse(response)).toMatchObject({ model });
+    });
+    test("rejects another provider's response", () => {
+      expect(() => validateResponse(otherResponse)).toThrow();
+    });
+    test("rejects invalid JSON", () => {
+      expect(() => validateRequest("{invalid json}")).toThrow(
+        "Deserialization failed"
+      );
+    });
+    test("rejects missing required fields", () => {
+      expect(() => validateRequest(JSON.stringify({ model }))).toThrow();
+    });
+  }
+);
 
-  test("rejects invalid JSON", () => {
-    const result = validateChatCompletionsStreamChunk("{bad json}");
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toBeDefined();
-    }
-  });
-
-  test("rejects non-streaming response", () => {
-    const result = validateChatCompletionsStreamChunk(OPENAI_RESPONSE);
-    expect(result.ok).toBe(false);
-  });
+test("the full build rejects an OpenAI request as Anthropic", () => {
+  expect(() => full.validate_anthropic_request(OPENAI_REQUEST)).toThrow();
 });
 
-describe("Stream chunk transformation", () => {
-  test("passthrough when source matches target format", () => {
-    const result = transformStreamChunk(STREAM_CHUNK_CONTENT, "openai");
-    expect(result).toHaveProperty("passThrough", true);
-    expect(result.data).toBeDefined();
-  });
+test("the full build validates final stream chunks", () => {
+  expect(
+    full.validate_chat_completions_stream_chunk(STREAM_CHUNK_FINAL)
+  ).toMatchObject({ choices: expect.any(Array) });
+  expect(() =>
+    full.validate_chat_completions_stream_chunk("{bad json}")
+  ).toThrow();
+  expect(() =>
+    full.validate_chat_completions_stream_chunk(OPENAI_RESPONSE)
+  ).toThrow();
+});
 
-  test("transforms to different format", () => {
-    const result = transformStreamChunk(STREAM_CHUNK_CONTENT, "anthropic");
-    expect(result).toHaveProperty("transformed", true);
-    if ("sourceFormat" in result) {
-      expect(result.sourceFormat).toBe("openai");
-    }
-    expect(result.data).toBeDefined();
-  });
-
-  test("throws on invalid target format", () => {
-    expect(() => transformStreamChunk(STREAM_CHUNK_CONTENT, "not_a_format")).toThrow();
-  });
+test("the full build preserves stream passthrough and transformation", () => {
+  expect(
+    full.transform_stream_chunk(STREAM_CHUNK_CONTENT, "openai")
+  ).toHaveProperty("passThrough", true);
+  expect(
+    full.transform_stream_chunk(STREAM_CHUNK_CONTENT, "anthropic")
+  ).toMatchObject({ transformed: true, sourceFormat: "openai" });
+  expect(() =>
+    full.transform_stream_chunk(STREAM_CHUNK_CONTENT, "not_a_format")
+  ).toThrow();
 });

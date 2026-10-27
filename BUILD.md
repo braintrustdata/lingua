@@ -92,37 +92,29 @@ To build the full TypeScript bindings (WASM):
 make typescript
 ```
 
-### Browser trace entry point
+### WASM API scope
 
-The optional `@braintrust/lingua/browser/trace` entry point includes message
-conversion for all providers, message imports and deduplication, span imports,
-and trajectory streaming and collection. It uses a smaller WASM artifact that
-omits request/response validation and request/response/stream transformation.
-The existing Node and browser entry points retain the full API.
+The standard Node and browser WASM builds include message conversion for all
+providers, message imports and deduplication, span imports, and trajectory
+streaming and collection. These cover Braintrust's JavaScript uses. Native
+Rust request, response, and stream APIs are unchanged.
 
-`make lingua-wasm` builds both variants with the release profile (`opt-level = 3`).
-To build only the scoped browser artifact:
+Request/response validators and request/response/stream transforms are omitted
+from the default WASM exports. Lingua's payload capture and transform tests use
+an explicit full Node build at `@braintrust/lingua-wasm/full`.
+
+`make lingua-wasm` builds and packages the standard artifacts and the full
+artifact with the release profile (`opt-level = 3`). To build just the browser
+artifact:
 
 ```bash
-pnpm --dir bindings/lingua-wasm run build:web:trace
+pnpm --dir bindings/lingua-wasm run build:web
 ```
 
-Serve `@braintrust/lingua-wasm/browser/trace/lingua_bg.wasm` from your app's
-static assets, then initialize the matching entry point:
-
-```typescript
-import { init, importMessagesFromSpans, getWasm } from "@braintrust/lingua/browser/trace";
-
-await init("/wasm/lingua-trace.wasm");
-const messages = importMessagesFromSpans(spans);
-```
-
-`getWasm()` exposes `import_span`, `trajectory_metadata_fields`,
-`TrajectoryStream`, and `TrajectoryCollector`. The scoped entry point has its
-own runtime, so it can coexist with the full entry points. Raw browser bindings
-are available at `@braintrust/lingua-wasm/browser/trace`. Direct Rust builds use
-`--features bedrock,wasm-trace`; this limits WASM exports without changing the
-native Rust API.
+Direct Rust builds opt into the full WASM exports with
+`--features bedrock,wasm-full`. The standard browser import and WASM asset paths
+stay `@braintrust/lingua/browser` and
+`@braintrust/lingua-wasm/browser/lingua_bg.wasm`.
 
 ## Provider type generation
 

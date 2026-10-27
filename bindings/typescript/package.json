@@ -42,17 +42,11 @@
       "types": "./dist/index.browser.d.mts",
       "import": "./dist/index.browser.mjs",
       "default": "./dist/index.browser.mjs"
-    },
-    "./browser/trace": {
-      "types": "./dist/index.trace.d.mts",
-      "import": "./dist/index.trace.mjs",
-      "default": "./dist/index.trace.mjs"
     }
   },
   "sideEffects": [
     "./dist/index.mjs",
-    "./dist/index.browser.mjs",
-    "./dist/index.trace.mjs"
+    "./dist/index.browser.mjs"
   ],
   "keywords": [
     "llm",

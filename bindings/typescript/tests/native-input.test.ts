@@ -1,31 +1,41 @@
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, test } from "vitest";
-import * as trace from "../src/index.trace";
+import * as browser from "../src/index.browser";
+import * as nodeWasm from "@braintrust/lingua-wasm";
+import * as browserWasm from "@braintrust/lingua-wasm/browser";
+import { setWasm } from "../src/wasm-runtime";
 import {
   importAndDeduplicateMessages,
   importMessagesFromSpans,
 } from "../src/index";
 
 beforeAll(async () => {
-  await trace.init(
+  await browser.init(
     readFileSync(
-      new URL("../../lingua-wasm/web-trace/lingua_bg.wasm", import.meta.url)
+      new URL("../../lingua-wasm/web/lingua_bg.wasm", import.meta.url)
     )
   );
 });
 
 describe.each([
-  { name: "trace import", importMessages: trace.importMessagesFromSpans },
   {
-    name: "trace import and deduplicate",
-    importMessages: trace.importAndDeduplicateMessages,
+    name: "browser import",
+    importMessages: browser.importMessagesFromSpans,
+    wasm: browserWasm,
   },
-  { name: "import", importMessages: importMessagesFromSpans },
+  {
+    name: "browser import and deduplicate",
+    importMessages: browser.importAndDeduplicateMessages,
+    wasm: browserWasm,
+  },
+  { name: "import", importMessages: importMessagesFromSpans, wasm: nodeWasm },
   {
     name: "import and deduplicate",
     importMessages: importAndDeduplicateMessages,
+    wasm: nodeWasm,
   },
-])("$name native input", ({ importMessages }) => {
+])("$name native input", ({ importMessages, wasm }) => {
+  beforeAll(() => setWasm(wasm));
   test("rejects unsupported objects without reading unrelated fields", () => {
     let reads = 0;
     const unsupported = {
