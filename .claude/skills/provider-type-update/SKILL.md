@@ -55,12 +55,22 @@ Do not edit tracked files during this phase.
    `provider-capability-auditor`, `provider-semantic-auditor`, and
    `provider-coverage-auditor` in parallel. Do not have each agent independently
    re-read the complete raw specification diff.
+   Run auditor calls in the foreground and collect every final report before
+   proceeding. Parallel tool calls are fine; background agents are not. A
+   waiting/status final response ends the unattended phase before it can write
+   its artifact.
 4. Reconcile their reports yourself. Subagent reports are evidence, not final
    decisions.
 5. Write the structured JSON plan requested by the workflow.
 6. Cover every semantic change group. Do not create separate plan items for
    repeated occurrences of the same wire-shape change, or for description,
    example, ordering, and formatting-only churn.
+
+Plan only work required by the current specification update. Generator repairs
+need evidence of an actual failure, collision, or public-name regression in
+this diff. Do not add speculative future guards, unrelated cleanup, or general
+hardening. Keep item instructions concise and put detailed audit evidence in
+the audit reports instead of repeating it for every surface.
 
 When no semantic groups remain, write an empty `changes` array, record grouped
 evidence in `non_semantic_changes`, and mark the other audit reports as skipped
@@ -85,8 +95,20 @@ representation is unclear.
 
 ## Implementation phase
 
-Read the validated JSON plan before changing files. Implement one plan item at
-a time.
+Start with `plan.md`; the workflow stages a compact implementation checklist
+there. Consult the full validated JSON audit at `$PROVIDER_UPDATE_PLAN_PATH`,
+when supplied, only to resolve a specific question about the current item. Do
+not repeat the specification audit or read whole modules before identifying
+the next edit. Implement items in checklist order, completing each behavior
+and its tests, or recording an unresolved tool blocker, before starting the
+next.
+
+When the workflow supplies the validation helper, check each item with
+`node .github/scripts/provider-type-update-check.mjs item <change-id>`.
+It executes the plan's focused Rust tests and saves their results and full logs.
+Keep scratch files in the supplied temp directory. If an operation is unavailable,
+record the failure, affected ids, and unverified work in the supplied notes path
+and continue independent items.
 
 1. Add focused unit tests, provider-only offline end-to-end rejection tests,
    and any portable-semantics payload cases before changing adapter behavior.
@@ -94,9 +116,12 @@ a time.
    directly.
 3. Preserve typed boundaries and explicit errors.
 4. Update every serializer and streaming path identified by the plan.
-5. Run focused tests before broad validation.
-6. Do not call live provider APIs. The workflow runs planned live captures in
-   a separate secret-scoped step.
+5. Check the item with the helper, or run its focused tests when working outside
+   the automation. Resolve failures before moving to the next item. Broad
+   validation runs separately in the workflow.
+6. Do not call live provider APIs. Automated updates have no provider
+   credentials. Planned live captures remain incomplete until a human reviews
+   the payload code and completes capture in a reviewed environment.
 7. Re-read the plan and inspect `git diff` before finishing. Every affected
    surface must have an implementation or test.
 

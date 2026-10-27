@@ -5,6 +5,7 @@ import {
   captureCases,
   hasBlockers,
   renderBlockers,
+  renderImplementation,
   renderProviderOnly,
   validatePlan,
   validateVerification,
@@ -138,6 +139,97 @@ test("accepts a complete plan and extracts unique capture cases", () => {
     id: "second-change",
   });
   assert.deepEqual(captureCases(plan), ["anthropicContextWindowExceeded"]);
+});
+
+test("rejects shell syntax, workflow output injection, paths, and comma lists in every capture field", () => {
+  for (const name of [
+    "$(printf REVIEW_INJECTION_CONFIRMED >&2)",
+    "`id`",
+    'case"; id; #',
+    "one,two",
+    "one\ninjected=true",
+    "one\rvalue",
+    "../case",
+    "-option",
+    "case with spaces",
+    "case;id",
+    "case|id",
+    "case$HOME",
+    "a".repeat(129),
+    "case\n",
+  ]) {
+    const plan = validPlan();
+    plan.changes[0].tests.payload_cases = [name];
+    plan.changes[0].tests.live_capture.cases = [name];
+    const errors = validatePlan(plan).join("\n");
+    assert.match(errors, /payload_cases.*case identifiers/, name);
+    assert.match(errors, /live_capture.cases.*case identifiers/, name);
+  }
+  for (const name of ["streamParam", "tool-case_2", "a".repeat(128)]) {
+    const plan = validPlan();
+    plan.changes[0].tests.payload_cases = [name];
+    plan.changes[0].tests.live_capture.cases = [name];
+    assert.deepEqual(validatePlan(plan), []);
+  }
+});
+
+test("implementation checklist preserves executable requirements without repeating audit reports", () => {
+  const plan = providerOnlyPlan();
+  const original = structuredClone(plan);
+  const change = plan.changes[0];
+  const checklist = renderImplementation(plan);
+
+  for (const requirement of [
+    change.id,
+    change.source.path,
+    change.source.symbol,
+    change.root_cause,
+    change.expected_behavior,
+    change.mapping.decision,
+    change.mapping.rationale,
+    change.expected_diff_impact,
+    ...change.implementation_targets,
+    ...change.tests.unit,
+    ...change.tests.offline_end_to_end,
+    ...change.tests.commands,
+  ]) {
+    assert.ok(checklist.includes(requirement), requirement);
+  }
+  assert.ok(checklist.includes("request_import, cross_provider"));
+  for (const report of Object.values(plan.audit_reports)) {
+    assert.ok(!checklist.includes(report));
+  }
+  assert.deepEqual(plan, original);
+});
+
+test("implementation checklist retains payload cases and item order", () => {
+  const plan = validPlan();
+  plan.changes.push({ ...structuredClone(plan.changes[0]), id: "next-item" });
+  const checklist = renderImplementation(plan);
+
+  assert.ok(checklist.includes("anthropicContextWindowExceeded"));
+  assert.ok(
+    checklist.indexOf("## context-window-stop-reason") <
+      checklist.indexOf("## next-item")
+  );
+});
+
+test("blocked changes retain the decision question but never become implementation tasks", () => {
+  const plan = providerOnlyPlan();
+  const blocked = structuredClone(validPlan().changes[0]);
+  plan.changes.push(blocked);
+  plan.blockers.push({
+    change_id: blocked.id,
+    question: "Which portable representation should be used?",
+  });
+  const checklist = renderImplementation(plan);
+
+  assert.ok(checklist.includes(blocked.id));
+  assert.ok(checklist.includes(plan.blockers[0].question));
+  assert.ok(!checklist.includes(`## ${blocked.id}`));
+  assert.ok(!checklist.includes(blocked.expected_behavior));
+  assert.ok(!checklist.includes(blocked.tests.payload_cases[0]));
+  assert.ok(checklist.includes(`## ${plan.changes[0].id}`));
 });
 
 test("captures payload cases even when extra live evidence is not required", () => {
