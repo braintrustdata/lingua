@@ -68,7 +68,9 @@ Each provider should have:
 
 ## Trajectory schema
 
-`Trajectory` (`crates/lingua/src/universal/trajectory.rs`) is primarily for the Braintrust UI to render. Add only fields the UI needs and the trace records, shaped so the UI can render them without interpreting source data.
+- `Trajectory` (`crates/lingua/src/universal/trajectory.rs`) is primarily for the Braintrust UI to render.
+- Add only fields the UI needs and the trace records.
+- Shape fields so the UI renders them without interpreting source data.
 
 ## Type generation workflow
 
