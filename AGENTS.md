@@ -68,10 +68,7 @@ Each provider should have:
 
 ## Trajectory schema
 
-`crates/lingua/src/universal/trajectory.rs` defines the `Trajectory` that the Braintrust UI renders, and `crates/lingua/src/processing/` builds it from traces.
-
-- Add a field only when the UI or a scorer reads it and the trace records it.
-- Leave out what the trace doesn't record instead of inferring it.
+`Trajectory` (`crates/lingua/src/universal/trajectory.rs`) is primarily for the Braintrust UI to render. Add only fields the UI needs and the trace records, shaped so the UI can render them without interpreting source data.
 
 ## Type generation workflow
 
