@@ -1,13 +1,33 @@
-use lingua::processing::import::{import_span_with_options, ImportOptions, OpaqueItem};
+use lingua::processing::import::{
+    import_messages_from_values, import_span_with_options, ImportOptions, OpaqueItem,
+};
 use lingua::processing::{import_messages_from_spans, Span};
 use lingua::serde_json;
-use lingua::universal::{AssistantContent, AssistantContentPart};
+use lingua::universal::{AssistantContent, AssistantContentPart, UserContent};
 use lingua::Message;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+#[test]
+fn metadata_json_strings_preserve_duplicate_key_resolution() {
+    let span: Span = serde_json::from_value(serde_json::json!({
+        "input": "question",
+        "metadata": "{\"instructions\":\"first\",\"instructions\":\"last\"}",
+    }))
+    .unwrap();
+    for messages in [
+        import_messages_from_spans(vec![span.clone()]),
+        import_messages_from_values(&span.input, &span.output, span.other.get("metadata")),
+    ] {
+        assert!(matches!(
+            messages.first(),
+            Some(Message::System { content: UserContent::String(instructions) }) if instructions == "last"
+        ));
+    }
+}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -282,6 +302,17 @@ fn test_import_cases_from_shared_fixtures() {
         let messages = import_messages_from_spans(spans.clone());
         let serialized_messages =
             serde_json::to_string(&messages).expect("messages should serialize to json");
+        let borrowed_messages: Vec<_> = spans
+            .iter()
+            .flat_map(|span| {
+                import_messages_from_values(&span.input, &span.output, span.other.get("metadata"))
+            })
+            .collect();
+        assert_eq!(
+            serde_json::to_string(&borrowed_messages).unwrap(),
+            serialized_messages,
+            "borrowed import mismatch for case '{case_name}'",
+        );
         let inferred = infer_assertions_from_messages(&messages);
 
         let assertions = if assertions_path.exists() {

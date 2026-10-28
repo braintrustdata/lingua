@@ -1329,10 +1329,10 @@ struct ResponsesItemWithOpaqueTools {
 }
 
 pub(crate) fn try_parse_responses_with_opaque_metadata_for_import(
-    data: &serde_json::Value,
+    data: &impl ImportValue,
 ) -> Option<(Vec<Message>, &'static str)> {
     let ResponsesItemWithOpaqueTools { tools, mut item } =
-        ResponsesItemWithOpaqueTools::deserialize(data).ok()?;
+        data.parse::<ResponsesItemWithOpaqueTools>()?;
     if item.input_item_type == Some(openai::InputItemType::AdditionalTools) {
         return (tools.is_some() && item.role == Some(openai::InputItemRole::Developer)).then(
             || {
@@ -1384,19 +1384,20 @@ fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<
     }
 }
 
-fn extract_instructions_from_openai_metadata_value(metadata: &serde_json::Value) -> Option<String> {
-    let typed = match metadata {
-        serde_json::Value::String(metadata_json) => {
-            let parsed = serde_json::from_str::<serde_json::Value>(metadata_json).ok()?;
+fn extract_instructions_from_openai_metadata_value(metadata: &impl ImportValue) -> Option<String> {
+    let typed = match metadata.kind() {
+        InputKind::String => {
+            let parsed =
+                serde_json::from_str::<serde_json::Value>(&metadata.parse::<String>()?).ok()?;
             serde_json::from_value::<OpenAIResponsesExtrasView>(parsed).ok()?
         }
-        _ => serde_json::from_value::<OpenAIResponsesExtrasView>(metadata.clone()).ok()?,
+        _ => metadata.parse::<OpenAIResponsesExtrasView>()?,
     };
     typed.instructions
 }
 
 pub(crate) fn try_system_message_from_openai_metadata(
-    metadata: &serde_json::Value,
+    metadata: &impl ImportValue,
 ) -> Option<Message> {
     let instructions = extract_instructions_from_openai_metadata_value(metadata)?;
     if instructions.is_empty() {

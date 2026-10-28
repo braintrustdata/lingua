@@ -8,7 +8,7 @@ mod js;
 pub(crate) use js::JsInput;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub(crate) enum InputKind {
+pub enum InputKind {
     Null,
     String,
     Array,
@@ -16,7 +16,7 @@ pub(crate) enum InputKind {
     Other,
 }
 
-pub(crate) trait ImportValue {
+pub trait ImportValue {
     type Item<'a>: ImportValue
     where
         Self: 'a;
@@ -88,6 +88,39 @@ impl<V: ImportValue + ?Sized> ImportValue for &V {
 
     fn to_value(&self) -> Cow<'_, Value> {
         V::to_value(self)
+    }
+}
+
+impl<V: ImportValue> ImportValue for Option<V> {
+    type Item<'a>
+        = V::Item<'a>
+    where
+        Self: 'a;
+    type Items<'a>
+        = V::Items<'a>
+    where
+        Self: 'a;
+
+    fn kind(&self) -> InputKind {
+        self.as_ref().map_or(InputKind::Null, ImportValue::kind)
+    }
+
+    fn parse<T: DeserializeOwned>(&self) -> Option<T> {
+        match self {
+            Some(value) => value.parse(),
+            None => T::deserialize(&Value::Null).ok(),
+        }
+    }
+
+    fn array(&self) -> Option<Self::Items<'_>> {
+        self.as_ref()?.array()
+    }
+
+    fn to_value(&self) -> Cow<'_, Value> {
+        match self {
+            Some(value) => value.to_value(),
+            None => Cow::Owned(Value::Null),
+        }
     }
 }
 

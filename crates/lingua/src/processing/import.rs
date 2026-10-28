@@ -1,5 +1,6 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
-use crate::import_value::{Field, ImportValue, InputKind};
+use crate::import_value::Field;
+pub use crate::import_value::{ImportValue, InputKind};
 mod ai_sdk;
 mod langchain;
 mod pydantic_ai;
@@ -105,8 +106,7 @@ fn try_converting_to_messages<V: ImportValue>(
                 .array()
                 .is_some_and(|mut items| items.any(|item| opaque_item_kind(&item).is_some())))
     {
-        return try_parse_mixed_messages_for_import(data.to_value().as_ref(), import)
-            .unwrap_or_default();
+        return try_parse_mixed_messages_for_import(data, import).unwrap_or_default();
     }
 
     if let Some(messages) = try_choices_array_parsing(data, import) {
@@ -284,15 +284,16 @@ fn provider_parsers_for_import<V: ImportValue>() -> Vec<MessageParser<V>> {
 }
 
 fn try_parse_mixed_messages_for_import(
-    data: &Value,
+    data: &impl ImportValue,
     import: &mut MessageImport,
 ) -> Option<Vec<Message>> {
-    let items = data.as_array()?;
+    let items = data.array()?;
     let provider_parsers = provider_parsers_for_import();
     let mut messages = Vec::new();
     let errors_before = import.errors.len();
 
-    for (index, item) in items.iter().enumerate() {
+    for (index, item) in items.enumerate() {
+        let item = &item;
         let kind = if import.options.preserve_unsupported {
             opaque_item_kind(item)
         } else {
@@ -302,7 +303,7 @@ fn try_parse_mixed_messages_for_import(
             if !import.discard_opaque {
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
-                    value: item.clone(),
+                    value: item.to_value().into_owned(),
                     kind,
                     is_metadata: false,
                 });
@@ -314,7 +315,7 @@ fn try_parse_mixed_messages_for_import(
         #[cfg(feature = "anthropic")]
         let mut parsed_messages = try_parse_anthropic_for_import(item)
             .or_else(|| {
-                let wrapped_item = Value::Array(vec![item.clone()]);
+                let wrapped_item = Value::Array(vec![item.to_value().into_owned()]);
                 try_parse_anthropic_for_import(&wrapped_item)
             })
             .filter(|messages| {
@@ -341,8 +342,8 @@ fn try_parse_mixed_messages_for_import(
 
         if parsed_messages.is_none() {
             parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
-                let wrapped_item = Value::Array(vec![item.clone()]);
-                try_parsers_in_order(&wrapped_item, &provider_parsers)
+                let wrapped_item = Value::Array(vec![item.to_value().into_owned()]);
+                try_parsers_in_order(&wrapped_item, &provider_parsers_for_import())
             });
         }
 
@@ -359,12 +360,14 @@ fn try_parse_mixed_messages_for_import(
                 import
                     .warnings
                     .push(format!("Message item {index}: {warning}"));
-                import.opaque.push(OpaqueItem {
-                    index: Some(index),
-                    value: item.clone(),
-                    kind: None,
-                    is_metadata: true,
-                });
+                if !import.discard_opaque {
+                    import.opaque.push(OpaqueItem {
+                        index: Some(index),
+                        value: item.to_value().into_owned(),
+                        kind: None,
+                        is_metadata: true,
+                    });
+                }
             }
         }
 
@@ -372,10 +375,10 @@ fn try_parse_mixed_messages_for_import(
             import
                 .errors
                 .push(format!("Unsupported message item at index {index}"));
-            if import.options.preserve_unsupported {
+            if import.options.preserve_unsupported && !import.discard_opaque {
                 import.opaque.push(OpaqueItem {
                     index: Some(index),
-                    value: item.clone(),
+                    value: item.to_value().into_owned(),
                     kind: None,
                     is_metadata: false,
                 });
@@ -609,13 +612,13 @@ enum ReasoningAssistantRole {
 }
 
 #[cfg(feature = "openai")]
-fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
+fn try_parse_reasoning_assistant_message(item: &impl ImportValue) -> Option<Message> {
     let ReasoningAssistantMessageCompat {
         _role: _,
         content,
         tool_calls,
         reasoning_signature,
-    } = ReasoningAssistantMessageCompat::deserialize(item).ok()?;
+    } = item.parse::<ReasoningAssistantMessageCompat>()?;
 
     if !content.iter().any(|part| {
         matches!(
@@ -666,36 +669,50 @@ enum LenientToolContentPartCompat {
     },
 }
 
-fn parse_lenient_message_item(item: &Value) -> Option<Message> {
-    let obj = item.as_object()?;
-    let role_str = obj.get("role")?.as_str()?;
-    let content_value = obj.get("content")?;
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum LenientMessageRole {
+    User,
+    System,
+    Developer,
+    Assistant,
+    Tool,
+}
 
-    match role_str {
-        "user" => Some(Message::User {
+#[derive(Deserialize)]
+struct LenientMessageCompat {
+    role: LenientMessageRole,
+    content: Value,
+}
+
+fn parse_lenient_message_item(item: &impl ImportValue) -> Option<Message> {
+    let parsed = item.parse::<LenientMessageCompat>()?;
+    let content_value = &parsed.content;
+
+    match parsed.role {
+        LenientMessageRole::User => Some(Message::User {
             content: parse_user_content(content_value)?,
         }),
-        "system" => Some(Message::System {
+        LenientMessageRole::System => Some(Message::System {
             content: parse_user_content(content_value)?,
         }),
-        "developer" => Some(Message::Developer {
+        LenientMessageRole::Developer => Some(Message::Developer {
             content: parse_user_content(content_value)?,
         }),
-        "assistant" => Some(Message::Assistant {
+        LenientMessageRole::Assistant => Some(Message::Assistant {
             content: parse_assistant_content(content_value)?,
             id: None,
         }),
-        "tool" => parse_lenient_tool_message(item, content_value),
-        _ => None,
+        LenientMessageRole::Tool => parse_lenient_tool_message(item, content_value),
     }
 }
 
-fn parse_lenient_tool_message(item: &Value, content_value: &Value) -> Option<Message> {
+fn parse_lenient_tool_message(item: &impl ImportValue, content_value: &Value) -> Option<Message> {
     if let Some(content) = parse_tool_content(content_value) {
         return Some(Message::Tool { content });
     }
 
-    let parsed = LenientToolMessageCompat::deserialize(item).ok()?;
+    let parsed = item.parse::<LenientToolMessageCompat>()?;
     let tool_call_id = parsed.tool_call_id?;
     let tool_name = parsed.name.unwrap_or_default();
 
@@ -1067,11 +1084,10 @@ fn import_span_messages(
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-pub(crate) fn import_messages_from_values<V: ImportValue>(
-    input: &V,
-    output: &V,
-    metadata: Option<&Value>,
+pub fn import_messages_from_values<I: ImportValue, O: ImportValue, M: ImportValue>(
+    input: &I,
+    output: &O,
+    metadata: Option<&M>,
 ) -> Vec<Message> {
     let mut import = MessageImport {
         options: ImportOptions {
@@ -1080,12 +1096,13 @@ pub(crate) fn import_messages_from_values<V: ImportValue>(
         discard_opaque: true,
         ..Default::default()
     };
-    let parse = |value: &V, import: &mut MessageImport| {
-        if opaque_item_kind(value).is_some() {
+    fn parse(value: &impl ImportValue, import: &mut MessageImport) -> Vec<Message> {
+        if value.array().is_some_and(|items| items.len() == 0) || opaque_item_kind(value).is_some()
+        {
             return Vec::new();
         }
         try_converting_to_messages(value, import)
-    };
+    }
     let mut input = if input.kind() == InputKind::String {
         vec![Message::User {
             content: UserContent::String(input.parse::<String>().expect("string input")),
