@@ -4,6 +4,7 @@ use crate::universal::trajectory::{Compaction, ToolResult};
 use crate::universal::{
     Message, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
+use crate::util::number::deserialize_optional_integer;
 use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -110,7 +111,8 @@ struct Metrics {
     start: Option<f64>,
     end: Option<f64>,
     #[serde(flatten)]
-    usage: Option<UniversalUsage>,
+    usage: UniversalUsage,
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     tokens: Option<i64>,
 }
 
@@ -296,17 +298,15 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
     source.header.name = source.span_attributes.name;
     source.header.exec_counter = source.span_attributes.exec_counter;
     source.header.scorer = source.span_attributes.purpose.as_deref() == Some("scorer");
-    let mut usage = source.metrics.usage.take();
-    if let Some(usage) = &mut usage {
-        usage.total_tokens = source.metrics.tokens.or(usage.total_tokens);
-    }
+    let mut usage = source.metrics.usage;
+    usage.total_tokens = source.metrics.tokens.or(usage.total_tokens);
     Ok(ImportedSpan {
         header: source.header,
         input,
         output,
         opaque_input,
         opaque_output,
-        usage: usage.filter(|usage| usage != &UniversalUsage::default()),
+        usage: (usage != UniversalUsage::default()).then_some(usage),
         tool_result,
         context_messages,
         interruption_messages,
