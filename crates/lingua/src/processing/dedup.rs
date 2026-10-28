@@ -372,6 +372,10 @@ pub fn deduplicate_messages(messages: Vec<Message>) -> Vec<Message> {
     deduplicate_messages_iter(messages)
 }
 
+/// Deduplicates owned or borrowed messages using the same role and content
+/// hashing as [`deduplicate_messages`], including string/array text equivalence.
+/// Preserves order and returns the first occurrence of each unique message as
+/// the original iterator item, without cloning the messages.
 pub fn deduplicate_messages_iter<T: std::borrow::Borrow<Message>>(
     messages: impl IntoIterator<Item = T>,
 ) -> Vec<T> {
