@@ -313,24 +313,19 @@ fn try_parse_mixed_messages_for_import(
         // Native Anthropic thinking blocks must use the canonical parser so adjacent text
         // metadata survives. Keep the existing parser order for every other role message.
         #[cfg(feature = "anthropic")]
-        let mut parsed_messages = try_parse_anthropic_for_import(item)
-            .or_else(|| {
-                let wrapped_item = Value::Array(vec![item.to_value().into_owned()]);
-                try_parse_anthropic_for_import(&wrapped_item)
+        let mut parsed_messages = try_parse_anthropic_for_import(item).filter(|messages| {
+            messages.iter().any(|message| {
+                matches!(
+                    message,
+                    Message::Assistant {
+                        content: AssistantContent::Array(parts),
+                        ..
+                    } if parts.iter().any(|part| {
+                        matches!(part, AssistantContentPart::Reasoning { .. })
+                    })
+                )
             })
-            .filter(|messages| {
-                messages.iter().any(|message| {
-                    matches!(
-                        message,
-                        Message::Assistant {
-                            content: AssistantContent::Array(parts),
-                            ..
-                        } if parts.iter().any(|part| {
-                            matches!(part, AssistantContentPart::Reasoning { .. })
-                        })
-                    )
-                })
-            });
+        });
         #[cfg(not(feature = "anthropic"))]
         let mut parsed_messages = None;
 

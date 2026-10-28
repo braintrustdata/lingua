@@ -58,6 +58,40 @@ impl ImportValue for BorrowedValue<'_> {
 }
 
 #[test]
+fn borrowed_tool_chat_does_not_materialize_values() {
+    let input = serde_json::json!([
+        {"role": "system", "content": "Use tools"},
+        {"role": "user", "content": "What is the weather?"},
+        {"role": "assistant", "content": null, "tool_calls": [{
+            "id": "call_weather", "type": "function",
+            "function": {"name": "weather", "arguments": "{}"}
+        }]},
+        {"role": "tool", "tool_call_id": "call_weather", "content": "Sunny"},
+        {"role": "assistant", "content": "It is sunny"}
+    ]);
+    let copies = Cell::new(0);
+    let messages = import_messages_from_values(
+        &BorrowedValue {
+            value: &input,
+            copies: &copies,
+        },
+        &serde_json::Value::Null,
+        None::<&serde_json::Value>,
+    );
+    assert_eq!(messages.len(), 5);
+    assert_eq!(copies.get(), 0);
+    assert_eq!(
+        serde_json::to_value(&messages).unwrap(),
+        serde_json::to_value(import_messages_from_spans(vec![Span {
+            input: Some(input),
+            output: None,
+            other: Default::default(),
+        }]))
+        .unwrap(),
+    );
+}
+
+#[test]
 fn borrowed_message_only_import_discards_opaque_values_without_copying() {
     let input = serde_json::json!([
         {"role": "user", "content": "question"},
