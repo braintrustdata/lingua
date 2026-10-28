@@ -1,7 +1,7 @@
+use foldhash::fast::RandomState;
 use serde_json::Value;
-use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
+use std::hash::BuildHasher;
 use thiserror::Error;
 
 const TOKEN_START: char = '\u{E000}';
@@ -31,18 +31,13 @@ pub enum DetachedStringError {
 pub struct DetachedStrings {
     strings: Vec<DetachedString>,
     by_hash: HashMap<u64, Vec<usize>>,
+    hasher: RandomState,
 }
 
 #[derive(Debug, Clone)]
 struct DetachedString {
     value: Option<String>,
     prefix_len: usize,
-}
-
-fn content_hash(value: &str) -> u64 {
-    let mut hasher = DefaultHasher::new();
-    value.hash(&mut hasher);
-    hasher.finish()
 }
 
 fn should_detach(value: &str) -> bool {
@@ -108,7 +103,10 @@ impl DetachedStrings {
     }
 
     fn insert(&mut self, value: String) -> usize {
-        let candidates = self.by_hash.entry(content_hash(&value)).or_default();
+        let candidates = self
+            .by_hash
+            .entry(self.hasher.hash_one(value.as_str()))
+            .or_default();
         if let Some(&id) = candidates
             .iter()
             .find(|&&id| self.strings[id].value.as_deref() == Some(value.as_str()))

@@ -25,6 +25,7 @@ anyhow = "1.0"
 thiserror = "2.0"
 assert-json-diff = "2.0.2"
 regex = "1"
+foldhash = "0.2"
 
 # Schema generation
 typify = "0.4"
