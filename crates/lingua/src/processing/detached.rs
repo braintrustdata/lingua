@@ -41,25 +41,21 @@ struct DetachedString {
 }
 
 fn should_detach(value: &str) -> bool {
-    if value.contains(TOKEN_START) {
-        return true;
+    if value.len() >= MIN_DETACHED_LEN {
+        let trimmed = value.trim_start();
+        if !trimmed.is_empty() && !trimmed.starts_with(['{', '[', '"']) {
+            return true;
+        }
     }
-    if value.len() < MIN_DETACHED_LEN {
-        return false;
-    }
-    let trimmed = value.trim_start();
-    !trimmed.is_empty() && !trimmed.starts_with(['{', '[', '"'])
+    value.contains(TOKEN_START)
 }
 
 fn token_prefix_len(value: &str) -> usize {
     let mut len = TOKEN_PREFIX_LEN.min(value.len());
-    if let Some(start) = value.find(TOKEN_START) {
-        len = len.min(start);
-    }
     while !value.is_char_boundary(len) {
         len -= 1;
     }
-    len
+    value[..len].find(TOKEN_START).unwrap_or(len)
 }
 
 fn write_token(out: &mut String, prefix: &str, id: usize) {
@@ -435,13 +431,18 @@ mod tests {
 
     #[test]
     fn strings_containing_the_token_marker_are_always_detached() {
-        let mut detached = DetachedStrings::default();
-        let original = format!("ab{TOKEN_START}cd");
-        let mut value = Value::String(original.clone());
-        detached.detach(&mut value);
-        assert_eq!(value.as_str().unwrap().matches(TOKEN_START).count(), 1);
-        detached.attach(&mut value).unwrap();
-        assert_eq!(value, Value::String(original));
+        for original in [
+            format!("ab{TOKEN_START}cd"),
+            format!("ab{TOKEN_START}cd{}", "x".repeat(64)),
+            format!("{}{TOKEN_START}{TOKEN_END}cd", "x".repeat(64)),
+        ] {
+            let mut detached = DetachedStrings::default();
+            let mut value = Value::String(original.clone());
+            detached.detach(&mut value);
+            assert_eq!(value.as_str().unwrap().matches(TOKEN_START).count(), 1);
+            detached.attach(&mut value).unwrap();
+            assert_eq!(value, Value::String(original));
+        }
     }
 
     #[test]
