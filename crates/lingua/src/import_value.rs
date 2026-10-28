@@ -7,7 +7,8 @@ mod js;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use js::JsInput;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+/// JSON shape used to select import parsers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InputKind {
     Null,
     String,
@@ -16,17 +17,31 @@ pub enum InputKind {
     Other,
 }
 
+/// Read-only JSON input for typed message import without an intermediate owned tree.
+///
+/// This trait is intentionally open to implementations backed by external storage.
+/// All methods must describe the same stable value throughout an import. Required
+/// methods form a public compatibility contract; future methods must have defaults
+/// unless introduced in a breaking release.
 pub trait ImportValue {
+    /// A view of one array element, borrowing storage when possible.
     type Item<'a>: ImportValue
     where
         Self: 'a;
+    /// Array elements in source order, with an accurate remaining length.
     type Items<'a>: ExactSizeIterator<Item = Self::Item<'a>>
     where
         Self: 'a;
 
+    /// Report the JSON shape without materializing an owned tree.
     fn kind(&self) -> InputKind;
+    /// Deserialize directly into an owned type, returning `None` on a schema mismatch
+    /// or deserialization failure. Returned data must not borrow from this input.
     fn parse<T: DeserializeOwned>(&self) -> Option<T>;
+    /// Return all elements for arrays, or `None` for other shapes.
     fn array(&self) -> Option<Self::Items<'_>>;
+    /// Preserve the complete JSON value when an import needs an opaque payload or
+    /// a compatibility parser requires materialization. Prefer borrowing when possible.
     fn to_value(&self) -> Cow<'_, Value>;
 }
 
