@@ -1,6 +1,6 @@
 use lingua::processing::import::{
-    import_messages_from_values, import_span_with_options, ImportOptions, ImportValue, InputKind,
-    OpaqueItem,
+    import_messages_from_values, import_messages_from_values_with_metadata,
+    import_span_with_options, ImportOptions, ImportValue, InputKind, OpaqueItem,
 };
 use lingua::processing::{import_messages_from_spans, Span};
 use lingua::serde_json;
@@ -99,7 +99,7 @@ fn borrowed_tool_chat_does_not_materialize_values() {
             copies: &copies,
         },
         &serde_json::Value::Null,
-        None::<&serde_json::Value>,
+        None,
     );
     assert_eq!(messages.len(), 5);
     assert_eq!(copies.get(), 0);
@@ -122,7 +122,7 @@ fn borrowed_message_only_import_discards_opaque_values_without_copying() {
     ]);
     let metadata = serde_json::json!({"instructions": "Use tools"});
     let copies = Cell::new(0);
-    let messages = import_messages_from_values(
+    let messages = import_messages_from_values_with_metadata(
         &BorrowedValue {
             value: &input,
             copies: &copies,
@@ -143,8 +143,7 @@ fn borrowed_message_only_import_discards_opaque_values_without_copying() {
 #[test]
 fn unreadable_string_input_preserves_output() {
     let output = serde_json::json!("answer");
-    let messages =
-        import_messages_from_values(&UnreadableString, &output, None::<&serde_json::Value>);
+    let messages = import_messages_from_values(&UnreadableString, &output, None);
     assert!(matches!(&messages[..], [Message::Assistant {
         content: AssistantContent::String(text), ..
     }] if text == "answer"));
@@ -153,8 +152,7 @@ fn unreadable_string_input_preserves_output() {
 #[test]
 fn unreadable_string_output_preserves_input() {
     let input = serde_json::json!("question");
-    let messages =
-        import_messages_from_values(&input, &UnreadableString, None::<&serde_json::Value>);
+    let messages = import_messages_from_values(&input, &UnreadableString, None);
     assert!(matches!(&messages[..], [Message::User {
         content: UserContent::String(text),
     }] if text == "question"));
@@ -175,7 +173,7 @@ fn metadata_json_strings_preserve_duplicate_key_resolution() {
     for messages in [
         import_messages_from_spans(vec![span.clone()]),
         import_messages_from_values(&span.input, &span.output, span.other.get("metadata")),
-        import_messages_from_values(&span.input, &span.output, metadata.as_ref()),
+        import_messages_from_values_with_metadata(&span.input, &span.output, metadata.as_ref()),
     ] {
         assert!(matches!(
             messages.first(),
@@ -473,7 +471,7 @@ fn test_import_cases_from_shared_fixtures() {
                     value,
                     copies: &copies,
                 });
-                import_messages_from_values(&input, &output, metadata.as_ref())
+                import_messages_from_values_with_metadata(&input, &output, metadata.as_ref())
             })
             .collect();
         assert_eq!(

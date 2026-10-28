@@ -1080,7 +1080,24 @@ fn import_span_messages(
     }
 }
 
-pub fn import_messages_from_values<I: ImportValue, O: ImportValue, M: ImportValue>(
+/// Import owned messages from caller-provided values, discarding unsupported payloads.
+///
+/// Metadata can be omitted with `None`. Use [`import_messages_from_values_with_metadata`]
+/// to deserialize metadata through a caller-provided [`ImportValue`] implementation.
+pub fn import_messages_from_values<I: ImportValue, O: ImportValue>(
+    input: &I,
+    output: &O,
+    metadata: Option<&Value>,
+) -> Vec<Message> {
+    import_messages_from_values_with_metadata(input, output, metadata)
+}
+
+/// Import owned messages and metadata through caller-provided deserializers.
+///
+/// Unrecognized values, including strings that fail deserialization, are omitted.
+/// Returned messages do not borrow from the inputs; their storage can be released
+/// after import. Unsupported payloads and parse diagnostics are discarded.
+pub fn import_messages_from_values_with_metadata<I: ImportValue, O: ImportValue, M: ImportValue>(
     input: &I,
     output: &O,
     metadata: Option<&M>,
