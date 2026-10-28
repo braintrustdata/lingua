@@ -313,6 +313,14 @@ fn try_parse_mixed_messages_for_import(
     }
 }
 
+/// Imports one role-bearing item using the mixed role-array parser.
+///
+/// Concatenating per-item results matches sequence import through
+/// [`import_messages_from_values`] or [`import_messages_from_spans`] when every
+/// array item has a string `role`. This uses `preserve_unsupported: true` behavior:
+/// unsupported items yield no messages while supported items are retained.
+/// With [`import_span_with_options`] and `preserve_unsupported: false`, one
+/// unsupported item rejects the whole array instead.
 pub fn import_role_message_from_value(data: &impl ImportValue) -> Vec<Message> {
     let mut import = MessageImport {
         options: ImportOptions {
