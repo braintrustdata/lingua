@@ -703,7 +703,7 @@
     "dynamic": {
       "methods": {
         "generateContent": {
-          "description": "Generates a model response given an input `GenerateContentRequest`. Refer to the [text generation guide](https://ai.google.dev/gemini-api/docs/text-generation) for detailed usage information. Input capabilities differ between models, including tuned models. Refer to the [model guide](https://ai.google.dev/gemini-api/docs/models/gemini) and [tuning guide](https://ai.google.dev/gemini-api/docs/model-tuning) for details.",
+          "description": "Generates a model response given an input `GenerateContentRequest`. Refer to the [text generation guide](https://aistudio.google.com/docs/text-generation) for detailed usage information. Input capabilities differ between models, including tuned models. Refer to the [model guide](https://aistudio.google.com/docs/models) and [tuning guide](https://aistudio.google.com/docs/model-tuning) for details.",
           "flatPath": "v1beta/dynamic/{dynamicId}:generateContent",
           "httpMethod": "POST",
           "id": "generativelanguage.dynamic.generateContent",
@@ -728,7 +728,7 @@
           }
         },
         "streamGenerateContent": {
-          "description": "Generates a [streamed response](https://ai.google.dev/gemini-api/docs/text-generation?lang=python#generate-a-text-stream) from the model given an input `GenerateContentRequest`.",
+          "description": "Generates a [streamed response](https://aistudio.google.com/docs/text-generation#streaming-responses) from the model given an input `GenerateContentRequest`.",
           "flatPath": "v1beta/dynamic/{dynamicId}:streamGenerateContent",
           "httpMethod": "POST",
           "id": "generativelanguage.dynamic.streamGenerateContent",
@@ -1606,7 +1606,7 @@
           }
         },
         "countTokens": {
-          "description": "Runs a model's tokenizer on input `Content` and returns the token count. Refer to the [tokens guide](https://ai.google.dev/gemini-api/docs/tokens) to learn more about tokens.",
+          "description": "Runs a model's tokenizer on input `Content` and returns the token count. Refer to the [tokens guide](https://aistudio.google.com/docs/tokens) to learn more about tokens.",
           "flatPath": "v1beta/models/{modelsId}:countTokens",
           "httpMethod": "POST",
           "id": "generativelanguage.models.countTokens",
@@ -1631,7 +1631,7 @@
           }
         },
         "embedContent": {
-          "description": "Generates a text embedding vector from the input `Content` using the specified [Gemini Embedding model](https://ai.google.dev/gemini-api/docs/models/gemini#text-embedding).",
+          "description": "Generates a text embedding vector from the input `Content` using the specified [Gemini Embedding model](https://aistudio.google.com/docs/models#specialized-task-models).",
           "flatPath": "v1beta/models/{modelsId}:embedContent",
           "httpMethod": "POST",
           "id": "generativelanguage.models.embedContent",
@@ -1708,7 +1708,7 @@
           }
         },
         "generateContent": {
-          "description": "Generates a model response given an input `GenerateContentRequest`. Refer to the [text generation guide](https://ai.google.dev/gemini-api/docs/text-generation) for detailed usage information. Input capabilities differ between models, including tuned models. Refer to the [model guide](https://ai.google.dev/gemini-api/docs/models/gemini) and [tuning guide](https://ai.google.dev/gemini-api/docs/model-tuning) for details.",
+          "description": "Generates a model response given an input `GenerateContentRequest`. Refer to the [text generation guide](https://aistudio.google.com/docs/text-generation) for detailed usage information. Input capabilities differ between models, including tuned models. Refer to the [model guide](https://aistudio.google.com/docs/models) and [tuning guide](https://aistudio.google.com/docs/model-tuning) for details.",
           "flatPath": "v1beta/models/{modelsId}:generateContent",
           "httpMethod": "POST",
           "id": "generativelanguage.models.generateContent",
@@ -1785,7 +1785,7 @@
           }
         },
         "get": {
-          "description": "Gets information about a specific `Model` such as its version number, token limits, [parameters](https://ai.google.dev/gemini-api/docs/models/generative-models#model-parameters) and other metadata. Refer to the [Gemini models guide](https://ai.google.dev/gemini-api/docs/models/gemini) for detailed model information.",
+          "description": "Gets information about a specific `Model` such as its version number, token limits, [parameters](https://aistudio.google.com/docs/prompting-strategies#model-parameters) and other metadata. Refer to the [Gemini models guide](https://aistudio.google.com/docs/models) for detailed model information.",
           "flatPath": "v1beta/models/{modelsId}",
           "httpMethod": "GET",
           "id": "generativelanguage.models.get",
@@ -1807,7 +1807,7 @@
           }
         },
         "list": {
-          "description": "Lists the [`Model`s](https://ai.google.dev/gemini-api/docs/models/gemini) available through the Gemini API.",
+          "description": "Lists the [`Model`s](https://aistudio.google.com/docs/models) available through the Gemini API.",
           "flatPath": "v1beta/models",
           "httpMethod": "GET",
           "id": "generativelanguage.models.list",
@@ -1881,7 +1881,7 @@
           }
         },
         "streamGenerateContent": {
-          "description": "Generates a [streamed response](https://ai.google.dev/gemini-api/docs/text-generation?lang=python#generate-a-text-stream) from the model given an input `GenerateContentRequest`.",
+          "description": "Generates a [streamed response](https://aistudio.google.com/docs/text-generation#streaming-responses) from the model given an input `GenerateContentRequest`.",
           "flatPath": "v1beta/models/{modelsId}:streamGenerateContent",
           "httpMethod": "POST",
           "id": "generativelanguage.models.streamGenerateContent",
@@ -2076,7 +2076,7 @@
           }
         },
         "generateContent": {
-          "description": "Generates a model response given an input `GenerateContentRequest`. Refer to the [text generation guide](https://ai.google.dev/gemini-api/docs/text-generation) for detailed usage information. Input capabilities differ between models, including tuned models. Refer to the [model guide](https://ai.google.dev/gemini-api/docs/models/gemini) and [tuning guide](https://ai.google.dev/gemini-api/docs/model-tuning) for details.",
+          "description": "Generates a model response given an input `GenerateContentRequest`. Refer to the [text generation guide](https://aistudio.google.com/docs/text-generation) for detailed usage information. Input capabilities differ between models, including tuned models. Refer to the [model guide](https://aistudio.google.com/docs/models) and [tuning guide](https://aistudio.google.com/docs/model-tuning) for details.",
           "flatPath": "v1beta/tunedModels/{tunedModelsId}:generateContent",
           "httpMethod": "POST",
           "id": "generativelanguage.tunedModels.generateContent",
@@ -2212,7 +2212,7 @@
           }
         },
         "streamGenerateContent": {
-          "description": "Generates a [streamed response](https://ai.google.dev/gemini-api/docs/text-generation?lang=python#generate-a-text-stream) from the model given an input `GenerateContentRequest`.",
+          "description": "Generates a [streamed response](https://aistudio.google.com/docs/text-generation#streaming-responses) from the model given an input `GenerateContentRequest`.",
           "flatPath": "v1beta/tunedModels/{tunedModelsId}:streamGenerateContent",
           "httpMethod": "POST",
           "id": "generativelanguage.tunedModels.streamGenerateContent",
@@ -2472,7 +2472,7 @@
       }
     }
   },
-  "revision": "20261019",
+  "revision": "20261028",
   "rootUrl": "https://generativelanguage.googleapis.com/",
   "schemas": {
     "AsyncBatchEmbedContentRequest": {
@@ -2905,7 +2905,7 @@
           "type": "string"
         },
         "mimeType": {
-          "description": "The IANA standard MIME type of the source data. Examples of supported types: - Images: image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/gif, image/avif - Audio: audio/*, video/audio/s16le, video/audio/wav - Video: video/* - Text: text/plain, text/html, text/css, text/javascript, text/x-typescript, text/csv, text/markdown, text/x-python, text/xml, text/rtf, video/text/timestamp - Applications: application/x-javascript, application/x-typescript, application/x-python-code, application/json, application/x-ipynb+json, application/rtf, application/pdf For additional context, see [Supported file formats](https://ai.google.dev/gemini-api/docs/file-input-methods#supported-content-types). //",
+          "description": "The IANA standard MIME type of the source data. Examples of supported types: - Images: image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/gif, image/avif - Audio: audio/*, video/audio/s16le, video/audio/wav - Video: video/* - Text: text/plain, text/html, text/css, text/javascript, text/x-typescript, text/csv, text/markdown, text/x-python, text/xml, text/rtf, video/text/timestamp - Applications: application/x-javascript, application/x-typescript, application/x-python-code, application/json, application/x-ipynb+json, application/rtf, application/pdf For additional context, see [Supported file formats](https://aistudio.google.com/docs/file-input-methods#supported-content-types).",
           "type": "string"
         }
       },
@@ -3630,7 +3630,7 @@
         },
         "generateContentRequest": {
           "$ref": "GenerateContentRequest",
-          "description": "Optional. The overall input given to the `Model`. This includes the prompt as well as other model steering information like [system instructions](https://ai.google.dev/gemini-api/docs/system-instructions), and/or function declarations for [function calling](https://ai.google.dev/gemini-api/docs/function-calling). `Model`s/`Content`s and `generate_content_request`s are mutually exclusive. You can either send `Model` + `Content`s or a `generate_content_request`, but never both."
+          "description": "Optional. The overall input given to the `Model`. This includes the prompt as well as other model steering information like [system instructions](https://aistudio.google.com/docs/text-generation#system-instructions), and/or function declarations for [function calling](https://aistudio.google.com/docs/function-calling). `Model`s/`Content`s and `generate_content_request`s are mutually exclusive. You can either send `Model` + `Content`s or a `generate_content_request`, but never both."
         }
       },
       "type": "object"
@@ -4550,7 +4550,7 @@
       "type": "object"
     },
     "File": {
-      "description": "A file uploaded to the API. Next ID: 15",
+      "description": "A file uploaded to the API.",
       "id": "File",
       "properties": {
         "createTime": {
@@ -4874,7 +4874,7 @@
             "description": "Properties of the object.",
             "type": "any"
           },
-          "description": "Required. The function response in JSON object format. Callers can use any keys of their choice that fit the function's syntax to return the function output, e.g. \"output\", \"result\", etc. In particular, if the function call failed to execute, the response can have an \"error\" key to return error details to the model. Multimedia can be included by using a subobject containing a single \"$ref\" key whose value is the `inline_data.display_name` of a `FunctionResponsePart` holding the multimedia. See https://ai.google.dev/gemini-api/docs/function-calling#multimodal.",
+          "description": "Required. The function response in JSON object format. Callers can use any keys of their choice that fit the function's syntax to return the function output, e.g. \"output\", \"result\", etc. In particular, if the function call failed to execute, the response can have an \"error\" key to return error details to the model. Multimedia can be included by using a subobject containing a single \"$ref\" key whose value is the `inline_data.display_name` of a `FunctionResponsePart` holding the multimedia. See https://aistudio.google.com/docs/function-calling#multimodal.",
           "type": "object"
         },
         "scheduling": {
@@ -4909,8 +4909,31 @@
           "format": "byte",
           "type": "string"
         },
+        "displayName": {
+          "description": "Optional. Display name of the blob. Used to provide a label or filename to distinguish blobs.",
+          "type": "string"
+        },
         "mimeType": {
-          "description": "The IANA standard MIME type of the source data. Examples: - image/png - image/jpeg If an unsupported MIME type is provided, an error will be returned. For a complete list of supported types, see [Supported file formats](https://ai.google.dev/gemini-api/docs/prompting_with_media#supported_file_formats).",
+          "description": "The IANA standard MIME type of the source data. Examples: - image/png - image/jpeg If an unsupported MIME type is provided, an error will be returned. For a complete list of supported types, see [Supported file formats](https://aistudio.google.com/docs/file-input-methods#supported-content-types).",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "FunctionResponseFileData": {
+      "description": "URI based data for function response.",
+      "id": "FunctionResponseFileData",
+      "properties": {
+        "displayName": {
+          "description": "Optional. Display name of the file. Used to provide a label or filename to distinguish file data.",
+          "type": "string"
+        },
+        "fileUri": {
+          "description": "Required. URI.",
+          "type": "string"
+        },
+        "mimeType": {
+          "description": "The IANA standard MIME type of the source data.",
           "type": "string"
         }
       },
@@ -4920,9 +4943,27 @@
       "description": "A datatype containing media that is part of a `FunctionResponse` message. A `FunctionResponsePart` consists of data which has an associated datatype. A `FunctionResponsePart` can only contain one of the accepted types in `FunctionResponsePart.data`. A `FunctionResponsePart` must have a fixed IANA MIME type identifying the type and subtype of the media if the `inline_data` field is filled with raw bytes.",
       "id": "FunctionResponsePart",
       "properties": {
+        "fileData": {
+          "$ref": "FunctionResponseFileData",
+          "description": "URI based data."
+        },
         "inlineData": {
           "$ref": "FunctionResponseBlob",
           "description": "Inline media bytes."
+        },
+        "mediaProcessing": {
+          "description": "Optional. How the model processes this part's media for understanding. Only meaningful for video parts (`inline_data` or `file_data` with video mime). Non-video parts ignore this field.",
+          "enum": [
+            "MEDIA_PROCESSING_UNSPECIFIED",
+            "STATIC",
+            "AGENTIC"
+          ],
+          "enumDescriptions": [
+            "Defaults to model-specific processing.",
+            "Fixed-rate frame extraction. All frames placed in context.",
+            "Model-driven dynamic navigation. Recommended for most use cases."
+          ],
+          "type": "string"
         }
       },
       "type": "object"
@@ -5139,7 +5180,7 @@
           "description": "Passages provided inline with the request."
         },
         "safetySettings": {
-          "description": "Optional. A list of unique `SafetySetting` instances for blocking unsafe content. This will be enforced on the `GenerateAnswerRequest.contents` and `GenerateAnswerResponse.candidate`. There should not be more than one setting for each `SafetyCategory` type. The API will block any contents and responses that fail to meet the thresholds set by these settings. This list overrides the default settings for each `SafetyCategory` specified in the safety_settings. If there is no `SafetySetting` for a given `SafetyCategory` provided in the list, the API will use the default safety setting for that category. Harm categories HARM_CATEGORY_HATE_SPEECH, HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_DANGEROUS_CONTENT, HARM_CATEGORY_HARASSMENT are supported. Refer to the [guide](https://ai.google.dev/gemini-api/docs/safety-settings) for detailed information on available safety settings. Also refer to the [Safety guidance](https://ai.google.dev/gemini-api/docs/safety-guidance) to learn how to incorporate safety considerations in your AI applications.",
+          "description": "Optional. A list of unique `SafetySetting` instances for blocking unsafe content. This will be enforced on the `GenerateAnswerRequest.contents` and `GenerateAnswerResponse.candidate`. There should not be more than one setting for each `SafetyCategory` type. The API will block any contents and responses that fail to meet the thresholds set by these settings. This list overrides the default settings for each `SafetyCategory` specified in the safety_settings. If there is no `SafetySetting` for a given `SafetyCategory` provided in the list, the API will use the default safety setting for that category. Harm categories HARM_CATEGORY_HATE_SPEECH, HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_DANGEROUS_CONTENT, HARM_CATEGORY_HARASSMENT are supported. Refer to the [guide](https://aistudio.google.com/docs/safety-settings) for detailed information on available safety settings. Also refer to the [Safety guidance](https://aistudio.google.com/docs/safety-guidance) to learn how to incorporate safety considerations in your AI applications.",
           "items": {
             "$ref": "SafetySetting"
           },
@@ -5281,11 +5322,11 @@
       "id": "GenerateContentRequest",
       "properties": {
         "cachedContent": {
-          "description": "Optional. The name of the content [cached](https://ai.google.dev/gemini-api/docs/caching) to use as context to serve the prediction. Format: `cachedContents/{cachedContent}`",
+          "description": "Optional. The name of the content [cached](https://aistudio.google.com/docs/caching) to use as context to serve the prediction. Format: `cachedContents/{cachedContent}`",
           "type": "string"
         },
         "contents": {
-          "description": "Required. The content of the current conversation with the model. For single-turn queries, this is a single instance. For multi-turn queries like [chat](https://ai.google.dev/gemini-api/docs/text-generation#chat), this is a repeated field that contains the conversation history and the latest request.",
+          "description": "Required. The content of the current conversation with the model. For single-turn queries, this is a single instance. For multi-turn queries like [chat](https://aistudio.google.com/docs/text-generation#multi-turn-conversations), this is a repeated field that contains the conversation history and the latest request.",
           "items": {
             "$ref": "Content"
           },
@@ -5312,7 +5353,7 @@
           "type": "string"
         },
         "safetySettings": {
-          "description": "Optional. A list of unique `SafetySetting` instances for blocking unsafe content. This will be enforced on the `GenerateContentRequest.contents` and `GenerateContentResponse.candidates`. There should not be more than one setting for each `SafetyCategory` type. The API will block any contents and responses that fail to meet the thresholds set by these settings. This list overrides the default settings for each `SafetyCategory` specified in the safety_settings. If there is no `SafetySetting` for a given `SafetyCategory` provided in the list, the API will use the default safety setting for that category. Harm categories HARM_CATEGORY_HATE_SPEECH, HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_DANGEROUS_CONTENT, HARM_CATEGORY_HARASSMENT, HARM_CATEGORY_CIVIC_INTEGRITY, HARM_CATEGORY_JAILBREAK are supported. Refer to the [guide](https://ai.google.dev/gemini-api/docs/safety-settings) for detailed information on available safety settings. Also refer to the [Safety guidance](https://ai.google.dev/gemini-api/docs/safety-guidance) to learn how to incorporate safety considerations in your AI applications.",
+          "description": "Optional. A list of unique `SafetySetting` instances for blocking unsafe content. This will be enforced on the `GenerateContentRequest.contents` and `GenerateContentResponse.candidates`. There should not be more than one setting for each `SafetyCategory` type. The API will block any contents and responses that fail to meet the thresholds set by these settings. This list overrides the default settings for each `SafetyCategory` specified in the safety_settings. If there is no `SafetySetting` for a given `SafetyCategory` provided in the list, the API will use the default safety setting for that category. Harm categories HARM_CATEGORY_HATE_SPEECH, HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_DANGEROUS_CONTENT, HARM_CATEGORY_HARASSMENT, HARM_CATEGORY_CIVIC_INTEGRITY, HARM_CATEGORY_JAILBREAK are supported. Refer to the [guide](https://aistudio.google.com/docs/safety-settings) for detailed information on available safety settings. Also refer to the [Safety guidance](https://aistudio.google.com/docs/safety-guidance) to learn how to incorporate safety considerations in your AI applications.",
           "items": {
             "$ref": "SafetySetting"
           },
@@ -5340,14 +5381,14 @@
         },
         "systemInstruction": {
           "$ref": "Content",
-          "description": "Optional. Developer set [system instruction(s)](https://ai.google.dev/gemini-api/docs/system-instructions). Currently, text only."
+          "description": "Optional. Developer set [system instruction(s)](https://aistudio.google.com/docs/text-generation#system-instructions). Currently, text only."
         },
         "toolConfig": {
           "$ref": "ToolConfig",
-          "description": "Optional. Tool configuration for any `Tool` specified in the request. Refer to the [Function calling guide](https://ai.google.dev/gemini-api/docs/function-calling#function_calling_mode) for a usage example."
+          "description": "Optional. Tool configuration for any `Tool` specified in the request. Refer to the [Function calling guide](https://aistudio.google.com/docs/function-calling#function_calling_modes) for a usage example."
         },
         "tools": {
-          "description": "Optional. A list of `Tools` the `Model` may use to generate the next response. A `Tool` is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the `Model`. Supported `Tool`s are `Function` and `code_execution`. Refer to the [Function calling](https://ai.google.dev/gemini-api/docs/function-calling) and the [Code execution](https://ai.google.dev/gemini-api/docs/code-execution) guides to learn more.",
+          "description": "Optional. A list of `Tools` the `Model` may use to generate the next response. A `Tool` is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the `Model`. Supported `Tool`s are `Function` and `code_execution`. Refer to the [Function calling](https://aistudio.google.com/docs/function-calling) and the [Code execution](https://aistudio.google.com/docs/code-execution) guides to learn more.",
           "items": {
             "$ref": "Tool"
           },
@@ -5646,7 +5687,7 @@
           "type": "boolean"
         },
         "responseMimeType": {
-          "description": "Optional. MIME type of the generated candidate text. Supported MIME types are: `text/plain`: (default) Text output. `application/json`: JSON response in the response candidates. `text/x.enum`: ENUM as a string response in the response candidates. Refer to the [docs](https://ai.google.dev/gemini-api/docs/prompting_with_media#plain_text_formats) for a list of all supported text MIME types.",
+          "description": "Optional. MIME type of the generated candidate text. Supported MIME types are: `text/plain`: (default) Text output. `application/json`: JSON response in the response candidates. `text/x.enum`: ENUM as a string response in the response candidates. Refer to the [docs](https://aistudio.google.com/docs/file-input-methods#text-file-types) for a list of all supported text MIME types.",
           "type": "string"
         },
         "responseModalities": {
@@ -5671,7 +5712,7 @@
         "responseSchema": {
           "$ref": "Schema",
           "deprecated": true,
-          "description": "Optional. Output schema of the generated candidate text. Schemas must be a subset of the [OpenAPI schema](https://spec.openapis.org/oas/v3.0.3#schema) and can be objects, primitives or arrays. If set, a compatible `response_mime_type` must also be set. Compatible MIME types: `application/json`: Schema for JSON response. Refer to the [JSON text generation guide](https://ai.google.dev/gemini-api/docs/json-mode) for more details. Deprecated. Use `response_format` instead."
+          "description": "Optional. Output schema of the generated candidate text. Schemas must be a subset of the [OpenAPI schema](https://spec.openapis.org/oas/v3.0.3#schema) and can be objects, primitives or arrays. If set, a compatible `response_mime_type` must also be set. Compatible MIME types: `application/json`: Schema for JSON response. Refer to the [JSON text generation guide](https://aistudio.google.com/docs/structured-output) for more details. Deprecated. Use `response_format` instead."
         },
         "seed": {
           "description": "Optional. Seed used in decoding. If not set, the request uses a randomly generated seed.",
@@ -6042,7 +6083,7 @@
       "type": "object"
     },
     "Hyperparameters": {
-      "description": "Hyperparameters controlling the tuning process. Read more at https://ai.google.dev/docs/model_tuning_guidance",
+      "description": "Hyperparameters controlling the tuning process. Read more at https://aistudio.google.com/docs/model-tuning",
       "id": "Hyperparameters",
       "properties": {
         "batchSize": {
@@ -6766,7 +6807,7 @@
       "type": "object"
     },
     "McpServer": {
-      "description": "A MCPServer is a server that can be called by the model to perform actions. It is a server that implements the MCP protocol. Next ID: 7",
+      "description": "A MCPServer is a server that can be called by the model to perform actions. It is a server that implements the MCP protocol.",
       "id": "McpServer",
       "properties": {
         "name": {
@@ -6902,7 +6943,7 @@
           "type": "number"
         },
         "name": {
-          "description": "Required. The resource name of the `Model`. Refer to [Model variants](https://ai.google.dev/gemini-api/docs/models/gemini#model-variations) for all allowed values. Format: `models/{model}` with a `{model}` naming convention of: * \"{base_model_id}-{version}\" Examples: * `models/gemini-1.5-flash-001`",
+          "description": "Required. The resource name of the `Model`. Refer to [Model variants](https://aistudio.google.com/docs/models#model-versions) for all allowed values. Format: `models/{model}` with a `{model}` naming convention of: * \"{base_model_id}-{version}\" Examples: * `models/gemini-1.5-flash-001`",
           "type": "string"
         },
         "outputTokenLimit": {
@@ -6932,7 +6973,7 @@
           "type": "integer"
         },
         "topP": {
-          "description": "For [Nucleus sampling](https://ai.google.dev/gemini-api/docs/prompting-strategies#top-p). Nucleus sampling considers the smallest set of tokens whose probability sum is at least `top_p`. This value specifies default to be used by the backend while making the call to the model.",
+          "description": "For [Nucleus sampling](https://aistudio.google.com/docs/prompting-strategies#model-parameters). Nucleus sampling considers the smallest set of tokens whose probability sum is at least `top_p`. This value specifies default to be used by the backend while making the call to the model.",
           "format": "float",
           "type": "number"
         },
@@ -7542,12 +7583,12 @@
           ],
           "enumDeprecated": [
             false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
             false,
             false,
             false,
@@ -7557,12 +7598,12 @@
           ],
           "enumDescriptions": [
             "Category is unspecified.",
-            "**PaLM** - Negative or harmful comments targeting identity and/or protected attribute.",
-            "**PaLM** - Content that is rude, disrespectful, or profane.",
-            "**PaLM** - Describes scenarios depicting violence against an individual or group, or general descriptions of gore.",
-            "**PaLM** - Contains references to sexual acts or other lewd content.",
-            "**PaLM** - Promotes unchecked medical advice.",
-            "**PaLM** - Dangerous content that promotes, facilitates, or encourages harmful acts.",
+            "**PaLM** - Negative or harmful comments targeting identity and/or protected attribute. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Content that is rude, disrespectful, or profane. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Describes scenarios depicting violence against an individual or group, or general descriptions of gore. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Contains references to sexual acts or other lewd content. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Promotes unchecked medical advice. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Dangerous content that promotes, facilitates, or encourages harmful acts. DEPRECATED: PaLM-only category, not supported by Gemini models.",
             "**Gemini** - Harassment content.",
             "**Gemini** - Hate speech and content.",
             "**Gemini** - Sexually explicit content.",
@@ -7616,12 +7657,12 @@
           ],
           "enumDeprecated": [
             false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
             false,
             false,
             false,
@@ -7631,12 +7672,12 @@
           ],
           "enumDescriptions": [
             "Category is unspecified.",
-            "**PaLM** - Negative or harmful comments targeting identity and/or protected attribute.",
-            "**PaLM** - Content that is rude, disrespectful, or profane.",
-            "**PaLM** - Describes scenarios depicting violence against an individual or group, or general descriptions of gore.",
-            "**PaLM** - Contains references to sexual acts or other lewd content.",
-            "**PaLM** - Promotes unchecked medical advice.",
-            "**PaLM** - Dangerous content that promotes, facilitates, or encourages harmful acts.",
+            "**PaLM** - Negative or harmful comments targeting identity and/or protected attribute. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Content that is rude, disrespectful, or profane. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Describes scenarios depicting violence against an individual or group, or general descriptions of gore. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Contains references to sexual acts or other lewd content. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Promotes unchecked medical advice. DEPRECATED: PaLM-only category, not supported by Gemini models.",
+            "**PaLM** - Dangerous content that promotes, facilitates, or encourages harmful acts. DEPRECATED: PaLM-only category, not supported by Gemini models.",
             "**Gemini** - Harassment content.",
             "**Gemini** - Hate speech and content.",
             "**Gemini** - Sexually explicit content.",
@@ -8025,7 +8066,7 @@
       "type": "object"
     },
     "StreamableHttpTransport": {
-      "description": "A transport that can stream HTTP requests and responses. Next ID: 6",
+      "description": "A transport that can stream HTTP requests and responses.",
       "id": "StreamableHttpTransport",
       "properties": {
         "headers": {
@@ -8144,7 +8185,7 @@
           "type": "integer"
         },
         "thinkingLevel": {
-          "description": "Optional. Controls the maximum depth of the model's internal reasoning process before it produces a response. The default value is model-dependent. Refer to the [Thinking levels guide](https://ai.google.dev/gemini-api/docs/thinking#thinking-levels) for more details. Recommended for Gemini 3 or later models. Use with earlier models results in an error.",
+          "description": "Optional. Controls the maximum depth of the model's internal reasoning process before it produces a response. The default value is model-dependent. Refer to the [Thinking levels guide](https://aistudio.google.com/docs/thinking#thinking-levels) for more details. Recommended for Gemini 3 or later models. Use with earlier models results in an error.",
           "enum": [
             "THINKING_LEVEL_UNSPECIFIED",
             "MINIMAL",
@@ -8165,7 +8206,7 @@
       "type": "object"
     },
     "Tool": {
-      "description": "Tool details that the model may use to generate response. A `Tool` is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the model. Next ID: 17",
+      "description": "Tool details that the model may use to generate response. A `Tool` is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the model.",
       "id": "Tool",
       "properties": {
         "codeExecution": {
@@ -8241,7 +8282,8 @@
             "GOOGLE_SEARCH_IMAGE",
             "URL_CONTEXT",
             "GOOGLE_MAPS",
-            "FILE_SEARCH"
+            "FILE_SEARCH",
+            "MEDIA_PROCESSING"
           ],
           "enumDescriptions": [
             "Unspecified tool type.",
@@ -8249,7 +8291,8 @@
             "Image search tool, maps to Tool.google_search.search_types.image_search.",
             "URL context tool, maps to Tool.url_context.",
             "Google maps tool, maps to Tool.google_maps.",
-            "File search tool, maps to Tool.file_search."
+            "File search tool, maps to Tool.file_search.",
+            "Media processing tool types (e.g. video, audio, etc.), maps to invisible tools used for multimodal understanding like GOOGLE_UNDERSTANDING_VIDEO."
           ],
           "type": "string"
         }
@@ -8299,7 +8342,8 @@
             "GOOGLE_SEARCH_IMAGE",
             "URL_CONTEXT",
             "GOOGLE_MAPS",
-            "FILE_SEARCH"
+            "FILE_SEARCH",
+            "MEDIA_PROCESSING"
           ],
           "enumDescriptions": [
             "Unspecified tool type.",
@@ -8307,7 +8351,8 @@
             "Image search tool, maps to Tool.google_search.search_types.image_search.",
             "URL context tool, maps to Tool.url_context.",
             "Google maps tool, maps to Tool.google_maps.",
-            "File search tool, maps to Tool.file_search."
+            "File search tool, maps to Tool.file_search.",
+            "Media processing tool types (e.g. video, audio, etc.), maps to invisible tools used for multimodal understanding like GOOGLE_UNDERSTANDING_VIDEO."
           ],
           "type": "string"
         }
