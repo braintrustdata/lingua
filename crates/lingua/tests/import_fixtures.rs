@@ -1,15 +1,87 @@
 use lingua::processing::import::{
-    import_messages_from_values, import_span_with_options, ImportOptions, OpaqueItem,
+    import_messages_from_values, import_span_with_options, ImportOptions, ImportValue, InputKind,
+    OpaqueItem,
 };
 use lingua::processing::{import_messages_from_spans, Span};
 use lingua::serde_json;
 use lingua::universal::{AssistantContent, AssistantContentPart, UserContent};
 use lingua::Message;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
+use std::cell::Cell;
 use std::collections::BTreeMap;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+struct BorrowedValue<'a> {
+    value: &'a serde_json::Value,
+    copies: &'a Cell<usize>,
+}
+
+impl ImportValue for BorrowedValue<'_> {
+    type Item<'a>
+        = BorrowedValue<'a>
+    where
+        Self: 'a;
+    type Items<'a>
+        = std::vec::IntoIter<BorrowedValue<'a>>
+    where
+        Self: 'a;
+
+    fn kind(&self) -> InputKind {
+        self.value.kind()
+    }
+
+    fn parse<T: serde::de::DeserializeOwned>(&self) -> Option<T> {
+        serde_json::from_str(&serde_json::to_string(self.value).unwrap()).ok()
+    }
+
+    fn array(&self) -> Option<Self::Items<'_>> {
+        Some(
+            self.value
+                .as_array()?
+                .iter()
+                .map(|value| BorrowedValue {
+                    value,
+                    copies: self.copies,
+                })
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
+    }
+
+    fn to_value(&self) -> Cow<'_, serde_json::Value> {
+        self.copies.set(self.copies.get() + 1);
+        Cow::Owned(self.value.clone())
+    }
+}
+
+#[test]
+fn borrowed_message_only_import_discards_opaque_values_without_copying() {
+    let input = serde_json::json!([
+        {"role": "user", "content": "question"},
+        {"type": "item_reference", "id": "msg_previous"}
+    ]);
+    let metadata = serde_json::json!({"instructions": "Use tools"});
+    let copies = Cell::new(0);
+    let messages = import_messages_from_values(
+        &BorrowedValue {
+            value: &input,
+            copies: &copies,
+        },
+        &serde_json::Value::Null,
+        Some(&BorrowedValue {
+            value: &metadata,
+            copies: &copies,
+        }),
+    );
+    assert!(matches!(&messages[..], [Message::System {
+        content: UserContent::String(instructions),
+    }, Message::User { content: UserContent::String(question) }]
+        if instructions == "Use tools" && question == "question"));
+    assert_eq!(copies.get(), 0);
+}
 
 #[test]
 fn metadata_json_strings_preserve_duplicate_key_resolution() {
@@ -18,9 +90,15 @@ fn metadata_json_strings_preserve_duplicate_key_resolution() {
         "metadata": "{\"instructions\":\"first\",\"instructions\":\"last\"}",
     }))
     .unwrap();
+    let copies = Cell::new(0);
+    let metadata = span.other.get("metadata").map(|value| BorrowedValue {
+        value,
+        copies: &copies,
+    });
     for messages in [
         import_messages_from_spans(vec![span.clone()]),
         import_messages_from_values(&span.input, &span.output, span.other.get("metadata")),
+        import_messages_from_values(&span.input, &span.output, metadata.as_ref()),
     ] {
         assert!(matches!(
             messages.first(),
@@ -302,10 +380,23 @@ fn test_import_cases_from_shared_fixtures() {
         let messages = import_messages_from_spans(spans.clone());
         let serialized_messages =
             serde_json::to_string(&messages).expect("messages should serialize to json");
+        let copies = Cell::new(0);
         let borrowed_messages: Vec<_> = spans
             .iter()
             .flat_map(|span| {
-                import_messages_from_values(&span.input, &span.output, span.other.get("metadata"))
+                let input = span.input.as_ref().map(|value| BorrowedValue {
+                    value,
+                    copies: &copies,
+                });
+                let output = span.output.as_ref().map(|value| BorrowedValue {
+                    value,
+                    copies: &copies,
+                });
+                let metadata = span.other.get("metadata").map(|value| BorrowedValue {
+                    value,
+                    copies: &copies,
+                });
+                import_messages_from_values(&input, &output, metadata.as_ref())
             })
             .collect();
         assert_eq!(
