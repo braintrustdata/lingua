@@ -1154,6 +1154,62 @@ mod tests {
     use super::*;
 
     #[test]
+    fn imported_span_accepts_integral_float_metrics() {
+        let span: Span = serde_json::from_str(
+            r#"{
+                "created": "2026-10-27T18:25:56.948Z",
+                "metrics": {
+                    "start": 1793125556.941876,
+                    "end": 1793125562.4392064,
+                    "prompt_tokens": 46696.0,
+                    "completion_tokens": 286.0,
+                    "prompt_cached_tokens": 46030.0,
+                    "prompt_cache_creation_tokens": 663.0,
+                    "completion_reasoning_tokens": 77.0,
+                    "tokens": 46982.0
+                },
+                "span_attributes": {"type": "llm", "name": "LLM"},
+                "input": [{"role": "user", "content": "Hello"}],
+                "output": [{"role": "assistant", "content": "Hi"}]
+            }"#,
+        )
+        .unwrap();
+        let imported = import_span(span).unwrap();
+        assert_eq!(
+            imported.header.start.unwrap().timestamp_micros(),
+            1793125556941876
+        );
+        assert_eq!(
+            imported.header.end.unwrap().timestamp_micros(),
+            1793125562439206
+        );
+        let usage = imported.usage.unwrap();
+        assert_eq!(usage.prompt_tokens, Some(46696));
+        assert_eq!(usage.completion_tokens, Some(286));
+        assert_eq!(usage.prompt_cached_tokens, Some(46030));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(663));
+        assert_eq!(usage.completion_reasoning_tokens, Some(77));
+        assert_eq!(usage.total_tokens, Some(46982));
+        assert_eq!(imported.input.len(), 1);
+        assert_eq!(imported.output.len(), 1);
+        assert!(imported.errors.is_empty());
+    }
+
+    #[test]
+    fn imported_span_rejects_fractional_token_counts() {
+        for field in ["tokens", "prompt_tokens", "completion_tokens"] {
+            let span: Span =
+                serde_json::from_str(&format!("{{\"metrics\":{{\"{field}\":1.5}}}}")).unwrap();
+            let error = import_span(span).unwrap_err();
+            assert!(
+                error.starts_with("Invalid span fields:"),
+                "{field}: {error}"
+            );
+            assert!(error.contains("expected an integer"), "{field}: {error}");
+        }
+    }
+
+    #[test]
     fn invalid_tool_call_metadata_preserves_valid_hints() {
         let spans: Vec<Span> = serde_json::from_str(include_str!(
             "import/fixtures/invalid-tool-call-metadata.json"
