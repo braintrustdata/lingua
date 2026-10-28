@@ -289,6 +289,7 @@ fn try_parse_mixed_messages_for_import(
 ) -> Option<Vec<Message>> {
     let items = data.array()?;
     let provider_parsers = provider_parsers_for_import();
+    let wrapped_provider_parsers = provider_parsers_for_import::<Value>();
     let mut messages = Vec::new();
     let errors_before = import.errors.len();
 
@@ -338,7 +339,7 @@ fn try_parse_mixed_messages_for_import(
         if parsed_messages.is_none() {
             parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
                 let wrapped_item = Value::Array(vec![item.to_value().into_owned()]);
-                try_parsers_in_order(&wrapped_item, &provider_parsers_for_import())
+                try_parsers_in_order(&wrapped_item, &wrapped_provider_parsers)
             });
         }
 
