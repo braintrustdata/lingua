@@ -36,6 +36,23 @@ fn google_response_with_server_tool_call() -> Bytes {
     }))
 }
 
+fn google_response_with_media_processing_tool_call() -> Bytes {
+    to_bytes(json!({
+        "candidates": [{
+            "index": 0,
+            "content": {"role": "model", "parts": [{
+                "toolCall": {
+                    "id": "srv_2",
+                    "toolType": "MEDIA_PROCESSING",
+                    "toolName": "media_processing",
+                    "args": {"fileUri": "https://example.com/clip.mp4"}
+                }
+            }]},
+            "finishReason": "STOP"
+        }]
+    }))
+}
+
 fn assert_unsupported(error: &TransformError) {
     let TransformError::ToUniversalFailed(reason) = error else {
         panic!("expected a to-universal conversion failure, got {error:?}");
@@ -65,6 +82,36 @@ fn google_server_tool_call_cross_provider_transform_is_unsupported() {
             .expect_err("provider-executed tool calls have no cross-provider stream mapping");
         assert_unsupported(&error);
     }
+}
+
+#[test]
+fn google_media_processing_tool_call_cross_provider_transform_is_unsupported() {
+    for target in [ProviderFormat::Anthropic, ProviderFormat::ChatCompletions] {
+        let error =
+            lingua::transform_response(google_response_with_media_processing_tool_call(), target)
+                .expect_err(
+                    "provider-hosted media processing tools have no cross-provider mapping",
+                );
+        assert_unsupported(&error);
+
+        let error = lingua::transform_stream_chunk(
+            google_response_with_media_processing_tool_call(),
+            target,
+        )
+        .expect_err("provider-hosted media processing tools have no cross-provider stream mapping");
+        assert_unsupported(&error);
+    }
+}
+
+#[test]
+fn google_media_processing_tool_call_survives_native_passthrough() {
+    let response = google_response_with_media_processing_tool_call();
+    let result = lingua::transform_response(response.clone(), ProviderFormat::Google)
+        .expect("a native Google response must pass through");
+    let TransformResult::PassThrough(actual) = result.result else {
+        panic!("native Google responses must not be re-serialized");
+    };
+    assert_eq!(actual, response);
 }
 
 #[test]

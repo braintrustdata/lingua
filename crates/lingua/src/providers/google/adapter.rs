@@ -1259,6 +1259,7 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::{Part as GooglePart, ToolType};
     use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
@@ -2525,6 +2526,78 @@ mod tests {
                 }]
             })),
             "mediaProcessing",
+        );
+    }
+
+    #[test]
+    fn test_google_function_response_media_processing_native_passthrough() {
+        let part = json!({
+            "functionResponse": {
+                "id": "call_1",
+                "name": "fetch_clip",
+                "response": {"status": "ok"},
+                "parts": [{
+                    "inlineData": {"mimeType": "video/mp4", "data": "AAAA"},
+                    "mediaProcessing": "AGENTIC"
+                }]
+            }
+        });
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Describe the clip."}]},
+                    {"role": "model", "parts": [{
+                        "functionCall": {"id": "call_1", "name": "fetch_clip", "args": {}}
+                    }]},
+                    {"role": "user", "parts": [part.clone()]}
+                ]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "mediaProcessing",
+        );
+    }
+
+    #[test]
+    fn test_google_tool_type_media_processing_round_trips() {
+        let wire = json!({
+            "toolCall": {
+                "id": "srv_2",
+                "toolType": "MEDIA_PROCESSING",
+                "toolName": "media_processing",
+                "args": {"fileUri": "https://example.com/clip.mp4"}
+            }
+        });
+        let part: GooglePart = serde_json::from_value(wire.clone())
+            .expect("MEDIA_PROCESSING tool calls must deserialize into the generated types");
+        let tool_call = part.tool_call.as_ref().expect("toolCall is typed");
+        assert_eq!(tool_call.tool_type, Some(ToolType::MediaProcessing));
+        assert_eq!(serde_json::to_value(&part).unwrap(), wire);
+    }
+
+    #[test]
+    fn test_google_media_processing_tool_call_native_passthrough() {
+        let part = json!({
+            "toolCall": {
+                "id": "srv_2",
+                "toolType": "MEDIA_PROCESSING",
+                "toolName": "media_processing",
+                "args": {"fileUri": "https://example.com/clip.mp4"}
+            }
+        });
+        assert_google_provider_only_passthrough(
+            None,
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "toolCall",
         );
     }
 

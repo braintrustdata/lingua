@@ -60,7 +60,7 @@ struct GoogleAssistantPartProviderOptions {
 pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
     let field = if part.audio_transcription.is_some() {
         "audioTranscription"
-    } else if part.media_processing.is_some() {
+    } else if part.media_processing.is_some() || has_function_response_media_processing(part) {
         "mediaProcessing"
     } else if part.speech_metadata.is_some() {
         "speechMetadata"
@@ -73,6 +73,16 @@ pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), 
         from: format!("Google part {field}"),
         to: "Lingua universal message",
     })
+}
+
+/// Reports whether any part of a function response selects Google-managed video
+/// understanding, which is provider-owned execution just like the top-level
+/// `Part.mediaProcessing` field.
+fn has_function_response_media_processing(part: &GooglePart) -> bool {
+    part.function_response
+        .as_ref()
+        .and_then(|response| response.parts.as_ref())
+        .is_some_and(|parts| parts.iter().any(|p| p.media_processing.is_some()))
 }
 
 fn text_part(text: String) -> GooglePart {
