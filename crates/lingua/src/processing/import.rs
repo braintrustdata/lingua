@@ -271,8 +271,8 @@ fn is_role_message_array(data: &impl ImportValue) -> bool {
     })
 }
 
-fn provider_parsers_for_import<V: ImportValue>() -> Vec<MessageParser<V>> {
-    vec![
+fn provider_parsers_for_import<'a, V: ImportValue + 'a>() -> &'a [MessageParser<V>] {
+    &[
         #[cfg(feature = "openai")]
         try_parse_openai_for_import,
         #[cfg(feature = "anthropic")]
@@ -299,8 +299,8 @@ fn try_parse_mixed_messages_for_import(
             &item,
             index,
             import,
-            &provider_parsers,
-            &wrapped_provider_parsers,
+            provider_parsers,
+            wrapped_provider_parsers,
         ));
     }
 
@@ -330,8 +330,8 @@ pub fn import_role_message_from_value(data: &impl ImportValue) -> Vec<Message> {
         ..Default::default()
     };
     import_mixed_message_item(
-        data, 0, &mut import, &provider_parsers_for_import(),
-        &provider_parsers_for_import::<Value>(),
+        data, 0, &mut import, provider_parsers_for_import(),
+        provider_parsers_for_import::<Value>(),
     )
 }
 
@@ -431,9 +431,7 @@ fn import_mixed_message_item<V: ImportValue>(
 }
 
 fn try_parse_provider_messages_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let provider_parsers = provider_parsers_for_import();
-
-    try_parsers_in_order(data, &provider_parsers)
+    try_parsers_in_order(data, provider_parsers_for_import())
 }
 
 #[cfg(feature = "anthropic")]
