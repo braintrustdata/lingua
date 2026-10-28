@@ -418,21 +418,15 @@ fn parse_message(message: AISDKMessageCompat) -> Option<Message> {
     }
 }
 
+pub fn try_import_ai_sdk_prompt_message(value: &impl ImportValue) -> Option<Message> {
+    value.parse::<AISDKMessageCompat>().and_then(parse_message)
+}
+
 fn parse_message_sequence(value: &Value) -> Option<Vec<Message>> {
     let items = value.as_array()?;
-    let messages: Option<Vec<Message>> = items
-        .iter()
-        .cloned()
-        .map(|item| serde_json::from_value::<AISDKMessageCompat>(item).ok())
-        .map(|item| item.and_then(parse_message))
-        .collect();
-    let messages = messages?;
-
-    if messages.is_empty() {
-        None
-    } else {
-        Some(messages)
-    }
+    let messages: Option<Vec<Message>> =
+        items.iter().map(try_import_ai_sdk_prompt_message).collect();
+    crate::import_parse::non_empty_messages(messages?)
 }
 
 fn try_parse_prompt_value(value: &Value) -> Option<Vec<Message>> {

@@ -1,6 +1,7 @@
 use lingua::processing::import::{
     import_messages_from_values, import_messages_from_values_with_metadata,
-    import_span_with_options, ImportOptions, ImportValue, InputKind, OpaqueItem,
+    import_role_message_from_value, import_span_with_options, try_import_ai_sdk_prompt_message,
+    ImportOptions, ImportValue, InputKind, OpaqueItem,
 };
 use lingua::processing::{import_messages_from_spans, Span};
 use lingua::serde_json;
@@ -479,6 +480,34 @@ fn test_import_cases_from_shared_fixtures() {
             serialized_messages,
             "borrowed import mismatch for case '{case_name}'",
         );
+        for span in &spans {
+            if let Some(items) = span
+                .input
+                .as_ref()
+                .and_then(serde_json::Value::as_array)
+                .filter(|items| {
+                    !items.is_empty()
+                        && items
+                            .iter()
+                            .all(|item| item.get("role").is_some_and(serde_json::Value::is_string))
+                })
+            {
+                let imported: Vec<_> = items
+                    .iter()
+                    .flat_map(import_role_message_from_value)
+                    .collect();
+                let expected = import_messages_from_values(
+                    &span.input,
+                    &None::<serde_json::Value>,
+                    None::<&serde_json::Value>,
+                );
+                assert_eq!(
+                    serde_json::to_value(imported).unwrap(),
+                    serde_json::to_value(expected).unwrap(),
+                    "per-item role import mismatch for '{case_name}'"
+                );
+            }
+        }
         let inferred = infer_assertions_from_messages(&messages);
 
         let assertions = if assertions_path.exists() {
@@ -653,4 +682,49 @@ fn test_import_cases_from_shared_fixtures() {
             generated_count, generate_missing, accept
         );
     }
+}
+
+#[test]
+fn ai_sdk_item_import_preserves_sequence_rejection() {
+    for items in [
+        serde_json::json!([]),
+        serde_json::json!([{"role":"user", "content":"hello"}, {"role":"assistant", "content":[{"type":"text", "text":"answer"}], "id":"discarded"}]),
+        serde_json::json!([{"role":"tool", "content":"result", "tool_call_id":"call", "name":"lookup"}]),
+        serde_json::json!([{"role":"user", "content":"hello"}, {"role":"developer", "content":"invalid for AI SDK"}]),
+        serde_json::json!([{"role":"assistant", "content":{"malformed":true}}]),
+    ] {
+        let cached: Option<Vec<_>> = items
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(try_import_ai_sdk_prompt_message)
+            .collect();
+        let probe = serde_json::json!({"system":"probe", "prompt":items});
+        let expected = import_messages_from_values(
+            &probe,
+            &None::<serde_json::Value>,
+            None::<&serde_json::Value>,
+        );
+        let mut messages = vec![Message::System {
+            content: UserContent::String("probe".into()),
+        }];
+        if let Some(cached) = cached {
+            messages.extend(cached);
+        }
+        assert_eq!(
+            serde_json::to_value(messages).unwrap(),
+            serde_json::to_value(expected).unwrap()
+        );
+    }
+}
+
+#[test]
+fn cached_history_formats_preserve_tool_result_differences() {
+    let value = serde_json::json!({"role":"tool", "content":"result", "tool_call_id":"call", "name":"lookup"});
+    let direct = import_role_message_from_value(&value);
+    let ai_sdk = try_import_ai_sdk_prompt_message(&value).unwrap();
+    assert_ne!(
+        serde_json::to_value(&direct).unwrap(),
+        serde_json::to_value(vec![ai_sdk]).unwrap()
+    );
 }
