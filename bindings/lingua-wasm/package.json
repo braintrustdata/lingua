@@ -4,10 +4,11 @@
   "description": "WASM bindings for Lingua",
   "scripts": {
     "preinstall": "node -e \"const userAgent = process.env.npm_config_user_agent || ''; if (process.env.INIT_CWD === process.cwd() && !userAgent.includes('pnpm/')) { console.error('Use pnpm in this repo.'); process.exit(1); }\"",
-    "build:standalone": "pnpm run build:nodejs && pnpm run build:web && pnpm run prepare:pack",
+    "build:standalone": "pnpm run build:nodejs && pnpm run build:web && pnpm run build:nodejs:full && pnpm run prepare:pack",
     "build:nodejs": "cd ../../crates/lingua && wasm-pack build --target nodejs --release --out-dir ../../bindings/lingua-wasm/nodejs --no-pack --features bedrock",
     "build:web": "cd ../../crates/lingua && wasm-pack build --target web --release --out-dir ../../bindings/lingua-wasm/web --no-pack --features bedrock",
-    "prepare:pack": "touch nodejs/.npmignore web/.npmignore",
+    "build:nodejs:full": "cd ../../crates/lingua && wasm-pack build --target nodejs --release --out-dir ../../bindings/lingua-wasm/nodejs-full --no-pack --features bedrock,wasm-full",
+    "prepare:pack": "touch nodejs/.npmignore web/.npmignore nodejs-full/.npmignore",
     "prepublishOnly": "pnpm run build:standalone"
   },
   "packageManager": "pnpm@10.33.0",
@@ -20,7 +21,8 @@
   },
   "files": [
     "nodejs",
-    "web"
+    "web",
+    "nodejs-full"
   ],
   "main": "nodejs/lingua.js",
   "types": "nodejs/lingua.d.ts",
@@ -40,14 +42,27 @@
       "import": "./web/lingua.js",
       "default": "./web/lingua.js"
     },
-    "./browser/lingua_bg.wasm": "./web/lingua_bg.wasm"
+    "./browser/lingua_bg.wasm": "./web/lingua_bg.wasm",
+    "./full": {
+      "types": "./nodejs-full/lingua.d.ts",
+      "import": "./nodejs-full/lingua.js",
+      "default": "./nodejs-full/lingua.js"
+    }
   },
   "sideEffects": [
     "./nodejs/lingua.js",
-    "./web/lingua.js"
+    "./web/lingua.js",
+    "./nodejs-full/lingua.js"
   ],
   "license": "MIT",
   "engines": {
     "pnpm": ">=10.27.0"
+  },
+  "typesVersions": {
+    "*": {
+      "full": [
+        "./nodejs-full/lingua.d.ts"
+      ]
+    }
   }
 }

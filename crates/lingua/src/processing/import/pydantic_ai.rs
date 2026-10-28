@@ -1,3 +1,4 @@
+use crate::import_value::{Field, ImportValue, InputKind};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
@@ -334,12 +335,12 @@ fn convert_message_parts(
     }
 }
 
-fn try_parse_wrapper_input(data: &Value) -> Option<Vec<Message>> {
-    if !matches!(data, Value::Object(_)) {
+fn try_parse_wrapper_input(data: &impl ImportValue) -> Option<Vec<Message>> {
+    if data.kind() != InputKind::Object {
         return None;
     }
 
-    let wrapper = PydanticAIWrapperCompat::deserialize(data).ok()?;
+    let wrapper = data.parse::<PydanticAIWrapperCompat>()?;
     if wrapper.user_prompt.is_none()
         && wrapper.system_prompt.is_none()
         && wrapper.message_history.is_empty()
@@ -373,27 +374,21 @@ fn try_parse_wrapper_input(data: &Value) -> Option<Vec<Message>> {
     }
 }
 
-fn has_pydantic_message_shape(data: &Value) -> bool {
-    PydanticAIMessageMarkerCompat::deserialize(data).is_ok()
+fn has_pydantic_message_shape(data: &impl ImportValue) -> bool {
+    data.parse::<PydanticAIMessageMarkerCompat>().is_some()
 }
 
-fn try_parse_internal_input(data: &Value) -> Option<Vec<Message>> {
-    if matches!(data, Value::Object(obj) if obj.contains_key("messages"))
-        && PydanticAIMessagesWrapperCompat::deserialize(data).is_ok()
-    {
-        let wrapper = PydanticAIMessagesWrapperCompat::deserialize(data).ok()?;
-        return try_parse_message_sequence(wrapper.messages);
+fn try_parse_internal_input(data: &impl ImportValue) -> Option<Vec<Message>> {
+    if data.kind() == InputKind::Object {
+        if let Some(wrapper) = data.parse::<PydanticAIMessagesWrapperCompat>() {
+            return try_parse_message_sequence(wrapper.messages);
+        }
     }
-
-    if !matches!(data, Value::Array(items) if !items.is_empty()
-        && items
-            .iter()
-            .all(has_pydantic_message_shape))
-    {
+    let mut items = data.array()?;
+    if items.len() == 0 || !items.all(|item| has_pydantic_message_shape(&item)) {
         return None;
     }
-
-    let messages = Vec::<PydanticAIMessageLikeCompat>::deserialize(data).ok()?;
+    let messages = data.parse::<Vec<PydanticAIMessageLikeCompat>>()?;
     try_parse_message_sequence(messages)
 }
 
@@ -421,29 +416,32 @@ fn try_parse_message_sequence(messages: Vec<PydanticAIMessageLikeCompat>) -> Opt
     }
 }
 
-fn try_parse_output(data: &Value) -> Option<Vec<Message>> {
-    let Value::Object(obj) = data else {
-        return None;
-    };
+#[derive(Deserialize)]
+struct PydanticAIResponseCompat {
+    #[serde(default)]
+    response: Field<Value>,
+}
 
-    if obj.contains_key("response") {
-        let response = obj.get("response")?;
-        if !has_pydantic_message_shape(response) {
+fn try_parse_output(data: &impl ImportValue) -> Option<Vec<Message>> {
+    if data.kind() != InputKind::Object {
+        return None;
+    }
+    let response = data.parse::<PydanticAIResponseCompat>()?;
+    if let Field::Present(response) = response.response {
+        if !has_pydantic_message_shape(&response) {
             return None;
         }
-        let wrapper = PydanticAIOutputWrapperCompat::deserialize(data).ok()?;
+        let wrapper = data.parse::<PydanticAIOutputWrapperCompat>()?;
         return convert_message_parts(
             PydanticAIMessageKindCompat::Response,
             wrapper.response.instructions,
             wrapper.response.parts,
         );
     }
-
     if !has_pydantic_message_shape(data) {
         return None;
     }
-
-    let direct = PydanticAIOutputMessageCompat::deserialize(data).ok()?;
+    let direct = data.parse::<PydanticAIOutputMessageCompat>()?;
     convert_message_parts(
         PydanticAIMessageKindCompat::Response,
         direct.instructions,
@@ -451,21 +449,16 @@ fn try_parse_output(data: &Value) -> Option<Vec<Message>> {
     )
 }
 
-pub(crate) fn try_parse_pydantic_ai_for_import(data: &Value) -> Option<Vec<Message>> {
-    if matches!(data, Value::Array(items) if items.iter().any(|item| matches!(item, Value::Array(_))))
+pub(crate) fn try_parse_pydantic_ai_for_import(data: &impl ImportValue) -> Option<Vec<Message>> {
+    if data
+        .array()
+        .is_some_and(|mut items| items.any(|item| item.kind() == InputKind::Array))
     {
         return None;
     }
-
-    if let Some(messages) = try_parse_wrapper_input(data) {
-        return Some(messages);
-    }
-
-    if let Some(messages) = try_parse_internal_input(data) {
-        return Some(messages);
-    }
-
-    try_parse_output(data)
+    try_parse_wrapper_input(data)
+        .or_else(|| try_parse_internal_input(data))
+        .or_else(|| try_parse_output(data))
 }
 
 #[cfg(test)]

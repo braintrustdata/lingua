@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen;
 use wasm_bindgen::prelude::*;
 
+use crate::import_value::JsInput;
+
 // Import our types and conversion traits
 use crate::providers::anthropic::convert::{
     anthropic_input_messages_to_universal_messages, universal_messages_to_anthropic_input_messages,
@@ -55,6 +57,7 @@ where
     serialize_to_js(&provider_msg, "result")
 }
 
+#[cfg(feature = "wasm-full")]
 fn transform_result_to_js(
     pass_through: bool,
     bytes: bytes::Bytes,
@@ -77,6 +80,7 @@ fn transform_result_to_js(
     Ok(obj.into())
 }
 
+#[cfg(feature = "wasm-full")]
 fn stream_output_chunks_to_js(
     chunks: Vec<crate::processing::stream::StreamOutputChunk>,
 ) -> Result<JsValue, JsValue> {
@@ -95,6 +99,7 @@ fn stream_output_chunks_to_js(
     Ok(out.into())
 }
 
+#[cfg(feature = "wasm-full")]
 fn string_vec_to_js(values: Vec<String>) -> JsValue {
     let out = js_sys::Array::new();
     for value in values {
@@ -103,6 +108,7 @@ fn string_vec_to_js(values: Vec<String>) -> JsValue {
     out.into()
 }
 
+#[cfg(feature = "wasm-full")]
 fn stream_output_chunk_from_js(
     data: &str,
     event_type: Option<String>,
@@ -199,35 +205,42 @@ pub fn deduplicate_messages(value: JsValue) -> Result<JsValue, JsValue> {
     serialize_to_js(&deduplicated, "result")
 }
 
+#[derive(Deserialize)]
+struct ImportSpan {
+    #[serde(default, with = "serde_wasm_bindgen::preserve")]
+    input: JsValue,
+    #[serde(default, with = "serde_wasm_bindgen::preserve")]
+    output: JsValue,
+    #[serde(default, with = "serde_wasm_bindgen::preserve")]
+    metadata: JsValue,
+}
+
+fn import_span_values(value: JsValue) -> Result<Vec<Message>, JsValue> {
+    let parse_error = |error| JsValue::from_str(&format!("Failed to parse spans: {error}"));
+    let spans: Vec<ImportSpan> = serde_wasm_bindgen::from_value(value).map_err(parse_error)?;
+    let mut messages = Vec::new();
+    for span in spans {
+        let metadata: Option<crate::serde_json::Value> =
+            serde_wasm_bindgen::from_value(span.metadata).map_err(parse_error)?;
+        messages.extend(crate::processing::import::import_messages_from_values(
+            &JsInput::new(span.input),
+            &JsInput::new(span.output),
+            metadata.as_ref(),
+        ));
+    }
+    Ok(messages)
+}
+
 /// Import messages from spans
 #[wasm_bindgen]
 pub fn import_messages_from_spans(value: JsValue) -> Result<JsValue, JsValue> {
-    use crate::processing::import::{import_messages_from_spans as import, Span};
-
-    // Convert JS value to Vec<Span>
-    let spans: Vec<Span> = serde_wasm_bindgen::from_value(value)
-        .map_err(|e| JsValue::from_str(&format!("Failed to parse spans: {}", e)))?;
-
-    // Import messages
-    let messages = import(spans);
-
-    // Convert back to JS value
-    serialize_to_js(&messages, "messages")
+    serialize_to_js(&import_span_values(value)?, "messages")
 }
 
 /// Import and deduplicate messages from spans in a single operation
 #[wasm_bindgen]
 pub fn import_and_deduplicate_messages(value: JsValue) -> Result<JsValue, JsValue> {
-    use crate::processing::import::{import_and_deduplicate_messages as import_dedup, Span};
-
-    // Convert JS value to Vec<Span>
-    let spans: Vec<Span> = serde_wasm_bindgen::from_value(value)
-        .map_err(|e| JsValue::from_str(&format!("Failed to parse spans: {}", e)))?;
-
-    // Import and deduplicate messages
-    let messages = import_dedup(spans);
-
-    // Convert back to JS value
+    let messages = crate::processing::dedup::deduplicate_messages(import_span_values(value)?);
     serialize_to_js(&messages, "messages")
 }
 
@@ -236,6 +249,7 @@ pub fn import_and_deduplicate_messages(value: JsValue) -> Result<JsValue, JsValu
 // ============================================================================
 
 /// Validate a JSON string as a Chat Completions request
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
 pub fn validate_chat_completions_request(json: &str) -> Result<JsValue, JsValue> {
@@ -245,6 +259,7 @@ pub fn validate_chat_completions_request(json: &str) -> Result<JsValue, JsValue>
 }
 
 /// Validate a JSON string as a Chat Completions response
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
 pub fn validate_chat_completions_response(json: &str) -> Result<JsValue, JsValue> {
@@ -254,6 +269,7 @@ pub fn validate_chat_completions_response(json: &str) -> Result<JsValue, JsValue
 }
 
 /// Validate a JSON string as a Chat Completions stream chunk
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
 pub fn validate_chat_completions_stream_chunk(json: &str) -> Result<JsValue, JsValue> {
@@ -263,6 +279,7 @@ pub fn validate_chat_completions_stream_chunk(json: &str) -> Result<JsValue, JsV
 }
 
 /// Validate a JSON string as a Responses API request
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
 pub fn validate_responses_request(json: &str) -> Result<JsValue, JsValue> {
@@ -272,6 +289,7 @@ pub fn validate_responses_request(json: &str) -> Result<JsValue, JsValue> {
 }
 
 /// Validate a JSON string as a Responses API response
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
 pub fn validate_responses_response(json: &str) -> Result<JsValue, JsValue> {
@@ -282,6 +300,7 @@ pub fn validate_responses_response(json: &str) -> Result<JsValue, JsValue> {
 
 /// Validate a JSON string as an OpenAI request
 /// @deprecated Use validate_chat_completions_request instead
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
 pub fn validate_openai_request(json: &str) -> Result<JsValue, JsValue> {
@@ -290,6 +309,7 @@ pub fn validate_openai_request(json: &str) -> Result<JsValue, JsValue> {
 
 /// Validate a JSON string as an OpenAI response
 /// @deprecated Use validate_chat_completions_response instead
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
 pub fn validate_openai_response(json: &str) -> Result<JsValue, JsValue> {
@@ -297,6 +317,7 @@ pub fn validate_openai_response(json: &str) -> Result<JsValue, JsValue> {
 }
 
 /// Validate a JSON string as an Anthropic request
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "anthropic")]
 pub fn validate_anthropic_request(json: &str) -> Result<JsValue, JsValue> {
@@ -306,6 +327,7 @@ pub fn validate_anthropic_request(json: &str) -> Result<JsValue, JsValue> {
 }
 
 /// Validate a JSON string as an Anthropic response
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "anthropic")]
 pub fn validate_anthropic_response(json: &str) -> Result<JsValue, JsValue> {
@@ -315,6 +337,7 @@ pub fn validate_anthropic_response(json: &str) -> Result<JsValue, JsValue> {
 }
 
 /// Validate a JSON string as a Bedrock request
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "bedrock")]
 pub fn validate_bedrock_request(json: &str) -> Result<JsValue, JsValue> {
@@ -324,6 +347,7 @@ pub fn validate_bedrock_request(json: &str) -> Result<JsValue, JsValue> {
 }
 
 /// Validate a JSON string as a Bedrock response
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "bedrock")]
 pub fn validate_bedrock_response(json: &str) -> Result<JsValue, JsValue> {
@@ -333,6 +357,7 @@ pub fn validate_bedrock_response(json: &str) -> Result<JsValue, JsValue> {
 }
 
 /// Validate a JSON string as a Google GenerateContent request
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "google")]
 pub fn validate_google_request(json: &str) -> Result<JsValue, JsValue> {
@@ -343,6 +368,7 @@ pub fn validate_google_request(json: &str) -> Result<JsValue, JsValue> {
 }
 
 /// Validate a JSON string as a Google GenerateContent response
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 #[cfg(feature = "google")]
 pub fn validate_google_response(json: &str) -> Result<JsValue, JsValue> {
@@ -364,6 +390,7 @@ pub fn validate_google_response(json: &str) -> Result<JsValue, JsValue> {
 /// Returns an object with either:
 /// - `{ passThrough: true, data: ... }` if payload is already valid for target
 /// - `{ transformed: true, data: ..., sourceFormat: "..." }` if transformed
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 pub fn transform_request(
     input: &str,
@@ -419,6 +446,7 @@ pub fn transform_request(
 /// Returns an object with either:
 /// - `{ passThrough: true, data: ... }` if payload is already valid for target
 /// - `{ transformed: true, data: ..., sourceFormat: "..." }` if transformed
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, JsValue> {
     use crate::capabilities::ProviderFormat;
@@ -456,6 +484,7 @@ pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, J
 /// Returns an object with either:
 /// - `{ passThrough: true, data: ... }` if chunk is already valid for target
 /// - `{ transformed: true, data: ..., sourceFormat: "..." }` if transformed
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValue, JsValue> {
     use crate::capabilities::ProviderFormat;
@@ -607,11 +636,13 @@ impl TrajectoryCollector {
     }
 }
 
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 pub struct TransformStreamSession {
     inner: crate::processing::stream::StreamTransformSession,
 }
 
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 impl TransformStreamSession {
     #[wasm_bindgen(constructor)]
@@ -668,12 +699,14 @@ impl TransformStreamSession {
 ///
 /// This is a fast path for routing decisions that only need the model name.
 /// Returns the model string if found, or undefined if not present.
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 pub fn extract_model(input: &str) -> Option<String> {
     use crate::processing::transform::extract_model as extract;
     extract(input.as_bytes())
 }
 
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 pub fn format_stream_chunk_as_sse(
     data: &str,
@@ -688,6 +721,7 @@ pub fn format_stream_chunk_as_sse(
     String::from_utf8(bytes.to_vec()).map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
+#[cfg(feature = "wasm-full")]
 #[wasm_bindgen]
 pub fn stream_done_marker(target_format: &str) -> Result<Option<String>, JsValue> {
     let target: crate::capabilities::ProviderFormat = target_format

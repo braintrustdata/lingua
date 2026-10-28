@@ -249,9 +249,9 @@ bindings/
     └── package.json
 ```
 
-## API Reference
+## API reference
 
-### Conversion Functions
+### Conversion functions
 
 ```typescript
 // OpenAI Chat Completions ↔ Lingua
@@ -262,12 +262,16 @@ chatCompletionsMessagesToLingua(messages: ChatCompletionMessage[]): Message[]
 linguaToAnthropicMessages(messages: Message[]): MessageParam[]
 anthropicMessagesToLingua(messages: AnthropicMessage[]): Message[]
 
-// Validation
-validateChatCompletionsRequest(request: unknown): ValidationResult
-validateChatCompletionsResponse(response: unknown): ValidationResult
-validateAnthropicRequest(request: unknown): ValidationResult
-validateAnthropicResponse(response: unknown): ValidationResult
+// Span imports and deduplication
+importMessagesFromSpans(spans): Message[]
+importAndDeduplicateMessages(spans): Message[]
+deduplicateMessages(messages: Message[]): Message[]
 ```
+
+The default WASM API also exposes `import_span`, `trajectory_metadata_fields`,
+`TrajectoryStream`, and `TrajectoryCollector` through `getWasm()`. Request/response
+validators and transforms are available only in the full raw Node bindings at
+`@braintrust/lingua-wasm/full`, used by Lingua's fixture tooling.
 
 ### Types
 
