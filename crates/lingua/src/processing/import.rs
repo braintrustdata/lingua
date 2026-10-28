@@ -330,7 +330,10 @@ pub fn import_role_message_from_value(data: &impl ImportValue) -> Vec<Message> {
         ..Default::default()
     };
     import_mixed_message_item(
-        data, 0, &mut import, provider_parsers_for_import(),
+        data,
+        0,
+        &mut import,
+        provider_parsers_for_import(),
         provider_parsers_for_import::<Value>(),
     )
 }
@@ -361,20 +364,19 @@ fn import_mixed_message_item<V: ImportValue>(
     // Native Anthropic thinking blocks must use the canonical parser so adjacent text
     // metadata survives. Keep the existing parser order for every other role message.
     #[cfg(feature = "anthropic")]
-    let mut parsed_messages = try_parse_anthropic_for_import(item)
-        .filter(|messages| {
-            messages.iter().any(|message| {
-                matches!(
-                    message,
-                    Message::Assistant {
-                        content: AssistantContent::Array(parts),
-                        ..
-                    } if parts.iter().any(|part| {
-                        matches!(part, AssistantContentPart::Reasoning { .. })
-                    })
-                )
-            })
-        });
+    let mut parsed_messages = try_parse_anthropic_for_import(item).filter(|messages| {
+        messages.iter().any(|message| {
+            matches!(
+                message,
+                Message::Assistant {
+                    content: AssistantContent::Array(parts),
+                    ..
+                } if parts.iter().any(|part| {
+                    matches!(part, AssistantContentPart::Reasoning { .. })
+                })
+            )
+        })
+    });
     #[cfg(not(feature = "anthropic"))]
     let mut parsed_messages = None;
 

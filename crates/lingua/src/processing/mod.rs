@@ -11,7 +11,10 @@ pub use adapters::{
     insert_opt_string, insert_opt_value, ProviderAdapter,
 };
 pub use dedup::{deduplicate_messages, deduplicate_messages_iter, message_dedup_hash};
-pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
+pub use import::{
+    import_and_deduplicate_messages, import_messages_from_spans, import_role_message_from_value,
+    try_import_ai_sdk_prompt_message, Span,
+};
 pub use json_repair::normalize_json_lone_surrogate_escapes;
 pub use stream::{
     parse_stream_event, ParsedStreamEvent, StreamOutputChunk, StreamTransformSession,
