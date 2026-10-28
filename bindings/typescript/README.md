@@ -224,6 +224,69 @@ pnpm generate
 pnpm test
 ```
 
+### Benchmarking browser workloads
+
+From `bindings/typescript`, run the existing benchmark CLI after building WASM:
+
+```bash
+pnpm bench:import
+pnpm bench:import --target browser
+pnpm bench:import --suite display --samples 100 --warmup 20
+pnpm bench:import --suite trajectory --filter '32 rounds'
+```
+
+`--suite` accepts `import`, `display`, `trajectory`, or `all` (the default).
+`--target` accepts `node` (the default) or `browser`. Both targets execute under
+Node; `browser` loads the web-targeted WASM bindings and initializes them from
+their adjacent `lingua_bg.wasm`. Module loading and initialization are not timed.
+
+- `import` retains the provider/framework fixtures, combined-fixture batch,
+  large-payload stress cases, and unsupported-input cases.
+- `display` imports input and output separately, passing metadata with input,
+  and converts each message individually into Chat Completions format. It uses
+  seven provider/framework examples and excludes `additional_tools` messages,
+  matching the browser's conversion call pattern.
+- `trajectory` imports headers, follows `pendingIds()` to load payloads, and
+  assembles streamed events in JavaScript. The collector follows the app's
+  `app/utils/preprocessors/trajectory-collector.ts`; untimed preflight checks
+  compare its complete snapshot with Lingua's WASM collector after every batch.
+  Fixtures cover provider tool cycles, overlapping analysis, nested workers,
+  compaction, and opaque continuation history. Explicitly scaled cases derive
+  8- and 32-round conversations from the Chat Completions tool-cycle fixture,
+  with growing histories and unique span/tool IDs. Each case runs with payload
+  batches of 1 and 16 spans, taking a snapshot after every batch and at completion.
+
+The tables report serialized input bytes, span/message or turn/work-step counts,
+and median/p95 duration. Trajectory rows also report event/snapshot counts and
+time from the start of header import to the first turn event. This is compute
+time, not time to fetch data or paint content. Samples include fresh trajectory
+state and stream cleanup; assertions and fixture generation stay outside timing.
+
+Compare builds using raw generated JS entry points, with separate build
+directories for the baseline and candidate:
+
+```bash
+pnpm bench:import --target node \
+  --baseline /path/to/baseline/nodejs/lingua.js \
+  --candidate /path/to/candidate/nodejs/lingua.js
+pnpm bench:import --target browser --suite trajectory \
+  --baseline /path/to/baseline/web/lingua.js \
+  --candidate /path/to/candidate/web/lingua.js
+```
+
+Both builds must match `--target` and expose the selected suite's APIs. The CLI
+checks complete output parity before comparing timings and retains the existing
+import-and-deduplicate parity checks. Missing artifacts, unsupported conversions,
+fixture assertion failures, and incomplete streams fail the run. `--filter` is a
+regular expression matching case names or names prefixed with their suite.
+
+Defaults remain 100 samples and 20 warmups. These are fixture and stress
+workloads, not a customer-weighted traffic mix. They measure Lingua and the
+JavaScript/WASM boundary; they exclude app-specific display preparation,
+normalizer selection/comparison, caches, network requests, React rendering,
+browser responsiveness, startup latency, and memory measurements. There are no
+CI performance thresholds.
+
 ### Project Structure
 
 ```

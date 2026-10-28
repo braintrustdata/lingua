@@ -3,6 +3,12 @@ import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
+import {
+  runDisplay,
+  runTrajectory,
+  trajectoryCases,
+  validateTrajectory,
+} from "./workloads.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -11,20 +17,76 @@ const { values } = parseArgs({
     samples: { type: "string", default: "100" },
     warmup: { type: "string", default: "20" },
     filter: { type: "string" },
+    suite: { type: "string", default: "all" },
+    target: { type: "string", default: "node" },
   },
 });
 
 const samples = Number(values.samples);
 const warmup = Number(values.warmup);
-assert.ok(Number.isInteger(samples) && samples > 0);
-assert.ok(Number.isInteger(warmup) && warmup >= 0);
+assert.ok(
+  Number.isInteger(samples) && samples > 0,
+  "Invalid --samples: expected a positive integer"
+);
+assert.ok(
+  Number.isInteger(warmup) && warmup >= 0,
+  "Invalid --warmup: expected a nonnegative integer"
+);
+assert.ok(
+  ["import", "display", "trajectory", "all"].includes(values.suite),
+  "Invalid --suite: expected import, display, trajectory, or all"
+);
+assert.ok(
+  ["node", "browser"].includes(values.target),
+  "Invalid --target: expected node or browser"
+);
 
 async function loadWasm(path) {
-  const wasm = path
-    ? await import(pathToFileURL(resolve(path)).href)
-    : await import("@braintrust/lingua-wasm");
-  assert.equal(typeof wasm.import_messages_from_spans, "function");
-  return wasm;
+  const url = path
+    ? pathToFileURL(resolve(path))
+    : new URL(
+        import.meta.resolve(
+          values.target === "browser"
+            ? "@braintrust/lingua-wasm/browser"
+            : "@braintrust/lingua-wasm"
+        )
+      );
+  try {
+    const wasm = await import(url.href);
+    if (values.target === "browser") {
+      assert.equal(
+        typeof wasm.default,
+        "function",
+        "Expected web bindings for --target browser"
+      );
+      await wasm.default({
+        module_or_path: readFileSync(new URL("./lingua_bg.wasm", url)),
+      });
+    } else {
+      assert.ok(
+        !("initSync" in wasm),
+        "Expected Node bindings for --target node"
+      );
+    }
+    const required = ["import_messages_from_spans"];
+    if (values.baseline) required.push("import_and_deduplicate_messages");
+    if (["all", "display"].includes(values.suite))
+      required.push("lingua_to_chat_completions_messages");
+    if (["all", "trajectory"].includes(values.suite))
+      required.push("import_span", "TrajectoryStream", "TrajectoryCollector");
+    for (const name of required)
+      assert.equal(
+        typeof wasm[name],
+        "function",
+        `Missing WASM export ${name}`
+      );
+    return wasm;
+  } catch (error) {
+    throw new Error(
+      `Cannot load ${values.target} WASM build ${url.pathname}: ${String(error)}`,
+      { cause: error }
+    );
+  }
 }
 
 const candidate = await loadWasm(values.candidate);
@@ -72,7 +134,7 @@ const largeText = sourceText
   .repeat(Math.ceil((4 * 1024 * 1024) / sourceText.length))
   .slice(0, 4 * 1024 * 1024);
 const unsupported = { unrelated: largeText };
-const cases = [
+const importCases = [
   {
     name: "Chat Completions",
     spans: fixture("chat-completions-basic.spans.json"),
@@ -178,6 +240,55 @@ const cases = [
   },
 ];
 
+const cases = [
+  ...importCases.map((workload) => ({ ...workload, suite: "import" })),
+  ...importCases.slice(0, 7).map((workload, index) => ({
+    ...workload,
+    suite: "display",
+    expectedMessages: [2, 4, 1, 1, 2, 2, 8][index],
+  })),
+  ...trajectoryCases(),
+];
+
+function run(wasm, workload, validate = false) {
+  try {
+    switch (workload.suite) {
+      case "import":
+        return { output: wasm.import_messages_from_spans(workload.spans) };
+      case "display":
+        return { output: runDisplay(wasm, workload.spans) };
+      case "trajectory": {
+        const result = runTrajectory(wasm, workload, validate);
+        if (validate) validateTrajectory(result.output, workload.fixture);
+        return result;
+      }
+      default:
+        throw new Error(`Unknown suite ${workload.suite}`);
+    }
+  } catch (error) {
+    throw new Error(`${workload.suite}: ${workload.name}: ${String(error)}`, {
+      cause: error,
+    });
+  }
+}
+
+function trajectoryCounts(trajectories) {
+  let turns = 0;
+  let work = 0;
+  for (const trajectory of trajectories)
+    for (const turn of trajectory.turns) {
+      turns++;
+      work += turn.work.length;
+      for (const step of turn.work)
+        if (step.sub_agent) {
+          const child = trajectoryCounts([step.sub_agent]);
+          turns += child.turns;
+          work += child.work;
+        }
+    }
+  return { turns, work };
+}
+
 function summarize(times) {
   times.sort((a, b) => a - b);
   return {
@@ -188,52 +299,108 @@ function summarize(times) {
 
 const rows = [];
 const filter = new RegExp(values.filter ?? "");
-const selectedCases = cases.filter(({ name }) => filter.test(name));
+const selectedCases = cases.filter(
+  ({ name, suite }) =>
+    (values.suite === "all" || values.suite === suite) &&
+    (filter.test(name) || filter.test(`${suite}: ${name}`))
+);
 assert.ok(selectedCases.length > 0, "No benchmark cases matched the filter");
-for (const { name, spans, compatible } of selectedCases) {
-  const messages = candidate.import_messages_from_spans(spans);
-  assert.equal(messages.length > 0, compatible, name);
+for (const workload of selectedCases) {
+  const { name, spans, suite } = workload;
+  const result = run(candidate, workload, true);
+  if (suite === "import")
+    assert.equal(result.output.length > 0, workload.compatible, name);
+  if (suite === "display") {
+    assert.equal(
+      result.output.reduce(
+        (count, span) => count + span.input.length + span.output.length,
+        0
+      ),
+      workload.expectedMessages,
+      `${name}: display message count`
+    );
+    for (const span of result.output)
+      for (const message of [...span.input, ...span.output]) {
+        assert.equal(typeof message.role, "string", name);
+      }
+  }
   if (baseline) {
-    for (const operation of [
-      "import_messages_from_spans",
-      "import_and_deduplicate_messages",
-    ]) {
+    const previous = run(baseline, workload, true);
+    assert.deepEqual(
+      result.output,
+      previous.output,
+      `${suite}: ${name}: complete output parity`
+    );
+    if (suite === "import") {
       assert.deepEqual(
-        candidate[operation](spans),
-        baseline[operation](spans),
-        `${name}: ${operation}`
+        candidate.import_and_deduplicate_messages(spans),
+        baseline.import_and_deduplicate_messages(spans),
+        `${name}: import_and_deduplicate_messages`
       );
     }
   }
 
   for (let i = 0; i < warmup; i++) {
-    baseline?.import_messages_from_spans(spans);
-    candidate.import_messages_from_spans(spans);
+    if (baseline) run(baseline, workload);
+    run(candidate, workload);
   }
   globalThis.gc?.();
 
   const candidateTimes = [];
   const baselineTimes = [];
+  const candidateFirstTurn = [];
+  const baselineFirstTurn = [];
   const runs = [
-    { wasm: baseline, times: baselineTimes },
-    { wasm: candidate, times: candidateTimes },
+    { wasm: baseline, times: baselineTimes, firstTurn: baselineFirstTurn },
+    { wasm: candidate, times: candidateTimes, firstTurn: candidateFirstTurn },
   ];
   for (let i = 0; i < samples; i++) {
     runs.reverse();
-    for (const { wasm, times } of runs) {
+    for (const { wasm, times, firstTurn } of runs) {
       if (!wasm) continue;
       const start = performance.now();
-      wasm.import_messages_from_spans(spans);
+      const sample = run(wasm, workload);
       times.push(performance.now() - start);
+      if (sample.firstTurnMs !== undefined) firstTurn.push(sample.firstTurnMs);
     }
   }
 
   const current = summarize(candidateTimes);
   const previous = baseline ? summarize(baselineTimes) : undefined;
   rows.push({
+    suite,
+    target: values.target,
     case: name,
     bytes: Buffer.byteLength(JSON.stringify(spans)),
-    messages: messages.length,
+    spans: spans.length,
+    ...(suite === "trajectory"
+      ? {
+          ...trajectoryCounts(result.output),
+          events: result.events,
+          snapshots: result.snapshots,
+          "first turn median ms": candidateFirstTurn.length
+            ? summarize(candidateFirstTurn).medianMs.toFixed(4)
+            : undefined,
+          "first turn p95 ms": candidateFirstTurn.length
+            ? summarize(candidateFirstTurn).p95Ms.toFixed(4)
+            : undefined,
+          "baseline first turn median ms": baselineFirstTurn.length
+            ? summarize(baselineFirstTurn).medianMs.toFixed(4)
+            : undefined,
+          "baseline first turn p95 ms": baselineFirstTurn.length
+            ? summarize(baselineFirstTurn).p95Ms.toFixed(4)
+            : undefined,
+        }
+      : {
+          messages:
+            suite === "import"
+              ? result.output.length
+              : result.output.reduce(
+                  (count, span) =>
+                    count + span.input.length + span.output.length,
+                  0
+                ),
+        }),
     "baseline median ms": previous?.medianMs.toFixed(4),
     "candidate median ms": current.medianMs.toFixed(4),
     "baseline p95 ms": previous?.p95Ms.toFixed(4),
@@ -244,5 +411,12 @@ for (const { name, spans, compatible } of selectedCases) {
   });
 }
 
+if (baseline)
+  console.log(
+    `Complete output parity: ${selectedCases.length} selected workloads`
+  );
 console.log(`Samples: ${samples}; warmup: ${warmup}; Node: ${process.version}`);
-console.table(rows);
+for (const suite of ["import", "display", "trajectory"]) {
+  const selected = rows.filter((row) => row.suite === suite);
+  if (selected.length) console.table(selected);
+}
