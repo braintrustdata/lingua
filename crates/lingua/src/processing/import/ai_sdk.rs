@@ -418,6 +418,11 @@ fn parse_message(message: AISDKMessageCompat) -> Option<Message> {
     }
 }
 
+/// Imports one AI SDK prompt item using the strict AI SDK parser.
+///
+/// To match sequence import, callers must reject the entire sequence if it is
+/// empty or any item returns `None`; keeping only successful items would accept
+/// partial history that sequence import rejects.
 pub fn try_import_ai_sdk_prompt_message(value: &impl ImportValue) -> Option<Message> {
     value.parse::<AISDKMessageCompat>().and_then(parse_message)
 }
