@@ -723,8 +723,28 @@ fn cached_history_formats_preserve_tool_result_differences() {
     let value = serde_json::json!({"role":"tool", "content":"result", "tool_call_id":"call", "name":"lookup"});
     let direct = import_role_message_from_value(&value);
     let ai_sdk = try_import_ai_sdk_prompt_message(&value).unwrap();
-    assert_ne!(
-        serde_json::to_value(&direct).unwrap(),
-        serde_json::to_value(vec![ai_sdk]).unwrap()
+    assert_eq!(
+        serde_json::to_value(direct).unwrap(),
+        serde_json::json!([{
+            "role": "tool",
+            "content": [{
+                "type": "tool_result",
+                "tool_call_id": "call",
+                "tool_name": "",
+                "output": "result",
+            }],
+        }])
+    );
+    assert_eq!(
+        serde_json::to_value(ai_sdk).unwrap(),
+        serde_json::json!({
+            "role": "tool",
+            "content": [{
+                "type": "tool_result",
+                "tool_call_id": "call",
+                "tool_name": "lookup",
+                "output": null,
+            }],
+        })
     );
 }
