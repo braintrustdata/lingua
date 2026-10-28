@@ -1,5 +1,6 @@
 pub mod adapters;
 pub mod dedup;
+pub mod detached;
 pub mod import;
 mod json_repair;
 pub mod stream;
@@ -11,6 +12,7 @@ pub use adapters::{
     insert_opt_string, insert_opt_value, ProviderAdapter,
 };
 pub use dedup::{deduplicate_messages, message_dedup_hash};
+pub use detached::{DetachedStringError, DetachedStrings};
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
 pub use json_repair::normalize_json_lone_surrogate_escapes;
 pub use stream::{

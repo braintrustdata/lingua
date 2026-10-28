@@ -16,3 +16,7 @@ serde = { version = "1.0", features = ["derive"] }
 [[test]]
 name = "import_fixtures"
 path = "../../crates/lingua/tests/import_fixtures.rs"
+
+[[test]]
+name = "detached_strings"
+path = "../../crates/lingua/tests/detached_strings.rs"
