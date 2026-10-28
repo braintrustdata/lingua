@@ -1100,9 +1100,12 @@ pub fn import_messages_from_values<I: ImportValue, O: ImportValue, M: ImportValu
         try_converting_to_messages(value, import)
     }
     let mut input = if input.kind() == InputKind::String {
-        vec![Message::User {
-            content: UserContent::String(input.parse::<String>().expect("string input")),
-        }]
+        match input.parse::<String>() {
+            Some(text) => vec![Message::User {
+                content: UserContent::String(text),
+            }],
+            None => Vec::new(),
+        }
     } else {
         parse(input, &mut import)
     };
@@ -1116,14 +1119,12 @@ pub fn import_messages_from_values<I: ImportValue, O: ImportValue, M: ImportValu
         }
     }
     let output = if output.kind() == InputKind::String {
-        let text = output.parse::<String>().expect("string output");
-        if text.is_empty() {
-            Vec::new()
-        } else {
-            vec![Message::Assistant {
+        match output.parse::<String>() {
+            Some(text) if !text.is_empty() => vec![Message::Assistant {
                 content: AssistantContent::String(text),
                 id: None,
-            }]
+            }],
+            _ => Vec::new(),
         }
     } else {
         parse(output, &mut import)

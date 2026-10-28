@@ -57,6 +57,29 @@ impl ImportValue for BorrowedValue<'_> {
     }
 }
 
+struct UnreadableString;
+
+impl ImportValue for UnreadableString {
+    type Item<'a> = Self;
+    type Items<'a> = std::iter::Empty<Self>;
+
+    fn kind(&self) -> InputKind {
+        InputKind::String
+    }
+
+    fn parse<T: serde::de::DeserializeOwned>(&self) -> Option<T> {
+        None
+    }
+
+    fn array(&self) -> Option<Self::Items<'_>> {
+        None
+    }
+
+    fn to_value(&self) -> Cow<'_, serde_json::Value> {
+        panic!("unreadable strings must not be materialized")
+    }
+}
+
 #[test]
 fn borrowed_tool_chat_does_not_materialize_values() {
     let input = serde_json::json!([
@@ -115,6 +138,26 @@ fn borrowed_message_only_import_discards_opaque_values_without_copying() {
     }, Message::User { content: UserContent::String(question) }]
         if instructions == "Use tools" && question == "question"));
     assert_eq!(copies.get(), 0);
+}
+
+#[test]
+fn unreadable_string_input_preserves_output() {
+    let output = serde_json::json!("answer");
+    let messages =
+        import_messages_from_values(&UnreadableString, &output, None::<&serde_json::Value>);
+    assert!(matches!(&messages[..], [Message::Assistant {
+        content: AssistantContent::String(text), ..
+    }] if text == "answer"));
+}
+
+#[test]
+fn unreadable_string_output_preserves_input() {
+    let input = serde_json::json!("question");
+    let messages =
+        import_messages_from_values(&input, &UnreadableString, None::<&serde_json::Value>);
+    assert!(matches!(&messages[..], [Message::User {
+        content: UserContent::String(text),
+    }] if text == "question"));
 }
 
 #[test]
