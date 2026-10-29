@@ -137,36 +137,43 @@ const unsupported = { unrelated: largeText };
 const importCases = [
   {
     name: "Chat Completions",
+    expectedMessages: 2,
     spans: fixture("chat-completions-basic.spans.json"),
     compatible: true,
   },
   {
     name: "Responses tool loop",
+    expectedMessages: 4,
     spans: fixture("openai-responses-real-world-tool-loop.spans.json"),
     compatible: true,
   },
   {
     name: "Anthropic tool use",
+    expectedMessages: 1,
     spans: fixture("anthropic-tool-use-blocks.spans.json"),
     compatible: true,
   },
   {
     name: "Gemini",
+    expectedMessages: 1,
     spans: fixture("gemini-basic-generate-content.spans.json"),
     compatible: true,
   },
   {
     name: "Pydantic",
+    expectedMessages: 2,
     spans: fixture("pydantic-ai-wrapper-user-prompt.spans.json"),
     compatible: true,
   },
   {
     name: "LangChain",
+    expectedMessages: 2,
     spans: fixture("langchain-human-ai-basic.spans.json"),
     compatible: true,
   },
   {
     name: "AI SDK tool use",
+    expectedMessages: 8,
     spans: fixture("ai-sdk-multi-round-tool-use.spans.json"),
     compatible: true,
   },
@@ -242,11 +249,9 @@ const importCases = [
 
 const cases = [
   ...importCases.map((workload) => ({ ...workload, suite: "import" })),
-  ...importCases.slice(0, 7).map((workload, index) => ({
-    ...workload,
-    suite: "display",
-    expectedMessages: [2, 4, 1, 1, 2, 2, 8][index],
-  })),
+  ...importCases
+    .filter((workload) => workload.expectedMessages !== undefined)
+    .map((workload) => ({ ...workload, suite: "display" })),
   ...trajectoryCases(),
 ];
 
