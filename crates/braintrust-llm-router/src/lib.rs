@@ -38,7 +38,10 @@ pub use router::{
     create_provider, extract_request_hints, CompleteResponseWithRaw, PreparedRequest,
     PreparedStreamRequest, ProviderRoute, RequestHints, Router, RouterBuilder, RouterMetadata,
 };
-pub use streaming::{RawResponseStream, RawStreamChunkCapture, ResponseStream, StreamChunk};
+pub use streaming::{
+    sse_stream, transform_provider_stream, RawResponseStream, RawStreamChunkCapture,
+    ResponseStream, StreamChunk,
+};
 
 // Provider trait requirement (for custom provider implementations)
 pub use lingua::{UniversalResponse, UniversalUsage};
