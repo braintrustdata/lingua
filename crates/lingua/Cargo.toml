@@ -11,7 +11,7 @@ categories = ["api-bindings", "development-tools"]
 
 [package.metadata.braintrust.build-variants.all-providers]
 default-features = true
-features = ["bedrock"]
+features = ["bedrock", "typesafe"]
 
 [package.metadata.ts-rs]
 optional_option_fields = true
@@ -22,6 +22,7 @@ wasm-opt = false
 [features]
 default = ["openai", "anthropic", "google"]
 openai = []
+typesafe = ["openai"]
 anthropic = []
 google = []
 bedrock = ["dep:aws-sdk-bedrockruntime"]

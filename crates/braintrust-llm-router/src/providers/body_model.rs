@@ -7,7 +7,9 @@ fn body_model_field(format: ProviderFormat) -> Option<&'static str> {
         ProviderFormat::ChatCompletions
         | ProviderFormat::Responses
         | ProviderFormat::Anthropic
-        | ProviderFormat::Mistral => Some("model"),
+        | ProviderFormat::Mistral
+        | ProviderFormat::Decisions
+        | ProviderFormat::TypeSafe => Some("model"),
         ProviderFormat::Google
         | ProviderFormat::Converse
         | ProviderFormat::BedrockAnthropic

@@ -161,6 +161,21 @@ impl OpenAIProvider {
         Ok(url)
     }
 
+    fn decisions_url(&self, model: Option<&str>) -> Result<Url> {
+        let mut url = self.resolve_base(model)?;
+        {
+            let mut segments = url
+                .path_segments_mut()
+                .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
+            segments.pop_if_empty();
+            segments.push("decisions");
+        }
+        if let Some(version) = &self.config.api_version {
+            url.query_pairs_mut().append_pair("api-version", version);
+        }
+        Ok(url)
+    }
+
     fn apply_headers(&self, headers: &mut HeaderMap) {
         if let Some(org) = &self.config.organization {
             headers.insert(
@@ -194,7 +209,11 @@ impl crate::providers::Provider for OpenAIProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
+        vec![
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Responses,
+            ProviderFormat::Decisions,
+        ]
     }
 
     async fn complete(
@@ -207,6 +226,7 @@ impl crate::providers::Provider for OpenAIProvider {
     ) -> Result<Bytes> {
         let url = match format {
             ProviderFormat::Responses => self.responses_url(Some(&spec.model))?,
+            ProviderFormat::Decisions => self.decisions_url(Some(&spec.model))?,
             _ => self.chat_url(Some(&spec.model))?,
         };
 
@@ -259,6 +279,12 @@ impl crate::providers::Provider for OpenAIProvider {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
                 .await;
+        }
+
+        if format == ProviderFormat::Decisions {
+            return Err(Error::InvalidRequest(
+                "the decisions API does not support streaming".into(),
+            ));
         }
 
         // Router should have already added stream options to payload

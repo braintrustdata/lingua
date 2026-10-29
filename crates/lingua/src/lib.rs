@@ -36,6 +36,12 @@ pub use extraction::{extract_request_hints, RequestHints};
 pub use capabilities::ProviderFormat;
 
 // Re-export key processing functions (bytes-based API)
+#[cfg(feature = "openai")]
+pub use processing::{
+    parse_decision_request, parse_decision_response, transform_decision_request,
+    transform_decision_response, DecisionRequestTransform, DecisionResponseContext,
+};
+
 pub use processing::{
     extract_model, normalize_json_lone_surrogate_escapes, parse_json, parse_json_body,
     parse_json_value, parse_stream_event, request_to_universal, response_to_universal,

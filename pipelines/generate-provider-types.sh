@@ -3,7 +3,7 @@
 # Provider type generation script
 # 
 # This script follows the pipeline documented in generate-provider-types.md
-# Currently supports: OpenAI, Anthropic, Google
+# Currently supports: OpenAI, OpenAI Decisions, Anthropic, Google
 #
 # Usage: ./generate-provider-types.sh [provider] [--headless]
 # Default provider: openai
@@ -16,6 +16,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Parse arguments
 PROVIDER=""
 HEADLESS=false
+GENERATE_TYPES_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -53,6 +54,14 @@ download_provider_spec() {
             echo "Downloading OpenAI OpenAPI spec..."
             SPEC_URL="https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
             SPEC_FILE="$PROJECT_ROOT/specs/openai/openapi.yml"
+            ;;
+        "openai-decisions")
+            # The full spec is only an input; generate-types keeps the Decisions
+            # excerpt in specs/openai/decisions.yml.
+            echo "Downloading OpenAI OpenAPI spec for the Decisions API..."
+            SPEC_URL="https://raw.githubusercontent.com/openai/openai-openapi/main/openapi.yaml"
+            SPEC_FILE="$(mktemp -t openai-openapi.XXXXXX)"
+            GENERATE_TYPES_ARGS=("$SPEC_FILE")
             ;;
         "anthropic")
             echo "Fetching official Anthropic OpenAPI spec URL from .stats.yml..."
@@ -211,7 +220,7 @@ cd "$PROJECT_ROOT"
 
 # Run the dedicated type generation script
 echo "Running type generation script for $PROVIDER..."
-cargo run --bin generate-types -- "$PROVIDER"
+cargo run --bin generate-types -- "$PROVIDER" "${GENERATE_TYPES_ARGS[@]}"
 
 if [ $? -ne 0 ]; then
     echo "❌ Type generation failed"
@@ -238,7 +247,10 @@ echo "✅ Type generation and validation completed"
 echo "🎉 Provider type generation completed successfully for: $PROVIDER"
 echo ""
 echo "Generated files:"
-if [ "$PROVIDER" = "google" ]; then
+if [ "$PROVIDER" = "openai-decisions" ]; then
+    echo "- $PROJECT_ROOT/crates/lingua/src/providers/openai/decisions_generated.rs (types from OpenAPI spec)"
+    echo "- $PROJECT_ROOT/specs/openai/decisions.yml (local Decisions OpenAPI excerpt)"
+elif [ "$PROVIDER" = "google" ]; then
     echo "- $PROJECT_ROOT/crates/lingua/src/providers/$PROVIDER/generated.rs (types from Google Discovery spec)"
     echo "- $PROJECT_ROOT/specs/$PROVIDER/discovery.json (local Google Discovery spec)"
 else
