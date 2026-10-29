@@ -112,7 +112,10 @@ test("Node and browser builds produce identical display messages and progressive
     assert.throws(() => runDisplay(browser, [{ input: "Hello", metadata: () => null }]));
 
     const byBatch = new Map();
-    for (const workload of trajectoryCases()) {
+    const workloads = trajectoryCases();
+    assert.equal(workloads.length, 27);
+    assert.deepEqual([...new Set(workloads.map((workload) => workload.batchSize))], [1, 16, 128]);
+    for (const workload of workloads) {
       assert.equal(new Set(workload.spans.map((span) => span.id)).size, workload.spans.length);
       const reference = runTrajectory(node, workload, true);
       const current = runTrajectory(browser, workload, true);
@@ -126,14 +129,14 @@ test("Node and browser builds produce identical display messages and progressive
       if (byBatch.has(name)) assert.deepEqual(current.output, byBatch.get(name), workload.name);
       else byBatch.set(name, current.output);
     }
-    console.log("Validated display conversion and 18 trajectory workloads across both builds");
+    console.log("Validated display conversion and 27 trajectory workloads across both builds");
   `,
     ],
     { cwd, encoding: "utf8", timeout: 30_000 }
   );
   expect(result.status, result.stderr).toBe(0);
   expect(result.stdout).toContain(
-    "Validated display conversion and 18 trajectory workloads"
+    "Validated display conversion and 27 trajectory workloads"
   );
 });
 

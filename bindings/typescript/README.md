@@ -254,7 +254,8 @@ their adjacent `lingua_bg.wasm`. Module loading and initialization are not timed
   compaction, and opaque continuation history. Explicitly scaled cases derive
   8- and 32-round conversations from the Chat Completions tool-cycle fixture,
   with growing histories and unique span/tool IDs. Each case runs with payload
-  batches of 1 and 16 spans, taking a snapshot after every batch and at completion.
+  batches of 1, 16, and 128 spans, taking a snapshot after every batch and at
+  completion.
 
 The tables report serialized input bytes, span/message or turn/work-step counts,
 and median/p95 duration. Trajectory rows also report event/snapshot counts and

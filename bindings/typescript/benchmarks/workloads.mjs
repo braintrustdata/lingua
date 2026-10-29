@@ -82,7 +82,7 @@ export function trajectoryCases() {
     });
   }
   return fixtures.flatMap(({ name, fixture }) =>
-    [1, 16].map((batchSize) => ({
+    [1, 16, 128].map((batchSize) => ({
       suite: "trajectory",
       name: `${name}, batch ${batchSize}`,
       spans: fixture.spans,
