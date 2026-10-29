@@ -108,6 +108,8 @@ function compareInstants(left, right) {
   );
 }
 
+// Mirrors https://github.com/braintrustdata/braintrust/blob/main/app/utils/preprocessors/trajectory-collector.ts.
+// Keep this collector in sync with the browser implementation.
 class BrowserCollector {
   scopes = new Map();
   complete = false;
