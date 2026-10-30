@@ -7,8 +7,9 @@ mod js;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use js::JsInput;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub(crate) enum InputKind {
+/// JSON shape used to select import parsers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InputKind {
     Null,
     String,
     Array,
@@ -16,17 +17,31 @@ pub(crate) enum InputKind {
     Other,
 }
 
-pub(crate) trait ImportValue {
+/// Read-only JSON input for typed message import without an intermediate owned tree.
+///
+/// This trait is intentionally open to implementations backed by external storage.
+/// All methods must describe the same stable value throughout an import. Required
+/// methods form a public compatibility contract; future methods must have defaults
+/// unless introduced in a breaking release.
+pub trait ImportValue {
+    /// A view of one array element, borrowing storage when possible.
     type Item<'a>: ImportValue
     where
         Self: 'a;
+    /// Array elements in source order, with an accurate remaining length.
     type Items<'a>: ExactSizeIterator<Item = Self::Item<'a>>
     where
         Self: 'a;
 
+    /// Report the JSON shape without materializing an owned tree.
     fn kind(&self) -> InputKind;
+    /// Deserialize directly into an owned type, returning `None` on a schema mismatch
+    /// or deserialization failure. Returned data must not borrow from this input.
     fn parse<T: DeserializeOwned>(&self) -> Option<T>;
+    /// Return all elements for arrays, or `None` for other shapes.
     fn array(&self) -> Option<Self::Items<'_>>;
+    /// Preserve the complete JSON value when an import needs an opaque payload or
+    /// a compatibility parser requires materialization. Prefer borrowing when possible.
     fn to_value(&self) -> Cow<'_, Value>;
 }
 
@@ -88,6 +103,39 @@ impl<V: ImportValue + ?Sized> ImportValue for &V {
 
     fn to_value(&self) -> Cow<'_, Value> {
         V::to_value(self)
+    }
+}
+
+impl<V: ImportValue> ImportValue for Option<V> {
+    type Item<'a>
+        = V::Item<'a>
+    where
+        Self: 'a;
+    type Items<'a>
+        = V::Items<'a>
+    where
+        Self: 'a;
+
+    fn kind(&self) -> InputKind {
+        self.as_ref().map_or(InputKind::Null, ImportValue::kind)
+    }
+
+    fn parse<T: DeserializeOwned>(&self) -> Option<T> {
+        match self {
+            Some(value) => value.parse(),
+            None => T::deserialize(&Value::Null).ok(),
+        }
+    }
+
+    fn array(&self) -> Option<Self::Items<'_>> {
+        self.as_ref()?.array()
+    }
+
+    fn to_value(&self) -> Cow<'_, Value> {
+        match self {
+            Some(value) => value.to_value(),
+            None => Cow::Owned(Value::Null),
+        }
     }
 }
 

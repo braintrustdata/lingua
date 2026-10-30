@@ -1,13 +1,186 @@
-use lingua::processing::import::{import_span_with_options, ImportOptions, OpaqueItem};
+use lingua::processing::import::{
+    import_messages_from_values, import_messages_from_values_with_metadata,
+    import_span_with_options, ImportOptions, ImportValue, InputKind, OpaqueItem,
+};
 use lingua::processing::{import_messages_from_spans, Span};
 use lingua::serde_json;
-use lingua::universal::{AssistantContent, AssistantContentPart};
+use lingua::universal::{AssistantContent, AssistantContentPart, UserContent};
 use lingua::Message;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
+use std::cell::Cell;
 use std::collections::BTreeMap;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+struct BorrowedValue<'a> {
+    value: &'a serde_json::Value,
+    copies: &'a Cell<usize>,
+}
+
+impl ImportValue for BorrowedValue<'_> {
+    type Item<'a>
+        = BorrowedValue<'a>
+    where
+        Self: 'a;
+    type Items<'a>
+        = std::vec::IntoIter<BorrowedValue<'a>>
+    where
+        Self: 'a;
+
+    fn kind(&self) -> InputKind {
+        self.value.kind()
+    }
+
+    fn parse<T: serde::de::DeserializeOwned>(&self) -> Option<T> {
+        serde_json::from_str(&serde_json::to_string(self.value).unwrap()).ok()
+    }
+
+    fn array(&self) -> Option<Self::Items<'_>> {
+        Some(
+            self.value
+                .as_array()?
+                .iter()
+                .map(|value| BorrowedValue {
+                    value,
+                    copies: self.copies,
+                })
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
+    }
+
+    fn to_value(&self) -> Cow<'_, serde_json::Value> {
+        self.copies.set(self.copies.get() + 1);
+        Cow::Owned(self.value.clone())
+    }
+}
+
+struct UnreadableString;
+
+impl ImportValue for UnreadableString {
+    type Item<'a> = Self;
+    type Items<'a> = std::iter::Empty<Self>;
+
+    fn kind(&self) -> InputKind {
+        InputKind::String
+    }
+
+    fn parse<T: serde::de::DeserializeOwned>(&self) -> Option<T> {
+        None
+    }
+
+    fn array(&self) -> Option<Self::Items<'_>> {
+        None
+    }
+
+    fn to_value(&self) -> Cow<'_, serde_json::Value> {
+        panic!("unreadable strings must not be materialized")
+    }
+}
+
+#[test]
+fn borrowed_tool_chat_does_not_materialize_values() {
+    let input = serde_json::json!([
+        {"role": "system", "content": "Use tools"},
+        {"role": "user", "content": "What is the weather?"},
+        {"role": "assistant", "content": null, "tool_calls": [{
+            "id": "call_weather", "type": "function",
+            "function": {"name": "weather", "arguments": "{}"}
+        }]},
+        {"role": "tool", "tool_call_id": "call_weather", "content": "Sunny"},
+        {"role": "assistant", "content": "It is sunny"}
+    ]);
+    let copies = Cell::new(0);
+    let messages = import_messages_from_values(
+        &BorrowedValue {
+            value: &input,
+            copies: &copies,
+        },
+        &serde_json::Value::Null,
+        None,
+    );
+    assert_eq!(messages.len(), 5);
+    assert_eq!(copies.get(), 0);
+    assert_eq!(
+        serde_json::to_value(&messages).unwrap(),
+        serde_json::to_value(import_messages_from_spans(vec![Span {
+            input: Some(input),
+            output: None,
+            other: Default::default(),
+        }]))
+        .unwrap(),
+    );
+}
+
+#[test]
+fn borrowed_message_only_import_discards_opaque_values_without_copying() {
+    let input = serde_json::json!([
+        {"role": "user", "content": "question"},
+        {"type": "item_reference", "id": "msg_previous"}
+    ]);
+    let metadata = serde_json::json!({"instructions": "Use tools"});
+    let copies = Cell::new(0);
+    let messages = import_messages_from_values_with_metadata(
+        &BorrowedValue {
+            value: &input,
+            copies: &copies,
+        },
+        &serde_json::Value::Null,
+        Some(&BorrowedValue {
+            value: &metadata,
+            copies: &copies,
+        }),
+    );
+    assert!(matches!(&messages[..], [Message::System {
+        content: UserContent::String(instructions),
+    }, Message::User { content: UserContent::String(question) }]
+        if instructions == "Use tools" && question == "question"));
+    assert_eq!(copies.get(), 0);
+}
+
+#[test]
+fn unreadable_string_input_preserves_output() {
+    let output = serde_json::json!("answer");
+    let messages = import_messages_from_values(&UnreadableString, &output, None);
+    assert!(matches!(&messages[..], [Message::Assistant {
+        content: AssistantContent::String(text), ..
+    }] if text == "answer"));
+}
+
+#[test]
+fn unreadable_string_output_preserves_input() {
+    let input = serde_json::json!("question");
+    let messages = import_messages_from_values(&input, &UnreadableString, None);
+    assert!(matches!(&messages[..], [Message::User {
+        content: UserContent::String(text),
+    }] if text == "question"));
+}
+
+#[test]
+fn metadata_json_strings_preserve_duplicate_key_resolution() {
+    let span: Span = serde_json::from_value(serde_json::json!({
+        "input": "question",
+        "metadata": "{\"instructions\":\"first\",\"instructions\":\"last\"}",
+    }))
+    .unwrap();
+    let copies = Cell::new(0);
+    let metadata = span.other.get("metadata").map(|value| BorrowedValue {
+        value,
+        copies: &copies,
+    });
+    for messages in [
+        import_messages_from_spans(vec![span.clone()]),
+        import_messages_from_values(&span.input, &span.output, span.other.get("metadata")),
+        import_messages_from_values_with_metadata(&span.input, &span.output, metadata.as_ref()),
+    ] {
+        assert!(matches!(
+            messages.first(),
+            Some(Message::System { content: UserContent::String(instructions) }) if instructions == "last"
+        ));
+    }
+}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -282,6 +455,30 @@ fn test_import_cases_from_shared_fixtures() {
         let messages = import_messages_from_spans(spans.clone());
         let serialized_messages =
             serde_json::to_string(&messages).expect("messages should serialize to json");
+        let copies = Cell::new(0);
+        let borrowed_messages: Vec<_> = spans
+            .iter()
+            .flat_map(|span| {
+                let input = span.input.as_ref().map(|value| BorrowedValue {
+                    value,
+                    copies: &copies,
+                });
+                let output = span.output.as_ref().map(|value| BorrowedValue {
+                    value,
+                    copies: &copies,
+                });
+                let metadata = span.other.get("metadata").map(|value| BorrowedValue {
+                    value,
+                    copies: &copies,
+                });
+                import_messages_from_values_with_metadata(&input, &output, metadata.as_ref())
+            })
+            .collect();
+        assert_eq!(
+            serde_json::to_string(&borrowed_messages).unwrap(),
+            serialized_messages,
+            "borrowed import mismatch for case '{case_name}'",
+        );
         let inferred = infer_assertions_from_messages(&messages);
 
         let assertions = if assertions_path.exists() {
