@@ -21,7 +21,7 @@ futures = { workspace = true }
 rand = { workspace = true }
 
 # Lingua - Universal LLM message format library (workspace)
-lingua = { workspace = true, features = ["openai", "anthropic", "google", "bedrock"] }
+lingua = { workspace = true, features = ["openai", "typesafe", "anthropic", "google", "bedrock"] }
 
 # HTTP client
 reqwest = { workspace = true, features = ["json", "stream", "gzip"] }

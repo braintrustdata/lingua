@@ -12,7 +12,7 @@ help: ## Show this help message
 generate-provider-types: ## Regenerate provider types from OpenAPI specs (usage: make generate-provider-types PROVIDER=openai)
 	@if [ -z "$(PROVIDER)" ]; then \
 		echo "Usage: make generate-provider-types PROVIDER=<provider>"; \
-		echo "Available providers: openai, anthropic, google, all"; \
+		echo "Available providers: openai, openai-decisions, anthropic, google, all"; \
 		echo "Example: make generate-provider-types PROVIDER=openai"; \
 		exit 1; \
 	fi

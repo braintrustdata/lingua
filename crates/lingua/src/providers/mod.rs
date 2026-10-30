@@ -19,3 +19,6 @@ pub mod google;
 
 #[cfg(feature = "openai")]
 pub mod openai;
+
+#[cfg(feature = "typesafe")]
+pub mod typesafe;

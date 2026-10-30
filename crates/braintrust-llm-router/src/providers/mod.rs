@@ -9,6 +9,7 @@ mod json_selection;
 mod mistral;
 mod openai;
 mod remote_media;
+mod typesafe;
 mod vertex;
 
 pub use anthropic::{AnthropicConfig, AnthropicProvider};
@@ -26,6 +27,7 @@ pub use openai::{
 pub(crate) use remote_media::{
     prepare_request_with_remote_media, reject_remote_responses_audio, RemoteMediaPolicy,
 };
+pub use typesafe::{TypeSafeConfig, TypeSafeProvider};
 pub use vertex::{VertexConfig, VertexProvider};
 
 use async_trait::async_trait;
@@ -210,6 +212,8 @@ pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -
         | ProviderFormat::Converse
         | ProviderFormat::BedrockAnthropic
         | ProviderFormat::VertexAnthropic
+        | ProviderFormat::Decisions
+        | ProviderFormat::TypeSafe
         | ProviderFormat::Unknown => return payload,
     }
 

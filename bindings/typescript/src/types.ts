@@ -39,6 +39,19 @@ export type { UniversalToolType } from "./generated/UniversalToolType";
 export type { BuiltinToolProvider } from "./generated/BuiltinToolProvider";
 export type { TokenBudget } from "./generated/TokenBudget";
 
+export type { UniversalDecisionRequest } from "./generated/UniversalDecisionRequest";
+export type { UniversalDecisionResponse } from "./generated/UniversalDecisionResponse";
+export type { DecisionInput } from "./generated/DecisionInput";
+export type { DecisionQuestion } from "./generated/DecisionQuestion";
+export type { DecisionQuestionKind } from "./generated/DecisionQuestionKind";
+export type { DecisionChoice } from "./generated/DecisionChoice";
+export type { DecisionScoreLevel } from "./generated/DecisionScoreLevel";
+export type { DecisionValue } from "./generated/DecisionValue";
+export type { DecisionAnswer } from "./generated/DecisionAnswer";
+export type { DecisionResult } from "./generated/DecisionResult";
+export type { DecisionChoiceProbability } from "./generated/DecisionChoiceProbability";
+export type { DecisionLevelProbability } from "./generated/DecisionLevelProbability";
+
 export type { ChatCompletionRequestMessage } from "./generated/openai/ChatCompletionRequestMessage";
 export type { InputItem } from "./generated/openai/InputItem";
 export type { InputMessage } from "./generated/anthropic/InputMessage";

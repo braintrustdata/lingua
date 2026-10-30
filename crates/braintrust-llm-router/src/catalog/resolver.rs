@@ -107,6 +107,8 @@ fn format_identifier(format: ProviderFormat) -> String {
         ProviderFormat::Mistral => "mistral",
         ProviderFormat::Converse => "bedrock",
         ProviderFormat::Responses => "openai", // Responses API uses OpenAI provider
+        ProviderFormat::Decisions => "openai",
+        ProviderFormat::TypeSafe => "typesafe",
         ProviderFormat::Unknown => "unknown",
     }
     .to_string()

@@ -48,7 +48,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         &args[1]
     } else {
         println!("Usage: {} [provider]", args[0]);
-        println!("Providers: openai, anthropic, google, all");
+        println!("Providers: openai, openai-decisions, anthropic, google, all");
         std::process::exit(1);
     };
 
@@ -56,16 +56,18 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     match provider.as_str() {
         "openai" => generate_openai_types()?,
+        "openai-decisions" => generate_openai_decisions_types(args.get(2).map(String::as_str))?,
         "anthropic" => generate_anthropic_types()?,
         "google" => generate_google_discovery_types()?,
         "all" => {
             generate_openai_types()?;
+            generate_openai_decisions_types(None)?;
             generate_anthropic_types()?;
             generate_google_discovery_types()?;
         }
         _ => {
             println!("❌ Unknown provider: {}", provider);
-            println!("Available providers: openai, anthropic, google, all");
+            println!("Available providers: openai, openai-decisions, anthropic, google, all");
             std::process::exit(1);
         }
     }
@@ -106,6 +108,163 @@ fn generate_openai_types() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+const OPENAI_DECISIONS_SPEC_PATH: &str = "specs/openai/decisions.yml";
+const OPENAI_DECISIONS_PATH: &str = "/decisions";
+const OPENAI_DECISIONS_ROOT_TYPES: [&str; 2] = ["DecisionRequest", "DecisionResponse"];
+
+/// Generate OpenAI Decisions API types from `specs/openai/decisions.yml`.
+///
+/// With `source_spec`, first refresh that file from a full OpenAI OpenAPI spec by
+/// copying the `/decisions` path and the schemas its request and response use.
+fn generate_openai_decisions_types(
+    source_spec: Option<&str>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if let Some(source_spec) = source_spec {
+        write_openai_decisions_spec(source_spec)?;
+    }
+    println!("📦 Generating OpenAI Decisions types from {OPENAI_DECISIONS_SPEC_PATH}...");
+    let spec: serde_json::Value =
+        yaml_serde::from_str(&std::fs::read_to_string(OPENAI_DECISIONS_SPEC_PATH)?)?;
+    let schemas = decisions_schema_closure(&spec)?;
+    let definitions: serde_json::Map<String, serde_json::Value> = schemas
+        .into_iter()
+        .map(|(name, schema)| (name, fix_openai_schema_refs(&schema)))
+        .collect();
+    let root_schema = serde_json::json!({
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "OpenaiDecisionsSchemas",
+        "type": "object",
+        "properties": {
+            "decision_request": {"$ref": "#/definitions/DecisionRequest"},
+            "decision_response": {"$ref": "#/definitions/DecisionResponse"}
+        },
+        "definitions": definitions
+    });
+
+    let schema_file = tempfile::Builder::new()
+        .prefix("openai_decisions_schemas")
+        .suffix(".json")
+        .tempfile()?;
+    std::fs::write(
+        schema_file.path(),
+        serde_json::to_string_pretty(&root_schema)?,
+    )?;
+    let output = std::process::Command::new(quicktype_binary()?)
+        .args([
+            "--src-lang",
+            "schema",
+            "--lang",
+            "rust",
+            "--derive-debug",
+            "--derive-clone",
+            "--derive-partial-eq",
+            "--visibility",
+            "public",
+            "--density",
+            "dense",
+            "--top-level",
+            "OpenaiDecisionsSchemas",
+        ])
+        .arg(schema_file.path())
+        .output()?;
+    if !output.status.success() {
+        return Err(format!(
+            "quicktype failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        )
+        .into());
+    }
+
+    let dest_path = "crates/lingua/src/providers/openai/decisions_generated.rs";
+    std::fs::write(
+        dest_path,
+        post_process_quicktype_output_for_openai_decisions(&String::from_utf8(output.stdout)?),
+    )?;
+    let _ = std::process::Command::new("cargo")
+        .args(["fmt", "--", dest_path])
+        .output();
+    println!("📝 Generated OpenAI Decisions types to: {dest_path}");
+    Ok(())
+}
+
+fn decisions_schema_closure(
+    spec: &serde_json::Value,
+) -> Result<serde_json::Map<String, serde_json::Value>, Box<dyn std::error::Error>> {
+    let all_schemas = spec
+        .get("components")
+        .and_then(|components| components.get("schemas"))
+        .and_then(serde_json::Value::as_object)
+        .ok_or("no components/schemas section found in OpenAPI spec")?;
+    let mut schemas = serde_json::Map::new();
+    let mut processed = std::collections::HashSet::new();
+    for root in OPENAI_DECISIONS_ROOT_TYPES {
+        if !all_schemas.contains_key(root) {
+            return Err(format!("OpenAPI spec has no {root} schema").into());
+        }
+        add_openai_schema_with_dependencies(root, all_schemas, &mut schemas, &mut processed);
+    }
+    let mut sorted: Vec<_> = schemas.into_iter().collect();
+    sorted.sort_by(|(a, _), (b, _)| a.cmp(b));
+    Ok(sorted.into_iter().collect())
+}
+
+fn write_openai_decisions_spec(source_spec: &str) -> Result<(), Box<dyn std::error::Error>> {
+    println!("✂️  Extracting the Decisions API from {source_spec}...");
+    let spec: serde_json::Value = yaml_serde::from_str(&std::fs::read_to_string(source_spec)?)?;
+    let path_item = spec
+        .get("paths")
+        .and_then(|paths| paths.get(OPENAI_DECISIONS_PATH))
+        .ok_or("OpenAPI spec has no /decisions path")?;
+    let excerpt = serde_json::json!({
+        "openapi": spec.get("openapi"),
+        "info": spec.get("info"),
+        "servers": spec.get("servers"),
+        "paths": { OPENAI_DECISIONS_PATH: path_item },
+        "components": { "schemas": decisions_schema_closure(&spec)? }
+    });
+    std::fs::write(OPENAI_DECISIONS_SPEC_PATH, yaml_serde::to_string(&excerpt)?)?;
+    println!("📝 Wrote {OPENAI_DECISIONS_SPEC_PATH}");
+    Ok(())
+}
+
+fn post_process_quicktype_output_for_openai_decisions(quicktype_output: &str) -> String {
+    let mut processed = quicktype_output.replace(
+        "use serde::{Serialize, Deserialize};",
+        "use serde::{Deserialize, Serialize};\nuse ts_rs::TS;",
+    );
+    processed = format!(
+        "// Generated OpenAI Decisions API types using quicktype\n// Source: specs/openai/decisions.yml\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{processed}"
+    );
+    processed = ensure_serde_json_imports(&processed);
+    processed = processed.replace(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]",
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
+    );
+    processed = add_export_path_to_all_ts_types(&processed, "openai/");
+    processed = add_ts_type_annotations(&processed);
+    processed = processed.replace(
+        "HashMap<String, Option<serde_json::Value>>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace(
+        "AnythingMap(serde_json::Map<String, serde_json::Value>)",
+        "#[ts(type = \"Record<string, unknown>\")]\n    AnythingMap(serde_json::Map<String, serde_json::Value>)",
+    );
+    processed = processed.replace(
+        "AnythingMapArray(Vec<serde_json::Map<String, serde_json::Value>>)",
+        "#[ts(type = \"Array<Record<string, unknown>>\")]\n    AnythingMapArray(Vec<serde_json::Map<String, serde_json::Value>>)",
+    );
+    if !processed.contains("HashMap<") {
+        processed = processed.replace("use std::collections::HashMap;\n", "");
+    }
+    processed = add_serde_skip_if_none(&processed);
+    // Answers always carry `name`, which is null for unnamed questions.
+    processed.replace(
+        "pub struct AnswerResource {\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub name: Option<String>,",
+        "pub struct AnswerResource {\n    pub name: Option<String>,",
+    )
 }
 
 fn generate_anthropic_types() -> Result<(), Box<dyn std::error::Error>> {
