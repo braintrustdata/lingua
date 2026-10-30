@@ -66,6 +66,12 @@ Each provider should have:
 - Do not add universal variants solely to make provider-specific operational state appear transformable.
 - Treat coverage reports as diagnostics, not a mandate for 100% cross-provider conversion. A correctly classified unsupported mapping is preferable to a higher coverage score obtained through semantic loss.
 
+## Trajectory schema
+
+- `Trajectory` (`crates/lingua/src/universal/trajectory.rs`) is primarily for the Braintrust UI to render.
+- Add only fields the UI needs and the trace records.
+- Shape fields so the UI renders them without interpreting source data.
+
 ## Type generation workflow
 
 1. **Check for SDK updates** in provider test directories
