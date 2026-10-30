@@ -55,24 +55,9 @@ download_provider_spec() {
             SPEC_FILE="$PROJECT_ROOT/specs/openai/openapi.yml"
             ;;
         "anthropic")
-            echo "Fetching official Anthropic OpenAPI spec URL from .stats.yml..."
-            STATS_URL="https://raw.githubusercontent.com/anthropics/anthropic-sdk-typescript/main/.stats.yml"
-            STATS_FILE="$PROJECT_ROOT/specs/anthropic/.stats.yml"
-            
-            # Download .stats.yml file
-            if ! curl -L -o "$STATS_FILE" "$STATS_URL"; then
-                echo "❌ Failed to download Anthropic .stats.yml"
-                exit 1
-            fi
-            
-            # Extract the official OpenAPI spec URL from .stats.yml
-            SPEC_URL=$(grep "openapi_spec_url:" "$STATS_FILE" | sed 's/openapi_spec_url: *//')
-            if [ -z "$SPEC_URL" ]; then
-                echo "❌ Failed to extract OpenAPI spec URL from .stats.yml"
-                exit 1
-            fi
-            
-            echo "Official spec URL: $SPEC_URL"
+            echo "Downloading Anthropic OpenAPI spec from the official SDK..."
+            # The SDK's scripts/mock uses this bundled spec; .stats.yml no longer publishes its URL.
+            SPEC_URL="https://raw.githubusercontent.com/anthropics/anthropic-sdk-typescript/main/scripts/mock-spec.json.gz"
             SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.yml"
             ;;
         "google")
@@ -88,16 +73,34 @@ download_provider_spec() {
     
     # Create specs directory if it doesn't exist
     mkdir -p "$(dirname "$SPEC_FILE")"
+
+    # Stage downloads so failed transfers or decompression preserve the existing spec.
+    SPEC_DOWNLOAD_DIR="$(mktemp -d)"
+    trap 'rm -rf "$SPEC_DOWNLOAD_DIR"' EXIT
     
     # Download the spec
     if command -v curl >/dev/null 2>&1; then
-        curl -fL -s "$SPEC_URL" -o "$SPEC_FILE"
+        curl -fL -s "$SPEC_URL" -o "$SPEC_DOWNLOAD_DIR/spec"
     elif command -v wget >/dev/null 2>&1; then
-        wget -q "$SPEC_URL" -O "$SPEC_FILE"
+        wget -q "$SPEC_URL" -O "$SPEC_DOWNLOAD_DIR/spec"
     else
         echo "❌ Neither curl nor wget is available"
         exit 1
     fi
+
+    if [ "$PROVIDER" = "anthropic" ]; then
+        gzip -dc "$SPEC_DOWNLOAD_DIR/spec" > "$SPEC_DOWNLOAD_DIR/spec.json"
+        mv "$SPEC_DOWNLOAD_DIR/spec.json" "$SPEC_DOWNLOAD_DIR/spec"
+    fi
+
+    if [ ! -s "$SPEC_DOWNLOAD_DIR/spec" ]; then
+        echo "❌ Downloaded provider spec is empty"
+        exit 1
+    fi
+
+    mv "$SPEC_DOWNLOAD_DIR/spec" "$SPEC_FILE"
+    rm -rf "$SPEC_DOWNLOAD_DIR"
+    trap - EXIT
     
     if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
         if [ "$PROVIDER" = "google" ]; then
