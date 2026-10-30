@@ -27,8 +27,9 @@ pub enum TypeSafeEntry {
 pub struct TypeSafeJson(Box<serde_json::value::RawValue>);
 
 impl TypeSafeJson {
-    pub fn new(json: String) -> Result<Self, serde_json::Error> {
-        serde_json::value::RawValue::from_string(json).map(Self)
+    /// Serialize `value`, keeping the field order of its `Serialize` implementation.
+    pub fn from_serialize<T: Serialize + ?Sized>(value: &T) -> Result<Self, serde_json::Error> {
+        serde_json::value::to_raw_value(value).map(Self)
     }
 
     pub fn get(&self) -> &str {

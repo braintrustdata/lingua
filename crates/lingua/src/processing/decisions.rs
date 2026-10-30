@@ -2,7 +2,8 @@
 Decision request and response transformation.
 
 Decision requests use the OpenAI Decisions format. They pass through unchanged to
-providers that serve that format and are converted for TypeSafe System One.
+providers that serve that format. For TypeSafe System One, requests convert
+through universal decision types, and responses convert back the same way.
 */
 
 use crate::capabilities::ProviderFormat;
@@ -14,9 +15,13 @@ use serde::de::DeserializeOwned;
 
 #[cfg(feature = "typesafe")]
 use crate::providers::typesafe::{
-    decision_request_to_system_one, system_one_response_to_decision, SystemOneDecisionContext,
+    system_one_response_to_universal, universal_to_system_one, SystemOneDecisionContext,
     SystemOneResponse,
 };
+#[cfg(feature = "typesafe")]
+use crate::universal::convert::TryFromLLM;
+#[cfg(feature = "typesafe")]
+use crate::universal::{UniversalDecisionRequest, UniversalDecisionResponse};
 
 /// How to convert a provider's decision response back to the Decisions format.
 #[derive(Debug, Clone, PartialEq)]
@@ -31,14 +36,6 @@ pub enum DecisionResponseContext {
 pub struct DecisionRequestTransform {
     pub payload: Bytes,
     pub response_context: DecisionResponseContext,
-}
-
-/// The `input` of a Decisions request as sent.
-#[cfg(feature = "typesafe")]
-#[derive(serde::Deserialize)]
-struct RawDecisionInput<'a> {
-    #[serde(borrow)]
-    input: &'a serde_json::value::RawValue,
 }
 
 /// Parse a Decisions request body.
@@ -72,13 +69,13 @@ pub fn transform_decision_request(
         #[cfg(feature = "typesafe")]
         ProviderFormat::TypeSafe => {
             let request = parse_decision_request(&body)?;
-            let raw: RawDecisionInput<'_> = serde_json::from_slice(&body)
-                .map_err(|error| TransformError::DeserializationFailed(error.to_string()))?;
-            let (system_one, context) = decision_request_to_system_one(&request, raw.input)
-                .map_err(|error| TransformError::ValidationFailed {
-                    target,
-                    reason: error.to_string(),
-                })?;
+            let (system_one, context) =
+                <UniversalDecisionRequest as TryFromLLM<_>>::try_from(request)
+                    .and_then(universal_to_system_one)
+                    .map_err(|error| TransformError::ValidationFailed {
+                        target,
+                        reason: error.to_string(),
+                    })?;
             let payload = serde_json::to_vec(&system_one)
                 .map_err(|error| TransformError::SerializationFailed(error.to_string()))?;
             Ok(DecisionRequestTransform {
@@ -103,12 +100,12 @@ pub fn transform_decision_response(
         #[cfg(feature = "typesafe")]
         DecisionResponseContext::SystemOne(context) => {
             let response: SystemOneResponse = parse_typed(&body)?;
-            let decision = system_one_response_to_decision(response, context).map_err(|error| {
-                TransformError::ValidationFailed {
+            let decision: DecisionResponse = system_one_response_to_universal(response, context)
+                .and_then(<DecisionResponse as TryFromLLM<UniversalDecisionResponse>>::try_from)
+                .map_err(|error| TransformError::ValidationFailed {
                     target: ProviderFormat::Decisions,
                     reason: error.to_string(),
-                }
-            })?;
+                })?;
             serde_json::to_vec(&decision)
                 .map(Bytes::from)
                 .map_err(|error| TransformError::SerializationFailed(error.to_string()))

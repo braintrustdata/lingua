@@ -9,6 +9,7 @@ OpenAI OpenAPI specification.
 pub mod adapter;
 pub mod capabilities;
 pub mod convert;
+pub mod decisions;
 pub mod decisions_generated;
 pub mod detect;
 pub mod generated;

@@ -326,7 +326,7 @@ async fn rejects_decision_requests_the_route_cannot_serve() {
     )
     .await
     .unwrap_err();
-    assert!(error.to_string().contains("input_image"), "{error}");
+    assert!(error.to_string().contains("image content"), "{error}");
     assert!(server.received_requests().await.unwrap().is_empty());
 }
 

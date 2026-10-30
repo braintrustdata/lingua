@@ -7,7 +7,7 @@ pub mod request;
 pub mod response;
 
 pub use convert::{
-    decision_request_to_system_one, system_one_response_to_decision, SystemOneDecisionContext,
+    system_one_response_to_universal, universal_to_system_one, SystemOneDecisionContext,
 };
 pub use request::{SystemOneRequest, TypeSafeEntry, TypeSafeJson, TypeSafeQuestion};
 pub use response::{SystemOneResponse, TypeSafeAnswer, TypeSafeUsage};

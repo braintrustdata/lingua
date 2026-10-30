@@ -1,31 +1,31 @@
 /*!
-Conversion between OpenAI Decisions API payloads and TypeSafe System One payloads.
+Conversion between universal decision types and TypeSafe System One payloads.
 
-Decisions input becomes System One `state`: a string stays a string, and an item
-list becomes `{"messages": [...]}` with each item's JSON copied as sent, since
-decision models read the state as text. Questions keep their names as System One
-keys, so answers can be returned in question order with their original typed
+Text input becomes a string `state`. A conversation becomes
+`{"messages": [...]}`, with each message in Lingua's universal JSON form (minus
+an unset assistant `id`), since decision models read the state as text. Questions are keyed by name, or by index
+when unnamed, so answers can be returned in question order with their typed
 choice values.
 */
 
 use super::request::{SystemOneRequest, TypeSafeEntry, TypeSafeJson, TypeSafeQuestion};
 use super::response::{SystemOneResponse, TypeSafeAnswer};
 use crate::error::ConvertError;
-use crate::providers::openai::decisions_generated::{
-    AnswerResource, AnswerResourceType, ChoiceOptionParam, ChoiceValueParam, ChoiceValueResource,
-    Data, DecisionInput, DecisionInputContent, DecisionInputContentPartElement,
-    DecisionInputContentPartType, DecisionInputMessage, DecisionInputToolOutputContent,
-    DecisionInputToolOutputContentPartType, DecisionInputType, DecisionQuestionInputPartType,
-    DecisionRequest, DecisionResponse, EProbabilityResource, InputTokensDetailsResource,
-    Instructions, OutputTokensDetailsResource, QuestionParam, QuestionParamType,
-    ResponseUsageResource, ScoreLevelParam, ValueUnion,
-};
 use crate::serde_json;
-use crate::serde_json::value::RawValue;
+use crate::universal::message::{
+    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart, UserContent,
+    UserContentPart,
+};
+use crate::universal::{
+    DecisionAnswer, DecisionChoice, DecisionChoiceProbability, DecisionInput,
+    DecisionLevelProbability, DecisionQuestionKind, DecisionResult, DecisionScoreLevel,
+    DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse, UniversalUsage,
+};
+use serde::Serialize;
 
 const TARGET: &str = "TypeSafe System One";
 
-/// What is needed to map a System One response back to the Decisions request it answers.
+/// What is needed to map a System One response back to the request it answers.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SystemOneDecisionContext {
     questions: Vec<QuestionContext>,
@@ -41,8 +41,37 @@ struct QuestionContext {
 #[derive(Debug, Clone, PartialEq)]
 enum QuestionKind {
     Predicate,
-    Choice(Vec<(String, ChoiceValueParam)>),
+    Choice(Vec<(String, DecisionValue)>),
     Score(Vec<String>),
+}
+
+#[derive(Serialize)]
+struct MessagesState<'a> {
+    messages: Vec<StateMessage<'a>>,
+}
+
+/// A universal message as written into System One state: the universal JSON form,
+/// without an unset assistant `id`.
+#[derive(Serialize)]
+#[serde(tag = "role", rename_all = "lowercase")]
+enum StateMessage<'a> {
+    System {
+        content: &'a UserContent,
+    },
+    Developer {
+        content: &'a UserContent,
+    },
+    User {
+        content: &'a UserContent,
+    },
+    Assistant {
+        content: &'a AssistantContent,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        id: Option<&'a str>,
+    },
+    Tool {
+        content: &'a [ToolContentPart],
+    },
 }
 
 fn unsupported(from: impl Into<String>) -> ConvertError {
@@ -64,79 +93,83 @@ fn invalid(reason: impl Into<String>) -> ConvertError {
     }
 }
 
-/// Convert an OpenAI Decisions request to a TypeSafe System One request.
-///
-/// `raw_input` is the request's `input` JSON as sent, which item lists are
-/// copied from.
-pub fn decision_request_to_system_one(
-    request: &DecisionRequest,
-    raw_input: &RawValue,
+/// Convert a universal decision request to a TypeSafe System One request.
+pub fn universal_to_system_one(
+    request: UniversalDecisionRequest,
 ) -> Result<(SystemOneRequest, SystemOneDecisionContext), ConvertError> {
-    if request.prompt_cache_key.is_some() || request.prompt_cache_options.is_some() {
-        return Err(unsupported("Decisions prompt caching options"));
+    if request.prompt_cache_key.is_some() {
+        return Err(unsupported("Lingua decision prompt_cache_key"));
     }
-    if request.safety_identifier.is_some() {
-        return Err(unsupported("Decisions safety_identifier"));
-    }
-
-    let state = match &request.input {
-        DecisionInput::PurpleString(text) => TypeSafeEntry::Text(text.clone()),
-        DecisionInput::DecisionInputMessageArray(items) => {
-            for (index, item) in items.iter().enumerate() {
-                validate_input_item(item, index)?;
-            }
-            let raw_items: Vec<&RawValue> =
-                serde_json::from_str(raw_input.get()).map_err(|error| {
+    let model = request.model.ok_or_else(|| missing("model"))?;
+    let state = match request.input {
+        DecisionInput::Text(text) => TypeSafeEntry::Text(text),
+        DecisionInput::Messages(messages) => {
+            let messages = messages
+                .iter()
+                .enumerate()
+                .map(|(index, message)| state_message(message, index))
+                .collect::<Result<_, _>>()?;
+            TypeSafeEntry::Json(
+                TypeSafeJson::from_serialize(&MessagesState { messages }).map_err(|error| {
                     ConvertError::JsonSerializationFailed {
-                        field: "input".into(),
+                        field: "state".into(),
                         error: error.to_string(),
                     }
-                })?;
-            if raw_items.len() != items.len() {
-                return Err(invalid("input does not match the parsed request"));
-            }
-            let mut state = String::with_capacity(raw_input.get().len() + 16);
-            state.push_str(r#"{"messages":["#);
-            for (index, item) in raw_items.iter().enumerate() {
-                if index > 0 {
-                    state.push(',');
-                }
-                state.push_str(item.get());
-            }
-            state.push_str("]}");
-            TypeSafeEntry::Json(TypeSafeJson::new(state).map_err(|error| {
-                ConvertError::JsonSerializationFailed {
-                    field: "state".into(),
-                    error: error.to_string(),
-                }
-            })?)
+                })?,
+            )
         }
     };
 
     let mut questions = Vec::with_capacity(request.questions.len());
-    let mut contexts = Vec::with_capacity(request.questions.len());
-    for (index, question) in request.questions.iter().enumerate() {
+    let mut contexts: Vec<QuestionContext> = Vec::with_capacity(request.questions.len());
+    for (index, question) in request.questions.into_iter().enumerate() {
         let key = question.name.clone().unwrap_or_else(|| index.to_string());
-        if contexts
-            .iter()
-            .any(|context: &QuestionContext| context.key == key)
-        {
+        if contexts.iter().any(|context| context.key == key) {
             return Err(invalid(format!(
                 "question name \"{key}\" is not unique; TypeSafe identifies answers by question name"
             )));
         }
-        let (typesafe_question, kind) = convert_question(question, index)?;
+        let instructions = Some(convert_instructions(question.instructions)?);
+        let (typesafe_question, kind) = match question.kind {
+            DecisionQuestionKind::Predicate => (
+                TypeSafeQuestion::Noul {
+                    instructions,
+                    criteria: None,
+                },
+                QuestionKind::Predicate,
+            ),
+            DecisionQuestionKind::Choice { choices } => {
+                let (criteria, values) = convert_choices(choices)?;
+                (
+                    TypeSafeQuestion::Choice {
+                        instructions,
+                        criteria,
+                    },
+                    QuestionKind::Choice(values),
+                )
+            }
+            DecisionQuestionKind::Score { levels } => {
+                let labels = levels.iter().map(|level| level.label.clone()).collect();
+                (
+                    TypeSafeQuestion::Score {
+                        instructions,
+                        criteria: levels.into_iter().map(score_criterion).collect(),
+                    },
+                    QuestionKind::Score(labels),
+                )
+            }
+        };
         questions.push((key.clone(), typesafe_question));
         contexts.push(QuestionContext {
             key,
-            name: question.name.clone(),
+            name: question.name,
             kind,
         });
     }
 
     Ok((
         SystemOneRequest {
-            model: request.model.clone(),
+            model,
             state,
             questions,
             assets: None,
@@ -147,173 +180,145 @@ pub fn decision_request_to_system_one(
     ))
 }
 
-fn validate_input_item(item: &DecisionInputMessage, index: usize) -> Result<(), ConvertError> {
-    let field = |name: &str| format!("input[{index}].{name}");
-    match item
-        .decision_input_message_type
-        .as_ref()
-        .unwrap_or(&DecisionInputType::Message)
-    {
-        DecisionInputType::Message => {
-            if item.role.is_none() {
-                return Err(missing(field("role")));
-            }
-            match &item.content {
-                None => return Err(missing(field("content"))),
-                Some(DecisionInputContent::PurpleString(_)) => {}
-                Some(DecisionInputContent::DecisionInputContentPartElementArray(parts)) => {
-                    for part in parts {
-                        validate_content_part(part, index)?;
-                    }
-                }
-            }
-        }
-        DecisionInputType::FunctionCall => {
-            for (name, present) in [
-                ("call_id", item.call_id.is_some()),
-                ("name", item.name.is_some()),
-                ("arguments", item.arguments.is_some()),
-            ] {
-                if !present {
-                    return Err(missing(field(name)));
-                }
-            }
-        }
-        DecisionInputType::CustomToolCall => {
-            for (name, present) in [
-                ("call_id", item.call_id.is_some()),
-                ("name", item.name.is_some()),
-                ("input", item.input.is_some()),
-            ] {
-                if !present {
-                    return Err(missing(field(name)));
-                }
-            }
-        }
-        DecisionInputType::FunctionCallOutput | DecisionInputType::CustomToolCallOutput => {
-            if item.call_id.is_none() {
-                return Err(missing(field("call_id")));
-            }
-            match &item.output {
-                None => return Err(missing(field("output"))),
-                Some(DecisionInputToolOutputContent::PurpleString(_)) => {}
-                Some(
-                    DecisionInputToolOutputContent::DecisionInputToolOutputContentPartElementArray(
-                        parts,
-                    ),
-                ) => {
-                    for part in parts {
-                        if part.prompt_cache_breakpoint.is_some() {
-                            return Err(unsupported("Decisions prompt_cache_breakpoint"));
-                        }
-                        match part.decision_input_type {
-                            DecisionInputToolOutputContentPartType::InputImage => {
-                                return Err(unsupported("Decisions input_image tool output"));
-                            }
-                            DecisionInputToolOutputContentPartType::InputText => {
-                                if part.text.is_none() {
-                                    return Err(missing(field("output[].text")));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+fn validate_text(text: &TextContentPart, location: &str) -> Result<(), ConvertError> {
+    if text.cache_control.is_some() {
+        return Err(unsupported(format!("{location} cache_control")));
+    }
+    if text.encrypted_content.is_some() || text.provider_options.is_some() {
+        return Err(unsupported(format!(
+            "{location} encrypted_content or provider_options"
+        )));
     }
     Ok(())
 }
 
-fn validate_content_part(
-    part: &DecisionInputContentPartElement,
-    index: usize,
-) -> Result<(), ConvertError> {
-    if part.prompt_cache_breakpoint.is_some() {
-        return Err(unsupported("Decisions prompt_cache_breakpoint"));
-    }
-    let required = match part.decision_input_type {
-        DecisionInputContentPartType::InputImage => {
-            return Err(unsupported("Decisions input_image content"));
-        }
-        DecisionInputContentPartType::InputText | DecisionInputContentPartType::OutputText => {
-            ("text", part.text.is_some())
-        }
-        DecisionInputContentPartType::InputJson => ("data", part.data.is_some()),
-        DecisionInputContentPartType::Refusal => ("refusal", part.refusal.is_some()),
+fn validate_user_content(content: &UserContent, location: &str) -> Result<(), ConvertError> {
+    let UserContent::Array(parts) = content else {
+        return Ok(());
     };
-    if !required.1 {
-        return Err(missing(format!("input[{index}].content[].{}", required.0)));
+    for part in parts {
+        match part {
+            UserContentPart::Text(text) => validate_text(text, location)?,
+            UserContentPart::Image { .. } => {
+                return Err(unsupported(format!("{location} image content")));
+            }
+            UserContentPart::Audio { .. } => {
+                return Err(unsupported(format!("{location} audio content")));
+            }
+            UserContentPart::File { .. } => {
+                return Err(unsupported(format!("{location} file content")));
+            }
+        }
     }
     Ok(())
 }
 
-fn convert_question(
-    question: &QuestionParam,
-    index: usize,
-) -> Result<(TypeSafeQuestion, QuestionKind), ConvertError> {
-    let instructions = Some(convert_instructions(&question.instructions)?);
-    match question.question_param_type {
-        QuestionParamType::Predicate => Ok((
-            TypeSafeQuestion::Noul {
-                instructions,
-                criteria: None,
-            },
-            QuestionKind::Predicate,
-        )),
-        QuestionParamType::Choice => {
-            let choices = question
-                .choices
-                .as_ref()
-                .ok_or_else(|| missing(format!("questions[{index}].choices")))?;
-            let (criteria, values) = convert_choices(choices)?;
-            Ok((
-                TypeSafeQuestion::Choice {
-                    instructions,
-                    criteria,
-                },
-                QuestionKind::Choice(values),
-            ))
+fn state_message(message: &Message, index: usize) -> Result<StateMessage<'_>, ConvertError> {
+    let location = format!("Lingua message {index}");
+    match message {
+        Message::System { content } => {
+            validate_user_content(content, &location)?;
+            Ok(StateMessage::System { content })
         }
-        QuestionParamType::Score => {
-            let levels = question
-                .levels
-                .as_ref()
-                .ok_or_else(|| missing(format!("questions[{index}].levels")))?;
-            Ok((
-                TypeSafeQuestion::Score {
-                    instructions,
-                    criteria: levels.iter().map(score_criterion).collect(),
-                },
-                QuestionKind::Score(levels.iter().map(|level| level.label.clone()).collect()),
-            ))
+        Message::Developer { content } => {
+            validate_user_content(content, &location)?;
+            Ok(StateMessage::Developer { content })
         }
+        Message::User { content } => {
+            validate_user_content(content, &location)?;
+            Ok(StateMessage::User { content })
+        }
+        Message::Assistant { content, id } => {
+            if let AssistantContent::Array(parts) = content {
+                validate_assistant_parts(parts, &location)?;
+            }
+            Ok(StateMessage::Assistant {
+                content,
+                id: id.as_deref(),
+            })
+        }
+        Message::Tool { content } => {
+            for part in content {
+                match part {
+                    ToolContentPart::ToolResult(result) => {
+                        if result.caller.is_some() || result.provider_options.is_some() {
+                            return Err(unsupported(format!(
+                                "{location} tool result caller or provider_options"
+                            )));
+                        }
+                    }
+                    ToolContentPart::ToolDiscoveryResult(_) => {
+                        return Err(unsupported(format!("{location} tool discovery result")));
+                    }
+                }
+            }
+            Ok(StateMessage::Tool { content })
+        }
+        Message::AdditionalTools { .. } => Err(unsupported(format!("{location} additional_tools"))),
     }
 }
 
-fn convert_instructions(instructions: &Instructions) -> Result<TypeSafeEntry, ConvertError> {
+fn validate_assistant_parts(
+    parts: &[AssistantContentPart],
+    location: &str,
+) -> Result<(), ConvertError> {
+    for part in parts {
+        match part {
+            AssistantContentPart::Text(text) => validate_text(text, location)?,
+            AssistantContentPart::ToolCall {
+                caller,
+                encrypted_content,
+                provider_options,
+                provider_executed,
+                ..
+            } => {
+                if caller.is_some()
+                    || encrypted_content.is_some()
+                    || provider_options.is_some()
+                    || provider_executed.is_some()
+                {
+                    return Err(unsupported(format!(
+                        "{location} tool call caller, encrypted_content, provider_options, or provider_executed"
+                    )));
+                }
+            }
+            AssistantContentPart::File { .. } => {
+                return Err(unsupported(format!("{location} file content")));
+            }
+            AssistantContentPart::Reasoning { .. } => {
+                return Err(unsupported(format!("{location} reasoning content")));
+            }
+            AssistantContentPart::Program { .. } | AssistantContentPart::ProgramOutput { .. } => {
+                return Err(unsupported(format!("{location} program content")));
+            }
+            AssistantContentPart::ToolDiscoveryCall { .. } => {
+                return Err(unsupported(format!("{location} tool discovery call")));
+            }
+            AssistantContentPart::ToolResult { .. } => {
+                return Err(unsupported(format!(
+                    "{location} tool result in an assistant message"
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn convert_instructions(instructions: UserContent) -> Result<TypeSafeEntry, ConvertError> {
     match instructions {
-        Instructions::PurpleString(text) => Ok(TypeSafeEntry::Text(text.clone())),
-        Instructions::DecisionQuestionInputPartArray(parts) => parts
-            .iter()
-            .map(|part| match part.decision_question_input_part_type {
-                DecisionQuestionInputPartType::InputText => part
-                    .text
-                    .clone()
-                    .map(serde_json::Value::String)
-                    .ok_or_else(|| missing("questions[].instructions[].text")),
-                DecisionQuestionInputPartType::InputJson => match &part.data {
-                    Some(Data::AnythingMap(map)) => Ok(serde_json::Value::Object(map.clone())),
-                    Some(Data::AnythingMapArray(items)) => Ok(serde_json::Value::Array(
-                        items
-                            .iter()
-                            .cloned()
-                            .map(serde_json::Value::Object)
-                            .collect(),
-                    )),
-                    None => Err(missing("questions[].instructions[].data")),
-                },
-                DecisionQuestionInputPartType::InputImage => {
-                    Err(unsupported("Decisions input_image instructions"))
+        UserContent::String(text) => Ok(TypeSafeEntry::Text(text)),
+        UserContent::Array(parts) => parts
+            .into_iter()
+            .map(|part| match part {
+                UserContentPart::Text(text) => {
+                    validate_text(&text, "Lingua decision instructions")?;
+                    Ok(serde_json::Value::String(text.text))
+                }
+                UserContentPart::Image { .. } => {
+                    Err(unsupported("Lingua decision instruction images"))
+                }
+                UserContentPart::Audio { .. } | UserContentPart::File { .. } => {
+                    Err(unsupported("Lingua decision instruction audio or files"))
                 }
             })
             .collect::<Result<Vec<_>, _>>()
@@ -324,53 +329,44 @@ fn convert_instructions(instructions: &Instructions) -> Result<TypeSafeEntry, Co
 type ChoiceCriteria = Vec<(String, Option<TypeSafeEntry>)>;
 
 fn convert_choices(
-    choices: &[ChoiceOptionParam],
-) -> Result<(ChoiceCriteria, Vec<(String, ChoiceValueParam)>), ConvertError> {
+    choices: Vec<DecisionChoice>,
+) -> Result<(ChoiceCriteria, Vec<(String, DecisionValue)>), ConvertError> {
     let mut criteria = Vec::with_capacity(choices.len());
-    let mut values: Vec<(String, ChoiceValueParam)> = Vec::with_capacity(choices.len());
-    for option in choices {
-        let key = match &option.value {
-            ChoiceValueParam::PurpleString(value) => value.clone(),
-            ChoiceValueParam::Bool(value) => value.to_string(),
+    let mut values: Vec<(String, DecisionValue)> = Vec::with_capacity(choices.len());
+    for choice in choices {
+        let key = match &choice.value {
+            DecisionValue::String(value) => value.clone(),
+            DecisionValue::Bool(value) => value.to_string(),
         };
         if values.iter().any(|(existing, _)| *existing == key) {
             return Err(invalid(format!(
                 "choice \"{key}\" appears more than once; TypeSafe choices are named by text"
             )));
         }
-        criteria.push((
-            key.clone(),
-            option.description.clone().map(TypeSafeEntry::Text),
-        ));
-        values.push((key, option.value.clone()));
+        criteria.push((key.clone(), choice.description.map(TypeSafeEntry::Text)));
+        values.push((key, choice.value));
     }
     Ok((criteria, values))
 }
 
-fn score_criterion(level: &ScoreLevelParam) -> TypeSafeEntry {
-    match &level.description {
-        None => TypeSafeEntry::Text(level.label.clone()),
+fn score_criterion(level: DecisionScoreLevel) -> TypeSafeEntry {
+    match level.description {
+        None => TypeSafeEntry::Text(level.label),
         Some(description) => {
             let mut criterion = serde_json::Map::new();
-            criterion.insert(
-                "label".into(),
-                serde_json::Value::String(level.label.clone()),
-            );
-            criterion.insert(
-                "description".into(),
-                serde_json::Value::String(description.clone()),
-            );
+            criterion.insert("label".into(), serde_json::Value::String(level.label));
+            criterion.insert("description".into(), serde_json::Value::String(description));
             TypeSafeEntry::Object(criterion)
         }
     }
 }
 
-/// Convert a TypeSafe System One response to the OpenAI Decisions response for the
-/// request described by `context`.
-pub fn system_one_response_to_decision(
+/// Convert a TypeSafe System One response to universal answers for the request
+/// described by `context`.
+pub fn system_one_response_to_universal(
     response: SystemOneResponse,
     context: &SystemOneDecisionContext,
-) -> Result<DecisionResponse, ConvertError> {
+) -> Result<UniversalDecisionResponse, ConvertError> {
     let mut answers = Vec::with_capacity(context.questions.len());
     for question in &context.questions {
         let answer = response
@@ -379,46 +375,32 @@ pub fn system_one_response_to_decision(
             .find(|(key, _)| *key == question.key)
             .map(|(_, answer)| answer)
             .ok_or_else(|| missing(format!("answers.{}", question.key)))?;
-        answers.push(convert_answer(question, answer)?);
+        answers.push(DecisionAnswer {
+            name: question.name.clone(),
+            result: convert_answer(question, answer)?,
+        });
     }
     let usage = response.usage;
-    Ok(DecisionResponse {
+    Ok(UniversalDecisionResponse {
+        model: Some(response.model),
         answers,
-        model: response.model,
-        usage: ResponseUsageResource {
-            input_tokens: usage.input_tokens,
-            input_tokens_details: InputTokensDetailsResource {
-                cache_write_tokens: 0,
-                cached_tokens: 0,
-            },
-            output_tokens: usage.output_tokens,
-            output_tokens_details: OutputTokensDetailsResource {
-                reasoning_tokens: 0,
-            },
-            total_tokens: usage.input_tokens + usage.output_tokens,
-        },
+        usage: Some(UniversalUsage {
+            prompt_tokens: Some(usage.input_tokens),
+            completion_tokens: Some(usage.output_tokens),
+            total_tokens: Some(usage.input_tokens + usage.output_tokens),
+            ..UniversalUsage::default()
+        }),
     })
 }
 
 fn convert_answer(
     question: &QuestionContext,
     answer: &TypeSafeAnswer,
-) -> Result<AnswerResource, ConvertError> {
-    let base = AnswerResource {
-        name: question.name.clone(),
-        probability: None,
-        answer_resource_type: AnswerResourceType::Refusal,
-        choice: None,
-        confidence: None,
-        probabilities: None,
-        score: None,
-    };
+) -> Result<DecisionResult, ConvertError> {
     match (&question.kind, answer) {
-        (QuestionKind::Predicate, TypeSafeAnswer::Noul { noul }) => Ok(AnswerResource {
-            answer_resource_type: AnswerResourceType::Predicate,
-            probability: Some(*noul),
-            ..base
-        }),
+        (QuestionKind::Predicate, TypeSafeAnswer::Noul { noul }) => {
+            Ok(DecisionResult::Predicate { probability: *noul })
+        }
         (
             QuestionKind::Choice(values),
             TypeSafeAnswer::Choice {
@@ -430,39 +412,25 @@ fn convert_answer(
             let selected = values
                 .iter()
                 .find(|(key, _)| key == choice)
-                .map(|(_, value)| value)
+                .map(|(_, value)| value.clone())
                 .ok_or_else(|| {
                     invalid(format!(
                         "TypeSafe returned unknown choice \"{choice}\" for question \"{}\"",
                         question.key
                     ))
                 })?;
-            let probabilities = values
-                .iter()
-                .map(|(key, value)| {
-                    Ok(EProbabilityResource {
-                        probability: probability_for(probabilities, key, &question.key)?,
-                        value: match value {
-                            ChoiceValueParam::PurpleString(value) => {
-                                ValueUnion::PurpleString(value.clone())
-                            }
-                            ChoiceValueParam::Bool(value) => ValueUnion::Bool(*value),
-                        },
-                        label: None,
-                    })
-                })
-                .collect::<Result<Vec<_>, ConvertError>>()?;
-            Ok(AnswerResource {
-                answer_resource_type: AnswerResourceType::Choice,
-                choice: Some(match selected {
-                    ChoiceValueParam::PurpleString(value) => {
-                        ChoiceValueResource::PurpleString(value.clone())
-                    }
-                    ChoiceValueParam::Bool(value) => ChoiceValueResource::Bool(*value),
-                }),
+            Ok(DecisionResult::Choice {
+                choice: selected,
                 confidence: Some(*confidence),
-                probabilities: Some(probabilities),
-                ..base
+                probabilities: values
+                    .iter()
+                    .map(|(key, value)| {
+                        Ok(DecisionChoiceProbability {
+                            value: value.clone(),
+                            probability: probability_for(probabilities, key, &question.key)?,
+                        })
+                    })
+                    .collect::<Result<_, ConvertError>>()?,
             })
         }
         (
@@ -473,30 +441,24 @@ fn convert_answer(
                 probabilities,
                 ..
             },
-        ) => {
-            let probabilities = labels
-                .iter()
-                .enumerate()
-                .map(|(index, label)| {
-                    Ok(EProbabilityResource {
+        ) => Ok(DecisionResult::Score {
+            score: *score,
+            confidence: Some(*confidence),
+            probabilities: (0u32..)
+                .zip(labels)
+                .map(|(level, label)| {
+                    Ok(DecisionLevelProbability {
+                        level,
+                        label: Some(label.clone()),
                         probability: probability_for(
                             probabilities,
-                            &index.to_string(),
+                            &level.to_string(),
                             &question.key,
                         )?,
-                        value: ValueUnion::Integer(index as i64),
-                        label: Some(label.clone()),
                     })
                 })
-                .collect::<Result<Vec<_>, ConvertError>>()?;
-            Ok(AnswerResource {
-                answer_resource_type: AnswerResourceType::Score,
-                score: Some(*score),
-                confidence: Some(*confidence),
-                probabilities: Some(probabilities),
-                ..base
-            })
-        }
+                .collect::<Result<_, ConvertError>>()?,
+        }),
         (_, answer) => Err(invalid(format!(
             "TypeSafe returned a {} answer for {} question \"{}\"",
             answer_type_name(answer),

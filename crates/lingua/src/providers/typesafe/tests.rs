@@ -1,10 +1,11 @@
 use super::request::{SystemOneRequest, TypeSafeQuestion};
 use super::response::SystemOneResponse;
-use super::{decision_request_to_system_one, system_one_response_to_decision};
+use super::{system_one_response_to_universal, universal_to_system_one, SystemOneDecisionContext};
 use crate::error::ConvertError;
 use crate::providers::openai::decisions_generated::{DecisionRequest, DecisionResponse};
-use crate::serde_json::value::RawValue;
 use crate::serde_json::{self, json, Value};
+use crate::universal::convert::TryFromLLM;
+use crate::universal::UniversalDecisionRequest;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
@@ -111,25 +112,20 @@ fn choice_criteria_keep_caller_order() {
     );
 }
 
-fn decision_request(value: Value) -> DecisionRequest {
-    serde_json::from_value(value).expect("decision request parses")
+fn to_system_one(
+    request: Value,
+) -> Result<(SystemOneRequest, SystemOneDecisionContext), ConvertError> {
+    let request: DecisionRequest =
+        serde_json::from_value(request).expect("decision request parses");
+    <UniversalDecisionRequest as TryFromLLM<_>>::try_from(request).and_then(universal_to_system_one)
 }
 
-#[derive(Deserialize)]
-struct RawInput<'a> {
-    #[serde(borrow)]
-    input: &'a RawValue,
+fn convert_text(request: Value) -> Result<String, ConvertError> {
+    to_system_one(request).map(|(request, _)| serde_json::to_string(&request).unwrap())
 }
 
-fn convert_text(body: &str) -> Result<String, ConvertError> {
-    let raw: RawInput<'_> = serde_json::from_str(body).unwrap();
-    let request = decision_request(serde_json::from_str(body).unwrap());
-    decision_request_to_system_one(&request, raw.input)
-        .map(|(request, _)| serde_json::to_string(&request).unwrap())
-}
-
-fn convert(value: Value) -> Result<Value, ConvertError> {
-    convert_text(&value.to_string()).map(|text| serde_json::from_str(&text).unwrap())
+fn convert(request: Value) -> Result<Value, ConvertError> {
+    convert_text(request).map(|text| serde_json::from_str(&text).unwrap())
 }
 
 #[test]
@@ -139,7 +135,8 @@ fn converts_scorer_conversation_to_system_one() {
         "input": [
             {"role": "system", "content": "Grade the answer."},
             {"role": "user", "content": [{"type": "input_text", "text": "2 + 2 = 4"}]},
-            {"type": "function_call", "call_id": "c1", "name": "lookup", "arguments": "{}"},
+            {"role": "assistant", "content": "Let me check."},
+            {"type": "function_call", "call_id": "c1", "name": "lookup", "arguments": "{\"q\":\"2+2\"}"},
             {"type": "function_call_output", "call_id": "c1", "output": "4"}
         ],
         "questions": [{
@@ -156,9 +153,20 @@ fn converts_scorer_conversation_to_system_one() {
             "model": "jev-latest",
             "state": {"messages": [
                 {"role": "system", "content": "Grade the answer."},
-                {"role": "user", "content": [{"type": "input_text", "text": "2 + 2 = 4"}]},
-                {"type": "function_call", "call_id": "c1", "name": "lookup", "arguments": "{}"},
-                {"type": "function_call_output", "call_id": "c1", "output": "4"}
+                {"role": "user", "content": [{"type": "text", "text": "2 + 2 = 4"}]},
+                {"role": "assistant", "content": "Let me check."},
+                {"role": "assistant", "content": [{
+                    "type": "tool_call",
+                    "tool_call_id": "c1",
+                    "tool_name": "lookup",
+                    "arguments": {"type": "valid", "value": {"q": "2+2"}}
+                }]},
+                {"role": "tool", "content": [{
+                    "type": "tool_result",
+                    "tool_call_id": "c1",
+                    "tool_name": "lookup",
+                    "output": "4"
+                }]}
             ]},
             "questions": {"score": {
                 "type": "choice",
@@ -170,14 +178,19 @@ fn converts_scorer_conversation_to_system_one() {
 }
 
 #[test]
-fn copies_input_items_as_sent() {
-    let converted = convert_text(
-        r#"{"model":"jev-latest","questions":[{"type":"predicate","name":"q","instructions":"?"}],"input":[{"role":"user","content":"x = 1.50","type":"message"},{"type":"function_call_output","output":"{\"z\":1}","call_id":"c1"}]}"#,
-    )
+fn renders_messages_with_role_first() {
+    let converted = convert_text(json!({
+        "model": "jev-latest",
+        "input": [
+            {"type": "message", "content": "x = 1.50", "role": "user"},
+            {"content": "y", "role": "assistant"}
+        ],
+        "questions": [{"type": "predicate", "name": "q", "instructions": "?"}]
+    }))
     .unwrap();
     assert_eq!(
         converted,
-        r#"{"model":"jev-latest","state":{"messages":[{"role":"user","content":"x = 1.50","type":"message"},{"type":"function_call_output","output":"{\"z\":1}","call_id":"c1"}]},"questions":{"q":{"type":"noul","instructions":"?"}}}"#
+        r#"{"model":"jev-latest","state":{"messages":[{"role":"user","content":"x = 1.50"},{"role":"assistant","content":"y"}]},"questions":{"q":{"type":"noul","instructions":"?"}}}"#
     );
 }
 
@@ -193,7 +206,7 @@ fn converts_string_input_predicates_and_scores() {
                 "name": "severity",
                 "instructions": [
                     {"type": "input_text", "text": "Rate severity."},
-                    {"type": "input_json", "data": {"product": "web"}}
+                    {"type": "input_text", "text": "Product: web"}
                 ],
                 "levels": [{"label": "low"}, {"label": "high", "description": "Blocks work"}]
             }
@@ -209,7 +222,7 @@ fn converts_string_input_predicates_and_scores() {
                 "0": {"type": "noul", "instructions": "Is this a bug report?"},
                 "severity": {
                     "type": "score",
-                    "instructions": ["Rate severity.", {"product": "web"}],
+                    "instructions": ["Rate severity.", "Product: web"],
                     "criteria": ["low", {"label": "high", "description": "Blocks work"}]
                 }
             }
@@ -227,9 +240,14 @@ fn rejects_requests_system_one_cannot_represent() {
         })
     };
     let cases: Vec<(&str, Value)> = vec![
-        ("prompt caching", {
+        ("prompt_cache_key", {
             let mut request = base();
             request["prompt_cache_key"] = json!("k");
+            request
+        }),
+        ("prompt_cache_options", {
+            let mut request = base();
+            request["prompt_cache_options"] = json!({"mode": "explicit"});
             request
         }),
         ("safety_identifier", {
@@ -237,21 +255,41 @@ fn rejects_requests_system_one_cannot_represent() {
             request["safety_identifier"] = json!("user-1");
             request
         }),
-        ("input_image content", {
+        ("image content", {
             let mut request = base();
             request["input"] = json!([{"role": "user", "content": [
                 {"type": "input_image", "image_url": "https://example.com/a.png"}
             ]}]);
             request
         }),
-        ("prompt_cache_breakpoint", {
+        ("cache_control", {
             let mut request = base();
             request["input"] = json!([{"role": "user", "content": [
                 {"type": "input_text", "text": "x", "prompt_cache_breakpoint": {"mode": "explicit"}}
             ]}]);
             request
         }),
-        ("input_image instructions", {
+        ("input_json content", {
+            let mut request = base();
+            request["input"] = json!([{"role": "user", "content": [
+                {"type": "input_json", "data": {"a": 1}}
+            ]}]);
+            request
+        }),
+        ("refusal content", {
+            let mut request = base();
+            request["input"] = json!([{"role": "assistant", "content": [
+                {"type": "refusal", "refusal": "no"}
+            ]}]);
+            request
+        }),
+        ("phase", {
+            let mut request = base();
+            request["input"] =
+                json!([{"role": "assistant", "content": "x", "phase": "commentary"}]);
+            request
+        }),
+        ("instruction images", {
             let mut request = base();
             request["questions"][0]["instructions"] =
                 json!([{"type": "input_image", "image_url": "data:image/png;base64,AA=="}]);
@@ -276,6 +314,12 @@ fn rejects_requests_system_one_cannot_represent() {
             request["input"] = json!([{"content": "x"}]);
             request
         }),
+        ("no earlier tool call", {
+            let mut request = base();
+            request["input"] =
+                json!([{"type": "function_call_output", "call_id": "c1", "output": "x"}]);
+            request
+        }),
     ];
     for (expected, request) in cases {
         let error = convert(request).expect_err(expected).to_string();
@@ -284,12 +328,10 @@ fn rejects_requests_system_one_cannot_represent() {
 }
 
 fn round_trip(request: Value, system_one_response: Value) -> Result<Value, ConvertError> {
-    let body = request.to_string();
-    let raw: RawInput<'_> = serde_json::from_str(&body).unwrap();
-    let (_, context) =
-        decision_request_to_system_one(&decision_request(request), raw.input).unwrap();
+    let (_, context) = to_system_one(request).unwrap();
     let response: SystemOneResponse = serde_json::from_value(system_one_response).unwrap();
-    system_one_response_to_decision(response, &context)
+    system_one_response_to_universal(response, &context)
+        .and_then(<DecisionResponse as TryFromLLM<_>>::try_from)
         .map(|decision| serde_json::to_value(decision).unwrap())
 }
 
