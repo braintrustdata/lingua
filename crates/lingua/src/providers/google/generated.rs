@@ -1339,9 +1339,13 @@ pub struct ThinkingConfig {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export_to = "google/")]
 pub enum ThinkingLevel {
+    #[serde(alias = "high")]
     High,
+    #[serde(alias = "low")]
     Low,
+    #[serde(alias = "medium")]
     Medium,
+    #[serde(alias = "minimal")]
     Minimal,
     #[serde(rename = "THINKING_LEVEL_UNSPECIFIED")]
     ThinkingLevelUnspecified,

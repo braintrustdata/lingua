@@ -1,0 +1,364 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends on your"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 4,
+      "totalTokenCount": 210,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " mood! Here are a few options depending on what you’re looking for:\n\n**If you want to be productive:**\n*"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 31,
+      "totalTokenCount": 237,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "   **The 5-minute rule:** Pick a small task you’ve been putting off (like answering an email or tidying a corner"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 60,
+      "totalTokenCount": 266,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ") and do it right now.\n*   **Plan your tomorrow:** Write down the top three things you want to accomplish"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 85,
+      "totalTokenCount": 291,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ".\n\n**If you want to relax:**\n*   **Digital detox:** Put your phone in another room for 2"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 110,
+      "totalTokenCount": 316,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "0 minutes and just sit, stretch, or look out a window.\n*   **Hydrate:** Go grab a glass"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 135,
+      "totalTokenCount": 341,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " of water. \n\n**If you want to be entertained:**\n*   **Learn something new:** Ask me to explain"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 160,
+      "totalTokenCount": 366,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " a random topic (like how black holes work or the history of tea).\n*   **Play a game:** We"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 184,
+      "totalTokenCount": 390,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " could play 20 Questions, a trivia round, or a text-based adventure.\n\n**If you want me to decide"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 210,
+      "totalTokenCount": 416,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " for you:**\nTell me one thing that’s currently on your mind, and I'll give you a specific"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 234,
+      "totalTokenCount": 440,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " suggestion based on that. \n\n**What’s your vibe right now?**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 251,
+      "totalTokenCount": 457,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EsoHCscHAWkUfRMBjrkb32eLsVMUIq7dJ1QJE8iIvSHIIKpStUsGCNy/TNq/NJLt1bvAFzA300/IuXmKJvx1Mv5sfNaFdN7i8KtPCNEn8bOWf+/zdi3/WQIa8/dVYelyseJkbgLdROupSazRTtWalaeu00u9yIZlF7qkU68jw7OCGn8gyMu4Bz1VekpEjbnAeDJeFEqmwuzh60m5K2X3wc9kmYaC5ypSp5tlOIy26mYkdGdTM08XK0Bk4QXyA1oGN68tNqJtJJAc4O8+Jd6h6c52FEo2nrxld+L28gd6ol34jFlcmhmL/4lLdTMIyrbkc0j/UFl/itzgCUqFe1L7LfnxpdXZNt/eO/WZbcBfki0U/y+q8TEbs4rbzlD6euwKExCFK1FUqVorOVUkX4FJYy1IMaLIZKqHYcZV7aCicaarQAsyUQi+u2YEu1nt67ip476OnVTN8lxCXGwacTjBo4PIGV6HieLOc2WM8itC2tDx4PerFB4cU+SVZ44dHkZ8KqC9BULcuSQjHe2OTijr7EUdeNNLd95URyXZr6MzLQKsX4vCr9KdOB5Pa4iT/glbpKTkggY7N/yuwuhRfzyyEGorBorT05fOPuTIThGh3EWT6eVjXfj/UMhz/VYhlqI47PcgSPh/KGDE0S8ZNwcK5Tn1iPAtz7Onlt2BRn1hSdBKDVA7nWZCANiZllh/67j2HWs4IOZ8TEkOK5ASIzIYIaRGXagtLJUCp/BBXvp4qQ89gGW/MB7r3aOkQPxUv/ErV3h433bT2a6t04r+/8pRA8PIQ6zei6MHAPlphbVjzzvTM8cAkFDu5ulGJt8BBE8ARlcBlfXui/EPKAQldBQAX7Di+RTT753HYgwOqekPKUDLNZA+bdBp2c7mNtTJa0zenhzGWuvF4i2wcCi3xP/F3dFrXM56JlByJs6q6AhXwlt5QtVkyMaxQMlGdivAdXf4bmMFrIc07OLFhe+IZWx6qmGiCEYq4IcvvfnpkozU0+Z8tLLCYUuD2b5D6yUV/ubWiTKiHBrzly1TDYPGnoSp7tEPyub/tL7mh+AINxUIADKo+D6tv0wdz7ha7QNL6osLdkoLhL/1fWQXZU95RfZqGwMBCAxGL/GaONWsjPfcfKHJdjBO6nU9/QfjH32cAMmD9lrnM0fQ/NcXt1HZSfw/z/AxEZPlY35ySyq4DljJrxfc17McJYOaarycctMGAUa7q1+LWoBkYznnXV/PEj6A4fez/Dklw7qtYO7eiBA3EpY4BHZAJND5R5AInBH/lz/jdbOOhR+Xq99h8dcClw=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 251,
+      "totalTokenCount": 457,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 192,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMauirMfH5-8YP18_o-Qk"
+  }
+]
