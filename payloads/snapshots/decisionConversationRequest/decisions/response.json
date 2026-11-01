@@ -1,0 +1,45 @@
+{
+  "model": "gpt-6-luna",
+  "answers": [
+    {
+      "type": "predicate",
+      "name": "resolved",
+      "probability": 0.65
+    },
+    {
+      "type": "score",
+      "name": "tone",
+      "score": 2,
+      "probabilities": [
+        {
+          "value": 0,
+          "label": "rude",
+          "probability": 0
+        },
+        {
+          "value": 1,
+          "label": "neutral",
+          "probability": 0
+        },
+        {
+          "value": 2,
+          "label": "warm",
+          "probability": 1
+        }
+      ],
+      "confidence": 1
+    }
+  ],
+  "usage": {
+    "input_tokens": 316,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "output_tokens": 0,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 316
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "model": "gpt-6-luna",
+  "input": [
+    {
+      "role": "system",
+      "content": "You are a weather assistant. Use tools for live data."
+    },
+    {
+      "role": "user",
+      "content": "Do I need an umbrella in Lisbon today?"
+    },
+    {
+      "role": "assistant",
+      "content": "Let me check the forecast."
+    },
+    {
+      "type": "function_call",
+      "call_id": "call_forecast_1",
+      "name": "get_forecast",
+      "arguments": "{\"city\":\"Lisbon\",\"day\":\"today\"}"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_forecast_1",
+      "output": "{\"condition\":\"rain\",\"chance_of_rain\":0.85,\"high_c\":17}"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, bring an umbrella: there's an 85% chance of rain in Lisbon today, with a high of 17°C."
+    }
+  ],
+  "questions": [
+    {
+      "type": "predicate",
+      "name": "grounded",
+      "instructions": "Is the assistant's final answer supported by the tool output?"
+    },
+    {
+      "type": "choice",
+      "name": "grade",
+      "instructions": "Grade the assistant's final answer.",
+      "choices": [
+        {
+          "value": "A"
+        },
+        {
+          "value": "B"
+        },
+        {
+          "value": "C"
+        }
+      ]
+    }
+  ]
+}

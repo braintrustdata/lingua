@@ -1,0 +1,23 @@
+{
+  "model": "jev-1.14.0",
+  "answers": {
+    "grounded": {
+      "type": "noul",
+      "noul": 0.98
+    },
+    "grade": {
+      "type": "choice",
+      "choice": "A",
+      "confidence": 0.96,
+      "probabilities": {
+        "A": 0.97,
+        "B": 0.01,
+        "C": 0.02
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 635,
+    "output_tokens": 57
+  }
+}

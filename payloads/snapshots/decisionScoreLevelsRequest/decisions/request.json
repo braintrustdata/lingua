@@ -1,0 +1,34 @@
+{
+  "model": "gpt-6-luna",
+  "input": [
+    {
+      "role": "user",
+      "content": "Summarize: The city council approved a new bike lane on Main Street after a three-month public comment period. Construction starts in May and will close one car lane for six weeks."
+    },
+    {
+      "role": "assistant",
+      "content": "The council approved a Main Street bike lane; construction begins in May and closes a car lane for six weeks."
+    }
+  ],
+  "questions": [
+    {
+      "type": "score",
+      "name": "faithfulness",
+      "instructions": "Rate how faithful the summary is to the source.",
+      "levels": [
+        {
+          "label": "unfaithful",
+          "description": "States things the source does not."
+        },
+        {
+          "label": "partial",
+          "description": "Omits or blurs key facts."
+        },
+        {
+          "label": "faithful",
+          "description": "Every claim is supported by the source."
+        }
+      ]
+    }
+  ]
+}

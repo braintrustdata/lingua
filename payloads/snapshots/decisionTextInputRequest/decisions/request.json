@@ -1,0 +1,22 @@
+{
+  "model": "gpt-6-luna",
+  "input": "I was charged twice for order 4417 and the second charge is still pending.",
+  "questions": [
+    {
+      "type": "choice",
+      "name": "department",
+      "instructions": "Which team should handle this ticket?",
+      "choices": [
+        {
+          "value": "billing"
+        },
+        {
+          "value": "shipping"
+        },
+        {
+          "value": "technical"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "model": "jev-latest",
+  "state": "Question: Why is the sky blue?\nAnswer: Air molecules scatter shorter (blue) wavelengths of sunlight more than longer ones, so blue light reaches your eyes from every direction.",
+  "questions": {
+    "factuality": {
+      "type": "choice",
+      "instructions": "How factually accurate is the answer?",
+      "criteria": {
+        "A": "Correct and complete, with no errors.",
+        "B": "Mostly correct, with minor omissions.",
+        "C": "Contains a factual error."
+      }
+    }
+  }
+}

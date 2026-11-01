@@ -7,7 +7,7 @@
     "build:standalone": "pnpm run build:nodejs && pnpm run build:web && pnpm run build:nodejs:full && pnpm run prepare:pack",
     "build:nodejs": "cd ../../crates/lingua && wasm-pack build --target nodejs --release --out-dir ../../bindings/lingua-wasm/nodejs --no-pack --features bedrock",
     "build:web": "cd ../../crates/lingua && wasm-pack build --target web --release --out-dir ../../bindings/lingua-wasm/web --no-pack --features bedrock",
-    "build:nodejs:full": "cd ../../crates/lingua && wasm-pack build --target nodejs --release --out-dir ../../bindings/lingua-wasm/nodejs-full --no-pack --features bedrock,wasm-full",
+    "build:nodejs:full": "cd ../../crates/lingua && wasm-pack build --target nodejs --release --out-dir ../../bindings/lingua-wasm/nodejs-full --no-pack --features bedrock,typesafe,wasm-full",
     "prepare:pack": "touch nodejs/.npmignore web/.npmignore nodejs-full/.npmignore",
     "prepublishOnly": "pnpm run build:standalone"
   },

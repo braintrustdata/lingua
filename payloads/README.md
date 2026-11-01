@@ -153,7 +153,8 @@ pnpm install --frozen-lockfile
 
 ## Environment variables
 
-- `OPENAI_API_KEY`: Required for capturing OpenAI payloads
+- `OPENAI_API_KEY`: Required for capturing OpenAI payloads. Decision cases (`cases/decisions.ts`) call the OpenAI Decisions API, so the key needs access to `gpt-6-luna`
+- `TYPESAFE_API_KEY`: Required for capturing TypeSafe System One payloads, including the `decisions → typesafe` transforms
 - `ANTHROPIC_API_KEY`: Required for capturing Anthropic payloads
 - `GOOGLE_SERVICE_ACCOUNT_JSON`: Service account JSON for Vertex Anthropic captures, read directly into memory. Takes precedence over `GOOGLE_APPLICATION_CREDENTIALS`; invalid JSON is rejected without trying the file option.
 - `GOOGLE_APPLICATION_CREDENTIALS`: Service account JSON file path for Vertex Anthropic captures when `GOOGLE_SERVICE_ACCOUNT_JSON` is unset.
