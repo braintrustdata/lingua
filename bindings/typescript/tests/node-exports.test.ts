@@ -123,7 +123,6 @@ describe("Node.js exports", () => {
     expect(messages).toEqual([
       {
         role: "assistant",
-        id: null,
         content: [
           {
             type: "tool_call",
@@ -195,7 +194,7 @@ describe("Node.js exports", () => {
 
     expect(messages).toEqual([
       { role: "user", content: "what is 2+2?" },
-      { role: "assistant", id: null, content: "4" },
+      { role: "assistant", content: "4" },
       { role: "user", content: "and 3+3?" },
     ]);
   });
