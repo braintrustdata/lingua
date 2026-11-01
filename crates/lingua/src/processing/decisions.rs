@@ -126,7 +126,7 @@ mod tests {
         let transformed = transform(ProviderFormat::TypeSafe).unwrap();
         assert_eq!(
             std::str::from_utf8(&transformed.payload).unwrap(),
-            r#"{"model":"gpt-6-luna","state":"I was charged twice.","questions":{"department":{"type":"choice","instructions":"Which department?","criteria":{"billing":null,"shipping":null}}}}"#
+            r#"{"model":"gpt-6-luna","questions":{"department":{"type":"choice","criteria":{"billing":null,"shipping":null},"instructions":"Which department?"}},"state":"I was charged twice."}"#
         );
         let response = transform_decision_response(
             Bytes::from_static(

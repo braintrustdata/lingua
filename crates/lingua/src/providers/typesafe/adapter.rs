@@ -7,8 +7,7 @@ converted to other decision formats.
 */
 
 use super::convert::system_one_response_to_universal;
-use super::request::SystemOneRequest;
-use super::response::SystemOneResponse;
+use super::generated::{SystemOneRequest, SystemOneResponse};
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::{parse_payload, serialize_payload, DecisionAdapter};
 use crate::processing::transform::TransformError;

@@ -9,8 +9,8 @@ only those keys and choice names, so converting a response takes the request's
 questions to restore question order and typed choice values.
 */
 
-use super::request::{SystemOneRequest, TypeSafeEntry, TypeSafeJson, TypeSafeQuestion};
-use super::response::{SystemOneResponse, TypeSafeAnswer};
+use super::entry::{TypeSafeEntry, TypeSafeJson};
+use super::generated::{Answer, Question, SystemOneRequest, SystemOneResponse};
 use crate::error::ConvertError;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
@@ -24,6 +24,7 @@ use crate::universal::{
     DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
     UniversalUsage,
 };
+use indexmap::IndexMap;
 use serde::Serialize;
 use std::borrow::Cow;
 
@@ -81,38 +82,37 @@ impl TryFromLLM<UniversalDecisionRequest> for SystemOneRequest {
             }
         };
 
-        let mut questions: Vec<(String, TypeSafeQuestion)> =
-            Vec::with_capacity(request.questions.len());
+        let mut questions = IndexMap::with_capacity(request.questions.len());
         for (index, question) in request.questions.into_iter().enumerate() {
             let key = question.name.unwrap_or_else(|| index.to_string());
-            if questions.iter().any(|(existing, _)| *existing == key) {
+            if questions.contains_key(&key) {
                 return Err(invalid(format!(
                     "question name \"{key}\" is not unique; TypeSafe identifies answers by question name"
                 )));
             }
             let instructions = Some(convert_instructions(question.instructions)?);
             let question = match question.kind {
-                DecisionQuestionKind::Predicate => TypeSafeQuestion::Noul {
+                DecisionQuestionKind::Predicate => Question::Noul {
                     instructions,
                     criteria: None,
                 },
-                DecisionQuestionKind::Choice { choices } => TypeSafeQuestion::Choice {
+                DecisionQuestionKind::Choice { choices } => Question::Choice {
                     instructions,
                     criteria: convert_choices(choices)?,
                 },
-                DecisionQuestionKind::Score { levels } => TypeSafeQuestion::Score {
+                DecisionQuestionKind::Score { levels } => Question::Score {
                     instructions,
                     criteria: levels.into_iter().map(score_criterion).collect(),
                 },
             };
-            questions.push((key, question));
+            questions.insert(key, question);
         }
 
         Ok(SystemOneRequest {
+            assets: IndexMap::new(),
             model,
-            state,
             questions,
-            assets: None,
+            state,
         })
     }
 }
@@ -268,19 +268,19 @@ fn convert_instructions(instructions: UserContent) -> Result<TypeSafeEntry, Conv
 
 fn convert_choices(
     choices: Vec<DecisionChoice>,
-) -> Result<Vec<(String, Option<TypeSafeEntry>)>, ConvertError> {
-    let mut criteria: Vec<(String, Option<TypeSafeEntry>)> = Vec::with_capacity(choices.len());
+) -> Result<IndexMap<String, Option<TypeSafeEntry>>, ConvertError> {
+    let mut criteria = IndexMap::with_capacity(choices.len());
     for choice in choices {
         let key = match choice.value {
             DecisionValue::String(value) => value,
             DecisionValue::Bool(value) => value.to_string(),
         };
-        if criteria.iter().any(|(existing, _)| *existing == key) {
+        if criteria.contains_key(&key) {
             return Err(invalid(format!(
                 "choice \"{key}\" appears more than once; TypeSafe choices are named by text"
             )));
         }
-        criteria.push((key, choice.description.map(TypeSafeEntry::Text)));
+        criteria.insert(key, choice.description.map(TypeSafeEntry::Text));
     }
     Ok(criteria)
 }
@@ -308,9 +308,7 @@ pub fn system_one_response_to_universal(
         let key = question_key(question, index);
         let answer = response
             .answers
-            .iter()
-            .find(|(candidate, _)| *candidate == key)
-            .map(|(_, answer)| answer)
+            .get(key.as_ref())
             .ok_or_else(|| missing(format!("answers.{key}")))?;
         answers.push(DecisionAnswer {
             name: question.name.clone(),
@@ -333,15 +331,15 @@ pub fn system_one_response_to_universal(
 fn convert_answer(
     kind: &DecisionQuestionKind,
     key: &str,
-    answer: &TypeSafeAnswer,
+    answer: &Answer,
 ) -> Result<DecisionResult, ConvertError> {
     match (kind, answer) {
-        (DecisionQuestionKind::Predicate, TypeSafeAnswer::Noul { noul }) => {
+        (DecisionQuestionKind::Predicate, Answer::Noul { noul }) => {
             Ok(DecisionResult::Predicate { probability: *noul })
         }
         (
             DecisionQuestionKind::Choice { choices },
-            TypeSafeAnswer::Choice {
+            Answer::Choice {
                 choice,
                 confidence,
                 probabilities,
@@ -376,7 +374,7 @@ fn convert_answer(
         }
         (
             DecisionQuestionKind::Score { levels },
-            TypeSafeAnswer::Score {
+            Answer::Score {
                 score,
                 confidence,
                 probabilities,
@@ -405,23 +403,22 @@ fn convert_answer(
 }
 
 fn probability_for(
-    probabilities: &[(String, f64)],
+    probabilities: &IndexMap<String, f64>,
     key: &str,
     question: &str,
 ) -> Result<f64, ConvertError> {
     probabilities
-        .iter()
-        .find(|(candidate, _)| candidate == key)
-        .map(|(_, probability)| *probability)
+        .get(key)
+        .copied()
         .ok_or_else(|| missing(format!("answers.{question}.probabilities.{key}")))
 }
 
-fn answer_type_name(answer: &TypeSafeAnswer) -> &'static str {
+fn answer_type_name(answer: &Answer) -> &'static str {
     match answer {
-        TypeSafeAnswer::Noul { .. } => "noul",
-        TypeSafeAnswer::Choice { .. } => "choice",
-        TypeSafeAnswer::Score { .. } => "score",
-        TypeSafeAnswer::BoundingBox { .. } => "box",
+        Answer::Noul { .. } => "noul",
+        Answer::Choice { .. } => "choice",
+        Answer::Score { .. } => "score",
+        Answer::Box { .. } => "box",
     }
 }
 

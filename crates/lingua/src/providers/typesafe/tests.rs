@@ -1,5 +1,4 @@
-use super::request::{SystemOneRequest, TypeSafeQuestion};
-use super::response::SystemOneResponse;
+use super::generated::{Question, SystemOneRequest, SystemOneResponse};
 use super::system_one_response_to_universal;
 use crate::error::ConvertError;
 use crate::providers::openai::decisions_generated::{DecisionRequest, DecisionResponse};
@@ -96,7 +95,7 @@ fn choice_criteria_keep_caller_order() {
         r#"{"model":"jev-latest","state":"s","questions":{"q":{"type":"choice","criteria":{"z":null,"a":"first"}}}}"#,
     )
     .unwrap();
-    let TypeSafeQuestion::Choice { criteria, .. } = &request.questions[0].1 else {
+    let Question::Choice { criteria, .. } = &request.questions["q"] else {
         panic!("expected a choice question");
     };
     assert_eq!(
@@ -108,7 +107,7 @@ fn choice_criteria_keep_caller_order() {
     );
     assert_eq!(
         serde_json::to_string(&request).unwrap(),
-        r#"{"model":"jev-latest","state":"s","questions":{"q":{"type":"choice","criteria":{"z":null,"a":"first"}}}}"#
+        r#"{"model":"jev-latest","questions":{"q":{"type":"choice","criteria":{"z":null,"a":"first"}}},"state":"s"}"#
     );
 }
 
@@ -190,7 +189,7 @@ fn renders_messages_with_role_first() {
     .unwrap();
     assert_eq!(
         converted,
-        r#"{"model":"jev-latest","state":{"messages":[{"role":"user","content":"x = 1.50"},{"role":"assistant","content":"y","id":null}]},"questions":{"q":{"type":"noul","instructions":"?"}}}"#
+        r#"{"model":"jev-latest","questions":{"q":{"type":"noul","instructions":"?"}},"state":{"messages":[{"role":"user","content":"x = 1.50"},{"role":"assistant","content":"y","id":null}]}}"#
     );
 }
 

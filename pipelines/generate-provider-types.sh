@@ -84,6 +84,11 @@ download_provider_spec() {
             echo "Official spec URL: $SPEC_URL"
             SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.yml"
             ;;
+        "typesafe")
+            echo "Downloading TypeSafe OpenAPI spec..."
+            SPEC_URL="https://api.typesafe.ai/openapi.json"
+            SPEC_FILE="$PROJECT_ROOT/specs/typesafe/openapi.json"
+            ;;
         "google")
             echo "Downloading Google Discovery spec..."
             SPEC_URL='https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta'
@@ -109,7 +114,7 @@ download_provider_spec() {
     fi
     
     if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
-        if [ "$PROVIDER" = "google" ]; then
+        if [ "$PROVIDER" = "google" ] || [ "$PROVIDER" = "typesafe" ]; then
             cargo run --quiet --manifest-path "$PROJECT_ROOT/Cargo.toml" --bin canonicalize-json -- "$SPEC_FILE"
         fi
 
@@ -250,6 +255,9 @@ echo "Generated files:"
 if [ "$PROVIDER" = "openai-decisions" ]; then
     echo "- $PROJECT_ROOT/crates/lingua/src/providers/openai/decisions_generated.rs (types from OpenAPI spec)"
     echo "- $PROJECT_ROOT/specs/openai/decisions.yml (local Decisions OpenAPI excerpt)"
+elif [ "$PROVIDER" = "typesafe" ]; then
+    echo "- $PROJECT_ROOT/crates/lingua/src/providers/typesafe/generated.rs (types from OpenAPI spec)"
+    echo "- $PROJECT_ROOT/specs/typesafe/openapi.json (local OpenAPI spec)"
 elif [ "$PROVIDER" = "google" ]; then
     echo "- $PROJECT_ROOT/crates/lingua/src/providers/$PROVIDER/generated.rs (types from Google Discovery spec)"
     echo "- $PROJECT_ROOT/specs/$PROVIDER/discovery.json (local Google Discovery spec)"

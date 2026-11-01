@@ -8,6 +8,7 @@ use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
 
 mod schema_converter;
 mod tool_generator;
+mod typesafe;
 
 fn quicktype_binary() -> Result<PathBuf, Box<dyn std::error::Error>> {
     if let Some(binary) = std::env::var_os("LINGUA_QUICKTYPE_BIN") {
@@ -48,7 +49,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         &args[1]
     } else {
         println!("Usage: {} [provider]", args[0]);
-        println!("Providers: openai, openai-decisions, anthropic, google, all");
+        println!("Providers: openai, openai-decisions, anthropic, google, typesafe, all");
         std::process::exit(1);
     };
 
@@ -59,15 +60,19 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         "openai-decisions" => generate_openai_decisions_types(args.get(2).map(String::as_str))?,
         "anthropic" => generate_anthropic_types()?,
         "google" => generate_google_discovery_types()?,
+        "typesafe" => typesafe::generate()?,
         "all" => {
             generate_openai_types()?;
             generate_openai_decisions_types(None)?;
             generate_anthropic_types()?;
             generate_google_discovery_types()?;
+            typesafe::generate()?;
         }
         _ => {
             println!("❌ Unknown provider: {}", provider);
-            println!("Available providers: openai, openai-decisions, anthropic, google, all");
+            println!(
+                "Available providers: openai, openai-decisions, anthropic, google, typesafe, all"
+            );
             std::process::exit(1);
         }
     }
