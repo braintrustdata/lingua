@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::auth::AuthConfig;
@@ -8,14 +9,25 @@ use crate::providers::ClientHeaders;
 use crate::streaming::RawResponseStream;
 use async_trait::async_trait;
 use bytes::Bytes;
+use lingua::serde_json::Value;
 use lingua::ProviderFormat;
+use reqwest::header::{HeaderName, HeaderValue};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
+
+const DANGER_ZONE_IMAGES: HeaderName = HeaderName::from_static("typesafe-danger-zone-images");
+const DANGER_ZONE_LONG_CONTEXT: HeaderName =
+    HeaderName::from_static("typesafe-danger-zone-long-context");
 
 #[derive(Debug, Clone)]
 pub struct TypeSafeConfig {
     pub endpoint: Url,
     pub timeout: Option<Duration>,
+    /// Send `TypeSafe-Danger-Zone-Images: true`, which System One requires for
+    /// image assets and box questions.
+    pub danger_zone_images: bool,
+    /// Send `TypeSafe-Danger-Zone-Long-Context: true` to allow long-context requests.
+    pub danger_zone_long_context: bool,
 }
 
 impl Default for TypeSafeConfig {
@@ -23,7 +35,20 @@ impl Default for TypeSafeConfig {
         Self {
             endpoint: Url::parse("https://api.typesafe.ai").expect("valid default URL"),
             timeout: None,
+            danger_zone_images: false,
+            danger_zone_long_context: false,
         }
+    }
+}
+
+/// A boolean secret metadata flag, `false` when unset.
+fn metadata_flag(metadata: &HashMap<String, Value>, key: &str) -> Result<bool> {
+    match metadata.get(key) {
+        None => Ok(false),
+        Some(Value::Bool(value)) => Ok(*value),
+        Some(other) => Err(Error::InvalidRequest(format!(
+            "typesafe metadata {key} must be a boolean, got {other}"
+        ))),
     }
 }
 
@@ -53,6 +78,7 @@ impl TypeSafeProvider {
     pub fn from_config(
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
+        metadata: &HashMap<String, Value>,
         client_settings: Option<ClientSettings>,
     ) -> Result<Self> {
         let mut config = TypeSafeConfig::default();
@@ -62,6 +88,8 @@ impl TypeSafeProvider {
         if let Some(timeout) = timeout {
             config.timeout = Some(timeout);
         }
+        config.danger_zone_images = metadata_flag(metadata, "danger_zone_images")?;
+        config.danger_zone_long_context = metadata_flag(metadata, "danger_zone_long_context")?;
         Self::new_with_client_settings(config, client_settings.unwrap_or_default())
     }
 
@@ -110,6 +138,17 @@ impl crate::providers::Provider for TypeSafeProvider {
         let url = self.api_url("systemone")?;
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
+        for (header, enabled) in [
+            (DANGER_ZONE_IMAGES, self.config.danger_zone_images),
+            (
+                DANGER_ZONE_LONG_CONTEXT,
+                self.config.danger_zone_long_context,
+            ),
+        ] {
+            if enabled {
+                headers.insert(header, HeaderValue::from_static("true"));
+            }
+        }
 
         let response = self
             .client
@@ -129,7 +168,19 @@ impl crate::providers::Provider for TypeSafeProvider {
         if !response.status().is_success() {
             let status = response.status();
             let headers = response.headers().clone();
-            let text = response.text().await.unwrap_or_default();
+            let text = match response.text().await {
+                Ok(text) => text,
+                Err(error) => {
+                    return Err(Error::Provider {
+                        provider: "typesafe".to_string(),
+                        source: anyhow::anyhow!(
+                            "HTTP {status}: failed to read response body: {error}"
+                        ),
+                        retry_after: None,
+                        http: None,
+                    });
+                }
+            };
             return Err(Error::Provider {
                 provider: "typesafe".to_string(),
                 source: anyhow::anyhow!("HTTP {status}: {text}"),
@@ -199,9 +250,13 @@ mod tests {
                 "https://proxy.example.com/typesafe/v1/systemone",
             ),
         ] {
-            let provider =
-                TypeSafeProvider::from_config(Some(&Url::parse(endpoint).unwrap()), None, None)
-                    .unwrap();
+            let provider = TypeSafeProvider::from_config(
+                Some(&Url::parse(endpoint).unwrap()),
+                None,
+                &HashMap::new(),
+                None,
+            )
+            .unwrap();
             assert_eq!(provider.api_url("systemone").unwrap().as_str(), expected);
         }
     }

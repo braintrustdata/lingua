@@ -7,6 +7,7 @@ results. Features without a universal representation, such as JSON content parts
 refusals, and request-level prompt cache options, are rejected.
 */
 
+use super::convert::{image_detail_options, openai_image_url, universal_image_from_openai_url};
 use super::decisions_generated as decisions;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
@@ -23,7 +24,6 @@ use crate::universal::{
     DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
     UniversalUsage,
 };
-use crate::util::media::parse_base64_data_url;
 use serde::Deserialize;
 
 const TO_UNIVERSAL: &str = "Lingua decision";
@@ -355,28 +355,11 @@ fn image_from_decision(
     image_url: String,
     detail: Option<decisions::ImageDetailParam>,
 ) -> Result<UserContentPart, ConvertError> {
-    let provider_options = detail
-        .map(|detail| {
-            serde_json::to_value(detail)
-                .map(|detail| {
-                    let mut options = serde_json::Map::new();
-                    options.insert("detail".into(), detail);
-                    ProviderOptions { options }
-                })
-                .map_err(|error| ConvertError::JsonSerializationFailed {
-                    field: "detail".into(),
-                    error: error.to_string(),
-                })
-        })
-        .transpose()?;
-    let (image, media_type) = match parse_base64_data_url(&image_url) {
-        Some(block) => (block.data, Some(block.media_type)),
-        None => (image_url, None),
-    };
+    let (image, media_type) = universal_image_from_openai_url(image_url);
     Ok(UserContentPart::Image {
         image: serde_json::Value::String(image),
         media_type,
-        provider_options,
+        provider_options: image_detail_options(detail.as_ref())?,
     })
 }
 
@@ -391,16 +374,6 @@ fn image_to_decision(
             TO_DECISIONS,
         ));
     };
-    let image_url = if image.starts_with("data:")
-        || image.starts_with("http://")
-        || image.starts_with("https://")
-    {
-        image
-    } else {
-        let media_type =
-            media_type.ok_or_else(|| missing("media_type for base64 image content"))?;
-        format!("data:{media_type};base64,{image}")
-    };
     let detail = match provider_options {
         None => None,
         Some(options) => {
@@ -414,7 +387,7 @@ fn image_to_decision(
                 .detail
         }
     };
-    Ok((image_url, detail))
+    Ok((openai_image_url(image, media_type.as_deref()), detail))
 }
 
 fn assistant_content_from_decision(

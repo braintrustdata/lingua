@@ -22,7 +22,7 @@ wasm-opt = false
 [features]
 default = ["openai", "anthropic", "google"]
 openai = []
-typesafe = ["openai"]
+typesafe = []
 anthropic = []
 google = []
 bedrock = ["dep:aws-sdk-bedrockruntime"]

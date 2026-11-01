@@ -2,76 +2,36 @@
 Conversion between universal decision types and TypeSafe System One payloads.
 
 Text input becomes a string `state`. A conversation becomes
-`{"messages": [...]}`, with each message in Lingua's universal JSON form (minus
-an unset assistant `id`), since decision models read the state as text. Questions are keyed by name, or by index
-when unnamed, so answers can be returned in question order with their typed
-choice values.
+`{"messages": [...]}`, with each message in Lingua's universal JSON form, since
+decision models read the state as text.
+Questions are keyed by name, or by index when unnamed. System One answers carry
+only those keys and choice names, so converting a response takes the request's
+questions to restore question order and typed choice values.
 */
 
 use super::request::{SystemOneRequest, TypeSafeEntry, TypeSafeJson, TypeSafeQuestion};
 use super::response::{SystemOneResponse, TypeSafeAnswer};
 use crate::error::ConvertError;
 use crate::serde_json;
+use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart, UserContent,
     UserContentPart,
 };
 use crate::universal::{
     DecisionAnswer, DecisionChoice, DecisionChoiceProbability, DecisionInput,
-    DecisionLevelProbability, DecisionQuestionKind, DecisionResult, DecisionScoreLevel,
-    DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse, UniversalUsage,
+    DecisionLevelProbability, DecisionQuestion, DecisionQuestionKind, DecisionResult,
+    DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
+    UniversalUsage,
 };
 use serde::Serialize;
+use std::borrow::Cow;
 
 const TARGET: &str = "TypeSafe System One";
 
-/// What is needed to map a System One response back to the request it answers.
-#[derive(Debug, Clone, PartialEq)]
-pub struct SystemOneDecisionContext {
-    questions: Vec<QuestionContext>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-struct QuestionContext {
-    key: String,
-    name: Option<String>,
-    kind: QuestionKind,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-enum QuestionKind {
-    Predicate,
-    Choice(Vec<(String, DecisionValue)>),
-    Score(Vec<String>),
-}
-
 #[derive(Serialize)]
 struct MessagesState<'a> {
-    messages: Vec<StateMessage<'a>>,
-}
-
-/// A universal message as written into System One state: the universal JSON form,
-/// without an unset assistant `id`.
-#[derive(Serialize)]
-#[serde(tag = "role", rename_all = "lowercase")]
-enum StateMessage<'a> {
-    System {
-        content: &'a UserContent,
-    },
-    Developer {
-        content: &'a UserContent,
-    },
-    User {
-        content: &'a UserContent,
-    },
-    Assistant {
-        content: &'a AssistantContent,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        id: Option<&'a str>,
-    },
-    Tool {
-        content: &'a [ToolContentPart],
-    },
+    messages: &'a [Message],
 }
 
 fn unsupported(from: impl Into<String>) -> ConvertError {
@@ -93,91 +53,85 @@ fn invalid(reason: impl Into<String>) -> ConvertError {
     }
 }
 
-/// Convert a universal decision request to a TypeSafe System One request.
-pub fn universal_to_system_one(
-    request: UniversalDecisionRequest,
-) -> Result<(SystemOneRequest, SystemOneDecisionContext), ConvertError> {
-    if request.prompt_cache_key.is_some() {
-        return Err(unsupported("Lingua decision prompt_cache_key"));
-    }
-    let model = request.model.ok_or_else(|| missing("model"))?;
-    let state = match request.input {
-        DecisionInput::Text(text) => TypeSafeEntry::Text(text),
-        DecisionInput::Messages(messages) => {
-            let messages = messages
-                .iter()
-                .enumerate()
-                .map(|(index, message)| state_message(message, index))
-                .collect::<Result<_, _>>()?;
-            TypeSafeEntry::Json(
-                TypeSafeJson::from_serialize(&MessagesState { messages }).map_err(|error| {
-                    ConvertError::JsonSerializationFailed {
-                        field: "state".into(),
-                        error: error.to_string(),
-                    }
-                })?,
-            )
-        }
-    };
+impl TryFromLLM<UniversalDecisionRequest> for SystemOneRequest {
+    type Error = ConvertError;
 
-    let mut questions = Vec::with_capacity(request.questions.len());
-    let mut contexts: Vec<QuestionContext> = Vec::with_capacity(request.questions.len());
-    for (index, question) in request.questions.into_iter().enumerate() {
-        let key = question.name.clone().unwrap_or_else(|| index.to_string());
-        if contexts.iter().any(|context| context.key == key) {
-            return Err(invalid(format!(
-                "question name \"{key}\" is not unique; TypeSafe identifies answers by question name"
-            )));
+    fn try_from(request: UniversalDecisionRequest) -> Result<Self, ConvertError> {
+        if request.prompt_cache_key.is_some() {
+            return Err(unsupported("Lingua decision prompt_cache_key"));
         }
-        let instructions = Some(convert_instructions(question.instructions)?);
-        let (typesafe_question, kind) = match question.kind {
-            DecisionQuestionKind::Predicate => (
-                TypeSafeQuestion::Noul {
-                    instructions,
-                    criteria: None,
-                },
-                QuestionKind::Predicate,
-            ),
-            DecisionQuestionKind::Choice { choices } => {
-                let (criteria, values) = convert_choices(choices)?;
-                (
-                    TypeSafeQuestion::Choice {
-                        instructions,
-                        criteria,
-                    },
-                    QuestionKind::Choice(values),
-                )
-            }
-            DecisionQuestionKind::Score { levels } => {
-                let labels = levels.iter().map(|level| level.label.clone()).collect();
-                (
-                    TypeSafeQuestion::Score {
-                        instructions,
-                        criteria: levels.into_iter().map(score_criterion).collect(),
-                    },
-                    QuestionKind::Score(labels),
+        let model = request.model.ok_or_else(|| missing("model"))?;
+        let state = match request.input {
+            DecisionInput::Text(text) => TypeSafeEntry::Text(text),
+            DecisionInput::Messages(messages) => {
+                for (index, message) in messages.iter().enumerate() {
+                    validate_message(message, index)?;
+                }
+                TypeSafeEntry::Json(
+                    TypeSafeJson::from_serialize(&MessagesState {
+                        messages: &messages,
+                    })
+                    .map_err(|error| {
+                        ConvertError::JsonSerializationFailed {
+                            field: "state".into(),
+                            error: error.to_string(),
+                        }
+                    })?,
                 )
             }
         };
-        questions.push((key.clone(), typesafe_question));
-        contexts.push(QuestionContext {
-            key,
-            name: question.name,
-            kind,
-        });
-    }
 
-    Ok((
-        SystemOneRequest {
+        let mut questions: Vec<(String, TypeSafeQuestion)> =
+            Vec::with_capacity(request.questions.len());
+        for (index, question) in request.questions.into_iter().enumerate() {
+            let key = question.name.unwrap_or_else(|| index.to_string());
+            if questions.iter().any(|(existing, _)| *existing == key) {
+                return Err(invalid(format!(
+                    "question name \"{key}\" is not unique; TypeSafe identifies answers by question name"
+                )));
+            }
+            let instructions = Some(convert_instructions(question.instructions)?);
+            let question = match question.kind {
+                DecisionQuestionKind::Predicate => TypeSafeQuestion::Noul {
+                    instructions,
+                    criteria: None,
+                },
+                DecisionQuestionKind::Choice { choices } => TypeSafeQuestion::Choice {
+                    instructions,
+                    criteria: convert_choices(choices)?,
+                },
+                DecisionQuestionKind::Score { levels } => TypeSafeQuestion::Score {
+                    instructions,
+                    criteria: levels.into_iter().map(score_criterion).collect(),
+                },
+            };
+            questions.push((key, question));
+        }
+
+        Ok(SystemOneRequest {
             model,
             state,
             questions,
             assets: None,
-        },
-        SystemOneDecisionContext {
-            questions: contexts,
-        },
-    ))
+        })
+    }
+}
+
+/// The key System One uses for the question at `index`.
+fn question_key(question: &DecisionQuestion, index: usize) -> Cow<'_, str> {
+    match &question.name {
+        Some(name) => Cow::Borrowed(name),
+        None => Cow::Owned(index.to_string()),
+    }
+}
+
+/// The System One choice name for `value`.
+fn choice_key(value: &DecisionValue) -> &str {
+    match value {
+        DecisionValue::String(value) => value,
+        DecisionValue::Bool(true) => "true",
+        DecisionValue::Bool(false) => "false",
+    }
 }
 
 fn validate_text(text: &TextContentPart, location: &str) -> Result<(), ConvertError> {
@@ -213,30 +167,16 @@ fn validate_user_content(content: &UserContent, location: &str) -> Result<(), Co
     Ok(())
 }
 
-fn state_message(message: &Message, index: usize) -> Result<StateMessage<'_>, ConvertError> {
+fn validate_message(message: &Message, index: usize) -> Result<(), ConvertError> {
     let location = format!("Lingua message {index}");
     match message {
-        Message::System { content } => {
-            validate_user_content(content, &location)?;
-            Ok(StateMessage::System { content })
-        }
-        Message::Developer { content } => {
-            validate_user_content(content, &location)?;
-            Ok(StateMessage::Developer { content })
-        }
-        Message::User { content } => {
-            validate_user_content(content, &location)?;
-            Ok(StateMessage::User { content })
-        }
-        Message::Assistant { content, id } => {
-            if let AssistantContent::Array(parts) = content {
-                validate_assistant_parts(parts, &location)?;
-            }
-            Ok(StateMessage::Assistant {
-                content,
-                id: id.as_deref(),
-            })
-        }
+        Message::System { content }
+        | Message::Developer { content }
+        | Message::User { content } => validate_user_content(content, &location),
+        Message::Assistant { content, .. } => match content {
+            AssistantContent::Array(parts) => validate_assistant_parts(parts, &location),
+            AssistantContent::String(_) => Ok(()),
+        },
         Message::Tool { content } => {
             for part in content {
                 match part {
@@ -252,7 +192,7 @@ fn state_message(message: &Message, index: usize) -> Result<StateMessage<'_>, Co
                     }
                 }
             }
-            Ok(StateMessage::Tool { content })
+            Ok(())
         }
         Message::AdditionalTools { .. } => Err(unsupported(format!("{location} additional_tools"))),
     }
@@ -326,27 +266,23 @@ fn convert_instructions(instructions: UserContent) -> Result<TypeSafeEntry, Conv
     }
 }
 
-type ChoiceCriteria = Vec<(String, Option<TypeSafeEntry>)>;
-
 fn convert_choices(
     choices: Vec<DecisionChoice>,
-) -> Result<(ChoiceCriteria, Vec<(String, DecisionValue)>), ConvertError> {
-    let mut criteria = Vec::with_capacity(choices.len());
-    let mut values: Vec<(String, DecisionValue)> = Vec::with_capacity(choices.len());
+) -> Result<Vec<(String, Option<TypeSafeEntry>)>, ConvertError> {
+    let mut criteria: Vec<(String, Option<TypeSafeEntry>)> = Vec::with_capacity(choices.len());
     for choice in choices {
-        let key = match &choice.value {
-            DecisionValue::String(value) => value.clone(),
+        let key = match choice.value {
+            DecisionValue::String(value) => value,
             DecisionValue::Bool(value) => value.to_string(),
         };
-        if values.iter().any(|(existing, _)| *existing == key) {
+        if criteria.iter().any(|(existing, _)| *existing == key) {
             return Err(invalid(format!(
                 "choice \"{key}\" appears more than once; TypeSafe choices are named by text"
             )));
         }
-        criteria.push((key.clone(), choice.description.map(TypeSafeEntry::Text)));
-        values.push((key, choice.value));
+        criteria.push((key, choice.description.map(TypeSafeEntry::Text)));
     }
-    Ok((criteria, values))
+    Ok(criteria)
 }
 
 fn score_criterion(level: DecisionScoreLevel) -> TypeSafeEntry {
@@ -361,23 +297,24 @@ fn score_criterion(level: DecisionScoreLevel) -> TypeSafeEntry {
     }
 }
 
-/// Convert a TypeSafe System One response to universal answers for the request
-/// described by `context`.
+/// Convert a TypeSafe System One response to universal answers, in the order of
+/// `questions`, the questions of the request it answers.
 pub fn system_one_response_to_universal(
     response: SystemOneResponse,
-    context: &SystemOneDecisionContext,
+    questions: &[DecisionQuestion],
 ) -> Result<UniversalDecisionResponse, ConvertError> {
-    let mut answers = Vec::with_capacity(context.questions.len());
-    for question in &context.questions {
+    let mut answers = Vec::with_capacity(questions.len());
+    for (index, question) in questions.iter().enumerate() {
+        let key = question_key(question, index);
         let answer = response
             .answers
             .iter()
-            .find(|(key, _)| *key == question.key)
+            .find(|(candidate, _)| *candidate == key)
             .map(|(_, answer)| answer)
-            .ok_or_else(|| missing(format!("answers.{}", question.key)))?;
+            .ok_or_else(|| missing(format!("answers.{key}")))?;
         answers.push(DecisionAnswer {
             name: question.name.clone(),
-            result: convert_answer(question, answer)?,
+            result: convert_answer(&question.kind, &key, answer)?,
         });
     }
     let usage = response.usage;
@@ -394,47 +331,51 @@ pub fn system_one_response_to_universal(
 }
 
 fn convert_answer(
-    question: &QuestionContext,
+    kind: &DecisionQuestionKind,
+    key: &str,
     answer: &TypeSafeAnswer,
 ) -> Result<DecisionResult, ConvertError> {
-    match (&question.kind, answer) {
-        (QuestionKind::Predicate, TypeSafeAnswer::Noul { noul }) => {
+    match (kind, answer) {
+        (DecisionQuestionKind::Predicate, TypeSafeAnswer::Noul { noul }) => {
             Ok(DecisionResult::Predicate { probability: *noul })
         }
         (
-            QuestionKind::Choice(values),
+            DecisionQuestionKind::Choice { choices },
             TypeSafeAnswer::Choice {
                 choice,
                 confidence,
                 probabilities,
             },
         ) => {
-            let selected = values
+            let selected = choices
                 .iter()
-                .find(|(key, _)| key == choice)
-                .map(|(_, value)| value.clone())
+                .find(|candidate| choice_key(&candidate.value) == choice)
+                .map(|candidate| candidate.value.clone())
                 .ok_or_else(|| {
                     invalid(format!(
-                        "TypeSafe returned unknown choice \"{choice}\" for question \"{}\"",
-                        question.key
+                        "TypeSafe returned unknown choice \"{choice}\" for question \"{key}\""
                     ))
                 })?;
             Ok(DecisionResult::Choice {
                 choice: selected,
                 confidence: Some(*confidence),
-                probabilities: values
+                probabilities: choices
                     .iter()
-                    .map(|(key, value)| {
+                    .map(|candidate| {
                         Ok(DecisionChoiceProbability {
-                            value: value.clone(),
-                            probability: probability_for(probabilities, key, &question.key)?,
+                            value: candidate.value.clone(),
+                            probability: probability_for(
+                                probabilities,
+                                choice_key(&candidate.value),
+                                key,
+                            )?,
                         })
                     })
                     .collect::<Result<_, ConvertError>>()?,
             })
         }
         (
-            QuestionKind::Score(labels),
+            DecisionQuestionKind::Score { levels },
             TypeSafeAnswer::Score {
                 score,
                 confidence,
@@ -445,25 +386,20 @@ fn convert_answer(
             score: *score,
             confidence: Some(*confidence),
             probabilities: (0u32..)
-                .zip(labels)
-                .map(|(level, label)| {
+                .zip(levels)
+                .map(|(level, score_level)| {
                     Ok(DecisionLevelProbability {
                         level,
-                        label: Some(label.clone()),
-                        probability: probability_for(
-                            probabilities,
-                            &level.to_string(),
-                            &question.key,
-                        )?,
+                        label: Some(score_level.label.clone()),
+                        probability: probability_for(probabilities, &level.to_string(), key)?,
                     })
                 })
                 .collect::<Result<_, ConvertError>>()?,
         }),
         (_, answer) => Err(invalid(format!(
-            "TypeSafe returned a {} answer for {} question \"{}\"",
+            "TypeSafe returned a {} answer for {} question \"{key}\"",
             answer_type_name(answer),
-            question_kind_name(&question.kind),
-            question.key
+            question_kind_name(kind)
         ))),
     }
 }
@@ -489,10 +425,10 @@ fn answer_type_name(answer: &TypeSafeAnswer) -> &'static str {
     }
 }
 
-fn question_kind_name(kind: &QuestionKind) -> &'static str {
+fn question_kind_name(kind: &DecisionQuestionKind) -> &'static str {
     match kind {
-        QuestionKind::Predicate => "predicate",
-        QuestionKind::Choice(_) => "choice",
-        QuestionKind::Score(_) => "score",
+        DecisionQuestionKind::Predicate => "predicate",
+        DecisionQuestionKind::Choice { .. } => "choice",
+        DecisionQuestionKind::Score { .. } => "score",
     }
 }

@@ -1117,6 +1117,43 @@ fn openai_file_payload_from_data(
     )))
 }
 
+/// Universal image data and media type for an OpenAI image URL. A base64 data URL
+/// splits into its data and media type; any other URL is kept without one.
+pub(crate) fn universal_image_from_openai_url(image_url: String) -> (String, Option<String>) {
+    match parse_base64_data_url(&image_url) {
+        Some(block) => (block.data, Some(block.media_type)),
+        None => (image_url, None),
+    }
+}
+
+/// The OpenAI image URL for universal image data. URLs are kept as is; raw base64
+/// data becomes a data URL with `media_type`, or JPEG when it is unset.
+pub(crate) fn openai_image_url(image: String, media_type: Option<&str>) -> String {
+    if image.starts_with("data:") || image.starts_with("http://") || image.starts_with("https://") {
+        return image;
+    }
+    format!("data:{};base64,{image}", media_type.unwrap_or("image/jpeg"))
+}
+
+/// Provider options that keep an OpenAI image `detail` on a universal image.
+pub(crate) fn image_detail_options<T: Serialize>(
+    detail: Option<&T>,
+) -> Result<Option<ProviderOptions>, ConvertError> {
+    detail
+        .map(|detail| {
+            let detail = serde_json::to_value(detail).map_err(|error| {
+                ConvertError::JsonSerializationFailed {
+                    field: "detail".to_string(),
+                    error: error.to_string(),
+                }
+            })?;
+            let mut options = serde_json::Map::new();
+            options.insert("detail".to_string(), detail);
+            Ok(ProviderOptions { options })
+        })
+        .transpose()
+}
+
 fn universal_file_payload_from_openai(
     file_data: Option<String>,
     file_url: Option<String>,
@@ -1922,36 +1959,12 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                             field: "image_url".to_string(),
                         })?;
 
-                // Preserve detail in provider_options
-                let provider_options = if let Some(detail) = &value.detail {
-                    let mut options = serde_json::Map::new();
-                    options.insert(
-                        "detail".to_string(),
-                        serde_json::to_value(detail).map_err(|e| {
-                            ConvertError::JsonSerializationFailed {
-                                field: "detail".to_string(),
-                                error: e.to_string(),
-                            }
-                        })?,
-                    );
-                    Some(crate::universal::message::ProviderOptions { options })
-                } else {
-                    None
-                };
-
-                // Parse data URLs to extract raw base64, keep HTTP URLs as-is
-                let (image_data, media_type) =
-                    if let Some(block) = parse_base64_data_url(&image_url) {
-                        // Data URL: extract raw base64 and media type
-                        (block.data, Some(block.media_type))
-                    } else {
-                        // HTTP URL or other: keep as-is with default media type
-                        (image_url.clone(), Some("image/jpeg".to_string()))
-                    };
+                let provider_options = image_detail_options(value.detail.as_ref())?;
+                let (image_data, media_type) = universal_image_from_openai_url(image_url);
 
                 UserContentPart::Image {
                     image: serde_json::Value::String(image_data),
-                    media_type,
+                    media_type: media_type.or_else(|| Some("image/jpeg".to_string())),
                     provider_options,
                 }
             }
@@ -2076,17 +2089,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     }
                 };
 
-                // If we have raw base64 data (not a URL) and media_type, create a proper data URL
-                let image_url = if !image_str.starts_with("data:")
-                    && !image_str.starts_with("http://")
-                    && !image_str.starts_with("https://")
-                {
-                    // Assume raw base64 data - create data URL with media_type
-                    let mt = media_type.as_deref().unwrap_or("image/jpeg");
-                    format!("data:{};base64,{}", mt, image_str)
-                } else {
-                    image_str
-                };
+                let image_url = openai_image_url(image_str, media_type.as_deref());
 
                 // Extract detail from provider_options if present
                 let detail = provider_options
@@ -4981,15 +4984,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 }
 
                 if let Some(image_url) = part.image_url {
-                    // Parse data URLs to extract raw base64, keep HTTP URLs as-is
-                    let (image_data, media_type) =
-                        if let Some(block) = parse_base64_data_url(&image_url.url) {
-                            // Data URL: extract raw base64 and media type
-                            (block.data, Some(block.media_type))
-                        } else {
-                            // HTTP URL or other: keep as-is, no media type
-                            (image_url.url.clone(), None)
-                        };
+                    let (image_data, media_type) = universal_image_from_openai_url(image_url.url);
 
                     Ok(UserContentPart::Image {
                         image: serde_json::Value::String(image_data),
@@ -5085,12 +5080,7 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                 }
 
                 if let Some(image_url) = part.base.image_url {
-                    let (image_data, media_type) =
-                        if let Some(block) = parse_base64_data_url(&image_url.url) {
-                            (block.data, Some(block.media_type))
-                        } else {
-                            (image_url.url.clone(), None)
-                        };
+                    let (image_data, media_type) = universal_image_from_openai_url(image_url.url);
 
                     Ok(UserContentPart::Image {
                         image: serde_json::Value::String(image_data),
@@ -5439,17 +5429,7 @@ fn convert_user_content_part_to_chat_completion_part(
                 }
             };
 
-            // If we have raw base64 data (not a URL) and media_type, create a proper data URL
-            let url = if !image_str.starts_with("data:")
-                && !image_str.starts_with("http://")
-                && !image_str.starts_with("https://")
-            {
-                // Assume raw base64 data - create data URL with media_type
-                let mt = media_type.as_deref().unwrap_or("image/jpeg");
-                format!("data:{};base64,{}", mt, image_str)
-            } else {
-                image_str
-            };
+            let url = openai_image_url(image_str, media_type.as_deref());
 
             Ok(openai::ChatCompletionRequestMessageContentPart {
                 text: None,

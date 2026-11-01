@@ -40,6 +40,15 @@ fn auth(key: &str) -> AuthConfig {
 }
 
 fn router(server: &MockServer) -> Router {
+    router_with(Url::parse(&server.uri()).unwrap(), |_| {})
+}
+
+fn router_with(base: Url, configure: impl FnOnce(&mut TypeSafeConfig)) -> Router {
+    let mut typesafe = TypeSafeConfig {
+        endpoint: base.clone(),
+        ..TypeSafeConfig::default()
+    };
+    configure(&mut typesafe);
     let mut catalog = ModelCatalog::empty();
     for model in ["jev-latest", "braintrust/jev-latest"] {
         catalog.insert(
@@ -70,7 +79,6 @@ fn router(server: &MockServer) -> Router {
             "openai",
         ),
     );
-    let base = Url::parse(&server.uri()).unwrap();
     RouterBuilder::new()
         .with_catalog(Arc::new(catalog))
         .with_retry_policy(RetryPolicy {
@@ -79,11 +87,7 @@ fn router(server: &MockServer) -> Router {
         })
         .add_provider(
             "typesafe",
-            TypeSafeProvider::new(TypeSafeConfig {
-                endpoint: base.clone(),
-                timeout: None,
-            })
-            .unwrap(),
+            TypeSafeProvider::new(typesafe).unwrap(),
             auth("typesafe-key"),
             vec![ProviderFormat::TypeSafe],
         )
@@ -192,6 +196,80 @@ async fn routes_typesafe_models_through_system_one() {
                 "total_tokens": 31
             }
         })
+    );
+}
+
+#[tokio::test]
+async fn sends_only_enabled_danger_zone_headers() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/systemone"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "model": "jev-1.14.0",
+            "answers": {"score": {"type": "choice", "choice": "A", "confidence": 1.0,
+                "probabilities": {"A": 1.0, "B": 0.0}}},
+            "usage": {"input_tokens": 30, "output_tokens": 1}
+        })))
+        .expect(2)
+        .mount(&server)
+        .await;
+    let base = Url::parse(&server.uri()).unwrap();
+    decide(&router(&server), "jev-latest", scorer_request("jev-latest"))
+        .await
+        .unwrap();
+    decide(
+        &router_with(base, |config| config.danger_zone_long_context = true),
+        "jev-latest",
+        scorer_request("jev-latest"),
+    )
+    .await
+    .unwrap();
+
+    let requests = server.received_requests().await.unwrap();
+    let flags = |index: usize| {
+        [
+            "typesafe-danger-zone-images",
+            "typesafe-danger-zone-long-context",
+        ]
+        .map(|name| {
+            requests[index]
+                .headers
+                .get(&name.parse().unwrap())
+                .map(|values| values.as_str().to_string())
+        })
+    };
+    assert_eq!(flags(0), [None, None]);
+    assert_eq!(flags(1), [None, Some("true".to_string())]);
+}
+
+#[tokio::test]
+async fn reports_typesafe_error_bodies_that_cannot_be_read() {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let base = Url::parse(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+    tokio::spawn(async move {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        let (mut socket, _) = listener.accept().await.unwrap();
+        let mut request = vec![0; 64 * 1024];
+        let _ = socket.read(&mut request).await.unwrap();
+        socket
+            .write_all(
+                b"HTTP/1.1 500 Internal Server Error\r\ncontent-length: 100\r\n\r\n{\"detail\"",
+            )
+            .await
+            .unwrap();
+    });
+
+    let error = decide(
+        &router_with(base, |_| {}),
+        "jev-latest",
+        scorer_request("jev-latest"),
+    )
+    .await
+    .unwrap_err()
+    .to_string();
+    assert!(
+        error.contains("HTTP 500 Internal Server Error: failed to read response body"),
+        "{error}"
     );
 }
 

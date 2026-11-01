@@ -1,5 +1,4 @@
 pub mod adapters;
-#[cfg(feature = "openai")]
 pub mod decisions;
 pub mod dedup;
 pub mod import;
@@ -9,13 +8,13 @@ pub mod trajectory;
 pub mod transform;
 
 pub use adapters::{
-    adapter_for_format, adapters, collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64,
-    insert_opt_string, insert_opt_value, ProviderAdapter,
+    adapter_for_format, adapters, collect_extras, decision_adapter_for_format, insert_opt_bool,
+    insert_opt_f64, insert_opt_i64, insert_opt_string, insert_opt_value, DecisionAdapter,
+    ProviderAdapter,
 };
-#[cfg(feature = "openai")]
 pub use decisions::{
-    parse_decision_request, parse_decision_response, transform_decision_request,
-    transform_decision_response, DecisionRequestTransform, DecisionResponseContext,
+    transform_decision_request, transform_decision_response, DecisionRequestTransform,
+    DecisionResponseContext,
 };
 pub use dedup::{deduplicate_messages, message_dedup_hash};
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};

@@ -1,6 +1,6 @@
 use super::request::{SystemOneRequest, TypeSafeQuestion};
 use super::response::SystemOneResponse;
-use super::{system_one_response_to_universal, universal_to_system_one, SystemOneDecisionContext};
+use super::system_one_response_to_universal;
 use crate::error::ConvertError;
 use crate::providers::openai::decisions_generated::{DecisionRequest, DecisionResponse};
 use crate::serde_json::{self, json, Value};
@@ -112,16 +112,16 @@ fn choice_criteria_keep_caller_order() {
     );
 }
 
-fn to_system_one(
-    request: Value,
-) -> Result<(SystemOneRequest, SystemOneDecisionContext), ConvertError> {
+fn to_universal(request: Value) -> Result<UniversalDecisionRequest, ConvertError> {
     let request: DecisionRequest =
         serde_json::from_value(request).expect("decision request parses");
-    <UniversalDecisionRequest as TryFromLLM<_>>::try_from(request).and_then(universal_to_system_one)
+    TryFromLLM::try_from(request)
 }
 
 fn convert_text(request: Value) -> Result<String, ConvertError> {
-    to_system_one(request).map(|(request, _)| serde_json::to_string(&request).unwrap())
+    to_universal(request)
+        .and_then(<SystemOneRequest as TryFromLLM<_>>::try_from)
+        .map(|request| serde_json::to_string(&request).unwrap())
 }
 
 fn convert(request: Value) -> Result<Value, ConvertError> {
@@ -154,13 +154,13 @@ fn converts_scorer_conversation_to_system_one() {
             "state": {"messages": [
                 {"role": "system", "content": "Grade the answer."},
                 {"role": "user", "content": [{"type": "text", "text": "2 + 2 = 4"}]},
-                {"role": "assistant", "content": "Let me check."},
+                {"role": "assistant", "content": "Let me check.", "id": null},
                 {"role": "assistant", "content": [{
                     "type": "tool_call",
                     "tool_call_id": "c1",
                     "tool_name": "lookup",
                     "arguments": {"type": "valid", "value": {"q": "2+2"}}
-                }]},
+                }], "id": null},
                 {"role": "tool", "content": [{
                     "type": "tool_result",
                     "tool_call_id": "c1",
@@ -190,7 +190,7 @@ fn renders_messages_with_role_first() {
     .unwrap();
     assert_eq!(
         converted,
-        r#"{"model":"jev-latest","state":{"messages":[{"role":"user","content":"x = 1.50"},{"role":"assistant","content":"y"}]},"questions":{"q":{"type":"noul","instructions":"?"}}}"#
+        r#"{"model":"jev-latest","state":{"messages":[{"role":"user","content":"x = 1.50"},{"role":"assistant","content":"y","id":null}]},"questions":{"q":{"type":"noul","instructions":"?"}}}"#
     );
 }
 
@@ -328,9 +328,9 @@ fn rejects_requests_system_one_cannot_represent() {
 }
 
 fn round_trip(request: Value, system_one_response: Value) -> Result<Value, ConvertError> {
-    let (_, context) = to_system_one(request).unwrap();
+    let request = to_universal(request).unwrap();
     let response: SystemOneResponse = serde_json::from_value(system_one_response).unwrap();
-    system_one_response_to_universal(response, &context)
+    system_one_response_to_universal(response, &request.questions)
         .and_then(<DecisionResponse as TryFromLLM<_>>::try_from)
         .map(|decision| serde_json::to_value(decision).unwrap())
 }

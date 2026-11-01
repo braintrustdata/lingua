@@ -136,6 +136,7 @@ pub fn create_provider(
         "typesafe" => Ok(Arc::new(TypeSafeProvider::from_config(
             endpoint,
             timeout,
+            metadata,
             client_settings,
         )?)),
         kind if is_openai_compatible(kind) => Ok(Arc::new(
@@ -713,7 +714,8 @@ impl Router {
         } else {
             rewrite_body_model_if_required(body, ProviderFormat::Decisions, &route.spec.model)
         };
-        let transformed = lingua::transform_decision_request(body, route.format)?;
+        let transformed =
+            lingua::transform_decision_request(body, ProviderFormat::Decisions, route.format)?;
         Ok((
             PreparedDecisionRequest {
                 provider: route.provider.clone(),
