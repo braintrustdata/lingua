@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use braintrust_llm_router::{
     serde_json::{self, json, Value},
-    AuthConfig, ClientHeaders, Error, ModelCatalog, ModelFlavor, ModelSpec, OpenAIConfig,
-    OpenAIProvider, ProviderFormat, RetryPolicy, Router, RouterBuilder, TypeSafeConfig,
-    TypeSafeProvider,
+    AuthConfig, ClientHeaders, ClientSettings, Error, ModelCatalog, ModelFlavor, ModelSpec,
+    OpenAIConfig, OpenAIProvider, ProviderFormat, RetryPolicy, Router, RouterBuilder,
+    TypeSafeConfig, TypeSafeProvider,
 };
 use bytes::Bytes;
 use reqwest::Url;
@@ -44,6 +44,10 @@ fn router(server: &MockServer) -> Router {
 }
 
 fn router_with(base: Url, configure: impl FnOnce(&mut TypeSafeConfig)) -> Router {
+    let client_settings = ClientSettings {
+        pool_max_idle_per_host: 0,
+        ..ClientSettings::default()
+    };
     let mut typesafe = TypeSafeConfig {
         endpoint: base.clone(),
         ..TypeSafeConfig::default()
@@ -87,16 +91,19 @@ fn router_with(base: Url, configure: impl FnOnce(&mut TypeSafeConfig)) -> Router
         })
         .add_provider(
             "typesafe",
-            TypeSafeProvider::new(typesafe).unwrap(),
+            TypeSafeProvider::new_with_client_settings(typesafe, client_settings.clone()).unwrap(),
             auth("typesafe-key"),
             vec![ProviderFormat::TypeSafe],
         )
         .add_provider(
             "openai",
-            OpenAIProvider::new(OpenAIConfig {
-                endpoint: base.join("v1").unwrap(),
-                ..OpenAIConfig::default()
-            })
+            OpenAIProvider::new_with_client_settings(
+                OpenAIConfig {
+                    endpoint: base.join("v1").unwrap(),
+                    ..OpenAIConfig::default()
+                },
+                client_settings,
+            )
             .unwrap(),
             auth("openai-key"),
             vec![ProviderFormat::ChatCompletions],
