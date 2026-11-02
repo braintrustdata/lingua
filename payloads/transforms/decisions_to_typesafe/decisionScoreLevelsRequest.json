@@ -3,8 +3,8 @@
   "answers": {
     "faithfulness": {
       "type": "score",
-      "score": 1.47,
-      "confidence": 0.3,
+      "score": 1.51,
+      "confidence": 0.26,
       "legend": {
         "0": {
           "description": "States things the source does not.",
@@ -21,13 +21,13 @@
       },
       "probabilities": {
         "0": 0,
-        "1": 0.53,
-        "2": 0.47
+        "1": 0.49,
+        "2": 0.51
       }
     }
   },
   "usage": {
-    "input_tokens": 471,
+    "input_tokens": 465,
     "output_tokens": 20
   }
 }

@@ -8,16 +8,16 @@
     "grade": {
       "type": "choice",
       "choice": "A",
-      "confidence": 0.96,
+      "confidence": 0.97,
       "probabilities": {
-        "A": 0.97,
+        "A": 0.98,
         "B": 0.01,
-        "C": 0.02
+        "C": 0.01
       }
     }
   },
   "usage": {
-    "input_tokens": 635,
+    "input_tokens": 617,
     "output_tokens": 57
   }
 }

@@ -153,13 +153,13 @@ fn converts_scorer_conversation_to_system_one() {
             "state": {"messages": [
                 {"role": "system", "content": "Grade the answer."},
                 {"role": "user", "content": [{"type": "text", "text": "2 + 2 = 4"}]},
-                {"role": "assistant", "content": "Let me check.", "id": null},
+                {"role": "assistant", "content": "Let me check."},
                 {"role": "assistant", "content": [{
                     "type": "tool_call",
                     "tool_call_id": "c1",
                     "tool_name": "lookup",
                     "arguments": {"type": "valid", "value": {"q": "2+2"}}
-                }], "id": null},
+                }]},
                 {"role": "tool", "content": [{
                     "type": "tool_result",
                     "tool_call_id": "c1",
@@ -189,7 +189,7 @@ fn renders_messages_with_role_first() {
     .unwrap();
     assert_eq!(
         converted,
-        r#"{"model":"jev-latest","questions":{"q":{"type":"noul","instructions":"?"}},"state":{"messages":[{"role":"user","content":"x = 1.50"},{"role":"assistant","content":"y","id":null}]}}"#
+        r#"{"model":"jev-latest","questions":{"q":{"type":"noul","instructions":"?"}},"state":{"messages":[{"role":"user","content":"x = 1.50"},{"role":"assistant","content":"y"}]}}"#
     );
 }
 
