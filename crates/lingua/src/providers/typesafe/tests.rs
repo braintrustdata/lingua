@@ -455,7 +455,7 @@ fn body_conversion_rejects_header_only_typesafe_options() {
 #[test]
 fn invalid_tool_arguments_remain_plain_text() {
     let converted = convert(json!({
-        "model":"jev-latest","input":[{"type":"function_call","call_id":"c1","id":"fc_1","status":"incomplete","name":"lookup","arguments":"{broken"}],
+        "model":"jev-latest","input":[{"type":"function_call","call_id":"c1","id":"fc_1","status":"completed","name":"lookup","arguments":"{broken"}],
         "questions":[]
     })).unwrap();
     assert_eq!(
@@ -465,4 +465,20 @@ fn invalid_tool_arguments_remain_plain_text() {
             "questions":{}
         })
     );
+}
+
+#[test]
+fn rejects_unfinished_tool_calls() {
+    for status in ["in_progress", "incomplete"] {
+        let error = convert(json!({
+            "model": "jev-latest",
+            "input": [{"type": "function_call", "call_id": "c1", "name": "lookup", "arguments": "{}", "status": status}],
+            "questions": []
+        }))
+        .unwrap_err();
+        assert!(
+            matches!(&error, ConvertError::UnsupportedMapping { from, .. } if from.contains(status)),
+            "{error}"
+        );
+    }
 }

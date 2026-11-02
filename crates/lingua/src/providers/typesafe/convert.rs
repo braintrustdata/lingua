@@ -228,8 +228,11 @@ fn state_message(message: &Message, index: usize) -> Result<StateMessage<'_>, Co
                     validate_text(text, &location)?;
                     Ok(StatePart::Text { text: &text.text })
                 }
-                AssistantContentPart::ToolCall { tool_call_id, tool_name, arguments,
+                AssistantContentPart::ToolCall { tool_call_id, tool_name, arguments, status,
                     caller, encrypted_content, provider_options, provider_executed, .. } => {
+                    if let Some(status) = status.as_deref().filter(|status| *status != "completed") {
+                        return Err(unsupported(format!("{location} tool call status '{status}'")));
+                    }
                     if caller.is_some() || encrypted_content.is_some()
                         || provider_options.is_some() || provider_executed.is_some() {
                         return Err(unsupported(format!("{location} tool call caller, encrypted_content, provider_options, or provider_executed")));

@@ -216,7 +216,10 @@ fn message_from_item(
                     tool_name: item.name.ok_or_else(|| missing(field("name")))?,
                     arguments,
                     status: match item.status {
-                        None | Some(decisions::FunctionCallStatusParam::Completed) => None,
+                        None => None,
+                        Some(decisions::FunctionCallStatusParam::Completed) => {
+                            Some("completed".into())
+                        }
                         Some(decisions::FunctionCallStatusParam::InProgress) => {
                             Some("in_progress".into())
                         }
