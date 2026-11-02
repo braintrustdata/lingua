@@ -51,9 +51,9 @@ js-sys = "0.3"
 serde-wasm-bindgen = "0.6"
 
 # Native HTTP client (non-WASM only)
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip"] }
-reqwest-middleware = { version = "0.4" }
-reqwest-retry = { version = "0.7" }
+reqwest = { version = "0.13.5", default-features = false, features = ["form", "rustls", "gzip"] }
+reqwest-middleware = { version = "0.5" }
+reqwest-retry = { version = "0.9" }
 
 # Python
 pyo3 = { version = "0.24.1", features = ["extension-module"] }
