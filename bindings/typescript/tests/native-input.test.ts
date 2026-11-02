@@ -179,16 +179,14 @@ describe.each([
       },
     ]);
 
-    expect(messages).toEqual([
-      { role: "assistant", content: "Hello", id: null },
-    ]);
+    expect(messages).toEqual([{ role: "assistant", content: "Hello" }]);
     expect(reads).toBe(0);
   });
 
   test("imports supported output beside scalar-only input", () => {
     expect(
       importMessages([{ input: [1, null, [false]], output: "Hello" }])
-    ).toEqual([{ role: "assistant", content: "Hello", id: null }]);
+    ).toEqual([{ role: "assistant", content: "Hello" }]);
   });
 
   test("preserves metadata instructions when both payloads are unsupported", () => {
