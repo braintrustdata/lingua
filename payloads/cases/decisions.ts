@@ -15,6 +15,17 @@ const GRADER_SYSTEM_PROMPT =
 
 // Decision test cases - the shapes scorers send to decision models
 export const decisionCases: TestCaseCollection = {
+  decisionCacheOptionsRequest: {
+    ...NO_CHAT_PROVIDERS,
+    decisions: {
+      model: OPENAI_DECISIONS_MODEL,
+      input: "I was charged twice.",
+      questions: [{ type: "predicate", instructions: "Is this about billing?" }],
+      prompt_cache_options: { mode: "explicit", ttl: "30m" },
+      safety_identifier: "support-grader",
+    },
+    typesafe: null,
+  },
   decisionTextInputRequest: {
     ...NO_CHAT_PROVIDERS,
     decisions: {

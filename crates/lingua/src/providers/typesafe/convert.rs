@@ -58,7 +58,7 @@ impl TryFromLLM<UniversalDecisionRequest> for SystemOneRequest {
     type Error = ConvertError;
 
     fn try_from(request: UniversalDecisionRequest) -> Result<Self, ConvertError> {
-        if request.prompt_cache_key.is_some() {
+        if request.params.prompt_cache_key.is_some() {
             return Err(unsupported("Lingua decision prompt_cache_key"));
         }
         let model = request.model.ok_or_else(|| missing("model"))?;

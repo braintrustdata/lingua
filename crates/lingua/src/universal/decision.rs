@@ -6,8 +6,11 @@ question instead of generated text. Providers convert their decision payloads to
 and from these types.
 */
 
+use crate::capabilities::ProviderFormat;
+use crate::serde_json::{Map, Value};
 use crate::universal::{Message, UniversalUsage, UserContent};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use ts_rs::TS;
 
 /// A request to answer questions about an input.
@@ -21,10 +24,28 @@ pub struct UniversalDecisionRequest {
     pub input: DecisionInput,
     /// Questions to answer; answers come back in the same order.
     pub questions: Vec<DecisionQuestion>,
-    /// Stable cache-bucketing key for prompt caching.
+    #[serde(default, skip_serializing_if = "DecisionParams::is_empty")]
+    #[ts(as = "Option<_>", optional)]
+    pub params: DecisionParams,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct DecisionParams {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub prompt_cache_key: Option<String>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    #[ts(
+        type = r#"Partial<Record<import("./ProviderFormat").ProviderFormat, Record<string, unknown>>>"#
+    )]
+    pub extras: HashMap<ProviderFormat, Map<String, Value>>,
+}
+
+impl DecisionParams {
+    fn is_empty(&self) -> bool {
+        self.prompt_cache_key.is_none() && self.extras.is_empty()
+    }
 }
 
 /// The content a decision is about: text, or a conversation.

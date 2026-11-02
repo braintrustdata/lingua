@@ -23,16 +23,18 @@ const DANGER_ZONE_LONG_CONTEXT: HeaderName =
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct TypeSafeRequestParams {
-    danger_zone_images: Option<bool>,
-    danger_zone_long_context: Option<bool>,
+    #[serde(alias = "danger_zone_images")]
+    images: Option<bool>,
+    #[serde(alias = "danger_zone_long_context")]
+    long_context: Option<bool>,
 }
 
 impl TypeSafeRequestParams {
     pub(crate) fn client_headers<'a>(&self, headers: &'a ClientHeaders) -> Cow<'a, ClientHeaders> {
         let mut headers = Cow::Borrowed(headers);
         for (name, enabled) in [
-            (DANGER_ZONE_IMAGES, self.danger_zone_images),
-            (DANGER_ZONE_LONG_CONTEXT, self.danger_zone_long_context),
+            (DANGER_ZONE_IMAGES, self.images),
+            (DANGER_ZONE_LONG_CONTEXT, self.long_context),
         ] {
             if let Some(enabled) = enabled {
                 headers

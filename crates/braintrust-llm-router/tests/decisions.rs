@@ -115,7 +115,12 @@ async fn decide(
     request: Value,
 ) -> braintrust_llm_router::Result<Value> {
     let routes = router.resolve_provider_routes(model, ProviderFormat::Decisions, &[])?;
-    let (prepared, metadata) = router.create_decision_request(body(request), &routes[0], false)?;
+    let (prepared, metadata) = router.create_decision_request(
+        body(request),
+        &routes[0],
+        false,
+        ProviderFormat::Decisions,
+    )?;
     assert_eq!(metadata.detected_input_format, ProviderFormat::Decisions);
     let response = router
         .complete_decision(prepared, &ClientHeaders::default())
@@ -437,6 +442,7 @@ async fn rewrites_decision_body_model_unless_preserved() {
                 body(scorer_request("jev-latest")),
                 &routes[0],
                 preserve_body_model,
+                ProviderFormat::Decisions,
             )
             .unwrap();
         router

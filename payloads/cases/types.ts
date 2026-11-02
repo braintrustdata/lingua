@@ -167,6 +167,8 @@ export interface DecisionsRequest {
   input: string | DecisionsInputItem[];
   questions: DecisionsQuestion[];
   prompt_cache_key?: string | null;
+  prompt_cache_options?: { mode?: "implicit" | "explicit"; ttl?: "30m" };
+  safety_identifier?: string;
 }
 
 // TypeSafe System One API (POST /v1/systemone) payloads, following

@@ -225,6 +225,27 @@ pub struct PreparedDecisionRequest {
     typesafe_params: Option<TypeSafeRequestParams>,
 }
 
+impl PreparedDecisionRequest {
+    pub fn with_params(
+        mut self,
+        mut params: lingua::universal::decision::DecisionParams,
+    ) -> Result<Self> {
+        if self.format == ProviderFormat::TypeSafe {
+            self.typesafe_params = params
+                .extras
+                .remove(&ProviderFormat::TypeSafe)
+                .map(|extras| {
+                    lingua::serde_json::from_value(lingua::serde_json::Value::Object(extras))
+                })
+                .transpose()
+                .map_err(|error| {
+                    Error::InvalidRequest(format!("invalid TypeSafe parameters: {error}"))
+                })?;
+        }
+        Ok(self)
+    }
+}
+
 /// Request prepared by the router and ready for execution.
 pub struct PreparedRequest {
     inner: PreparedRequestInner,
@@ -705,6 +726,7 @@ impl Router {
         body: Bytes,
         route: &ProviderRoute,
         preserve_body_model: bool,
+        input_format: ProviderFormat,
     ) -> Result<(PreparedDecisionRequest, RouterMetadata)> {
         if !route.format.is_decision() {
             return Err(Error::InvalidRequest(format!(
@@ -715,7 +737,7 @@ impl Router {
         let body = if route.passthrough || preserve_body_model {
             body
         } else {
-            rewrite_body_model_if_required(body, ProviderFormat::Decisions, &route.spec.model)
+            rewrite_body_model_if_required(body, input_format, &route.spec.model)
         };
         let typesafe_params = if route.format == ProviderFormat::TypeSafe {
             Some(lingua::serde_json::from_slice(&body).map_err(|error| {
@@ -724,8 +746,7 @@ impl Router {
         } else {
             None
         };
-        let transformed =
-            lingua::transform_decision_request(body, ProviderFormat::Decisions, route.format)?;
+        let transformed = lingua::transform_decision_request(body, input_format, route.format)?;
         Ok((
             PreparedDecisionRequest {
                 provider: route.provider.clone(),
@@ -738,8 +759,8 @@ impl Router {
                 typesafe_params,
             },
             RouterMetadata {
-                detected_input_format: ProviderFormat::Decisions,
-                lingua_passthrough: route.format == ProviderFormat::Decisions,
+                detected_input_format: input_format,
+                lingua_passthrough: route.format == input_format,
                 provider_alias: route.provider_alias.clone(),
                 provider_format: route.format,
             },

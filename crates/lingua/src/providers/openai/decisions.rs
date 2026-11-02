@@ -4,7 +4,7 @@ Conversion between OpenAI Decisions API payloads and universal decision types.
 Decision input items map to universal messages: messages keep their role, function
 and custom tool calls become assistant tool calls, and their outputs become tool
 results. Features without a universal representation, such as JSON content parts,
-refusals, and request-level prompt cache options, are rejected.
+and refusals are rejected.
 */
 
 use super::convert::{image_detail_options, openai_image_url, universal_image_from_openai_url};
@@ -19,15 +19,23 @@ use crate::universal::message::{
     UserContent, UserContentPart,
 };
 use crate::universal::{
-    DecisionAnswer, DecisionChoice, DecisionChoiceProbability, DecisionInput,
-    DecisionLevelProbability, DecisionQuestion, DecisionQuestionKind, DecisionResult,
-    DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
-    UniversalUsage,
+    decision::DecisionParams, DecisionAnswer, DecisionChoice, DecisionChoiceProbability,
+    DecisionInput, DecisionLevelProbability, DecisionQuestion, DecisionQuestionKind,
+    DecisionResult, DecisionScoreLevel, DecisionValue, UniversalDecisionRequest,
+    UniversalDecisionResponse, UniversalUsage,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const TO_UNIVERSAL: &str = "Lingua decision";
 const TO_DECISIONS: &str = "OpenAI Decisions";
+
+#[derive(Default, Deserialize, Serialize)]
+struct DecisionExtras {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    prompt_cache_options: Option<decisions::PromptCacheOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    safety_identifier: Option<String>,
+}
 
 fn unsupported(from: impl Into<String>, to: &'static str) -> ConvertError {
     ConvertError::UnsupportedMapping {
@@ -81,18 +89,6 @@ impl TryFromLLM<decisions::DecisionRequest> for UniversalDecisionRequest {
     type Error = ConvertError;
 
     fn try_from(request: decisions::DecisionRequest) -> Result<Self, Self::Error> {
-        if request.prompt_cache_options.is_some() {
-            return Err(unsupported(
-                "OpenAI Decisions prompt_cache_options",
-                TO_UNIVERSAL,
-            ));
-        }
-        if request.safety_identifier.is_some() {
-            return Err(unsupported(
-                "OpenAI Decisions safety_identifier",
-                TO_UNIVERSAL,
-            ));
-        }
         let input = match request.input {
             decisions::DecisionInput::PurpleString(text) => DecisionInput::Text(text),
             decisions::DecisionInput::DecisionInputMessageArray(items) => {
@@ -110,11 +106,25 @@ impl TryFromLLM<decisions::DecisionRequest> for UniversalDecisionRequest {
             .enumerate()
             .map(|(index, question)| question_from_param(question, index))
             .collect::<Result<_, _>>()?;
+        let extras: serde_json::Map<String, serde_json::Value> =
+            serde_json::to_value(DecisionExtras {
+                prompt_cache_options: request.prompt_cache_options,
+                safety_identifier: request.safety_identifier,
+            })
+            .and_then(serde_json::from_value)
+            .map_err(|error| invalid(format!("invalid OpenAI Decisions options: {error}")))?;
+        let mut params = DecisionParams {
+            prompt_cache_key: request.prompt_cache_key,
+            ..Default::default()
+        };
+        if !extras.is_empty() {
+            params.extras.insert(ProviderFormat::Decisions, extras);
+        }
         Ok(Self {
             model: Some(request.model),
             input,
             questions,
-            prompt_cache_key: request.prompt_cache_key,
+            params,
         })
     }
 }
@@ -515,7 +525,17 @@ fn question_from_param(
 impl TryFromLLM<UniversalDecisionRequest> for decisions::DecisionRequest {
     type Error = ConvertError;
 
-    fn try_from(request: UniversalDecisionRequest) -> Result<Self, Self::Error> {
+    fn try_from(mut request: UniversalDecisionRequest) -> Result<Self, Self::Error> {
+        let extras = request
+            .params
+            .extras
+            .remove(&ProviderFormat::Decisions)
+            .map(|extras| {
+                serde_json::from_value::<DecisionExtras>(serde_json::Value::Object(extras))
+            })
+            .transpose()
+            .map_err(|error| invalid(format!("invalid OpenAI Decisions options: {error}")))?
+            .unwrap_or_default();
         let input = match request.input {
             DecisionInput::Text(text) => decisions::DecisionInput::PurpleString(text),
             DecisionInput::Messages(messages) => {
@@ -529,14 +549,14 @@ impl TryFromLLM<UniversalDecisionRequest> for decisions::DecisionRequest {
         Ok(Self {
             input,
             model: request.model.ok_or_else(|| missing("model"))?,
-            prompt_cache_key: request.prompt_cache_key,
-            prompt_cache_options: None,
+            prompt_cache_key: request.params.prompt_cache_key,
+            prompt_cache_options: extras.prompt_cache_options,
             questions: request
                 .questions
                 .into_iter()
                 .map(question_to_param)
                 .collect::<Result<_, _>>()?,
-            safety_identifier: None,
+            safety_identifier: extras.safety_identifier,
         })
     }
 }
@@ -1160,7 +1180,7 @@ mod tests {
                     {"instructions": "How urgent is it?", "type": "score",
                         "levels": [{"label": "low"}, {"label": "high", "description": "Blocks work"}]}
                 ],
-                "prompt_cache_key": "support"
+                "params": {"prompt_cache_key": "support"}
             })
         );
     }
@@ -1188,6 +1208,8 @@ mod tests {
             ],
             "model": "gpt-6-luna",
             "prompt_cache_key": "support",
+            "prompt_cache_options": {"mode": "explicit", "ttl": "30m"},
+            "safety_identifier": "support-grader",
             "questions": [
                 {"instructions": [
                     {"type": "input_text", "text": "Did the agent resolve it?"},
@@ -1276,7 +1298,7 @@ mod tests {
                 id: Some("msg_1".into()),
             }]),
             questions: vec![],
-            prompt_cache_key: None,
+            params: DecisionParams::default(),
         };
         let error = from_universal(assistant_with_id).unwrap_err().to_string();
         assert!(error.contains("assistant message id"), "{error}");
@@ -1311,6 +1333,10 @@ mod tests {
         let decision: decisions::DecisionResponse =
             serde_json::from_value(response.clone()).unwrap();
         let universal: UniversalDecisionResponse = TryFromLLM::try_from(decision).unwrap();
+        let universal: UniversalDecisionResponse = serde_json::from_value(
+            serde_json::from_slice(&serde_json::to_vec(&universal).unwrap()).unwrap(),
+        )
+        .unwrap();
         assert_eq!(
             serde_json::to_value(&universal.answers).unwrap(),
             json!([
