@@ -230,6 +230,28 @@ fn converts_string_input_predicates_and_scores() {
 }
 
 #[test]
+fn scopes_openai_options_to_openai_decisions() {
+    let request = json!({
+        "model": "jev-latest",
+        "input": "x",
+        "questions": [{"type": "predicate", "name": "q", "instructions": "?"}],
+        "prompt_cache_options": {"mode": "explicit"},
+        "safety_identifier": "user-1"
+    });
+    let universal = to_universal(request.clone()).unwrap();
+    let restored: DecisionRequest = TryFromLLM::try_from(universal).unwrap();
+    assert_eq!(serde_json::to_value(restored).unwrap(), request);
+    assert_eq!(
+        convert(request).unwrap(),
+        json!({
+            "model": "jev-latest",
+            "state": "x",
+            "questions": {"q": {"type": "noul", "instructions": "?"}}
+        })
+    );
+}
+
+#[test]
 fn rejects_requests_system_one_cannot_represent() {
     let base = || {
         json!({
@@ -242,16 +264,6 @@ fn rejects_requests_system_one_cannot_represent() {
         ("prompt_cache_key", {
             let mut request = base();
             request["prompt_cache_key"] = json!("k");
-            request
-        }),
-        ("prompt_cache_options", {
-            let mut request = base();
-            request["prompt_cache_options"] = json!({"mode": "explicit"});
-            request
-        }),
-        ("safety_identifier", {
-            let mut request = base();
-            request["safety_identifier"] = json!("user-1");
             request
         }),
         ("image content", {

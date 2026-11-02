@@ -1,5 +1,32 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`decisions → typesafe > decisionCacheOptionsRequest > request 1`] = `"{"model":"jev-latest","questions":{"0":{"type":"noul","instructions":"Is this about billing?"}},"state":"I was charged twice."}"`;
+
+exports[`decisions → typesafe > decisionCacheOptionsRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "name": null,
+      "probability": 0.95,
+      "type": "predicate",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 276,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 20,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 296,
+  },
+}
+`;
+
 exports[`decisions → typesafe > decisionChoiceDescriptionsRequest > request 1`] = `"{"model":"jev-latest","questions":{"factuality":{"type":"choice","criteria":{"A":"Correct and complete, with no errors.","B":"Mostly correct, with minor omissions.","C":"Contains a factual error."},"instructions":"How factually accurate is the answer?"}},"state":"Question: Why is the sky blue?\\nAnswer: Air molecules scatter shorter (blue) wavelengths of sunlight more than longer ones, so blue light reaches your eyes from every direction."}"`;
 
 exports[`decisions → typesafe > decisionChoiceDescriptionsRequest > response 1`] = `
