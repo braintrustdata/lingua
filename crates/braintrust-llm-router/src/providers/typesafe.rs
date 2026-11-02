@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -14,10 +15,34 @@ use lingua::ProviderFormat;
 use reqwest::header::{HeaderName, HeaderValue};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
+use serde::Deserialize;
 
 const DANGER_ZONE_IMAGES: HeaderName = HeaderName::from_static("typesafe-danger-zone-images");
 const DANGER_ZONE_LONG_CONTEXT: HeaderName =
     HeaderName::from_static("typesafe-danger-zone-long-context");
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct TypeSafeRequestParams {
+    danger_zone_images: Option<bool>,
+    danger_zone_long_context: Option<bool>,
+}
+
+impl TypeSafeRequestParams {
+    pub(crate) fn client_headers<'a>(&self, headers: &'a ClientHeaders) -> Cow<'a, ClientHeaders> {
+        let mut headers = Cow::Borrowed(headers);
+        for (name, enabled) in [
+            (DANGER_ZONE_IMAGES, self.danger_zone_images),
+            (DANGER_ZONE_LONG_CONTEXT, self.danger_zone_long_context),
+        ] {
+            if let Some(enabled) = enabled {
+                headers
+                    .to_mut()
+                    .insert_if_allowed(name.as_str(), if enabled { "true" } else { "false" });
+            }
+        }
+        headers
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct TypeSafeConfig {
@@ -145,7 +170,9 @@ impl crate::providers::Provider for TypeSafeProvider {
                 self.config.danger_zone_long_context,
             ),
         ] {
-            if enabled {
+            if headers.get(&header).is_some_and(|value| value == "false") {
+                headers.remove(&header);
+            } else if enabled && !headers.contains_key(&header) {
                 headers.insert(header, HeaderValue::from_static("true"));
             }
         }

@@ -200,7 +200,7 @@ async fn routes_typesafe_models_through_system_one() {
 }
 
 #[tokio::test]
-async fn sends_only_enabled_danger_zone_headers() {
+async fn applies_typesafe_header_defaults_and_request_overrides() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/v1/systemone"))
@@ -210,20 +210,21 @@ async fn sends_only_enabled_danger_zone_headers() {
                 "probabilities": {"A": 1.0, "B": 0.0}}},
             "usage": {"input_tokens": 30, "output_tokens": 1}
         })))
-        .expect(2)
+        .expect(3)
         .mount(&server)
         .await;
     let base = Url::parse(&server.uri()).unwrap();
     decide(&router(&server), "jev-latest", scorer_request("jev-latest"))
         .await
         .unwrap();
-    decide(
-        &router_with(base, |config| config.danger_zone_long_context = true),
-        "jev-latest",
-        scorer_request("jev-latest"),
-    )
-    .await
-    .unwrap();
+    let router = router_with(base, |config| config.danger_zone_long_context = true);
+    decide(&router, "jev-latest", scorer_request("jev-latest"))
+        .await
+        .unwrap();
+    let mut request = scorer_request("jev-latest");
+    request["danger_zone_long_context"] = json!(false);
+    request["danger_zone_images"] = json!(true);
+    decide(&router, "jev-latest", request).await.unwrap();
 
     let requests = server.received_requests().await.unwrap();
     let flags = |index: usize| {
@@ -240,6 +241,7 @@ async fn sends_only_enabled_danger_zone_headers() {
     };
     assert_eq!(flags(0), [None, None]);
     assert_eq!(flags(1), [None, Some("true".to_string())]);
+    assert_eq!(flags(2), [Some("true".to_string()), None]);
 }
 
 #[tokio::test]

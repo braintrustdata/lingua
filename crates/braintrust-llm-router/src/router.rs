@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
@@ -19,6 +20,7 @@ use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_request_with_remote_media, reject_remote_responses_audio,
     rewrite_body_model_if_required, ClientHeaders, Provider, RemoteMediaPolicy,
+    TypeSafeRequestParams,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
@@ -220,6 +222,7 @@ pub struct PreparedDecisionRequest {
     payload: Bytes,
     response_context: DecisionResponseContext,
     strategy: RetryStrategy,
+    typesafe_params: Option<TypeSafeRequestParams>,
 }
 
 /// Request prepared by the router and ready for execution.
@@ -714,6 +717,13 @@ impl Router {
         } else {
             rewrite_body_model_if_required(body, ProviderFormat::Decisions, &route.spec.model)
         };
+        let typesafe_params = if route.format == ProviderFormat::TypeSafe {
+            Some(lingua::serde_json::from_slice(&body).map_err(|error| {
+                Error::InvalidRequest(format!("invalid TypeSafe parameters: {error}"))
+            })?)
+        } else {
+            None
+        };
         let transformed =
             lingua::transform_decision_request(body, ProviderFormat::Decisions, route.format)?;
         Ok((
@@ -725,6 +735,7 @@ impl Router {
                 payload: transformed.payload,
                 response_context: transformed.response_context,
                 strategy: self.retry_policy.strategy(),
+                typesafe_params,
             },
             RouterMetadata {
                 detected_input_format: ProviderFormat::Decisions,
@@ -757,7 +768,12 @@ impl Router {
             payload,
             response_context,
             strategy,
+            typesafe_params,
         } = request;
+        let client_headers = match typesafe_params {
+            Some(params) => params.client_headers(client_headers),
+            None => Cow::Borrowed(client_headers),
+        };
         let raw_response = self
             .execute_with_retry(
                 provider,
@@ -766,7 +782,7 @@ impl Router {
                 format,
                 payload,
                 strategy,
-                client_headers,
+                &client_headers,
             )
             .await?;
         let response = lingua::transform_decision_response(raw_response.clone(), &response_context)
