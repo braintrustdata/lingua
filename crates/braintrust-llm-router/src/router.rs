@@ -489,7 +489,14 @@ impl Router {
         stream: bool,
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
-        if output_format.is_decision() || route.format.is_decision() {
+        if output_format.is_decision()
+            || route.format.is_decision()
+            || route
+                .provider
+                .provider_formats()
+                .iter()
+                .all(ProviderFormat::is_decision)
+        {
             return Err(Error::InvalidRequest(format!(
                 "model {} only supports decision requests; use the /decisions endpoint",
                 route.spec.model

@@ -30,6 +30,7 @@ const TO_UNIVERSAL: &str = "Lingua decision";
 const TO_DECISIONS: &str = "OpenAI Decisions";
 
 #[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 struct DecisionExtras {
     #[serde(skip_serializing_if = "Option::is_none")]
     prompt_cache_options: Option<decisions::PromptCacheOptions>,
@@ -1236,6 +1237,23 @@ mod tests {
             )
         ));
         assert_eq!(from_universal(universal).unwrap(), request);
+    }
+
+    #[test]
+    fn rejects_unknown_decisions_options() {
+        let request = serde_json::from_value(json!({
+            "model": "gpt-6-luna",
+            "input": "x",
+            "questions": [{"type": "predicate", "instructions": "?"}],
+            "params": {"extras": {"decisions": {"safety_identifer": "support"}}}
+        }))
+        .unwrap();
+
+        let error = from_universal(request).unwrap_err().to_string();
+        assert!(
+            error.contains("unknown field `safety_identifer`"),
+            "{error}"
+        );
     }
 
     #[test]

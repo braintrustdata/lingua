@@ -19,10 +19,11 @@ generate-provider-types: ## Regenerate provider types from OpenAPI specs (usage:
 	@echo "Regenerating $(PROVIDER) types from OpenAPI spec..."
 	@cargo run --bin generate-types -- $(PROVIDER)
 
-generate-all-providers: ## Regenerate types for all providers (anthropic, openai, google, typesafe)
+generate-all-providers: ## Regenerate types for all providers (anthropic, openai, openai-decisions, google, typesafe)
 	@echo "Regenerating all provider types..."
 	./pipelines/generate-provider-types.sh anthropic
 	./pipelines/generate-provider-types.sh openai
+	./pipelines/generate-provider-types.sh openai-decisions
 	./pipelines/generate-provider-types.sh google
 	./pipelines/generate-provider-types.sh typesafe
 

@@ -373,25 +373,66 @@ async fn surfaces_upstream_decision_errors() {
 async fn rejects_chat_requests_for_decision_models() {
     let server = MockServer::start().await;
     let router = router(&server);
+    for model in ["jev-latest", "native-jev-as-chat"] {
+        let routes = router
+            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
+            .unwrap();
+        let error = router
+            .create_request(
+                body(json!({"model": model, "messages": [{"role": "user", "content": "hi"}]})),
+                ProviderFormat::ChatCompletions,
+                &routes[0],
+                false,
+            )
+            .await
+            .err()
+            .expect("chat request is rejected");
+        assert!(
+            error
+                .to_string()
+                .contains("only supports decision requests"),
+            "{error}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn rejects_decisions_for_openai_compatible_providers() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "together-model".into(),
+        spec(
+            "together-model",
+            ProviderFormat::ChatCompletions,
+            ModelFlavor::Chat,
+            "together",
+        ),
+    );
+    let router = RouterBuilder::new()
+        .with_catalog(Arc::new(catalog))
+        .add_provider(
+            "together",
+            OpenAIProvider::new(OpenAIConfig::default())
+                .unwrap()
+                .with_provider_alias("together"),
+            auth("together-key"),
+            vec![ProviderFormat::ChatCompletions],
+        )
+        .build()
+        .unwrap();
     let routes = router
-        .resolve_provider_routes("jev-latest", ProviderFormat::ChatCompletions, &[])
+        .resolve_provider_routes("together-model", ProviderFormat::Decisions, &[])
         .unwrap();
     let error = router
-        .create_request(
-            body(json!({"model": "jev-latest", "messages": [{"role": "user", "content": "hi"}]})),
-            ProviderFormat::ChatCompletions,
+        .create_decision_request(
+            body(scorer_request("together-model")),
             &routes[0],
             false,
+            ProviderFormat::Decisions,
         )
-        .await
         .err()
-        .expect("chat request is rejected");
-    assert!(
-        error
-            .to_string()
-            .contains("only supports decision requests"),
-        "{error}"
-    );
+        .expect("Decisions request is rejected before sending upstream");
+    assert!(matches!(error, Error::InvalidRequest(_)), "{error}");
 }
 
 #[tokio::test]

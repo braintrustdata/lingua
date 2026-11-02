@@ -41,6 +41,7 @@ export type { TokenBudget } from "./generated/TokenBudget";
 
 export type { UniversalDecisionRequest } from "./generated/UniversalDecisionRequest";
 export type { UniversalDecisionResponse } from "./generated/UniversalDecisionResponse";
+export type { DecisionParams } from "./generated/DecisionParams";
 export type { DecisionInput } from "./generated/DecisionInput";
 export type { DecisionQuestion } from "./generated/DecisionQuestion";
 export type { DecisionQuestionKind } from "./generated/DecisionQuestionKind";

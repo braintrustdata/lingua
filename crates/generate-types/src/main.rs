@@ -229,6 +229,7 @@ fn write_openai_decisions_spec(source_spec: &str) -> Result<(), Box<dyn std::err
         "paths": { OPENAI_DECISIONS_PATH: path_item },
         "components": { "schemas": decisions_schema_closure(&spec)? }
     });
+    let excerpt: ::serde_json::Value = ::serde_json::from_str(&serde_json::to_string(&excerpt)?)?;
     std::fs::write(OPENAI_DECISIONS_SPEC_PATH, yaml_serde::to_string(&excerpt)?)?;
     println!("📝 Wrote {OPENAI_DECISIONS_SPEC_PATH}");
     Ok(())

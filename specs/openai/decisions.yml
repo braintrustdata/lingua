@@ -27,18 +27,15 @@ components:
         confidence:
           type: number
         name:
-          minLength:
-            $serde_json::private::Number: '0'
+          minLength: 0
           type:
           - string
           - 'null'
         probabilities:
           items:
             $ref: '#/components/schemas/ChoiceProbabilityResource'
-          maxItems:
-            $serde_json::private::Number: '2000'
-          minItems:
-            $serde_json::private::Number: '0'
+          maxItems: 2000
+          minItems: 0
           type: array
         type:
           default: choice
@@ -58,8 +55,7 @@ components:
       additionalProperties: false
       properties:
         name:
-          minLength:
-            $serde_json::private::Number: '0'
+          minLength: 0
           type:
           - string
           - 'null'
@@ -82,8 +78,7 @@ components:
       description: The model declined to answer this question. Other questions in the same request can still receive answers.
       properties:
         name:
-          minLength:
-            $serde_json::private::Number: '0'
+          minLength: 0
           type:
           - string
           - 'null'
@@ -104,18 +99,15 @@ components:
         confidence:
           type: number
         name:
-          minLength:
-            $serde_json::private::Number: '0'
+          minLength: 0
           type:
           - string
           - 'null'
         probabilities:
           items:
             $ref: '#/components/schemas/ScoreProbabilityResource'
-          maxItems:
-            $serde_json::private::Number: '2000'
-          minItems:
-            $serde_json::private::Number: '0'
+          maxItems: 2000
+          minItems: 0
           type: array
         score:
           type: number
@@ -137,10 +129,8 @@ components:
       additionalProperties: false
       properties:
         description:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
         value:
           $ref: '#/components/schemas/ChoiceValueParam'
@@ -161,26 +151,21 @@ components:
     ChoiceValueParam:
       description: 'Choice values are typed: a string and a boolean with the same text are distinct.'
       oneOf:
-      - maxLength:
-          $serde_json::private::Number: '1048576'
-        minLength:
-          $serde_json::private::Number: '0'
+      - maxLength: 1048576
+        minLength: 0
         type: string
       - type: boolean
     ChoiceValueResource:
       description: 'Choice values are typed: a string and a boolean with the same text are distinct.'
       oneOf:
-      - minLength:
-          $serde_json::private::Number: '0'
+      - minLength: 0
         type: string
       - type: boolean
     DecisionInput:
       description: The input to evaluate for every question. Provide a text string or an ordered array of messages, function calls and outputs, or custom tool calls and outputs. Each tool output must identify a matching call by call ID.
       oneOf:
-      - maxLength:
-          $serde_json::private::Number: '10485760'
-        minLength:
-          $serde_json::private::Number: '0'
+      - maxLength: 10485760
+        minLength: 0
         type: string
       - items:
           discriminator:
@@ -204,18 +189,14 @@ components:
           - function_call_output
           - custom_tool_call
           - custom_tool_call_output
-        maxItems:
-          $serde_json::private::Number: '131072'
-        minItems:
-          $serde_json::private::Number: '0'
+        maxItems: 131072
+        minItems: 0
         type: array
     DecisionInputAssistantContent:
       description: A text string or an ordered list of output text and refusal parts.
       oneOf:
-      - maxLength:
-          $serde_json::private::Number: '10485760'
-        minLength:
-          $serde_json::private::Number: '0'
+      - maxLength: 10485760
+        minLength: 0
         type: string
       - $ref: '#/components/schemas/DecisionInputAssistantContentParts'
         title: Parts
@@ -232,10 +213,8 @@ components:
         x-oai-discriminator-values:
         - output_text
         - refusal
-      maxItems:
-        $serde_json::private::Number: '16384'
-      minItems:
-        $serde_json::private::Number: '0'
+      maxItems: 16384
+      minItems: 0
       type: array
     DecisionInputAssistantMessage:
       additionalProperties: false
@@ -267,10 +246,8 @@ components:
     DecisionInputContent:
       description: A text string or an ordered list of text, image, and JSON parts.
       oneOf:
-      - maxLength:
-          $serde_json::private::Number: '10485760'
-        minLength:
-          $serde_json::private::Number: '0'
+      - maxLength: 10485760
+        minLength: 0
         type: string
       - $ref: '#/components/schemas/DecisionInputContentParts'
         title: Parts
@@ -290,46 +267,34 @@ components:
         - input_text
         - input_image
         - input_json
-      maxItems:
-        $serde_json::private::Number: '16384'
-      minItems:
-        $serde_json::private::Number: '0'
+      maxItems: 16384
+      minItems: 0
       type: array
     DecisionInputCustomToolCall:
       additionalProperties: false
       properties:
         call_id:
-          maxLength:
-            $serde_json::private::Number: '64'
-          minLength:
-            $serde_json::private::Number: '1'
+          maxLength: 64
+          minLength: 1
           type: string
         id:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type:
           - string
           - 'null'
         input:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
         name:
-          maxLength:
-            $serde_json::private::Number: '64'
-          minLength:
-            $serde_json::private::Number: '1'
+          maxLength: 64
+          minLength: 1
           pattern: ^[a-zA-Z0-9_-]+$
           type: string
         namespace:
-          maxLength:
-            $serde_json::private::Number: '64'
-          minLength:
-            $serde_json::private::Number: '1'
+          maxLength: 64
+          minLength: 1
           pattern: ^[a-zA-Z0-9_-]+$
           type:
           - string
@@ -354,16 +319,12 @@ components:
       additionalProperties: false
       properties:
         call_id:
-          maxLength:
-            $serde_json::private::Number: '64'
-          minLength:
-            $serde_json::private::Number: '1'
+          maxLength: 64
+          minLength: 1
           type: string
         id:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type:
           - string
           - 'null'
@@ -387,20 +348,16 @@ components:
     DecisionInputDeveloperContent:
       description: A text string or an ordered list of input text parts.
       oneOf:
-      - maxLength:
-          $serde_json::private::Number: '10485760'
-        minLength:
-          $serde_json::private::Number: '0'
+      - maxLength: 10485760
+        minLength: 0
         type: string
       - $ref: '#/components/schemas/DecisionInputDeveloperContentParts'
         title: Parts
     DecisionInputDeveloperContentParts:
       items:
         $ref: '#/components/schemas/DecisionInputText'
-      maxItems:
-        $serde_json::private::Number: '16384'
-      minItems:
-        $serde_json::private::Number: '0'
+      maxItems: 16384
+      minItems: 0
       type: array
     DecisionInputDeveloperMessage:
       additionalProperties: false
@@ -428,37 +385,27 @@ components:
       additionalProperties: false
       properties:
         arguments:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
         call_id:
-          maxLength:
-            $serde_json::private::Number: '64'
-          minLength:
-            $serde_json::private::Number: '1'
+          maxLength: 64
+          minLength: 1
           type: string
         id:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type:
           - string
           - 'null'
         name:
-          maxLength:
-            $serde_json::private::Number: '128'
-          minLength:
-            $serde_json::private::Number: '1'
+          maxLength: 128
+          minLength: 1
           pattern: ^[a-zA-Z0-9_.-]+$
           type: string
         namespace:
-          maxLength:
-            $serde_json::private::Number: '64'
-          minLength:
-            $serde_json::private::Number: '1'
+          maxLength: 64
+          minLength: 1
           pattern: ^[a-zA-Z0-9_-]+$
           type:
           - string
@@ -483,16 +430,12 @@ components:
       additionalProperties: false
       properties:
         call_id:
-          maxLength:
-            $serde_json::private::Number: '64'
-          minLength:
-            $serde_json::private::Number: '1'
+          maxLength: 64
+          minLength: 1
           type: string
         id:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type:
           - string
           - 'null'
@@ -525,10 +468,8 @@ components:
           description: The image detail level, using the selected model's image profile. Defaults to auto.
         image_url:
           description: A base64-encoded image in a data URL or a publicly accessible HTTP(S) image URL.
-          maxLength:
-            $serde_json::private::Number: '1073741824'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1073741824
+          minLength: 0
           pattern: ^(data:|https?://)
           type: string
         prompt_cache_breakpoint:
@@ -568,11 +509,9 @@ components:
               anyOf:
               - {}
               - type: 'null'
-            minProperties:
-              $serde_json::private::Number: '0'
+            minProperties: 0
             propertyNames:
-              minLength:
-                $serde_json::private::Number: '0'
+              minLength: 0
               type: string
             type: object
           - items:
@@ -580,15 +519,12 @@ components:
                 anyOf:
                 - {}
                 - type: 'null'
-              minProperties:
-                $serde_json::private::Number: '0'
+              minProperties: 0
               propertyNames:
-                minLength:
-                  $serde_json::private::Number: '0'
+                minLength: 0
                 type: string
               type: object
-            minItems:
-              $serde_json::private::Number: '0'
+            minItems: 0
             type: array
         type:
           default: input_json
@@ -623,10 +559,8 @@ components:
       additionalProperties: false
       properties:
         text:
-          maxLength:
-            $serde_json::private::Number: '10485760'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 10485760
+          minLength: 0
           type: string
         type:
           default: output_text
@@ -642,10 +576,8 @@ components:
       additionalProperties: false
       properties:
         refusal:
-          maxLength:
-            $serde_json::private::Number: '10485760'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 10485760
+          minLength: 0
           type: string
         type:
           default: refusal
@@ -700,10 +632,8 @@ components:
           - object
           - 'null'
         text:
-          maxLength:
-            $serde_json::private::Number: '10485760'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 10485760
+          minLength: 0
           type: string
         type:
           default: input_text
@@ -718,10 +648,8 @@ components:
     DecisionInputToolOutputContent:
       description: Text evidence or an ordered list of text and image parts.
       oneOf:
-      - maxLength:
-          $serde_json::private::Number: '10485760'
-        minLength:
-          $serde_json::private::Number: '0'
+      - maxLength: 10485760
+        minLength: 0
         type: string
       - $ref: '#/components/schemas/DecisionInputToolOutputContentParts'
         title: Parts
@@ -738,10 +666,8 @@ components:
         x-oai-discriminator-values:
         - input_text
         - input_image
-      maxItems:
-        $serde_json::private::Number: '16384'
-      minItems:
-        $serde_json::private::Number: '0'
+      maxItems: 16384
+      minItems: 0
       type: array
     DecisionInputUserMessage:
       additionalProperties: false
@@ -777,10 +703,8 @@ components:
           description: The image detail level, using the selected model's image profile. Defaults to auto.
         image_url:
           description: A base64-encoded image in a data URL or a publicly accessible HTTP(S) image URL.
-          maxLength:
-            $serde_json::private::Number: '1073741824'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1073741824
+          minLength: 0
           pattern: ^(data:|https?://)
           type: string
         type:
@@ -813,10 +737,8 @@ components:
       additionalProperties: false
       properties:
         text:
-          maxLength:
-            $serde_json::private::Number: '10485760'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 10485760
+          minLength: 0
           type: string
         type:
           default: input_text
@@ -835,17 +757,13 @@ components:
           $ref: '#/components/schemas/DecisionInput'
         model:
           description: The model to use. Only `gpt-6-luna` is supported.
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
         prompt_cache_key:
           description: Partition prompt cache reuse by caller-provided key.
-          maxLength:
-            $serde_json::private::Number: '64'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 64
+          minLength: 0
           type:
           - string
           - 'null'
@@ -877,17 +795,13 @@ components:
           description: Ask 1–400 questions about the input. Each question can be a predicate, choice, or score. Answers come back in the same order.
           items:
             $ref: '#/components/schemas/QuestionParam'
-          maxItems:
-            $serde_json::private::Number: '400'
-          minItems:
-            $serde_json::private::Number: '1'
+          maxItems: 400
+          minItems: 1
           type: array
         safety_identifier:
           description: Opaque caller-provided end-user identifier, scoped by the verified org. Match Responses' limit; this is never the authenticated user identity.
-          maxLength:
-            $serde_json::private::Number: '128'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 128
+          minLength: 0
           type:
           - string
           - 'null'
@@ -903,15 +817,12 @@ components:
           description: 'Answers in question order. Any question can return a refusal instead of an answer; other questions can still receive answers. A refusal has `type: "refusal"` and the question''s `name`, or `null` if it was unnamed.'
           items:
             $ref: '#/components/schemas/AnswerResource'
-          maxItems:
-            $serde_json::private::Number: '2000'
-          minItems:
-            $serde_json::private::Number: '0'
+          maxItems: 2000
+          minItems: 0
           type: array
         model:
           description: The model used.
-          minLength:
-            $serde_json::private::Number: '0'
+          minLength: 0
           type: string
         usage:
           $ref: '#/components/schemas/ResponseUsageResource'
@@ -939,17 +850,13 @@ components:
       properties:
         cache_write_tokens:
           format: int64
-          maximum:
-            $serde_json::private::Number: '2147483647'
-          minimum:
-            $serde_json::private::Number: '-2147483648'
+          maximum: 2147483647
+          minimum: -2147483648
           type: integer
         cached_tokens:
           format: int64
-          maximum:
-            $serde_json::private::Number: '2147483647'
-          minimum:
-            $serde_json::private::Number: '-2147483648'
+          maximum: 2147483647
+          minimum: -2147483648
           type: integer
       required:
       - cached_tokens
@@ -965,10 +872,8 @@ components:
       properties:
         reasoning_tokens:
           format: int64
-          maximum:
-            $serde_json::private::Number: '2147483647'
-          minimum:
-            $serde_json::private::Number: '-2147483648'
+          maximum: 2147483647
+          minimum: -2147483648
           type: integer
       required:
       - reasoning_tokens
@@ -997,30 +902,22 @@ components:
           description: Provide between 2 and 255 choices. Each choice must be unique.
           items:
             $ref: '#/components/schemas/ChoiceOptionParam'
-          maxItems:
-            $serde_json::private::Number: '255'
-          minItems:
-            $serde_json::private::Number: '2'
+          maxItems: 255
+          minItems: 2
           type: array
         instructions:
           oneOf:
-          - maxLength:
-              $serde_json::private::Number: '1048576'
-            minLength:
-              $serde_json::private::Number: '0'
+          - maxLength: 1048576
+            minLength: 0
             type: string
           - items:
               $ref: '#/components/schemas/DecisionQuestionInputPart'
-            maxItems:
-              $serde_json::private::Number: '16384'
-            minItems:
-              $serde_json::private::Number: '1'
+            maxItems: 16384
+            minItems: 1
             type: array
         name:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
         type:
           default: choice
@@ -1040,23 +937,17 @@ components:
       properties:
         instructions:
           oneOf:
-          - maxLength:
-              $serde_json::private::Number: '1048576'
-            minLength:
-              $serde_json::private::Number: '0'
+          - maxLength: 1048576
+            minLength: 0
             type: string
           - items:
               $ref: '#/components/schemas/DecisionQuestionInputPart'
-            maxItems:
-              $serde_json::private::Number: '16384'
-            minItems:
-              $serde_json::private::Number: '1'
+            maxItems: 16384
+            minItems: 1
             type: array
         name:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
         type:
           default: predicate
@@ -1075,31 +966,23 @@ components:
       properties:
         instructions:
           oneOf:
-          - maxLength:
-              $serde_json::private::Number: '1048576'
-            minLength:
-              $serde_json::private::Number: '0'
+          - maxLength: 1048576
+            minLength: 0
             type: string
           - items:
               $ref: '#/components/schemas/DecisionQuestionInputPart'
-            maxItems:
-              $serde_json::private::Number: '16384'
-            minItems:
-              $serde_json::private::Number: '1'
+            maxItems: 16384
+            minItems: 1
             type: array
         levels:
           items:
             $ref: '#/components/schemas/ScoreLevelParam'
-          maxItems:
-            $serde_json::private::Number: '10'
-          minItems:
-            $serde_json::private::Number: '2'
+          maxItems: 10
+          minItems: 2
           type: array
         name:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
         type:
           default: score
@@ -1118,28 +1001,22 @@ components:
       properties:
         input_tokens:
           format: int64
-          maximum:
-            $serde_json::private::Number: '2147483647'
-          minimum:
-            $serde_json::private::Number: '-2147483648'
+          maximum: 2147483647
+          minimum: -2147483648
           type: integer
         input_tokens_details:
           $ref: '#/components/schemas/InputTokensDetailsResource'
         output_tokens:
           format: int64
-          maximum:
-            $serde_json::private::Number: '2147483647'
-          minimum:
-            $serde_json::private::Number: '-2147483648'
+          maximum: 2147483647
+          minimum: -2147483648
           type: integer
         output_tokens_details:
           $ref: '#/components/schemas/OutputTokensDetailsResource'
         total_tokens:
           format: int64
-          maximum:
-            $serde_json::private::Number: '2147483647'
-          minimum:
-            $serde_json::private::Number: '-2147483648'
+          maximum: 2147483647
+          minimum: -2147483648
           type: integer
       required:
       - input_tokens
@@ -1152,16 +1029,12 @@ components:
       additionalProperties: false
       properties:
         description:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
         label:
-          maxLength:
-            $serde_json::private::Number: '1048576'
-          minLength:
-            $serde_json::private::Number: '0'
+          maxLength: 1048576
+          minLength: 0
           type: string
       required:
       - label
@@ -1170,8 +1043,7 @@ components:
       additionalProperties: false
       properties:
         label:
-          minLength:
-            $serde_json::private::Number: '0'
+          minLength: 0
           type: string
         probability:
           type: number

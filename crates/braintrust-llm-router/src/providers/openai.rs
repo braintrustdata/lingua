@@ -209,11 +209,11 @@ impl crate::providers::Provider for OpenAIProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![
-            ProviderFormat::ChatCompletions,
-            ProviderFormat::Responses,
-            ProviderFormat::Decisions,
-        ]
+        let mut formats = vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses];
+        if self.provider_alias == "openai" {
+            formats.push(ProviderFormat::Decisions);
+        }
+        formats
     }
 
     async fn complete(
