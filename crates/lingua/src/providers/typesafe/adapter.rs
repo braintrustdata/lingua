@@ -56,6 +56,9 @@ impl DecisionAdapter for TypeSafeAdapter {
     ) -> Result<UniversalDecisionResponse, TransformError> {
         system_one_response_to_universal(parse_payload(payload)?, questions)
             .map_err(|error| TransformError::ToUniversalFailed(error.to_string()))
+            .and_then(|response| {
+                crate::processing::decisions::validate_decision_response(response, questions)
+            })
     }
 
     fn response_from_universal(

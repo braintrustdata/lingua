@@ -135,7 +135,7 @@ fn converts_scorer_conversation_to_system_one() {
             {"role": "system", "content": "Grade the answer."},
             {"role": "user", "content": [{"type": "input_text", "text": "2 + 2 = 4"}]},
             {"role": "assistant", "content": "Let me check."},
-            {"type": "function_call", "call_id": "c1", "name": "lookup", "arguments": "{\"q\":\"2+2\"}"},
+            {"type": "function_call", "id": "fc_1", "status": "completed", "call_id": "c1", "name": "lookup", "arguments": "{\"q\":\"2+2\"}"},
             {"type": "function_call_output", "call_id": "c1", "output": "4"}
         ],
         "questions": [{
@@ -158,7 +158,7 @@ fn converts_scorer_conversation_to_system_one() {
                     "type": "tool_call",
                     "tool_call_id": "c1",
                     "tool_name": "lookup",
-                    "arguments": {"type": "valid", "value": {"q": "2+2"}}
+                    "arguments": {"q": "2+2"}
                 }]},
                 {"role": "tool", "content": [{
                     "type": "tool_result",
@@ -235,6 +235,7 @@ fn scopes_openai_options_to_openai_decisions() {
         "model": "jev-latest",
         "input": "x",
         "questions": [{"type": "predicate", "name": "q", "instructions": "?"}],
+        "prompt_cache_key": "support",
         "prompt_cache_options": {"mode": "explicit"},
         "safety_identifier": "user-1"
     });
@@ -261,11 +262,6 @@ fn rejects_requests_system_one_cannot_represent() {
         })
     };
     let cases: Vec<(&str, Value)> = vec![
-        ("prompt_cache_key", {
-            let mut request = base();
-            request["prompt_cache_key"] = json!("k");
-            request
-        }),
         ("image content", {
             let mut request = base();
             request["input"] = json!([{"role": "user", "content": [
@@ -440,4 +436,33 @@ fn rejects_system_one_answers_that_do_not_match_the_request() {
             .to_string();
         assert!(error.contains(expected), "{expected}: {error}");
     }
+}
+
+#[test]
+fn body_conversion_rejects_header_only_typesafe_options() {
+    let request: UniversalDecisionRequest = serde_json::from_value(json!({
+        "model":"jev-latest","input":"x","questions":[],
+        "params":{"extras":{"typesafe":{"long_context":true}}}
+    }))
+    .unwrap();
+    let error = <SystemOneRequest as TryFromLLM<_>>::try_from(request).unwrap_err();
+    assert!(
+        error.to_string().contains("require HTTP headers"),
+        "{error}"
+    );
+}
+
+#[test]
+fn invalid_tool_arguments_remain_plain_text() {
+    let converted = convert(json!({
+        "model":"jev-latest","input":[{"type":"function_call","call_id":"c1","id":"fc_1","status":"incomplete","name":"lookup","arguments":"{broken"}],
+        "questions":[]
+    })).unwrap();
+    assert_eq!(
+        converted,
+        json!({
+            "model":"jev-latest","state":{"messages":[{"role":"assistant","content":[{"type":"tool_call","tool_call_id":"c1","tool_name":"lookup","arguments":"{broken"}]}]},
+            "questions":{}
+        })
+    );
 }

@@ -226,10 +226,29 @@ async fn applies_typesafe_header_defaults_and_request_overrides() {
     decide(&router, "jev-latest", scorer_request("jev-latest"))
         .await
         .unwrap();
-    let mut request = scorer_request("jev-latest");
-    request["danger_zone_long_context"] = json!(false);
-    request["danger_zone_images"] = json!(true);
-    decide(&router, "jev-latest", request).await.unwrap();
+    let routes = router
+        .resolve_provider_routes("jev-latest", ProviderFormat::Decisions, &[])
+        .unwrap();
+    let (prepared, _) = router
+        .create_decision_request(
+            body(scorer_request("jev-latest")),
+            &routes[0],
+            false,
+            ProviderFormat::Decisions,
+        )
+        .unwrap();
+    let prepared = prepared
+        .with_params(
+            serde_json::from_value(json!({
+                "extras": {"typesafe": {"long_context": false, "images": true}}
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+    router
+        .complete_decision(prepared, &ClientHeaders::default())
+        .await
+        .unwrap();
 
     let requests = server.received_requests().await.unwrap();
     let flags = |index: usize| {
@@ -250,34 +269,34 @@ async fn applies_typesafe_header_defaults_and_request_overrides() {
 }
 
 #[tokio::test]
-async fn reports_typesafe_error_bodies_that_cannot_be_read() {
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let base = Url::parse(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
-    tokio::spawn(async move {
-        use tokio::io::{AsyncReadExt, AsyncWriteExt};
-        let (mut socket, _) = listener.accept().await.unwrap();
-        let mut request = vec![0; 64 * 1024];
-        let _ = socket.read(&mut request).await.unwrap();
-        socket
-            .write_all(
-                b"HTTP/1.1 500 Internal Server Error\r\ncontent-length: 100\r\n\r\n{\"detail\"",
-            )
+async fn preserves_status_when_decision_error_bodies_cannot_be_read() {
+    for model in ["jev-latest", "gpt-6-luna"] {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = Url::parse(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+        tokio::spawn(async move {
+            use tokio::io::{AsyncReadExt, AsyncWriteExt};
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut request = vec![0; 64 * 1024];
+            let _ = socket.read(&mut request).await.unwrap();
+            socket.write_all(b"HTTP/1.1 429 Too Many Requests\r\ncontent-length: 100\r\nretry-after: 7\r\n\r\n{\"detail\"").await.unwrap();
+        });
+        let error = decide(&router_with(base, |_| {}), model, scorer_request(model))
             .await
-            .unwrap();
-    });
-
-    let error = decide(
-        &router_with(base, |_| {}),
-        "jev-latest",
-        scorer_request("jev-latest"),
-    )
-    .await
-    .unwrap_err()
-    .to_string();
-    assert!(
-        error.contains("HTTP 500 Internal Server Error: failed to read response body"),
-        "{error}"
-    );
+            .unwrap_err();
+        let Error::Provider {
+            http: Some(http), ..
+        } = error
+        else {
+            panic!("expected upstream HTTP error: {error}");
+        };
+        assert_eq!(http.status, 429);
+        assert!(
+            http.body.contains("failed to read response body"),
+            "{}",
+            http.body
+        );
+        assert!(http.headers.contains(&("retry-after".into(), "7".into())));
+    }
 }
 
 #[tokio::test]
@@ -491,4 +510,51 @@ async fn rewrites_decision_body_model_unless_preserved() {
             .await
             .unwrap();
     }
+}
+
+#[tokio::test]
+async fn routes_uncatalogued_jev_to_typesafe_when_openai_is_available() {
+    let server = MockServer::start().await;
+    let router = router(&server);
+    for model in ["jev-unlisted", "braintrust/jev-unlisted"] {
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::Decisions,
+                &["openai".into(), "typesafe".into()],
+            )
+            .unwrap();
+        assert_eq!(routes[0].provider_alias(), "typesafe");
+        assert_eq!(routes[0].model(), "jev-unlisted");
+    }
+}
+
+#[tokio::test]
+async fn rejects_unknown_typesafe_options_and_top_level_flags() {
+    let server = MockServer::start().await;
+    let router = router(&server);
+    let routes = router
+        .resolve_provider_routes("jev-latest", ProviderFormat::Decisions, &[])
+        .unwrap();
+    let (prepared, _) = router
+        .create_decision_request(
+            body(scorer_request("jev-latest")),
+            &routes[0],
+            false,
+            ProviderFormat::Decisions,
+        )
+        .unwrap();
+    let error = prepared
+        .with_params(
+            serde_json::from_value(json!({"extras":{"typesafe":{"danger_zone_imagez":true}}}))
+                .unwrap(),
+        )
+        .err()
+        .expect("unknown option rejected");
+    assert!(error.to_string().contains("unknown field"), "{error}");
+    let mut request = scorer_request("jev-latest");
+    request["long_context"] = json!(true);
+    assert!(router
+        .create_decision_request(body(request), &routes[0], false, ProviderFormat::Decisions)
+        .is_err());
 }

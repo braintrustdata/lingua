@@ -52,11 +52,14 @@ impl DecisionAdapter for DecisionsAdapter {
     fn response_to_universal(
         &self,
         payload: Value,
-        _questions: &[DecisionQuestion],
+        questions: &[DecisionQuestion],
     ) -> Result<UniversalDecisionResponse, TransformError> {
         let response: DecisionResponse = parse_payload(payload)?;
         <UniversalDecisionResponse as TryFromLLM<_>>::try_from(response)
             .map_err(|error| TransformError::ToUniversalFailed(error.to_string()))
+            .and_then(|response| {
+                crate::processing::decisions::validate_decision_response(response, questions)
+            })
     }
 
     fn response_from_universal(

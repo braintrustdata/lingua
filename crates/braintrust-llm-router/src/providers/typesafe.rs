@@ -22,10 +22,9 @@ const DANGER_ZONE_LONG_CONTEXT: HeaderName =
     HeaderName::from_static("typesafe-danger-zone-long-context");
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct TypeSafeRequestParams {
-    #[serde(alias = "danger_zone_images")]
     images: Option<bool>,
-    #[serde(alias = "danger_zone_long_context")]
     long_context: Option<bool>,
 }
 
@@ -197,19 +196,10 @@ impl crate::providers::Provider for TypeSafeProvider {
         if !response.status().is_success() {
             let status = response.status();
             let headers = response.headers().clone();
-            let text = match response.text().await {
-                Ok(text) => text,
-                Err(error) => {
-                    return Err(Error::Provider {
-                        provider: "typesafe".to_string(),
-                        source: anyhow::anyhow!(
-                            "HTTP {status}: failed to read response body: {error}"
-                        ),
-                        retry_after: None,
-                        http: None,
-                    });
-                }
-            };
+            let text = response
+                .text()
+                .await
+                .unwrap_or_else(|error| format!("failed to read response body: {error}"));
             return Err(Error::Provider {
                 provider: "typesafe".to_string(),
                 source: anyhow::anyhow!("HTTP {status}: {text}"),

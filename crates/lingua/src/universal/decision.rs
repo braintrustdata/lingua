@@ -9,7 +9,7 @@ and from these types.
 use crate::capabilities::ProviderFormat;
 use crate::serde_json::{Map, Value};
 use crate::universal::{Message, UniversalUsage, UserContent};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 use ts_rs::TS;
 
@@ -35,11 +35,34 @@ pub struct DecisionParams {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub prompt_cache_key: Option<String>,
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    #[serde(
+        default,
+        deserialize_with = "deserialize_extras",
+        skip_serializing_if = "HashMap::is_empty"
+    )]
     #[ts(
         type = r#"Partial<Record<import("./ProviderFormat").ProviderFormat, Record<string, unknown>>>"#
     )]
     pub extras: HashMap<ProviderFormat, Map<String, Value>>,
+}
+
+fn deserialize_extras<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<HashMap<ProviderFormat, Map<String, Value>>, D::Error> {
+    let extras = HashMap::<ProviderFormat, Map<String, Value>>::deserialize(deserializer)?;
+    if extras.contains_key(&ProviderFormat::Unknown) {
+        return Err(serde::de::Error::custom(
+            "unknown decision provider format in params.extras",
+        ));
+    }
+    Ok(extras)
+}
+
+fn deserialize_number<'de, D: Deserializer<'de>, T: serde::de::DeserializeOwned>(
+    deserializer: D,
+) -> Result<T, D::Error> {
+    crate::serde_json::from_value(Value::deserialize(deserializer)?)
+        .map_err(serde::de::Error::custom)
 }
 
 impl DecisionParams {
@@ -138,20 +161,26 @@ pub struct DecisionAnswer {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DecisionResult {
     /// The probability that the statement is true.
-    Predicate { probability: f64 },
+    Predicate {
+        #[serde(deserialize_with = "deserialize_number")]
+        probability: f64,
+    },
     Choice {
         choice: DecisionValue,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
+        #[serde(deserialize_with = "deserialize_number")]
         confidence: Option<f64>,
         /// Probability of each choice, in choice order.
         probabilities: Vec<DecisionChoiceProbability>,
     },
     Score {
         /// Probability-weighted average of the level indices.
+        #[serde(deserialize_with = "deserialize_number")]
         score: f64,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
+        #[serde(deserialize_with = "deserialize_number")]
         confidence: Option<f64>,
         /// Probability of each level, in level order.
         probabilities: Vec<DecisionLevelProbability>,
@@ -164,6 +193,7 @@ pub enum DecisionResult {
 #[ts(export)]
 pub struct DecisionChoiceProbability {
     pub value: DecisionValue,
+    #[serde(deserialize_with = "deserialize_number")]
     pub probability: f64,
 }
 
@@ -171,9 +201,39 @@ pub struct DecisionChoiceProbability {
 #[ts(export)]
 pub struct DecisionLevelProbability {
     /// Index of the level, from zero.
+    #[serde(deserialize_with = "deserialize_number")]
     pub level: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub label: Option<String>,
+    #[serde(deserialize_with = "deserialize_number")]
     pub probability: f64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decision_response_parses_directly_from_json() {
+        let json = r#"{"answers":[{"type":"predicate","probability":0.75},{"type":"choice","choice":true,"confidence":0.9,"probabilities":[{"value":true,"probability":0.9},{"value":false,"probability":0.1}]},{"type":"score","score":0.5,"confidence":0.5,"probabilities":[{"level":0,"probability":0.5},{"level":1,"probability":0.5}]}]}"#;
+        let response: UniversalDecisionResponse = crate::serde_json::from_str(json).unwrap();
+        assert_eq!(
+            crate::serde_json::to_value(response).unwrap(),
+            crate::serde_json::from_str::<Value>(json).unwrap()
+        );
+    }
+
+    #[test]
+    fn rejects_unknown_extra_formats_but_allows_saved_chat_params() {
+        assert!(crate::serde_json::from_str::<DecisionParams>(
+            r#"{"extras":{"TypeSafe":{"long_context":true}}}"#
+        )
+        .is_err());
+        let params: DecisionParams = crate::serde_json::from_str(
+            r#"{"temperature":0,"max_tokens":100,"extras":{"typesafe":{"long_context":true}}}"#,
+        )
+        .unwrap();
+        assert!(params.extras.contains_key(&ProviderFormat::TypeSafe));
+    }
 }

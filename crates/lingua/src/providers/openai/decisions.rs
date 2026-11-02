@@ -7,7 +7,10 @@ results. Features without a universal representation, such as JSON content parts
 and refusals are rejected.
 */
 
-use super::convert::{image_detail_options, openai_image_url, universal_image_from_openai_url};
+use super::convert::{
+    image_detail_options, openai_image_url, universal_image_from_openai_url,
+    validate_openai_prompt_cache_ttl,
+};
 use super::decisions_generated as decisions;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
@@ -74,16 +77,13 @@ fn ephemeral_cache_control() -> CacheControl {
 fn cache_breakpoint(
     cache_control: Option<CacheControl>,
 ) -> Result<Option<decisions::PromptCacheBreakpoint>, ConvertError> {
-    match cache_control {
-        None => Ok(None),
-        Some(CacheControl { ttl: Some(_), .. }) => Err(unsupported(
-            "Lingua cache_control.ttl",
-            "OpenAI Decisions prompt_cache_breakpoint (the TTL is set per request)",
-        )),
-        Some(_) => Ok(Some(decisions::PromptCacheBreakpoint {
-            mode: decisions::PromptCacheBreakpointMode::Explicit,
-        })),
-    }
+    validate_openai_prompt_cache_ttl(
+        cache_control.as_ref(),
+        "OpenAI Decisions prompt_cache_options.ttl",
+    )?;
+    Ok(cache_control.map(|_| decisions::PromptCacheBreakpoint {
+        mode: decisions::PromptCacheBreakpointMode::Explicit,
+    }))
 }
 
 impl TryFromLLM<decisions::DecisionRequest> for UniversalDecisionRequest {
@@ -398,6 +398,13 @@ fn image_to_decision(
                 .detail
         }
     };
+    if media_type.is_none()
+        && !image.starts_with("data:")
+        && !image.starts_with("http://")
+        && !image.starts_with("https://")
+    {
+        return Err(missing("media_type for raw base64 image"));
+    }
     Ok((openai_image_url(image, media_type.as_deref()), detail))
 }
 
@@ -744,6 +751,12 @@ fn push_assistant_items(
         AssistantContent::Array(parts) => parts,
     };
     let first = items.len();
+    if parts.is_empty() {
+        items.push(message_item(
+            decisions::Role::Assistant,
+            decisions::DecisionInputContent::DecisionInputContentPartElementArray(Vec::new()),
+        ));
+    }
     let mut text = Vec::new();
     for part in parts {
         match part {
@@ -1237,6 +1250,29 @@ mod tests {
             )
         ));
         assert_eq!(from_universal(universal).unwrap(), request);
+    }
+
+    #[test]
+    fn preserves_empty_assistant_turns() {
+        let request = json!({"model":"gpt-6-luna","input":[{"role":"assistant","type":"message","content":[]}],"questions":[]});
+        assert_eq!(
+            from_universal(to_universal(request.clone()).unwrap()).unwrap(),
+            request
+        );
+    }
+
+    #[test]
+    fn rejects_raw_images_without_media_types() {
+        let request = serde_json::from_value(json!({"model":"gpt-6-luna","input":[{"role":"user","content":[{"type":"image","image":"AAAA"}]}],"questions":[]})).unwrap();
+        let error = from_universal(request).unwrap_err();
+        assert!(error.to_string().contains("media_type"), "{error}");
+    }
+
+    #[test]
+    fn rejects_unknown_nested_cache_options() {
+        let request = serde_json::from_value(json!({"model":"gpt-6-luna","input":"x","questions":[],"params":{"extras":{"decisions":{"prompt_cache_options":{"mod":"explicit"}}}}})).unwrap();
+        let error = from_universal(request).unwrap_err();
+        assert!(error.to_string().contains("mod"), "{error}");
     }
 
     #[test]

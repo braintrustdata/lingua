@@ -20,7 +20,9 @@ export const decisionCases: TestCaseCollection = {
     decisions: {
       model: OPENAI_DECISIONS_MODEL,
       input: "I was charged twice.",
-      questions: [{ type: "predicate", instructions: "Is this about billing?" }],
+      questions: [
+        { type: "predicate", instructions: "Is this about billing?" },
+      ],
       prompt_cache_options: { mode: "explicit", ttl: "30m" },
       safety_identifier: "support-grader",
     },
@@ -124,6 +126,8 @@ export const decisionCases: TestCaseCollection = {
         { role: "assistant", content: "Let me check the forecast." },
         {
           type: "function_call",
+          id: "fc_forecast_1",
+          status: "completed",
           call_id: "call_forecast_1",
           name: "get_forecast",
           arguments: '{"city":"Lisbon","day":"today"}',

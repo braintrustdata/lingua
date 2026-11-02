@@ -251,7 +251,10 @@ impl crate::providers::Provider for OpenAIProvider {
         if !response.status().is_success() {
             let status = response.status();
             let headers = response.headers().clone();
-            let text = response.text().await.unwrap_or_default();
+            let text = response
+                .text()
+                .await
+                .unwrap_or_else(|error| format!("failed to read response body: {error}"));
             return Err(Error::Provider {
                 provider: "openai".to_string(),
                 source: anyhow::anyhow!("HTTP {status}: {text}"),

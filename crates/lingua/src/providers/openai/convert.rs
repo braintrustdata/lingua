@@ -399,7 +399,7 @@ fn chat_completion_prompt_cache_breakpoint_from_cache_control(
     )
 }
 
-fn validate_openai_prompt_cache_ttl(
+pub(crate) fn validate_openai_prompt_cache_ttl(
     cache_control: Option<&CacheControl>,
     target: &'static str,
 ) -> Result<(), ConvertError> {

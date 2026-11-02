@@ -15,6 +15,8 @@
     },
     {
       "type": "function_call",
+      "id": "fc_forecast_1",
+      "status": "completed",
       "call_id": "call_forecast_1",
       "name": "get_forecast",
       "arguments": "{\"city\":\"Lisbon\",\"day\":\"today\"}"

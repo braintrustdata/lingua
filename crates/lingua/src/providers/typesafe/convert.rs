@@ -2,8 +2,7 @@
 Conversion between universal decision types and TypeSafe System One payloads.
 
 Text input becomes a string `state`. A conversation becomes
-`{"messages": [...]}`, with each message in Lingua's universal JSON form, since
-decision models read the state as text.
+`{"messages": [...]}`, using a stable transcript shape with plain tool arguments.
 Questions are keyed by name, or by index when unnamed. System One answers carry
 only those keys and choice names, so converting a response takes the request's
 questions to restore question order and typed choice values.
@@ -15,8 +14,8 @@ use crate::error::ConvertError;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart, UserContent,
-    UserContentPart,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
+    ToolContentPart, UserContent, UserContentPart,
 };
 use crate::universal::{
     DecisionAnswer, DecisionChoice, DecisionChoiceProbability, DecisionInput,
@@ -32,7 +31,45 @@ const TARGET: &str = "TypeSafe System One";
 
 #[derive(Serialize)]
 struct MessagesState<'a> {
-    messages: &'a [Message],
+    messages: Vec<StateMessage<'a>>,
+}
+
+#[derive(Serialize)]
+struct StateMessage<'a> {
+    role: &'static str,
+    content: StateContent<'a>,
+}
+
+#[derive(Serialize)]
+#[serde(untagged)]
+enum StateContent<'a> {
+    Text(&'a str),
+    Parts(Vec<StatePart<'a>>),
+}
+
+#[derive(Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+enum StatePart<'a> {
+    Text {
+        text: &'a str,
+    },
+    ToolCall {
+        tool_call_id: &'a str,
+        tool_name: &'a str,
+        arguments: StateArguments<'a>,
+    },
+    ToolResult {
+        tool_call_id: &'a str,
+        tool_name: &'a str,
+        output: &'a serde_json::Value,
+    },
+}
+
+#[derive(Serialize)]
+#[serde(untagged)]
+enum StateArguments<'a> {
+    Json(&'a serde_json::Map<String, serde_json::Value>),
+    Text(&'a str),
 }
 
 fn unsupported(from: impl Into<String>) -> ConvertError {
@@ -58,28 +95,32 @@ impl TryFromLLM<UniversalDecisionRequest> for SystemOneRequest {
     type Error = ConvertError;
 
     fn try_from(request: UniversalDecisionRequest) -> Result<Self, ConvertError> {
-        if request.params.prompt_cache_key.is_some() {
-            return Err(unsupported("Lingua decision prompt_cache_key"));
+        if request
+            .params
+            .extras
+            .get(&crate::ProviderFormat::TypeSafe)
+            .is_some_and(|extras| !extras.is_empty())
+        {
+            return Err(unsupported(
+                "TypeSafe options require HTTP headers; use the universal gateway endpoint",
+            ));
         }
         let model = request.model.ok_or_else(|| missing("model"))?;
         let state = match request.input {
             DecisionInput::Text(text) => TypeSafeEntry::Text(text),
-            DecisionInput::Messages(messages) => {
-                for (index, message) in messages.iter().enumerate() {
-                    validate_message(message, index)?;
-                }
-                TypeSafeEntry::Json(
-                    TypeSafeJson::from_serialize(&MessagesState {
-                        messages: &messages,
-                    })
-                    .map_err(|error| {
-                        ConvertError::JsonSerializationFailed {
-                            field: "state".into(),
-                            error: error.to_string(),
-                        }
-                    })?,
-                )
-            }
+            DecisionInput::Messages(messages) => TypeSafeEntry::Json(
+                TypeSafeJson::from_serialize(&MessagesState {
+                    messages: messages
+                        .iter()
+                        .enumerate()
+                        .map(|(index, message)| state_message(message, index))
+                        .collect::<Result<_, _>>()?,
+                })
+                .map_err(|error| ConvertError::JsonSerializationFailed {
+                    field: "state".into(),
+                    error: error.to_string(),
+                })?,
+            ),
         };
 
         let mut questions = IndexMap::with_capacity(request.questions.len());
@@ -146,102 +187,84 @@ fn validate_text(text: &TextContentPart, location: &str) -> Result<(), ConvertEr
     Ok(())
 }
 
-fn validate_user_content(content: &UserContent, location: &str) -> Result<(), ConvertError> {
-    let UserContent::Array(parts) = content else {
-        return Ok(());
-    };
-    for part in parts {
-        match part {
-            UserContentPart::Text(text) => validate_text(text, location)?,
-            UserContentPart::Image { .. } => {
-                return Err(unsupported(format!("{location} image content")));
-            }
-            UserContentPart::Audio { .. } => {
-                return Err(unsupported(format!("{location} audio content")));
-            }
-            UserContentPart::File { .. } => {
-                return Err(unsupported(format!("{location} file content")));
-            }
-        }
-    }
-    Ok(())
-}
-
-fn validate_message(message: &Message, index: usize) -> Result<(), ConvertError> {
-    let location = format!("Lingua message {index}");
-    match message {
-        Message::System { content }
-        | Message::Developer { content }
-        | Message::User { content } => validate_user_content(content, &location),
-        Message::Assistant { content, .. } => match content {
-            AssistantContent::Array(parts) => validate_assistant_parts(parts, &location),
-            AssistantContent::String(_) => Ok(()),
-        },
-        Message::Tool { content } => {
-            for part in content {
-                match part {
-                    ToolContentPart::ToolResult(result) => {
-                        if result.caller.is_some() || result.provider_options.is_some() {
-                            return Err(unsupported(format!(
-                                "{location} tool result caller or provider_options"
-                            )));
-                        }
-                    }
-                    ToolContentPart::ToolDiscoveryResult(_) => {
-                        return Err(unsupported(format!("{location} tool discovery result")));
-                    }
-                }
-            }
-            Ok(())
-        }
-        Message::AdditionalTools { .. } => Err(unsupported(format!("{location} additional_tools"))),
-    }
-}
-
-fn validate_assistant_parts(
-    parts: &[AssistantContentPart],
+fn state_user_content<'a>(
+    content: &'a UserContent,
     location: &str,
-) -> Result<(), ConvertError> {
-    for part in parts {
-        match part {
-            AssistantContentPart::Text(text) => validate_text(text, location)?,
-            AssistantContentPart::ToolCall {
-                caller,
-                encrypted_content,
-                provider_options,
-                provider_executed,
-                ..
-            } => {
-                if caller.is_some()
-                    || encrypted_content.is_some()
-                    || provider_options.is_some()
-                    || provider_executed.is_some()
-                {
-                    return Err(unsupported(format!(
-                        "{location} tool call caller, encrypted_content, provider_options, or provider_executed"
-                    )));
+) -> Result<StateContent<'a>, ConvertError> {
+    match content {
+        UserContent::String(text) => Ok(StateContent::Text(text)),
+        UserContent::Array(parts) => parts
+            .iter()
+            .map(|part| match part {
+                UserContentPart::Text(text) => {
+                    validate_text(text, location)?;
+                    Ok(StatePart::Text { text: &text.text })
                 }
-            }
-            AssistantContentPart::File { .. } => {
-                return Err(unsupported(format!("{location} file content")));
-            }
-            AssistantContentPart::Reasoning { .. } => {
-                return Err(unsupported(format!("{location} reasoning content")));
-            }
-            AssistantContentPart::Program { .. } | AssistantContentPart::ProgramOutput { .. } => {
-                return Err(unsupported(format!("{location} program content")));
-            }
-            AssistantContentPart::ToolDiscoveryCall { .. } => {
-                return Err(unsupported(format!("{location} tool discovery call")));
-            }
-            AssistantContentPart::ToolResult { .. } => {
-                return Err(unsupported(format!(
-                    "{location} tool result in an assistant message"
-                )));
-            }
-        }
+                UserContentPart::Image { .. } => {
+                    Err(unsupported(format!("{location} image content")))
+                }
+                UserContentPart::Audio { .. } => {
+                    Err(unsupported(format!("{location} audio content")))
+                }
+                UserContentPart::File { .. } => {
+                    Err(unsupported(format!("{location} file content")))
+                }
+            })
+            .collect::<Result<_, _>>()
+            .map(StateContent::Parts),
     }
-    Ok(())
+}
+
+fn state_message(message: &Message, index: usize) -> Result<StateMessage<'_>, ConvertError> {
+    let location = format!("Lingua message {index}");
+    let (role, content) = match message {
+        Message::System { content } => ("system", state_user_content(content, &location)?),
+        Message::Developer { content } => ("developer", state_user_content(content, &location)?),
+        Message::User { content } => ("user", state_user_content(content, &location)?),
+        Message::Assistant { content, .. } => ("assistant", match content {
+            AssistantContent::String(text) => StateContent::Text(text),
+            AssistantContent::Array(parts) => StateContent::Parts(parts.iter().map(|part| match part {
+                AssistantContentPart::Text(text) => {
+                    validate_text(text, &location)?;
+                    Ok(StatePart::Text { text: &text.text })
+                }
+                AssistantContentPart::ToolCall { tool_call_id, tool_name, arguments,
+                    caller, encrypted_content, provider_options, provider_executed, .. } => {
+                    if caller.is_some() || encrypted_content.is_some()
+                        || provider_options.is_some() || provider_executed.is_some() {
+                        return Err(unsupported(format!("{location} tool call caller, encrypted_content, provider_options, or provider_executed")));
+                    }
+                    Ok(StatePart::ToolCall {
+                        tool_call_id, tool_name,
+                        arguments: match arguments {
+                            ToolCallArguments::Valid(value) => StateArguments::Json(value),
+                            ToolCallArguments::Invalid(text) | ToolCallArguments::Custom(text) => StateArguments::Text(text),
+                        },
+                    })
+                }
+                AssistantContentPart::File { .. } => Err(unsupported(format!("{location} file content"))),
+                AssistantContentPart::Reasoning { .. } => Err(unsupported(format!("{location} reasoning content"))),
+                AssistantContentPart::Program { .. } | AssistantContentPart::ProgramOutput { .. } => Err(unsupported(format!("{location} program content"))),
+                AssistantContentPart::ToolDiscoveryCall { .. } => Err(unsupported(format!("{location} tool discovery call"))),
+                AssistantContentPart::ToolResult { .. } => Err(unsupported(format!("{location} tool result in an assistant message"))),
+            }).collect::<Result<_, _>>()?),
+        }),
+        Message::Tool { content } => ("tool", StateContent::Parts(content.iter().map(|part| match part {
+            ToolContentPart::ToolResult(result) => {
+                if result.caller.is_some() || result.provider_options.is_some() {
+                    return Err(unsupported(format!("{location} tool result caller or provider_options")));
+                }
+                Ok(StatePart::ToolResult {
+                    tool_call_id: &result.tool_call_id,
+                    tool_name: &result.tool_name,
+                    output: &result.output,
+                })
+            }
+            ToolContentPart::ToolDiscoveryResult(_) => Err(unsupported(format!("{location} tool discovery result"))),
+        }).collect::<Result<_, _>>()?)),
+        Message::AdditionalTools { .. } => return Err(unsupported(format!("{location} additional_tools"))),
+    };
+    Ok(StateMessage { role, content })
 }
 
 fn convert_instructions(instructions: UserContent) -> Result<TypeSafeEntry, ConvertError> {
@@ -303,6 +326,9 @@ pub fn system_one_response_to_universal(
     response: SystemOneResponse,
     questions: &[DecisionQuestion],
 ) -> Result<UniversalDecisionResponse, ConvertError> {
+    if response.answers.len() > questions.len() {
+        return Err(invalid("TypeSafe must return one answer per question"));
+    }
     let mut answers = Vec::with_capacity(questions.len());
     for (index, question) in questions.iter().enumerate() {
         let key = question_key(question, index);
@@ -345,6 +371,11 @@ fn convert_answer(
                 probabilities,
             },
         ) => {
+            if probabilities.len() > choices.len() {
+                return Err(invalid(
+                    "TypeSafe must return exactly one probability per choice",
+                ));
+            }
             let selected = choices
                 .iter()
                 .find(|candidate| choice_key(&candidate.value) == choice)
@@ -380,20 +411,27 @@ fn convert_answer(
                 probabilities,
                 ..
             },
-        ) => Ok(DecisionResult::Score {
-            score: *score,
-            confidence: Some(*confidence),
-            probabilities: (0u32..)
-                .zip(levels)
-                .map(|(level, score_level)| {
-                    Ok(DecisionLevelProbability {
-                        level,
-                        label: Some(score_level.label.clone()),
-                        probability: probability_for(probabilities, &level.to_string(), key)?,
+        ) => {
+            if probabilities.len() > levels.len() {
+                return Err(invalid(
+                    "TypeSafe must return exactly one probability per level",
+                ));
+            }
+            Ok(DecisionResult::Score {
+                score: *score,
+                confidence: Some(*confidence),
+                probabilities: (0u32..)
+                    .zip(levels)
+                    .map(|(level, score_level)| {
+                        Ok(DecisionLevelProbability {
+                            level,
+                            label: Some(score_level.label.clone()),
+                            probability: probability_for(probabilities, &level.to_string(), key)?,
+                        })
                     })
-                })
-                .collect::<Result<_, ConvertError>>()?,
-        }),
+                    .collect::<Result<_, ConvertError>>()?,
+            })
+        }
         (_, answer) => Err(invalid(format!(
             "TypeSafe returned a {} answer for {} question \"{key}\"",
             answer_type_name(answer),

@@ -491,6 +491,7 @@ impl Router {
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
         if output_format.is_decision()
             || route.format.is_decision()
+            || route.spec.flavor == ModelFlavor::Decisions
             || route
                 .provider
                 .provider_formats()
@@ -746,13 +747,6 @@ impl Router {
         } else {
             rewrite_body_model_if_required(body, input_format, &route.spec.model)
         };
-        let typesafe_params = if route.format == ProviderFormat::TypeSafe {
-            Some(lingua::serde_json::from_slice(&body).map_err(|error| {
-                Error::InvalidRequest(format!("invalid TypeSafe parameters: {error}"))
-            })?)
-        } else {
-            None
-        };
         let transformed = lingua::transform_decision_request(body, input_format, route.format)?;
         Ok((
             PreparedDecisionRequest {
@@ -763,7 +757,7 @@ impl Router {
                 payload: transformed.payload,
                 response_context: transformed.response_context,
                 strategy: self.retry_policy.strategy(),
-                typesafe_params,
+                typesafe_params: None,
             },
             RouterMetadata {
                 detected_input_format: input_format,
@@ -965,13 +959,26 @@ impl Router {
         output_format: ProviderFormat,
         fallback_aliases: &[String],
     ) -> Result<Vec<ProviderRoute>> {
-        let (spec, catalog_format, aliases, passthrough) = match self.resolver.resolve(model) {
+        let resolved = self.resolver.resolve(model);
+        let catalogued = !matches!(&resolved, Err(Error::UnknownModel(_)));
+        let (spec, catalog_format, aliases, passthrough) = match resolved {
             Ok((spec, format, aliases)) => (spec, format, aliases, false),
             Err(Error::UnknownModel(_)) if !model.is_empty() => {
+                let typesafe_model = model.strip_prefix("braintrust/").unwrap_or(model);
+                let is_typesafe = typesafe_model.starts_with("jev-");
+                let format = if is_typesafe {
+                    ProviderFormat::TypeSafe
+                } else {
+                    output_format
+                };
                 let spec = Arc::new(ModelSpec {
-                    model: model.to_string(),
-                    format: output_format,
-                    flavor: ModelFlavor::Unknown,
+                    model: if is_typesafe { typesafe_model } else { model }.to_string(),
+                    format,
+                    flavor: if is_typesafe {
+                        ModelFlavor::Decisions
+                    } else {
+                        ModelFlavor::Unknown
+                    },
                     display_name: None,
                     parent: None,
                     input_cost_per_mil_tokens: None,
@@ -981,25 +988,33 @@ impl Router {
                     reasoning: None,
                     max_input_tokens: None,
                     max_output_tokens: None,
-                    supports_streaming: true,
+                    supports_streaming: !is_typesafe,
                     extra: Default::default(),
                     available_providers: Vec::new(),
                 });
                 let mut seen = HashSet::new();
                 let aliases = self
                     .formats
-                    .get(&output_format)
+                    .get(&format)
                     .into_iter()
                     .chain(fallback_aliases)
                     .filter_map(|alias| self.matching_provider_alias(alias, alias))
+                    .filter(|alias| {
+                        !is_typesafe
+                            || self.providers.get(alias).is_some_and(|provider| {
+                                provider
+                                    .provider_formats()
+                                    .contains(&ProviderFormat::TypeSafe)
+                            })
+                    })
                     .filter(|alias| seen.insert(alias.clone()))
                     .collect();
-                (spec, output_format, aliases, true)
+                (spec, format, aliases, !is_typesafe)
             }
             Err(error) => return Err(error),
         };
         Self::validate_http_model(&spec)?;
-        if !passthrough && !fallback_aliases.is_empty() {
+        if catalogued && !passthrough && !fallback_aliases.is_empty() {
             return self.resolve_provider_routes_for_failover(
                 model,
                 output_format,
