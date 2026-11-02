@@ -5,7 +5,7 @@ pub mod spec;
 pub use fallback::OverlayModelCatalog;
 pub(crate) use resolver::is_gemini_api_model;
 pub use resolver::ModelResolver;
-pub use spec::{ModelFlavor, ModelSpec};
+pub use spec::{ModelFlavor, ModelSpec, PricingRate, TierPricing};
 
 use lingua::ProviderFormat;
 
@@ -420,6 +420,7 @@ mod tests {
                 input_cost_per_mil_tokens: None,
                 output_cost_per_mil_tokens: None,
                 input_cache_read_cost_per_mil_tokens: None,
+                pricing: None,
                 multimodal: None,
                 reasoning: None,
                 max_input_tokens: None,
@@ -491,6 +492,7 @@ mod tests {
                 input_cost_per_mil_tokens: None,
                 output_cost_per_mil_tokens: None,
                 input_cache_read_cost_per_mil_tokens: None,
+                pricing: None,
                 multimodal: None,
                 reasoning: None,
                 max_input_tokens: None,

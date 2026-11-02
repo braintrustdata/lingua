@@ -616,6 +616,7 @@ mod tests {
             input_cost_per_mil_tokens: None,
             output_cost_per_mil_tokens: None,
             input_cache_read_cost_per_mil_tokens: None,
+            pricing: None,
             multimodal: None,
             reasoning: None,
             max_input_tokens: None,
