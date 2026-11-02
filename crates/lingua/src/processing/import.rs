@@ -1,6 +1,8 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
-use crate::import_value::{Field, ImportValue, InputKind};
+use crate::import_value::Field;
+pub use crate::import_value::{ImportValue, InputKind};
 mod ai_sdk;
+pub use ai_sdk::try_import_ai_sdk_prompt_message;
 mod langchain;
 mod pydantic_ai;
 mod span;
@@ -105,8 +107,7 @@ fn try_converting_to_messages<V: ImportValue>(
                 .array()
                 .is_some_and(|mut items| items.any(|item| opaque_item_kind(&item).is_some())))
     {
-        return try_parse_mixed_messages_for_import(data.to_value().as_ref(), import)
-            .unwrap_or_default();
+        return try_parse_mixed_messages_for_import(data, import).unwrap_or_default();
     }
 
     if let Some(messages) = try_choices_array_parsing(data, import) {
@@ -270,8 +271,8 @@ fn is_role_message_array(data: &impl ImportValue) -> bool {
     })
 }
 
-fn provider_parsers_for_import<V: ImportValue>() -> Vec<MessageParser<V>> {
-    vec![
+fn provider_parsers_for_import<'a, V: ImportValue + 'a>() -> &'a [MessageParser<V>] {
+    &[
         #[cfg(feature = "openai")]
         try_parse_openai_for_import,
         #[cfg(feature = "anthropic")]
@@ -284,105 +285,23 @@ fn provider_parsers_for_import<V: ImportValue>() -> Vec<MessageParser<V>> {
 }
 
 fn try_parse_mixed_messages_for_import(
-    data: &Value,
+    data: &impl ImportValue,
     import: &mut MessageImport,
 ) -> Option<Vec<Message>> {
-    let items = data.as_array()?;
+    let items = data.array()?;
     let provider_parsers = provider_parsers_for_import();
+    let wrapped_provider_parsers = provider_parsers_for_import::<Value>();
     let mut messages = Vec::new();
     let errors_before = import.errors.len();
 
-    for (index, item) in items.iter().enumerate() {
-        let kind = if import.options.preserve_unsupported {
-            opaque_item_kind(item)
-        } else {
-            None
-        };
-        if kind.is_some() {
-            if !import.discard_opaque {
-                import.opaque.push(OpaqueItem {
-                    index: Some(index),
-                    value: item.clone(),
-                    kind,
-                    is_metadata: false,
-                });
-            }
-            continue;
-        }
-        // Native Anthropic thinking blocks must use the canonical parser so adjacent text
-        // metadata survives. Keep the existing parser order for every other role message.
-        #[cfg(feature = "anthropic")]
-        let mut parsed_messages = try_parse_anthropic_for_import(item)
-            .or_else(|| {
-                let wrapped_item = Value::Array(vec![item.clone()]);
-                try_parse_anthropic_for_import(&wrapped_item)
-            })
-            .filter(|messages| {
-                messages.iter().any(|message| {
-                    matches!(
-                        message,
-                        Message::Assistant {
-                            content: AssistantContent::Array(parts),
-                            ..
-                        } if parts.iter().any(|part| {
-                            matches!(part, AssistantContentPart::Reasoning { .. })
-                        })
-                    )
-                })
-            });
-        #[cfg(not(feature = "anthropic"))]
-        let mut parsed_messages = None;
-
-        #[cfg(feature = "openai")]
-        if parsed_messages.is_none() {
-            parsed_messages =
-                try_parse_reasoning_assistant_message(item).map(|message| vec![message]);
-        }
-
-        if parsed_messages.is_none() {
-            parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
-                let wrapped_item = Value::Array(vec![item.clone()]);
-                try_parsers_in_order(&wrapped_item, &provider_parsers)
-            });
-        }
-
-        if parsed_messages.is_none() {
-            parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
-        }
-
-        #[cfg(feature = "openai")]
-        if parsed_messages.is_none() && import.options.preserve_unsupported {
-            if let Some((messages, warning)) =
-                try_parse_responses_with_opaque_metadata_for_import(item)
-            {
-                parsed_messages = Some(messages);
-                import
-                    .warnings
-                    .push(format!("Message item {index}: {warning}"));
-                import.opaque.push(OpaqueItem {
-                    index: Some(index),
-                    value: item.clone(),
-                    kind: None,
-                    is_metadata: true,
-                });
-            }
-        }
-
-        let Some(mut parsed_messages) = parsed_messages else {
-            import
-                .errors
-                .push(format!("Unsupported message item at index {index}"));
-            if import.options.preserve_unsupported {
-                import.opaque.push(OpaqueItem {
-                    index: Some(index),
-                    value: item.clone(),
-                    kind: None,
-                    is_metadata: false,
-                });
-            }
-            continue;
-        };
-        messages.append(&mut parsed_messages);
+    for (index, item) in items.enumerate() {
+        messages.extend(import_mixed_message_item(
+            &item,
+            index,
+            import,
+            provider_parsers,
+            wrapped_provider_parsers,
+        ));
     }
 
     if import.errors.len() != errors_before && !import.options.preserve_unsupported {
@@ -394,10 +313,127 @@ fn try_parse_mixed_messages_for_import(
     }
 }
 
-fn try_parse_provider_messages_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let provider_parsers = provider_parsers_for_import();
+/// Imports one role-bearing item using the mixed role-array parser.
+///
+/// Concatenating per-item results matches sequence import through
+/// [`import_messages_from_values`] or [`import_messages_from_spans`] when every
+/// array item has a string `role`. This uses `preserve_unsupported: true` behavior:
+/// unsupported items yield no messages while supported items are retained.
+/// With [`import_span_with_options`] and `preserve_unsupported: false`, one
+/// unsupported item rejects the whole array instead.
+pub fn import_role_message_from_value(data: &impl ImportValue) -> Vec<Message> {
+    let mut import = MessageImport {
+        options: ImportOptions {
+            preserve_unsupported: true,
+        },
+        discard_opaque: true,
+        ..Default::default()
+    };
+    import_mixed_message_item(
+        data,
+        0,
+        &mut import,
+        provider_parsers_for_import(),
+        provider_parsers_for_import::<Value>(),
+    )
+}
 
-    try_parsers_in_order(data, &provider_parsers)
+fn import_mixed_message_item<V: ImportValue>(
+    item: &V,
+    index: usize,
+    import: &mut MessageImport,
+    provider_parsers: &[MessageParser<V>],
+    wrapped_provider_parsers: &[MessageParser<Value>],
+) -> Vec<Message> {
+    let kind = if import.options.preserve_unsupported {
+        opaque_item_kind(item)
+    } else {
+        None
+    };
+    if kind.is_some() {
+        if !import.discard_opaque {
+            import.opaque.push(OpaqueItem {
+                index: Some(index),
+                value: item.to_value().into_owned(),
+                kind,
+                is_metadata: false,
+            });
+        }
+        return Vec::new();
+    }
+    // Native Anthropic thinking blocks must use the canonical parser so adjacent text
+    // metadata survives. Keep the existing parser order for every other role message.
+    #[cfg(feature = "anthropic")]
+    let mut parsed_messages = try_parse_anthropic_for_import(item).filter(|messages| {
+        messages.iter().any(|message| {
+            matches!(
+                message,
+                Message::Assistant {
+                    content: AssistantContent::Array(parts),
+                    ..
+                } if parts.iter().any(|part| {
+                    matches!(part, AssistantContentPart::Reasoning { .. })
+                })
+            )
+        })
+    });
+    #[cfg(not(feature = "anthropic"))]
+    let mut parsed_messages = None;
+
+    #[cfg(feature = "openai")]
+    if parsed_messages.is_none() {
+        parsed_messages = try_parse_reasoning_assistant_message(item).map(|message| vec![message]);
+    }
+
+    if parsed_messages.is_none() {
+        parsed_messages = try_parsers_in_order(item, provider_parsers).or_else(|| {
+            let wrapped_item = Value::Array(vec![item.to_value().into_owned()]);
+            try_parsers_in_order(&wrapped_item, wrapped_provider_parsers)
+        });
+    }
+
+    if parsed_messages.is_none() {
+        parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
+    }
+
+    #[cfg(feature = "openai")]
+    if parsed_messages.is_none() && import.options.preserve_unsupported {
+        if let Some((messages, warning)) = try_parse_responses_with_opaque_metadata_for_import(item)
+        {
+            parsed_messages = Some(messages);
+            import
+                .warnings
+                .push(format!("Message item {index}: {warning}"));
+            if !import.discard_opaque {
+                import.opaque.push(OpaqueItem {
+                    index: Some(index),
+                    value: item.to_value().into_owned(),
+                    kind: None,
+                    is_metadata: true,
+                });
+            }
+        }
+    }
+
+    let Some(parsed_messages) = parsed_messages else {
+        import
+            .errors
+            .push(format!("Unsupported message item at index {index}"));
+        if import.options.preserve_unsupported && !import.discard_opaque {
+            import.opaque.push(OpaqueItem {
+                index: Some(index),
+                value: item.to_value().into_owned(),
+                kind: None,
+                is_metadata: false,
+            });
+        }
+        return Vec::new();
+    };
+    parsed_messages
+}
+
+fn try_parse_provider_messages_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
+    try_parsers_in_order(data, provider_parsers_for_import())
 }
 
 #[cfg(feature = "anthropic")]
@@ -609,13 +645,13 @@ enum ReasoningAssistantRole {
 }
 
 #[cfg(feature = "openai")]
-fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
+fn try_parse_reasoning_assistant_message(item: &impl ImportValue) -> Option<Message> {
     let ReasoningAssistantMessageCompat {
         _role: _,
         content,
         tool_calls,
         reasoning_signature,
-    } = ReasoningAssistantMessageCompat::deserialize(item).ok()?;
+    } = item.parse::<ReasoningAssistantMessageCompat>()?;
 
     if !content.iter().any(|part| {
         matches!(
@@ -666,36 +702,50 @@ enum LenientToolContentPartCompat {
     },
 }
 
-fn parse_lenient_message_item(item: &Value) -> Option<Message> {
-    let obj = item.as_object()?;
-    let role_str = obj.get("role")?.as_str()?;
-    let content_value = obj.get("content")?;
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum LenientMessageRole {
+    User,
+    System,
+    Developer,
+    Assistant,
+    Tool,
+}
 
-    match role_str {
-        "user" => Some(Message::User {
+#[derive(Deserialize)]
+struct LenientMessageCompat {
+    role: LenientMessageRole,
+    content: Value,
+}
+
+fn parse_lenient_message_item(item: &impl ImportValue) -> Option<Message> {
+    let parsed = item.parse::<LenientMessageCompat>()?;
+    let content_value = &parsed.content;
+
+    match parsed.role {
+        LenientMessageRole::User => Some(Message::User {
             content: parse_user_content(content_value)?,
         }),
-        "system" => Some(Message::System {
+        LenientMessageRole::System => Some(Message::System {
             content: parse_user_content(content_value)?,
         }),
-        "developer" => Some(Message::Developer {
+        LenientMessageRole::Developer => Some(Message::Developer {
             content: parse_user_content(content_value)?,
         }),
-        "assistant" => Some(Message::Assistant {
+        LenientMessageRole::Assistant => Some(Message::Assistant {
             content: parse_assistant_content(content_value)?,
             id: None,
         }),
-        "tool" => parse_lenient_tool_message(item, content_value),
-        _ => None,
+        LenientMessageRole::Tool => parse_lenient_tool_message(item, content_value),
     }
 }
 
-fn parse_lenient_tool_message(item: &Value, content_value: &Value) -> Option<Message> {
+fn parse_lenient_tool_message(item: &impl ImportValue, content_value: &Value) -> Option<Message> {
     if let Some(content) = parse_tool_content(content_value) {
         return Some(Message::Tool { content });
     }
 
-    let parsed = LenientToolMessageCompat::deserialize(item).ok()?;
+    let parsed = item.parse::<LenientToolMessageCompat>()?;
     let tool_call_id = parsed.tool_call_id?;
     let tool_name = parsed.name.unwrap_or_default();
 
@@ -1067,11 +1117,27 @@ fn import_span_messages(
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-pub(crate) fn import_messages_from_values<V: ImportValue>(
-    input: &V,
-    output: &V,
+/// Import owned messages from caller-provided values, discarding unsupported payloads.
+///
+/// Metadata can be omitted with `None`. Use [`import_messages_from_values_with_metadata`]
+/// to deserialize metadata through a caller-provided [`ImportValue`] implementation.
+pub fn import_messages_from_values<I: ImportValue, O: ImportValue>(
+    input: &I,
+    output: &O,
     metadata: Option<&Value>,
+) -> Vec<Message> {
+    import_messages_from_values_with_metadata(input, output, metadata)
+}
+
+/// Import owned messages and metadata through caller-provided deserializers.
+///
+/// Unrecognized values, including strings that fail deserialization, are omitted.
+/// Returned messages do not borrow from the inputs; their storage can be released
+/// after import. Unsupported payloads and parse diagnostics are discarded.
+pub fn import_messages_from_values_with_metadata<I: ImportValue, O: ImportValue, M: ImportValue>(
+    input: &I,
+    output: &O,
+    metadata: Option<&M>,
 ) -> Vec<Message> {
     let mut import = MessageImport {
         options: ImportOptions {
@@ -1080,16 +1146,20 @@ pub(crate) fn import_messages_from_values<V: ImportValue>(
         discard_opaque: true,
         ..Default::default()
     };
-    let parse = |value: &V, import: &mut MessageImport| {
-        if opaque_item_kind(value).is_some() {
+    fn parse(value: &impl ImportValue, import: &mut MessageImport) -> Vec<Message> {
+        if value.array().is_some_and(|items| items.len() == 0) || opaque_item_kind(value).is_some()
+        {
             return Vec::new();
         }
         try_converting_to_messages(value, import)
-    };
+    }
     let mut input = if input.kind() == InputKind::String {
-        vec![Message::User {
-            content: UserContent::String(input.parse::<String>().expect("string input")),
-        }]
+        match input.parse::<String>() {
+            Some(text) => vec![Message::User {
+                content: UserContent::String(text),
+            }],
+            None => Vec::new(),
+        }
     } else {
         parse(input, &mut import)
     };
@@ -1103,14 +1173,12 @@ pub(crate) fn import_messages_from_values<V: ImportValue>(
         }
     }
     let output = if output.kind() == InputKind::String {
-        let text = output.parse::<String>().expect("string output");
-        if text.is_empty() {
-            Vec::new()
-        } else {
-            vec![Message::Assistant {
+        match output.parse::<String>() {
+            Some(text) if !text.is_empty() => vec![Message::Assistant {
                 content: AssistantContent::String(text),
                 id: None,
-            }]
+            }],
+            _ => Vec::new(),
         }
     } else {
         parse(output, &mut import)

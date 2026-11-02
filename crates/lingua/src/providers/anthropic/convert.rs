@@ -1887,7 +1887,7 @@ fn try_messages_from_anthropic_response(response: generated::Message) -> Option<
 }
 
 fn try_parse_input_messages_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let messages = try_parse::<Vec<generated::InputMessage>>(data)?;
+    let messages = try_parse_vec_or_single::<generated::InputMessage>(data)?;
     anthropic_input_messages_to_universal_messages(messages).ok()
 }
 
