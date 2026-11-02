@@ -21,6 +21,7 @@ pub enum Message {
     },
     Assistant {
         content: AssistantContent,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
         id: Option<String>,
     },
