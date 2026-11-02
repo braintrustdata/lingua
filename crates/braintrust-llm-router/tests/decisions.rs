@@ -56,7 +56,7 @@ fn router_with(base: Url, configure: impl FnOnce(&mut TypeSafeConfig)) -> Router
             spec(
                 model,
                 ProviderFormat::TypeSafe,
-                ModelFlavor::Evaluation,
+                ModelFlavor::Decisions,
                 "typesafe",
             ),
         );
