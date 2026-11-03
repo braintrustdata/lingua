@@ -13,8 +13,53 @@ const NO_CHAT_PROVIDERS = {
 const GRADER_SYSTEM_PROMPT =
   "You grade a support agent's replies. Judge only what the agent wrote.";
 
+const DECISION_IMAGE =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
 // Decision test cases - the shapes scorers send to decision models
 export const decisionCases: TestCaseCollection = {
+  decisionImageInputRequest: {
+    ...NO_CHAT_PROVIDERS,
+    decisions: {
+      model: OPENAI_DECISIONS_MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: "Inspect this image." },
+            {
+              type: "input_image",
+              image_url: `data:image/png;base64,${DECISION_IMAGE}`,
+            },
+          ],
+        },
+      ],
+      questions: [
+        {
+          type: "predicate",
+          name: "green",
+          instructions: "Is the image green?",
+        },
+      ],
+    },
+    typesafe: {
+      model: TYPESAFE_MODEL,
+      state: [
+        { type: "text", text: "Inspect this image." },
+        { type: "image", image: "__lingua_image_0__" },
+      ],
+      assets: {
+        __lingua_image_0__: {
+          type: "image",
+          format: "png",
+          data_base64: DECISION_IMAGE,
+        },
+      },
+      questions: {
+        green: { type: "noul", instructions: "Is the image green?" },
+      },
+    },
+  },
   decisionCacheOptionsRequest: {
     ...NO_CHAT_PROVIDERS,
     decisions: {

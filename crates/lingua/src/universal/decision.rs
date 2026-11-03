@@ -71,12 +71,12 @@ impl DecisionParams {
     }
 }
 
-/// The content a decision is about: text, or a conversation.
+/// The content a decision is about, or a conversation to evaluate.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(untagged)]
 pub enum DecisionInput {
-    Text(String),
+    Content(UserContent),
     Messages(Vec<Message>),
 }
 

@@ -9,7 +9,9 @@ questions to restore question order and typed choice values.
 */
 
 use super::entry::{TypeSafeEntry, TypeSafeJson};
-use super::generated::{Answer, Question, SystemOneRequest, SystemOneResponse};
+use super::generated::{
+    Answer, Asset, Format, Question, SystemOneRequest, SystemOneResponse, Type,
+};
 use crate::error::ConvertError;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
@@ -23,6 +25,7 @@ use crate::universal::{
     DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
     UniversalUsage,
 };
+use crate::util::media::parse_base64_data_url;
 use indexmap::IndexMap;
 use serde::Serialize;
 use std::borrow::Cow;
@@ -53,6 +56,9 @@ enum StatePart<'a> {
     Text {
         text: &'a str,
     },
+    Image {
+        image: String,
+    },
     ToolCall {
         tool_call_id: &'a str,
         tool_name: &'a str,
@@ -70,6 +76,104 @@ enum StatePart<'a> {
 enum StateArguments<'a> {
     Json(&'a serde_json::Map<String, serde_json::Value>),
     Text(&'a str),
+}
+
+struct ImageAssets {
+    prefix: String,
+    values: IndexMap<String, Asset>,
+}
+
+impl ImageAssets {
+    fn new(request: &UniversalDecisionRequest) -> Result<Self, ConvertError> {
+        let has_images = |content: &UserContent| {
+            matches!(content,
+                UserContent::Array(parts) if parts.iter().any(|part| matches!(part, UserContentPart::Image { .. }))
+            )
+        };
+        let mut prefix = "__lingua_image_".to_string();
+        let input_has_images = match &request.input {
+            DecisionInput::Content(content) => has_images(content),
+            DecisionInput::Messages(messages) => messages.iter().any(|message| match message {
+                Message::System { content }
+                | Message::Developer { content }
+                | Message::User { content } => has_images(content),
+                _ => false,
+            }),
+        };
+        if input_has_images
+            || request
+                .questions
+                .iter()
+                .any(|question| has_images(&question.instructions))
+        {
+            let source = serde_json::to_string(request).map_err(|error| {
+                ConvertError::JsonSerializationFailed {
+                    field: "decision request".into(),
+                    error: error.to_string(),
+                }
+            })?;
+            while source.contains(&prefix) {
+                prefix.push('_');
+            }
+        }
+        Ok(Self {
+            prefix,
+            values: IndexMap::new(),
+        })
+    }
+
+    fn insert(
+        &mut self,
+        image: &serde_json::Value,
+        media_type: Option<&str>,
+    ) -> Result<String, ConvertError> {
+        let serde_json::Value::String(image) = image else {
+            return Err(unsupported(
+                "Lingua image content that is not a base64 string",
+            ));
+        };
+        if image.starts_with("http://") || image.starts_with("https://") {
+            return Err(unsupported(
+                "remote image content; TypeSafe requires inline PNG/JPEG data",
+            ));
+        }
+        let block = parse_base64_data_url(image);
+        if image.starts_with("data:") && block.is_none() {
+            return Err(invalid("invalid image data URL"));
+        }
+        let (data, media_type): (&str, &str) = match &block {
+            Some(block) => {
+                if media_type.is_some_and(|media_type| media_type != block.media_type) {
+                    return Err(invalid("image media_type does not match its data URL"));
+                }
+                (block.data.as_ref(), block.media_type.as_ref())
+            }
+            None => (
+                image.as_ref(),
+                media_type.ok_or_else(|| missing("media_type for raw base64 image"))?,
+            ),
+        };
+        let format = match media_type {
+            "image/png" => Format::Png,
+            "image/jpeg" => Format::Jpeg,
+            _ => {
+                return Err(unsupported(format!(
+                    "image media type {media_type}; TypeSafe supports PNG/JPEG"
+                )))
+            }
+        };
+        let placeholder = format!("{}{}__", self.prefix, self.values.len());
+        self.values.insert(
+            placeholder.clone(),
+            Asset {
+                data_base64: Some(data.to_string()),
+                format: Some(format),
+                part: None,
+                type_: Some(Type::Image),
+            },
+        );
+        Ok(placeholder)
+    }
 }
 
 fn unsupported(from: impl Into<String>) -> ConvertError {
@@ -105,15 +209,27 @@ impl TryFromLLM<UniversalDecisionRequest> for SystemOneRequest {
                 "TypeSafe options require HTTP headers; use the universal gateway endpoint",
             ));
         }
+        let mut assets = ImageAssets::new(&request)?;
         let model = request.model.ok_or_else(|| missing("model"))?;
         let state = match request.input {
-            DecisionInput::Text(text) => TypeSafeEntry::Text(text),
+            DecisionInput::Content(UserContent::String(text)) => TypeSafeEntry::Text(text),
+            DecisionInput::Content(content) => TypeSafeEntry::Json(
+                TypeSafeJson::from_serialize(&state_user_content(
+                    &content,
+                    "Lingua decision input",
+                    &mut assets,
+                )?)
+                .map_err(|error| ConvertError::JsonSerializationFailed {
+                    field: "state".into(),
+                    error: error.to_string(),
+                })?,
+            ),
             DecisionInput::Messages(messages) => TypeSafeEntry::Json(
                 TypeSafeJson::from_serialize(&MessagesState {
                     messages: messages
                         .iter()
                         .enumerate()
-                        .map(|(index, message)| state_message(message, index))
+                        .map(|(index, message)| state_message(message, index, &mut assets))
                         .collect::<Result<_, _>>()?,
                 })
                 .map_err(|error| ConvertError::JsonSerializationFailed {
@@ -131,7 +247,7 @@ impl TryFromLLM<UniversalDecisionRequest> for SystemOneRequest {
                     "question name \"{key}\" is not unique; TypeSafe identifies answers by question name"
                 )));
             }
-            let instructions = Some(convert_instructions(question.instructions)?);
+            let instructions = Some(convert_instructions(question.instructions, &mut assets)?);
             let question = match question.kind {
                 DecisionQuestionKind::Predicate => Question::Noul {
                     instructions,
@@ -150,7 +266,7 @@ impl TryFromLLM<UniversalDecisionRequest> for SystemOneRequest {
         }
 
         Ok(SystemOneRequest {
-            assets: IndexMap::new(),
+            assets: assets.values,
             model,
             questions,
             state,
@@ -190,6 +306,7 @@ fn validate_text(text: &TextContentPart, location: &str) -> Result<(), ConvertEr
 fn state_user_content<'a>(
     content: &'a UserContent,
     location: &str,
+    assets: &mut ImageAssets,
 ) -> Result<StateContent<'a>, ConvertError> {
     match content {
         UserContent::String(text) => Ok(StateContent::Text(text)),
@@ -200,8 +317,17 @@ fn state_user_content<'a>(
                     validate_text(text, location)?;
                     Ok(StatePart::Text { text: &text.text })
                 }
-                UserContentPart::Image { .. } => {
-                    Err(unsupported(format!("{location} image content")))
+                UserContentPart::Image {
+                    image,
+                    media_type,
+                    provider_options,
+                } => {
+                    if provider_options.is_some() {
+                        return Err(unsupported(format!("{location} image provider_options")));
+                    }
+                    Ok(StatePart::Image {
+                        image: assets.insert(image, media_type.as_deref())?,
+                    })
                 }
                 UserContentPart::Audio { .. } => {
                     Err(unsupported(format!("{location} audio content")))
@@ -215,12 +341,16 @@ fn state_user_content<'a>(
     }
 }
 
-fn state_message(message: &Message, index: usize) -> Result<StateMessage<'_>, ConvertError> {
+fn state_message<'a>(
+    message: &'a Message,
+    index: usize,
+    assets: &mut ImageAssets,
+) -> Result<StateMessage<'a>, ConvertError> {
     let location = format!("Lingua message {index}");
     let (role, content) = match message {
-        Message::System { content } => ("system", state_user_content(content, &location)?),
-        Message::Developer { content } => ("developer", state_user_content(content, &location)?),
-        Message::User { content } => ("user", state_user_content(content, &location)?),
+        Message::System { content } => ("system", state_user_content(content, &location, assets)?),
+        Message::Developer { content } => ("developer", state_user_content(content, &location, assets)?),
+        Message::User { content } => ("user", state_user_content(content, &location, assets)?),
         Message::Assistant { content, .. } => ("assistant", match content {
             AssistantContent::String(text) => StateContent::Text(text),
             AssistantContent::Array(parts) => StateContent::Parts(parts.iter().map(|part| match part {
@@ -270,7 +400,10 @@ fn state_message(message: &Message, index: usize) -> Result<StateMessage<'_>, Co
     Ok(StateMessage { role, content })
 }
 
-fn convert_instructions(instructions: UserContent) -> Result<TypeSafeEntry, ConvertError> {
+fn convert_instructions(
+    instructions: UserContent,
+    assets: &mut ImageAssets,
+) -> Result<TypeSafeEntry, ConvertError> {
     match instructions {
         UserContent::String(text) => Ok(TypeSafeEntry::Text(text)),
         UserContent::Array(parts) => parts
@@ -280,8 +413,19 @@ fn convert_instructions(instructions: UserContent) -> Result<TypeSafeEntry, Conv
                     validate_text(&text, "Lingua decision instructions")?;
                     Ok(serde_json::Value::String(text.text))
                 }
-                UserContentPart::Image { .. } => {
-                    Err(unsupported("Lingua decision instruction images"))
+                UserContentPart::Image {
+                    image,
+                    media_type,
+                    provider_options,
+                } => {
+                    if provider_options.is_some() {
+                        return Err(unsupported(
+                            "Lingua decision instruction image provider_options",
+                        ));
+                    }
+                    Ok(serde_json::Value::String(
+                        assets.insert(&image, media_type.as_deref())?,
+                    ))
                 }
                 UserContentPart::Audio { .. } | UserContentPart::File { .. } => {
                     Err(unsupported("Lingua decision instruction audio or files"))

@@ -119,6 +119,8 @@ exports[`decisions → typesafe > decisionConversationRequest > response 1`] = `
 }
 `;
 
+exports[`decisions → typesafe > decisionImageInputRequest > request 1`] = `"{"assets":{"__lingua_image_0__":{"data_base64":"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==","format":"png","type":"image"}},"model":"jev-latest","questions":{"green":{"type":"noul","instructions":"Is the image green?"}},"state":{"messages":[{"role":"user","content":[{"type":"text","text":"Inspect this image."},{"type":"image","image":"__lingua_image_0__"}]}]}}"`;
+
 exports[`decisions → typesafe > decisionMixedQuestionsRequest > request 1`] = `"{"model":"jev-latest","questions":{"0":{"type":"noul","instructions":"Is the answer correct?"},"shows_work":{"type":"choice","criteria":{"true":null,"false":null},"instructions":"Does the answer show how it was computed?"},"2":{"type":"score","criteria":["verbose","ok","concise"],"instructions":["Rate how concise the answer is."]}},"state":{"messages":[{"role":"user","content":[{"type":"text","text":"Question: What is 15% of 80?\\nAnswer: 15% of 80 is 12."}]}]}}"`;
 
 exports[`decisions → typesafe > decisionMixedQuestionsRequest > response 1`] = `

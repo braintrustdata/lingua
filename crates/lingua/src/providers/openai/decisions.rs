@@ -91,7 +91,9 @@ impl TryFromLLM<decisions::DecisionRequest> for UniversalDecisionRequest {
 
     fn try_from(request: decisions::DecisionRequest) -> Result<Self, Self::Error> {
         let input = match request.input {
-            decisions::DecisionInput::PurpleString(text) => DecisionInput::Text(text),
+            decisions::DecisionInput::PurpleString(text) => {
+                DecisionInput::Content(UserContent::String(text))
+            }
             decisions::DecisionInput::DecisionInputMessageArray(items) => {
                 let mut messages = Vec::with_capacity(items.len());
                 for (index, item) in items.into_iter().enumerate() {
@@ -548,7 +550,14 @@ impl TryFromLLM<UniversalDecisionRequest> for decisions::DecisionRequest {
             .map_err(|error| invalid(format!("invalid OpenAI Decisions options: {error}")))?
             .unwrap_or_default();
         let input = match request.input {
-            DecisionInput::Text(text) => decisions::DecisionInput::PurpleString(text),
+            DecisionInput::Content(UserContent::String(text)) => {
+                decisions::DecisionInput::PurpleString(text)
+            }
+            DecisionInput::Content(content) => {
+                let mut items = Vec::with_capacity(1);
+                push_items_from_message(Message::User { content }, &mut items)?;
+                decisions::DecisionInput::DecisionInputMessageArray(items)
+            }
             DecisionInput::Messages(messages) => {
                 let mut items = Vec::with_capacity(messages.len());
                 for message in messages {
@@ -1253,6 +1262,34 @@ mod tests {
             )
         ));
         assert_eq!(from_universal(universal).unwrap(), request);
+    }
+
+    #[test]
+    fn wraps_direct_content_only_at_the_openai_boundary() {
+        let request: UniversalDecisionRequest = serde_json::from_value(json!({
+            "model": "gpt-6-luna",
+            "input": [
+                {"type": "text", "text": "Inspect this image."},
+                {"type": "image", "image": "aW1hZ2U=", "media_type": "image/png"}
+            ],
+            "questions": [{"type": "predicate", "instructions": "Is it green?"}]
+        }))
+        .unwrap();
+        assert!(matches!(
+            request.input,
+            DecisionInput::Content(UserContent::Array(_))
+        ));
+        assert_eq!(
+            from_universal(request).unwrap(),
+            json!({
+                "model": "gpt-6-luna",
+                "input": [{"type": "message", "role": "user", "content": [
+                    {"type": "input_text", "text": "Inspect this image."},
+                    {"type": "input_image", "image_url": "data:image/png;base64,aW1hZ2U="}
+                ]}],
+                "questions": [{"type": "predicate", "instructions": "Is it green?"}]
+            })
+        );
     }
 
     #[test]

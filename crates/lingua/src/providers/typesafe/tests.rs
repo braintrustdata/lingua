@@ -296,10 +296,10 @@ fn rejects_requests_system_one_cannot_represent() {
                 json!([{"role": "assistant", "content": "x", "phase": "commentary"}]);
             request
         }),
-        ("instruction images", {
+        ("image media type image/gif", {
             let mut request = base();
             request["questions"][0]["instructions"] =
-                json!([{"type": "input_image", "image_url": "data:image/png;base64,AA=="}]);
+                json!([{"type": "input_image", "image_url": "data:image/gif;base64,AA=="}]);
             request
         }),
         ("not unique", {
@@ -481,4 +481,66 @@ fn rejects_unfinished_tool_calls() {
             "{error}"
         );
     }
+}
+
+#[test]
+fn converts_content_and_conversation_images_to_assets() {
+    let content = json!([
+        {"type": "text", "text": "Compare these images."},
+        {"type": "image", "image": "data:image/png;base64,cG5n"},
+        {"type": "image", "image": "anBlZw==", "media_type": "image/jpeg"}
+    ]);
+    for input in [
+        content.clone(),
+        json!([{"role": "user", "content": content}]),
+    ] {
+        let conversation = input[0]["role"] == "user";
+        let request: UniversalDecisionRequest = serde_json::from_value(json!({
+            "model": "jev-latest",
+            "input": input,
+            "questions": [{"type": "predicate", "name": "q", "instructions": [
+                {"type": "text", "text": "Does the first image match this reference?"},
+                {"type": "image", "image": "data:image/png;base64,cmVm"}
+            ]}]
+        }))
+        .unwrap();
+        let native: SystemOneRequest = TryFromLLM::try_from(request).unwrap();
+        let state = json!([
+            {"type": "text", "text": "Compare these images."},
+            {"type": "image", "image": "__lingua_image_0__"},
+            {"type": "image", "image": "__lingua_image_1__"}
+        ]);
+        assert_eq!(
+            serde_json::to_value(native).unwrap(),
+            json!({
+                "model": "jev-latest",
+                "state": if conversation { json!({"messages": [{"role": "user", "content": state}]}) } else { state },
+                "assets": {
+                    "__lingua_image_0__": {"type": "image", "format": "png", "data_base64": "cG5n"},
+                    "__lingua_image_1__": {"type": "image", "format": "jpeg", "data_base64": "anBlZw=="},
+                    "__lingua_image_2__": {"type": "image", "format": "png", "data_base64": "cmVm"}
+                },
+                "questions": {"q": {"type": "noul", "instructions": [
+                    "Does the first image match this reference?", "__lingua_image_2__"
+                ]}}
+            })
+        );
+    }
+}
+
+#[test]
+fn image_placeholders_do_not_replace_user_text() {
+    let request: UniversalDecisionRequest = serde_json::from_value(json!({
+        "model": "jev-latest",
+        "input": [{"type": "image", "image": "data:image/png;base64,cG5n"}],
+        "questions": [{"type": "predicate", "instructions": "Ignore the literal __lingua_image_0__."}]
+    })).unwrap();
+    let native: SystemOneRequest = TryFromLLM::try_from(request).unwrap();
+    assert!(native.assets.contains_key("__lingua_image__0__"));
+    assert_eq!(
+        serde_json::to_value(native.state).unwrap(),
+        json!([
+            {"type": "image", "image": "__lingua_image__0__"}
+        ])
+    );
 }

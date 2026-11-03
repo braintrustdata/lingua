@@ -1,0 +1,26 @@
+{
+  "model": "jev-latest",
+  "state": [
+    {
+      "type": "text",
+      "text": "Inspect this image."
+    },
+    {
+      "type": "image",
+      "image": "__lingua_image_0__"
+    }
+  ],
+  "assets": {
+    "__lingua_image_0__": {
+      "type": "image",
+      "format": "png",
+      "data_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    }
+  },
+  "questions": {
+    "green": {
+      "type": "noul",
+      "instructions": "Is the image green?"
+    }
+  }
+}

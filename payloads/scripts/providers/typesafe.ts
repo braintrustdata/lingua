@@ -37,6 +37,7 @@ export async function callTypeSafe(
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "TypeSafe-Danger-Zone-Images": "true",
       },
       body,
     }

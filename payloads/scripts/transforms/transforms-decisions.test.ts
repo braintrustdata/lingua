@@ -13,18 +13,20 @@ for (const pair of DECISION_TRANSFORM_PAIRS) {
     for (const caseName of getDecisionTransformableCases(pair)) {
       const responsePath = getResponsePath(pair.source, pair.target, caseName);
 
-      test.skipIf(!existsSync(responsePath))(caseName, () => {
+      test(caseName, () => {
         // The exact bytes sent upstream: decision models read the state's key order.
         expect(transformDecisionRequest(pair, caseName)).toMatchSnapshot(
           "request"
         );
-        expect(
-          transformDecisionResponse(
-            pair,
-            caseName,
-            readFileSync(responsePath, "utf-8")
-          )
-        ).toMatchSnapshot("response");
+        if (existsSync(responsePath)) {
+          expect(
+            transformDecisionResponse(
+              pair,
+              caseName,
+              readFileSync(responsePath, "utf-8")
+            )
+          ).toMatchSnapshot("response");
+        }
       });
     }
   });
