@@ -1798,6 +1798,108 @@ mod tests {
         assert!(adapter.detect_request(&payload));
     }
 
+    #[derive(Debug, Deserialize)]
+    struct AnthropicUsageView {
+        usage: Usage,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct AnthropicMessageStartView {
+        message: AnthropicUsageView,
+    }
+
+    fn anthropic_message_payload(service_tier: Option<&str>) -> Value {
+        let mut message = json!({
+            "id": "msg_service_tier",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-20250514",
+            "content": [],
+            "stop_reason": null,
+            "stop_sequence": null,
+            "usage": {"input_tokens": 10, "output_tokens": 1}
+        });
+        if let Some(service_tier) = service_tier {
+            message["usage"]["service_tier"] = json!(service_tier);
+        }
+        message
+    }
+
+    const ANTHROPIC_SERVED_SERVICE_TIERS: [(&str, ServedServiceTier, ServiceTierServiceTier); 3] = [
+        (
+            "standard",
+            ServedServiceTier::Standard,
+            ServiceTierServiceTier::Standard,
+        ),
+        (
+            "priority",
+            ServedServiceTier::Priority,
+            ServiceTierServiceTier::Priority,
+        ),
+        (
+            "batch",
+            ServedServiceTier::Batch,
+            ServiceTierServiceTier::Batch,
+        ),
+    ];
+
+    #[test]
+    fn response_roundtrips_served_service_tier() {
+        let adapter = AnthropicAdapter;
+        for (wire, served, anthropic) in ANTHROPIC_SERVED_SERVICE_TIERS {
+            let universal = adapter
+                .response_to_universal(anthropic_message_payload(Some(wire)))
+                .unwrap();
+            assert_eq!(universal.served_service_tier, Some(served));
+
+            let reconstructed: AnthropicUsageView =
+                serde_json::from_value(adapter.response_from_universal(&universal).unwrap())
+                    .unwrap();
+            assert_eq!(reconstructed.usage.service_tier, Some(anthropic));
+        }
+    }
+
+    #[test]
+    fn response_without_service_tier_has_no_served_service_tier() {
+        let adapter = AnthropicAdapter;
+        let universal = adapter
+            .response_to_universal(anthropic_message_payload(None))
+            .unwrap();
+        assert_eq!(universal.served_service_tier, None);
+
+        let reconstructed: AnthropicUsageView =
+            serde_json::from_value(adapter.response_from_universal(&universal).unwrap()).unwrap();
+        assert_eq!(reconstructed.usage.service_tier, None);
+    }
+
+    #[test]
+    fn stream_message_start_roundtrips_served_service_tier() {
+        let adapter = AnthropicAdapter;
+        for (wire, served, anthropic) in ANTHROPIC_SERVED_SERVICE_TIERS {
+            let message_start =
+                json!({"type": "message_start", "message": anthropic_message_payload(Some(wire))});
+            let chunk = adapter.stream_to_universal(message_start).unwrap().unwrap();
+            assert_eq!(chunk.served_service_tier, Some(served));
+
+            let reconstructed: AnthropicMessageStartView =
+                serde_json::from_value(adapter.stream_from_universal(&chunk).unwrap()).unwrap();
+            assert_eq!(reconstructed.message.usage.service_tier, Some(anthropic));
+        }
+    }
+
+    #[test]
+    fn stream_message_start_without_service_tier_has_no_served_service_tier() {
+        let adapter = AnthropicAdapter;
+        let message_start =
+            json!({"type": "message_start", "message": anthropic_message_payload(None)});
+        let chunk = adapter.stream_to_universal(message_start).unwrap().unwrap();
+        assert_eq!(chunk.served_service_tier, None);
+
+        let reconstructed: AnthropicMessageStartView =
+            serde_json::from_value(adapter.stream_from_universal(&chunk).unwrap()).unwrap();
+        assert_eq!(reconstructed.message.usage.service_tier, None);
+    }
+
     #[test]
     fn response_rejects_service_tier_without_usage() {
         let adapter = AnthropicAdapter;
