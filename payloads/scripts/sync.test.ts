@@ -13,6 +13,10 @@ import {
   getTransformableCases,
   getResponsePath,
 } from "./transforms/helpers";
+import {
+  DECISION_TRANSFORM_PAIRS,
+  getDecisionTransformableCases,
+} from "./transforms/decisions";
 
 const SNAPSHOTS_DIR = join(__dirname, "..", "snapshots");
 const ERRORS_PATH = join(TRANSFORMS_DIR, "transform_errors.json");
@@ -29,6 +33,8 @@ const SNAPSHOT_PROVIDERS: ProviderType[] = [
   "google",
   "bedrock",
   "baseten",
+  "decisions",
+  "typesafe",
 ];
 
 describe("test data sync", () => {
@@ -73,6 +79,22 @@ describe("test data sync", () => {
           ).toBe(true);
         }
       );
+    }
+  }
+
+  for (const pair of DECISION_TRANSFORM_PAIRS) {
+    for (const caseName of getDecisionTransformableCases(pair)) {
+      test(`transform capture exists: ${pair.source} → ${pair.target} / ${caseName}`, () => {
+        const responsePath = getResponsePath(
+          pair.source,
+          pair.target,
+          caseName
+        );
+        expect(
+          existsSync(responsePath),
+          `Missing transform capture: ${responsePath}. Run 'pnpm capture --filter ${caseName}'`
+        ).toBe(true);
+      });
     }
   }
 });

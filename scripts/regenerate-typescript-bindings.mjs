@@ -16,7 +16,13 @@ const generatedRoot = join(
 const providerIndex = process.argv.indexOf("--provider");
 const provider =
   providerIndex === -1 ? undefined : process.argv[providerIndex + 1];
-const supportedProviders = new Set(["anthropic", "google", "openai"]);
+const supportedProviders = new Set([
+  "anthropic",
+  "google",
+  "openai",
+  "openai-decisions",
+  "typesafe",
+]);
 
 if (providerIndex !== -1 && !supportedProviders.has(provider)) {
   console.error(
@@ -25,7 +31,10 @@ if (providerIndex !== -1 && !supportedProviders.has(provider)) {
   process.exit(2);
 }
 
-const generatedDir = provider ? join(generatedRoot, provider) : undefined;
+const generatedDir =
+  provider && provider !== "typesafe"
+    ? join(generatedRoot, provider === "openai-decisions" ? "openai" : provider)
+    : undefined;
 const backupDir = generatedDir
   ? `${generatedDir}.backup-${process.pid}`
   : undefined;
@@ -41,7 +50,7 @@ if (generatedDir && backupDir) {
 
 const result = spawnSync(
   "cargo",
-  ["test", "export_bindings", "--lib", "--quiet"],
+  ["test", "export_bindings", "--lib", "--quiet", "--features", "typesafe"],
   {
     cwd: workspaceRoot,
     stdio: "inherit",

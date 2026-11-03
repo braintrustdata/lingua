@@ -13,8 +13,8 @@ pub enum ModelFlavor {
     Live,
     /// Models using OpenAI's Responses API (e.g., o1-pro, o3-pro, gpt-5-pro, gpt-5-codex)
     Responses,
-    /// Evaluation/judge models (e.g., TypeSafe's jev-*)
-    Evaluation,
+    #[serde(alias = "evaluation")]
+    Decisions,
     /// Any flavor value the router does not yet model. Keeps catalog parsing
     /// resilient when the upstream `model_list.json` introduces a new flavor
     /// before the router adds first-class support, instead of failing the
@@ -220,6 +220,15 @@ mod tests {
                 },
             )]))
         );
+    }
+
+    #[test]
+    fn decision_flavor_accepts_legacy_evaluation_catalogs() {
+        for flavor in ["decisions", "evaluation"] {
+            let parsed: ModelFlavor = serde_json::from_value(serde_json::json!(flavor)).unwrap();
+            assert_eq!(parsed, ModelFlavor::Decisions);
+            assert_eq!(serde_json::to_value(parsed).unwrap(), "decisions");
+        }
     }
 
     #[test]

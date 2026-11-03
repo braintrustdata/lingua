@@ -1,0 +1,15 @@
+{
+  "model": "gpt-6-luna",
+  "input": "I was charged twice.",
+  "questions": [
+    {
+      "type": "predicate",
+      "instructions": "Is this about billing?"
+    }
+  ],
+  "prompt_cache_options": {
+    "mode": "explicit",
+    "ttl": "30m"
+  },
+  "safety_identifier": "support-grader"
+}

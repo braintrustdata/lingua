@@ -1,23 +1,34 @@
 /*!
-Provider adapter trait and registry for unified request transformation.
+Provider adapter traits and registries for unified request transformation.
 
 This module defines the `ProviderAdapter` trait that each provider implements
 to handle format detection and request conversion. The adapter pattern consolidates
-provider-specific logic into a single interface.
+provider-specific logic into a single interface. Decision formats implement
+`DecisionAdapter` instead.
 
 ## Adding a new provider
 
 1. Create `adapter.rs` in your provider module
 2. Implement `ProviderAdapter` for your adapter struct
 3. Register it in `adapters()` with the appropriate feature gate
+
+A decision format implements `DecisionAdapter` and is registered in
+`decision_adapter_for_format()`.
 */
 
 use std::sync::LazyLock;
 
+use bytes::Bytes;
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+
 use crate::capabilities::ProviderFormat;
 use crate::processing::transform::TransformError;
-use crate::serde_json::{Map, Number, Value};
-use crate::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
+use crate::serde_json::{self, Map, Number, Value};
+use crate::universal::{
+    DecisionQuestion, UniversalDecisionRequest, UniversalDecisionResponse, UniversalRequest,
+    UniversalResponse, UniversalStreamChunk,
+};
 
 /// Trait for provider-specific request and response handling.
 ///
@@ -140,6 +151,51 @@ pub trait ProviderAdapter: Send + Sync {
     }
 }
 
+/// Trait for provider-specific decision request and response handling.
+///
+/// Decision payloads convert through [`UniversalDecisionRequest`] and
+/// [`UniversalDecisionResponse`]. Conversions from universal return serialized
+/// bytes rather than a `Value`, so the provider types decide field order; some
+/// decision models read parts of the payload as text.
+pub trait DecisionAdapter: Send + Sync {
+    /// Returns the provider format this adapter handles.
+    fn format(&self) -> ProviderFormat;
+
+    /// Checks that a request in this format is valid to pass through unchanged.
+    fn validate_request(&self, payload: Value) -> Result<(), TransformError>;
+
+    /// Checks that a response in this format is valid to pass through unchanged.
+    fn validate_response(&self, payload: Value) -> Result<(), TransformError>;
+
+    /// Convert a provider-specific decision request to universal format.
+    fn request_to_universal(
+        &self,
+        payload: Value,
+    ) -> Result<UniversalDecisionRequest, TransformError>;
+
+    /// Convert a universal decision request to a provider request body.
+    fn request_from_universal(
+        &self,
+        request: UniversalDecisionRequest,
+    ) -> Result<Bytes, TransformError>;
+
+    /// Convert a provider-specific decision response to universal format.
+    ///
+    /// `questions` are those of the request being answered, for formats whose
+    /// answers do not identify their questions.
+    fn response_to_universal(
+        &self,
+        payload: Value,
+        questions: &[DecisionQuestion],
+    ) -> Result<UniversalDecisionResponse, TransformError>;
+
+    /// Convert a universal decision response to a provider response body.
+    fn response_from_universal(
+        &self,
+        response: UniversalDecisionResponse,
+    ) -> Result<Bytes, TransformError>;
+}
+
 // ============================================================================
 // Helper functions for adapter implementations
 // ============================================================================
@@ -188,6 +244,19 @@ pub fn insert_opt_bool(obj: &mut Map<String, Value>, key: &str, value: Option<bo
     if let Some(v) = value {
         obj.insert(key.into(), Value::Bool(v));
     }
+}
+
+/// Deserialize a payload into a provider type.
+pub(crate) fn parse_payload<T: DeserializeOwned>(payload: Value) -> Result<T, TransformError> {
+    serde_json::from_value(payload)
+        .map_err(|error| TransformError::DeserializationFailed(error.to_string()))
+}
+
+/// Serialize a provider type into a payload body.
+pub(crate) fn serialize_payload<T: Serialize>(value: &T) -> Result<Bytes, TransformError> {
+    serde_json::to_vec(value)
+        .map(Bytes::from)
+        .map_err(|error| TransformError::SerializationFailed(error.to_string()))
 }
 
 /// Insert an optional string into a map if present.
@@ -257,6 +326,17 @@ pub fn adapter_for_format(format: ProviderFormat) -> Option<&'static dyn Provide
         .iter()
         .find(|a| a.format() == format)
         .map(|a| a.as_ref())
+}
+
+/// Get the decision adapter for a specific provider format.
+pub fn decision_adapter_for_format(format: ProviderFormat) -> Option<&'static dyn DecisionAdapter> {
+    match format {
+        #[cfg(feature = "openai")]
+        ProviderFormat::Decisions => Some(&crate::providers::openai::DecisionsAdapter),
+        #[cfg(feature = "typesafe")]
+        ProviderFormat::TypeSafe => Some(&crate::providers::typesafe::TypeSafeAdapter),
+        _ => None,
+    }
 }
 
 #[cfg(test)]

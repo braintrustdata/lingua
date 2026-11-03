@@ -1,4 +1,5 @@
 pub mod adapters;
+pub mod decisions;
 pub mod dedup;
 pub mod import;
 mod json_repair;
@@ -7,8 +8,13 @@ pub mod trajectory;
 pub mod transform;
 
 pub use adapters::{
-    adapter_for_format, adapters, collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64,
-    insert_opt_string, insert_opt_value, ProviderAdapter,
+    adapter_for_format, adapters, collect_extras, decision_adapter_for_format, insert_opt_bool,
+    insert_opt_f64, insert_opt_i64, insert_opt_string, insert_opt_value, DecisionAdapter,
+    ProviderAdapter,
+};
+pub use decisions::{
+    transform_decision_request, transform_decision_response, DecisionRequestTransform,
+    DecisionResponseContext,
 };
 pub use dedup::{deduplicate_messages, deduplicate_messages_iter, message_dedup_hash};
 pub use import::{

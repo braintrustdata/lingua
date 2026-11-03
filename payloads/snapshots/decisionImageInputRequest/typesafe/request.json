@@ -1,0 +1,26 @@
+{
+  "model": "jev-latest",
+  "state": [
+    {
+      "type": "text",
+      "text": "Inspect this image."
+    },
+    {
+      "type": "image",
+      "image": "__lingua_image_0__"
+    }
+  ],
+  "assets": {
+    "__lingua_image_0__": {
+      "type": "image",
+      "format": "png",
+      "data_base64": "iVBORw0KGgoAAAANSUhEUgAAARgAAAEYCAIAAAAI7H7bAAACPElEQVR42u3TMQ0AAAjAsPk3DSI4eJpUwZLVBFxJAEYCI4GRACOBkcBIYCTASGAkMBIYCTASGAmMBEYCjARGAiOBkQAjgZHASGAkwEhgJDASYCQwEhgJjAQYCYwERgIjAUYCI4GRwEiAkcBIYCQwEmAkMBIYCYwEGAmMBEYCIwFGAiOBkQAjgZHASGAkwEhgJDASGAkwEhgJjARGAowERgIjgZEAI4GRwEhgJMBIYCQwEhhJAjASGAmMBBgJjARGAiMBRgIjgZHASICRwEhgJDASYCQwEhgJjAQYCYwERgIjAUYCI4GRACOBkcBIYCTASGAkMBIYCTASGAmMBEYCjARGAiOBkQAjgZHASGAkwEhgJDASGAkwEhgJjAQYCYwERgIjAUYCI4GRwEiAkcBIYCQwEmAkMBIYCYwEGAmMBEYCIwFGAiOBkcBIgJHASGAkwEhgJDASGAkwEhgJjARGAowERgIjgZEAI4GRwEhgJMBIYCQwEhgJMBIYCYwESABGAiOBkQAjgZHASGAkwEhgJDASGAkwEhgJjARGAowERgIjgZEAI4GRwEhgJMBIYCQwEmAkMBIYCYwEGAmMBEYCIwFGAiOBkcBIgJHASGAkMBJgJDASGAmMBBgJjARGAiMBRgIjgZEAI4GRwEhgJMBIYCQwEhgJMBIYCYwERgKMBEYCI4GRACOBkcBIYCTASGAkMBIgARgJjARGAowERgIjgZEAI4GRwEhgJMBIYCQwEhgJMBIYCYwERgKMBB8WJ/YfoHAN5uAAAAAASUVORK5CYII="
+    }
+  },
+  "questions": {
+    "green": {
+      "type": "noul",
+      "instructions": "Is the image green?"
+    }
+  }
+}

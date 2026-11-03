@@ -104,7 +104,10 @@ impl RemoteMediaPolicy {
             ProviderFormat::Anthropic
             | ProviderFormat::VertexAnthropic
             | ProviderFormat::Responses => Some(Self::NONE),
-            ProviderFormat::Mistral | ProviderFormat::Unknown => None,
+            ProviderFormat::Mistral
+            | ProviderFormat::Decisions
+            | ProviderFormat::TypeSafe
+            | ProviderFormat::Unknown => None,
         }
     }
 }

@@ -1,0 +1,30 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You grade a support agent's replies. Judge only what the agent wrote."
+      },
+      {
+        "role": "user",
+        "content": "Customer: My blender stopped working after two weeks.\nAgent: Sorry to hear that! I've started a free replacement; you'll get a shipping label by email within the hour."
+      }
+    ]
+  },
+  "questions": {
+    "resolved": {
+      "type": "noul",
+      "instructions": "Did the agent resolve the customer's problem?"
+    },
+    "tone": {
+      "type": "score",
+      "instructions": "Rate the agent's tone.",
+      "criteria": [
+        "rude",
+        "neutral",
+        "warm"
+      ]
+    }
+  }
+}

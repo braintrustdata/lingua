@@ -16,6 +16,8 @@ import { bedrockAnthropicExecutor } from "./providers/bedrock-anthropic";
 import { vertexAnthropicExecutor } from "./providers/vertex-anthropic";
 import { vertexGoogleExecutor } from "./providers/vertex-google";
 import { basetenExecutor } from "./providers/baseten";
+import { openaiDecisionsExecutor } from "./providers/openai-decisions";
+import { typesafeExecutor } from "./providers/typesafe";
 import { type ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
@@ -29,6 +31,8 @@ const allProviders = [
   vertexAnthropicExecutor,
   vertexGoogleExecutor,
   basetenExecutor,
+  openaiDecisionsExecutor,
+  typesafeExecutor,
 ] as const;
 
 interface CaptureOptions {

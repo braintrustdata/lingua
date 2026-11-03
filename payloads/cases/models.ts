@@ -29,3 +29,8 @@ export const VERTEX_GOOGLE_MODEL = "publishers/google/models/gemini-2.5-flash";
 // that native OpenAI does not exhibit.
 export const BASETEN_BASE_URL = "https://inference.baseten.co/v1";
 export const BASETEN_MODEL = "zai-org/GLM-5.2";
+
+// Decision models answer typed questions about an input instead of generating text.
+export const OPENAI_DECISIONS_MODEL = "gpt-6-luna";
+export const TYPESAFE_MODEL = "jev-latest";
+export const TYPESAFE_BASE_URL = "https://api.typesafe.ai/v1";

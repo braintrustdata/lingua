@@ -1,0 +1,63 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a weather assistant. Use tools for live data."
+      },
+      {
+        "role": "user",
+        "content": "Do I need an umbrella in Lisbon today?"
+      },
+      {
+        "role": "assistant",
+        "content": "Let me check the forecast."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_call",
+            "tool_call_id": "call_forecast_1",
+            "tool_name": "get_forecast",
+            "arguments": {
+              "city": "Lisbon",
+              "day": "today"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_call_id": "call_forecast_1",
+            "tool_name": "get_forecast",
+            "output": "{\"condition\":\"rain\",\"chance_of_rain\":0.85,\"high_c\":17}"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, bring an umbrella: there's an 85% chance of rain in Lisbon today, with a high of 17°C."
+      }
+    ]
+  },
+  "questions": {
+    "grounded": {
+      "type": "noul",
+      "instructions": "Is the assistant's final answer supported by the tool output?"
+    },
+    "grade": {
+      "type": "choice",
+      "instructions": "Grade the assistant's final answer.",
+      "criteria": {
+        "A": null,
+        "B": null,
+        "C": null
+      }
+    }
+  }
+}

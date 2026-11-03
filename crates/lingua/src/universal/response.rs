@@ -396,13 +396,21 @@ impl FinishReason {
             (Self::Stop, ProviderFormat::Responses) => "completed",
             (
                 Self::Stop,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Decisions
+                | ProviderFormat::TypeSafe
+                | ProviderFormat::Unknown,
             ) => "stop",
 
             // Length variants
             (
                 Self::Length,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Decisions
+                | ProviderFormat::TypeSafe
+                | ProviderFormat::Unknown,
             ) => "length",
             (Self::Length, ProviderFormat::Responses) => "incomplete",
             (Self::Length, ProviderFormat::Google) => "MAX_TOKENS",
@@ -426,7 +434,11 @@ impl FinishReason {
             (Self::ToolCalls, ProviderFormat::Responses) => "completed", // Tool calls also complete
             (
                 Self::ToolCalls,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Decisions
+                | ProviderFormat::TypeSafe
+                | ProviderFormat::Unknown,
             ) => "tool_calls",
 
             // ContentFilter variants
@@ -441,7 +453,11 @@ impl FinishReason {
             (Self::ContentFilter, ProviderFormat::Responses) => "incomplete",
             (
                 Self::ContentFilter,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Decisions
+                | ProviderFormat::TypeSafe
+                | ProviderFormat::Unknown,
             ) => "content_filter",
 
             // Other - pass through as-is
@@ -515,9 +531,11 @@ impl UniversalResponse {
             ProviderFormat::Anthropic => "msg_",
             ProviderFormat::BedrockAnthropic => "msg_bdrk_",
             ProviderFormat::VertexAnthropic => "msg_vrtx_",
-            ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
-                "chatcmpl-"
-            }
+            ProviderFormat::ChatCompletions
+            | ProviderFormat::Mistral
+            | ProviderFormat::Decisions
+            | ProviderFormat::TypeSafe
+            | ProviderFormat::Unknown => "chatcmpl-",
             ProviderFormat::Responses => "resp_",
             ProviderFormat::Google => "resp_",
             ProviderFormat::Converse => "msg_",
@@ -817,7 +835,8 @@ impl UniversalUsage {
     ///
     /// Different providers use different field names:
     /// - OpenAI Chat: prompt_tokens, completion_tokens, prompt_tokens_details.cached_tokens
-    /// - OpenAI Responses: input_tokens, output_tokens, input_tokens_details.cached_tokens
+    /// - OpenAI Responses and Decisions: input_tokens, output_tokens, input_tokens_details.cached_tokens
+    /// - TypeSafe: input_tokens, output_tokens
     /// - Anthropic: input_tokens, output_tokens, cache_read_input_tokens
     /// - Bedrock: inputTokens, outputTokens, cacheReadInputTokens
     /// - Mistral: uses OpenAI format
@@ -875,7 +894,7 @@ impl UniversalUsage {
                     }),
                 }
             }
-            ProviderFormat::Responses => {
+            ProviderFormat::Responses | ProviderFormat::Decisions | ProviderFormat::TypeSafe => {
                 let usage = openai_responses_usage_view(usage);
                 let input_details = match usage.input_tokens_details {
                     Some(TypedUsageDetails::Valid(details)) => details,
@@ -1168,6 +1187,20 @@ impl UniversalUsage {
 
                 Value::Object(map)
             }
+            ProviderFormat::Decisions => serde_json::json!({
+                "input_tokens": prompt,
+                "input_tokens_details": {
+                    "cached_tokens": cached_tokens.unwrap_or(0),
+                    "cache_write_tokens": cache_creation_tokens.unwrap_or(0),
+                },
+                "output_tokens": completion,
+                "output_tokens_details": { "reasoning_tokens": reasoning_tokens.unwrap_or(0) },
+                "total_tokens": total,
+            }),
+            ProviderFormat::TypeSafe => serde_json::json!({
+                "input_tokens": prompt,
+                "output_tokens": completion,
+            }),
             ProviderFormat::Anthropic
             | ProviderFormat::BedrockAnthropic
             | ProviderFormat::VertexAnthropic => {

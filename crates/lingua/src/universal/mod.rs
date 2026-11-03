@@ -10,6 +10,7 @@ This module provides a 1:1 Rust implementation of the AI SDK ModelMessage format
 */
 
 pub mod convert;
+pub mod decision;
 pub mod defaults;
 pub mod message;
 pub mod reasoning;
@@ -23,6 +24,11 @@ pub mod trajectory;
 pub mod transform;
 
 // Re-export main types for convenience
+pub use decision::{
+    DecisionAnswer, DecisionChoice, DecisionChoiceProbability, DecisionInput,
+    DecisionLevelProbability, DecisionQuestion, DecisionQuestionKind, DecisionResult,
+    DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
+};
 pub use defaults::*;
 pub use message::*;
 pub use request::{

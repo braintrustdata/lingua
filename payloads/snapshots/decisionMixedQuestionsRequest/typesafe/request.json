@@ -1,0 +1,27 @@
+{
+  "model": "jev-latest",
+  "state": "Question: What is 15% of 80?\nAnswer: 15% of 80 is 12.",
+  "questions": {
+    "correct": {
+      "type": "noul",
+      "instructions": "Is the answer correct?"
+    },
+    "shows_work": {
+      "type": "choice",
+      "instructions": "Does the answer show how it was computed?",
+      "criteria": {
+        "true": null,
+        "false": null
+      }
+    },
+    "concise": {
+      "type": "score",
+      "instructions": "Rate how concise the answer is.",
+      "criteria": [
+        "verbose",
+        "ok",
+        "concise"
+      ]
+    }
+  }
+}
