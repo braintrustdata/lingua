@@ -43,7 +43,7 @@ fn remote_media_limits(
         .is_some_and(|mime| {
             matches!(
                 normalized_media_type(mime).as_str(),
-                "audio/wav" | "audio/mpeg"
+                "audio/wav" | "audio/mpeg" | "audio/ogg"
             )
         })
     {
@@ -54,6 +54,7 @@ fn remote_media_limits(
                 "video/audio/wav",
                 "audio/mpeg",
                 "audio/mp3",
+                "audio/ogg",
             ]),
             MAX_REMOTE_AUDIO_BYTES,
         );
@@ -655,6 +656,14 @@ mod tests {
             assert_eq!(limit, 20 * 1024 * 1024);
         }
         for url in [
+            "https://example.com/conversation.ogg",
+            "https://example.com/opaque-key?X-Amz-Expires=3600&response-content-type=audio%2Fogg",
+        ] {
+            let (allowed, limit) = remote_media_limits(url, None);
+            assert!(allowed.unwrap().contains(&"audio/ogg"));
+            assert_eq!(limit, 20 * 1024 * 1024);
+        }
+        for url in [
             "https://example.com/image.png",
             "https://example.com/opaque-key",
         ] {
@@ -816,6 +825,13 @@ mod tests {
             (
                 "/file.pdf",
                 "application/pdf",
+                MAX_REMOTE_MEDIA_BYTES + 1,
+                None,
+                None,
+            ),
+            (
+                "/call.ogg",
+                "audio/ogg",
                 MAX_REMOTE_MEDIA_BYTES + 1,
                 None,
                 None,
