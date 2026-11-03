@@ -22,6 +22,7 @@ use ts_rs::TS;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct OpenaiDecisionsSchemas {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub decision_request: Option<DecisionRequest>,
@@ -78,6 +79,7 @@ pub enum DecisionInput {
 /// An assistant message containing output text or refusals.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct DecisionInputMessage {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<DecisionInputContent>,
@@ -122,6 +124,7 @@ pub enum DecisionInputContent {
 /// value. Limited to 32 container levels, 10,000 values, and 256 KiB of compact UTF-8 JSON.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct DecisionInputContentPartElement {
     /// Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the
     /// request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
@@ -180,6 +183,7 @@ pub enum ImageDetailParam {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct PromptCacheBreakpoint {
     /// The breakpoint mode. Always `explicit`.
     pub mode: PromptCacheBreakpointMode,
@@ -221,6 +225,7 @@ pub enum DecisionInputToolOutputContent {
 /// not supported.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct DecisionInputToolOutputContentPartElement {
     /// Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the
     /// request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
@@ -322,6 +327,7 @@ pub enum Ttl {
 /// Rate the input against the supplied ordered levels.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct QuestionParam {
     pub instructions: Instructions,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -342,6 +348,7 @@ pub struct QuestionParam {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct ChoiceOptionParam {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -374,6 +381,7 @@ pub enum Instructions {
 /// value. Limited to 32 container levels, 10,000 values, and 256 KiB of compact UTF-8 JSON.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct DecisionQuestionInputPart {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -403,6 +411,7 @@ pub enum DecisionQuestionInputPartType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct ScoreLevelParam {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -425,6 +434,7 @@ pub enum QuestionParamType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct DecisionResponse {
     /// Answers in question order. Any question can return a refusal instead of an answer; other
     /// questions can still receive answers. A refusal has `type: "refusal"` and the question's
@@ -442,6 +452,7 @@ pub struct DecisionResponse {
 /// receive answers.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct AnswerResource {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -493,6 +504,7 @@ pub enum ChoiceValueResource {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct EProbabilityResource {
     pub probability: f64,
     pub value: ValueUnion,
@@ -512,6 +524,7 @@ pub enum ValueUnion {
 /// Token usage for the request.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct ResponseUsageResource {
     pub input_tokens: i64,
     pub input_tokens_details: InputTokensDetailsResource,
@@ -522,6 +535,7 @@ pub struct ResponseUsageResource {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct InputTokensDetailsResource {
     pub cache_write_tokens: i64,
     pub cached_tokens: i64,
@@ -529,6 +543,7 @@ pub struct InputTokensDetailsResource {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
+#[serde(deny_unknown_fields)]
 pub struct OutputTokensDetailsResource {
     pub reasoning_tokens: i64,
 }

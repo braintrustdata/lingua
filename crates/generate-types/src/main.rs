@@ -266,12 +266,7 @@ fn post_process_quicktype_output_for_openai_decisions(quicktype_output: &str) ->
         processed = processed.replace("use std::collections::HashMap;\n", "");
     }
     processed = add_serde_skip_if_none(&processed);
-    for name in ["DecisionRequest", "PromptCacheOptions"] {
-        processed = processed.replace(
-            &format!("pub struct {name} {{"),
-            &format!("#[serde(deny_unknown_fields)]\npub struct {name} {{"),
-        );
-    }
+    processed = processed.replace("pub struct ", "#[serde(deny_unknown_fields)]\npub struct ");
     // Answers always carry `name`, which is null for unnamed questions.
     processed.replace(
         "pub struct AnswerResource {\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub name: Option<String>,",

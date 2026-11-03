@@ -18,6 +18,25 @@ const DECISION_IMAGE =
 
 // Decision test cases - the shapes scorers send to decision models
 export const decisionCases: TestCaseCollection = {
+  decisionUnknownChoiceFieldRequest: {
+    ...NO_CHAT_PROVIDERS,
+    decisions: {
+      model: OPENAI_DECISIONS_MODEL,
+      input: "I was charged twice.",
+      questions: [
+        {
+          type: "choice",
+          instructions: "Which team should handle this ticket?",
+          choices: [
+            { value: "billing", ...{ descriptino: "Payment issues" } },
+            { value: "shipping" },
+          ],
+        },
+      ],
+    },
+    typesafe: null,
+    expect: { status: 400 },
+  },
   decisionImageInputRequest: {
     ...NO_CHAT_PROVIDERS,
     decisions: {
