@@ -221,9 +221,10 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             content,
         })
     } else if source.span_attributes.kind.as_deref() == Some("task")
-        && audio::is_speech_task(source.span_attributes.name.as_deref())
         && voice_header.turn_id.is_some()
     {
+        // Voice task spans keep what they observed; the trajectory builder decides which
+        // of them become work steps.
         Some(ToolResult {
             input: span.input.clone(),
             output: span.output.clone(),

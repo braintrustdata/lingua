@@ -1,12 +1,41 @@
 //! Voice traces in audio trace schema v3: one turn per conversational exchange.
 //!
-//! Headers fix where every span goes before any payload loads. A `user_turn` opens an
-//! exchange, an `agent_turn` joins the one named by its `turn.reply_to` (or opens its own),
-//! and other spans join through `turn.id` or their nearest turn ancestor. The last
-//! `agent_speech` is the response; LLM calls, tools, STT, TTS and earlier speech are work.
+//! Each framework module maps its span names and keys onto the neutral `Kind`s below; the
+//! planner works only on those. Headers fix where every span goes before any payload loads.
+//! A user turn opens an exchange, an agent turn joins the one named by its `turn.reply_to`
+//! (or opens its own), and other spans join through `turn.id` or their nearest turn
+//! ancestor. The last agent speech is the response; LLM calls, tools, STT, TTS and earlier
+//! speech are work.
+
+mod livekit;
 
 use super::*;
 use crate::universal::trajectory::{AudioSource, Channel, RecordingSegment, SegmentState};
+
+/// The framework that traced a voice session, detected once per session from its header.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Framework {
+    LiveKit,
+}
+
+impl Framework {
+    fn detect(session: &PreparedSpan) -> Option<Self> {
+        livekit::is_session(session).then_some(Self::LiveKit)
+    }
+
+    /// The neutral kind of a task span.
+    fn task_kind(self, span: &PreparedSpan) -> Option<Kind> {
+        match self {
+            Self::LiveKit => livekit::task_kind(span),
+        }
+    }
+
+    fn interrupted(self, span: &PreparedSpan) -> bool {
+        match self {
+            Self::LiveKit => livekit::interrupted(span),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum WorkKind {
@@ -49,6 +78,8 @@ pub(super) struct VoicePlan {
     pub(super) exchanges: Vec<Exchange>,
     /// Spans of voice roots that the voice path doesn't load.
     pub(super) ignored: HashSet<usize>,
+    /// Spans whose framework reports the agent's speech was cut off.
+    pub(super) interrupted: HashSet<usize>,
     pub(super) failures: Vec<ImportFailure>,
 }
 
@@ -66,18 +97,12 @@ enum Kind {
     Work(WorkKind),
 }
 
-fn kind(span: &PreparedSpan) -> Option<Kind> {
-    match (span.kind(), span.source.name.as_deref()) {
-        ("llm", _) if span.source.analysis => Some(Kind::Work(WorkKind::Analysis)),
-        ("llm", _) => Some(Kind::Work(WorkKind::Llm)),
-        ("tool", _) => Some(Kind::Work(WorkKind::Tool)),
-        ("task", Some("user_turn")) => Some(Kind::UserTurn),
-        ("task", Some("agent_turn")) => Some(Kind::AgentTurn),
-        ("task", Some("user_speech")) => Some(Kind::UserSpeech),
-        ("task", Some("agent_speech")) => Some(Kind::Work(WorkKind::Speech)),
-        ("task", Some("stt" | "tts" | "transcript_received")) => {
-            Some(Kind::Work(WorkKind::SpeechTask))
-        }
+fn kind(span: &PreparedSpan, framework: Framework) -> Option<Kind> {
+    match span.kind() {
+        "llm" if span.source.analysis => Some(Kind::Work(WorkKind::Analysis)),
+        "llm" => Some(Kind::Work(WorkKind::Llm)),
+        "tool" => Some(Kind::Work(WorkKind::Tool)),
+        "task" => framework.task_kind(span),
         _ => None,
     }
 }
@@ -99,22 +124,29 @@ pub(super) fn plan(
     owners: &HashMap<usize, Ownership>,
 ) -> VoicePlan {
     let mut plan = VoicePlan::default();
-    let mut supported = HashSet::new();
+    let mut supported = HashMap::new();
     let mut unsupported = HashSet::new();
     for (index, span) in spans.iter().enumerate() {
         let Some(version) = &span.source.voice.schema_version else {
             continue;
         };
-        if version.split('.').next() == Some("3") {
-            supported.insert(span.root_span_id.clone());
-            plan.sessions.insert(index);
-        } else {
-            unsupported.insert(span.root_span_id.clone());
-            plan.failures.push(failure(
-                span,
-                format!("Unsupported audio schema version {version}"),
-            ));
-        }
+        let message = match (version.split('.').next(), Framework::detect(span)) {
+            (Some("3"), Some(framework)) => {
+                match supported.insert(span.root_span_id.clone(), framework) {
+                    Some(other) if other != framework => {
+                        "Voice sessions from different frameworks in one trace".to_string()
+                    }
+                    _ => {
+                        plan.sessions.insert(index);
+                        continue;
+                    }
+                }
+            }
+            (Some("3"), None) => "Unrecognized voice framework".to_string(),
+            _ => format!("Unsupported audio schema version {version}"),
+        };
+        unsupported.insert(span.root_span_id.clone());
+        plan.failures.push(failure(span, message));
     }
     for (index, span) in spans.iter().enumerate() {
         if unsupported.contains(&span.root_span_id) {
@@ -124,7 +156,7 @@ pub(super) fn plan(
     }
     let in_scope = |index: usize| {
         let owner = &owners[&index];
-        supported.contains(&spans[index].root_span_id)
+        supported.contains_key(&spans[index].root_span_id)
             && !unsupported.contains(&spans[index].root_span_id)
             && owner.tool.is_none()
             && owner.compaction.is_none()
@@ -132,7 +164,7 @@ pub(super) fn plan(
     let kinds: Vec<_> = (0..spans.len())
         .map(|index| {
             (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
-                .then(|| kind(&spans[index]))
+                .then(|| kind(&spans[index], supported[&spans[index].root_span_id]))
                 .flatten()
         })
         .collect();
@@ -258,7 +290,12 @@ pub(super) fn plan(
         }
         if !plan.is_voice(index) {
             plan.ignored.insert(index);
-        } else if !span.source.voice.errors.is_empty() {
+            continue;
+        }
+        if supported[&span.root_span_id].interrupted(span) {
+            plan.interrupted.insert(index);
+        }
+        if !span.source.voice.errors.is_empty() {
             plan.failures
                 .push(failure(span, span.source.voice.errors.join("; ")));
         }

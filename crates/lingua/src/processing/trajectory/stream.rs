@@ -1282,7 +1282,7 @@ impl TrajectoryStream {
                 opaque_request: Vec::new(),
             });
         }
-        if span.source.voice.interrupted == Some(true) {
+        if self.voice.interrupted.contains(&index) {
             events.push(TrajectoryEvent::Interrupted {
                 scope: scope.clone(),
                 id: id.clone(),

@@ -1,8 +1,10 @@
-//! Voice metadata in audio trace schema v3, as the Braintrust JS SDK logs LiveKit sessions.
+//! Voice metadata in audio trace schema v3, as the Braintrust JS SDK logs voice sessions.
 //!
-//! Scalar fields, including LiveKit's interruption flag, are read from span headers. The
-//! session's `audio.*` maps are read from payloads, because Brainstore headers can't carry
-//! maps of objects. Parse errors are kept here and reported only for voice traces.
+//! Scalar fields, including framework keys such as LiveKit's interruption flag, are read
+//! from span headers. The session's `audio.*` maps are read from payloads, because
+//! Brainstore headers can't carry maps of objects. Which framework traced a session is
+//! decided by the trajectory builder. Parse errors are kept here and reported only for
+//! voice traces.
 
 use super::span::metadata_field;
 use crate::serde_json as json;
@@ -16,7 +18,8 @@ pub struct VoiceHeader {
     pub schema_version: Option<String>,
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
-    pub interrupted: Option<bool>,
+    /// `contrib.livekit.interrupted`.
+    pub livekit_interrupted: Option<bool>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
 }
@@ -105,7 +108,7 @@ pub(super) fn parse(metadata: Option<&json::Value>) -> (VoiceHeader, VoicePayloa
         ),
         turn_id: metadata_field(metadata.turn_id, "turn.id", &mut header_errors),
         reply_to: metadata_field(metadata.reply_to, "turn.reply_to", &mut header_errors),
-        interrupted: metadata_field(
+        livekit_interrupted: metadata_field(
             metadata.interrupted,
             "contrib.livekit.interrupted",
             &mut header_errors,
@@ -128,9 +131,4 @@ pub(super) fn parse(metadata: Option<&json::Value>) -> (VoiceHeader, VoicePayloa
     });
     let payload = VoicePayload { session, errors };
     (header, payload)
-}
-
-/// Speech-service spans whose raw input and output become work steps.
-pub(super) fn is_speech_task(name: Option<&str>) -> bool {
-    matches!(name, Some("stt" | "tts" | "transcript_received"))
 }
