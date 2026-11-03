@@ -1092,10 +1092,6 @@ import_fixture!(
     voice_interruption_during_playback,
     "fixtures/voice-interruption-during-playback.json"
 );
-import_fixture!(
-    voice_invalid_references,
-    "fixtures/voice-invalid-references.json"
-);
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
 import_fixture!(
@@ -2461,8 +2457,10 @@ fn without_voice_metadata(mut source: Span) -> Span {
 
 #[test]
 fn voice_headers_missing_from_projection_build_as_chat() {
-    let fixture: ImportFixture =
-        serde_json::from_str(include_str!("fixtures/voice-invalid-references.json")).unwrap();
+    let fixture: ImportFixture = serde_json::from_str(include_str!(
+        "fixtures/voice-interruption-before-playback.json"
+    ))
+    .unwrap();
     let headers = |spans: &[Span]| -> Vec<ImportedSpan> {
         spans
             .iter()
