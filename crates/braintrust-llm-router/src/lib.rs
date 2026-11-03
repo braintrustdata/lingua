@@ -23,7 +23,7 @@ pub use auth::{
     google::{GoogleServiceAccountConfig, GoogleTokenManager, ServiceAccountKey},
     AuthConfig, AuthType,
 };
-pub use catalog::{ModelCatalog, ModelFlavor, ModelResolver, ModelSpec};
+pub use catalog::{ModelCatalog, ModelFlavor, ModelResolver, ModelSpec, PricingRate, TierPricing};
 pub use error::{Error, Result, UpstreamHttpError};
 pub use lingua::{providers::openai::capabilities::normalize_openai_model_name, ProviderFormat};
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};

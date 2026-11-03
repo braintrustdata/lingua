@@ -1,5 +1,6 @@
 use lingua::ProviderFormat;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// The API flavor/style a model uses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -39,6 +40,16 @@ pub struct ModelSpec {
     #[serde(default)]
     pub input_cache_read_cost_per_mil_tokens: Option<f64>,
     #[serde(default)]
+    pub input_cache_write_cost_per_mil_tokens: Option<f64>,
+    #[serde(default)]
+    pub input_cache_write_5m_cost_per_mil_tokens: Option<f64>,
+    #[serde(default)]
+    pub input_cache_write_1h_cost_per_mil_tokens: Option<f64>,
+    /// Verified tier prices keyed by resolved provider. Top-level price fields
+    /// hold standard prices.
+    #[serde(default)]
+    pub pricing: Option<HashMap<String, TierPricing>>,
+    #[serde(default)]
     pub multimodal: Option<bool>,
     #[serde(default)]
     pub reasoning: Option<bool>,
@@ -52,6 +63,41 @@ pub struct ModelSpec {
     pub extra: serde_json::Map<String, serde_json::Value>,
     #[serde(default)]
     pub available_providers: Vec<String>,
+}
+
+/// Rates per pricing tier for one provider. Tier names are pricing categories,
+/// not provider API parameter values. A missing tier has no verified support
+/// and does not fall back to standard prices.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct TierPricing {
+    pub flex: Option<Vec<PricingRate>>,
+    pub batch: Option<Vec<PricingRate>>,
+    pub priority: Option<Vec<PricingRate>>,
+}
+
+/// Rates that apply only to the listed endpoints, regions, deployment, model
+/// version, prompt length, and inclusive UTC date bounds. A missing price is
+/// unknown, not zero.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct PricingRate {
+    pub input_cost_per_mil_tokens: Option<f64>,
+    pub output_cost_per_mil_tokens: Option<f64>,
+    pub input_cache_read_cost_per_mil_tokens: Option<f64>,
+    pub input_cache_write_cost_per_mil_tokens: Option<f64>,
+    pub input_cache_write_5m_cost_per_mil_tokens: Option<f64>,
+    pub input_cache_write_1h_cost_per_mil_tokens: Option<f64>,
+    pub endpoints: Option<Vec<String>>,
+    pub supported_regions: Option<Vec<String>>,
+    pub deployment_type: Option<String>,
+    pub model_id: Option<String>,
+    pub model_version: Option<String>,
+    /// Inclusive lower bound on prompt length for these rates.
+    pub min_input_tokens: Option<u32>,
+    /// Inclusive upper bound on prompt length for these rates. This is not the
+    /// model context window.
+    pub max_input_tokens: Option<u32>,
+    pub valid_from: Option<String>,
+    pub valid_until: Option<String>,
 }
 
 fn default_true() -> bool {
@@ -99,6 +145,82 @@ impl ModelSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn model_spec_parses_tier_pricing_and_ignores_unknown_tiers() {
+        let spec: ModelSpec = serde_json::from_str(
+            r#"{
+                "model": "gpt-5.4",
+                "format": "openai",
+                "flavor": "chat",
+                "input_cache_write_cost_per_mil_tokens": 3.0,
+                "input_cache_write_5m_cost_per_mil_tokens": 3.5,
+                "input_cache_write_1h_cost_per_mil_tokens": 5.0,
+                "pricing": {
+                    "openai": {
+                        "flex": [
+                            {
+                                "input_cost_per_mil_tokens": 1.25,
+                                "output_cost_per_mil_tokens": 7.5,
+                                "input_cache_read_cost_per_mil_tokens": 0.125,
+                                "input_cache_write_cost_per_mil_tokens": 1.5,
+                                "input_cache_write_5m_cost_per_mil_tokens": 1.75,
+                                "input_cache_write_1h_cost_per_mil_tokens": 2.5,
+                                "endpoints": ["api.openai.com"],
+                                "supported_regions": ["us-east-1"],
+                                "deployment_type": "global",
+                                "model_id": "gpt-5.4",
+                                "model_version": "2026-03-05",
+                                "min_input_tokens": 0,
+                                "max_input_tokens": 272000,
+                                "valid_from": "2026-03-05",
+                                "valid_until": "2026-12-31"
+                            },
+                            {"min_input_tokens": 272001}
+                        ],
+                        "future_tier": {"unknown_field": true}
+                    }
+                }
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(spec.input_cache_write_cost_per_mil_tokens, Some(3.0));
+        assert_eq!(spec.input_cache_write_5m_cost_per_mil_tokens, Some(3.5));
+        assert_eq!(spec.input_cache_write_1h_cost_per_mil_tokens, Some(5.0));
+        assert_eq!(
+            spec.pricing,
+            Some(HashMap::from([(
+                "openai".to_string(),
+                TierPricing {
+                    flex: Some(vec![
+                        PricingRate {
+                            input_cost_per_mil_tokens: Some(1.25),
+                            output_cost_per_mil_tokens: Some(7.5),
+                            input_cache_read_cost_per_mil_tokens: Some(0.125),
+                            input_cache_write_cost_per_mil_tokens: Some(1.5),
+                            input_cache_write_5m_cost_per_mil_tokens: Some(1.75),
+                            input_cache_write_1h_cost_per_mil_tokens: Some(2.5),
+                            endpoints: Some(vec!["api.openai.com".to_string()]),
+                            supported_regions: Some(vec!["us-east-1".to_string()]),
+                            deployment_type: Some("global".to_string()),
+                            model_id: Some("gpt-5.4".to_string()),
+                            model_version: Some("2026-03-05".to_string()),
+                            min_input_tokens: Some(0),
+                            max_input_tokens: Some(272000),
+                            valid_from: Some("2026-03-05".to_string()),
+                            valid_until: Some("2026-12-31".to_string()),
+                        },
+                        PricingRate {
+                            min_input_tokens: Some(272001),
+                            ..PricingRate::default()
+                        },
+                    ]),
+                    ..TierPricing::default()
+                },
+            )]))
+        );
+    }
 
     #[test]
     fn decision_flavor_accepts_legacy_evaluation_catalogs() {
@@ -183,6 +305,10 @@ mod tests {
             input_cost_per_mil_tokens: None,
             output_cost_per_mil_tokens: None,
             input_cache_read_cost_per_mil_tokens: None,
+            input_cache_write_cost_per_mil_tokens: None,
+            input_cache_write_5m_cost_per_mil_tokens: None,
+            input_cache_write_1h_cost_per_mil_tokens: None,
+            pricing: None,
             multimodal: None,
             reasoning: None,
             max_input_tokens: None,
