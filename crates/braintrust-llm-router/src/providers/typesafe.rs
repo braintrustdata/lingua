@@ -11,38 +11,32 @@ use crate::streaming::RawResponseStream;
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::Value;
+use lingua::universal::decision::TypeSafeDecisionOptions;
 use lingua::ProviderFormat;
 use reqwest::header::{HeaderName, HeaderValue};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
-use serde::Deserialize;
 
 const DANGER_ZONE_IMAGES: HeaderName = HeaderName::from_static("typesafe-danger-zone-images");
 const DANGER_ZONE_LONG_CONTEXT: HeaderName =
     HeaderName::from_static("typesafe-danger-zone-long-context");
 
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct TypeSafeRequestParams {
-    images: Option<bool>,
-    long_context: Option<bool>,
-}
-
-impl TypeSafeRequestParams {
-    pub(crate) fn client_headers<'a>(&self, headers: &'a ClientHeaders) -> Cow<'a, ClientHeaders> {
-        let mut headers = Cow::Borrowed(headers);
-        for (name, enabled) in [
-            (DANGER_ZONE_IMAGES, self.images),
-            (DANGER_ZONE_LONG_CONTEXT, self.long_context),
-        ] {
-            if let Some(enabled) = enabled {
-                headers
-                    .to_mut()
-                    .insert_if_allowed(name.as_str(), if enabled { "true" } else { "false" });
-            }
+pub(crate) fn typesafe_client_headers<'a>(
+    params: &TypeSafeDecisionOptions,
+    headers: &'a ClientHeaders,
+) -> Cow<'a, ClientHeaders> {
+    let mut headers = Cow::Borrowed(headers);
+    for (name, enabled) in [
+        (DANGER_ZONE_IMAGES, params.images),
+        (DANGER_ZONE_LONG_CONTEXT, params.long_context),
+    ] {
+        if let Some(enabled) = enabled {
+            headers
+                .to_mut()
+                .insert_if_allowed(name.as_str(), if enabled { "true" } else { "false" });
         }
-        headers
     }
+    headers
 }
 
 #[derive(Debug, Clone)]

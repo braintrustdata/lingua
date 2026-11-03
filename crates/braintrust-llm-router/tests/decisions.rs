@@ -244,14 +244,12 @@ async fn applies_typesafe_header_defaults_and_request_overrides() {
             ProviderFormat::Decisions,
         )
         .unwrap();
-    let prepared = prepared
-        .with_params(
-            serde_json::from_value(json!({
-                "extras": {"typesafe": {"long_context": false, "images": true}}
-            }))
-            .unwrap(),
-        )
-        .unwrap();
+    let prepared = prepared.with_params(
+        serde_json::from_value(json!({
+            "extras": {"typesafe": {"long_context": false, "images": true}}
+        }))
+        .unwrap(),
+    );
     router
         .complete_decision(prepared, &ClientHeaders::default())
         .await
@@ -537,28 +535,12 @@ async fn routes_uncatalogued_jev_to_typesafe_when_openai_is_available() {
 }
 
 #[tokio::test]
-async fn rejects_unknown_typesafe_options_and_top_level_flags() {
+async fn rejects_top_level_typesafe_flags() {
     let server = MockServer::start().await;
     let router = router(&server);
     let routes = router
         .resolve_provider_routes("jev-latest", ProviderFormat::Decisions, &[])
         .unwrap();
-    let (prepared, _) = router
-        .create_decision_request(
-            body(scorer_request("jev-latest")),
-            &routes[0],
-            false,
-            ProviderFormat::Decisions,
-        )
-        .unwrap();
-    let error = prepared
-        .with_params(
-            serde_json::from_value(json!({"extras":{"typesafe":{"danger_zone_imagez":true}}}))
-                .unwrap(),
-        )
-        .err()
-        .expect("unknown option rejected");
-    assert!(error.to_string().contains("unknown field"), "{error}");
     let mut request = scorer_request("jev-latest");
     request["long_context"] = json!(true);
     assert!(router

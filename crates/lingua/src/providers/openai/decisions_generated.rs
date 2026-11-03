@@ -285,6 +285,7 @@ pub enum FunctionCallStatusParam {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 #[serde(deny_unknown_fields)]
+#[ts(optional_fields)]
 pub struct PromptCacheOptions {
     /// Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to
     /// `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the
