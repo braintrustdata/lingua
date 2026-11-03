@@ -202,8 +202,9 @@ impl TryFromLLM<UniversalDecisionRequest> for SystemOneRequest {
         if request
             .params
             .extras
-            .get(&crate::ProviderFormat::TypeSafe)
-            .is_some_and(|extras| !extras.is_empty())
+            .typesafe
+            .as_ref()
+            .is_some_and(|extras| extras.images.is_some() || extras.long_context.is_some())
         {
             return Err(unsupported(
                 "TypeSafe options require HTTP headers; use the universal gateway endpoint",

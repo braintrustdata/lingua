@@ -6,11 +6,10 @@ question instead of generated text. Providers convert their decision payloads to
 and from these types.
 */
 
-use crate::capabilities::ProviderFormat;
-use crate::serde_json::{Map, Value};
+use crate::providers::openai::decisions_generated::PromptCacheOptions;
+use crate::serde_json::Value;
 use crate::universal::{Message, UniversalUsage, UserContent};
 use serde::{Deserialize, Deserializer, Serialize};
-use std::collections::HashMap;
 use ts_rs::TS;
 
 /// A request to answer questions about an input.
@@ -35,27 +34,57 @@ pub struct DecisionParams {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub prompt_cache_key: Option<String>,
-    #[serde(
-        default,
-        deserialize_with = "deserialize_extras",
-        skip_serializing_if = "HashMap::is_empty"
-    )]
-    #[ts(
-        type = r#"Partial<Record<import("./ProviderFormat").ProviderFormat, Record<string, unknown>>>"#
-    )]
-    pub extras: HashMap<ProviderFormat, Map<String, Value>>,
+    #[serde(default, skip_serializing_if = "DecisionExtras::is_empty")]
+    #[ts(as = "Option<_>", optional)]
+    pub extras: DecisionExtras,
 }
 
-fn deserialize_extras<'de, D: Deserializer<'de>>(
-    deserializer: D,
-) -> Result<HashMap<ProviderFormat, Map<String, Value>>, D::Error> {
-    let extras = HashMap::<ProviderFormat, Map<String, Value>>::deserialize(deserializer)?;
-    if extras.contains_key(&ProviderFormat::Unknown) {
-        return Err(serde::de::Error::custom(
-            "unknown decision provider format in params.extras",
-        ));
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export)]
+pub struct DecisionExtras {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub typesafe: Option<TypeSafeDecisionOptions>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub decisions: Option<OpenAIDecisionOptions>,
+}
+
+impl DecisionExtras {
+    fn is_empty(&self) -> bool {
+        self.typesafe.is_none() && self.decisions.is_none()
     }
-    Ok(extras)
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export)]
+pub struct TypeSafeDecisionOptions {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub images: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub long_context: Option<bool>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export)]
+pub struct OpenAIDecisionOptions {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub prompt_cache_options: Option<PromptCacheOptions>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub safety_identifier: Option<String>,
+}
+
+impl OpenAIDecisionOptions {
+    pub(crate) fn is_empty(&self) -> bool {
+        self.prompt_cache_options.is_none() && self.safety_identifier.is_none()
+    }
 }
 
 fn deserialize_number<'de, D: Deserializer<'de>, T: serde::de::DeserializeOwned>(
@@ -234,6 +263,16 @@ mod tests {
             r#"{"temperature":0,"max_tokens":100,"extras":{"typesafe":{"long_context":true}}}"#,
         )
         .unwrap();
-        assert!(params.extras.contains_key(&ProviderFormat::TypeSafe));
+        assert_eq!(params.extras.typesafe.unwrap().long_context, Some(true));
+    }
+
+    #[test]
+    fn rejects_invalid_typesafe_options_at_deserialization() {
+        for json in [
+            r#"{"extras":{"typesafe":{"danger_zone_imagez":true}}}"#,
+            r#"{"extras":{"typesafe":{"long_context":"true"}}}"#,
+        ] {
+            assert!(crate::serde_json::from_str::<DecisionParams>(json).is_err());
+        }
     }
 }

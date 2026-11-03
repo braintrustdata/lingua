@@ -267,6 +267,10 @@ fn post_process_quicktype_output_for_openai_decisions(quicktype_output: &str) ->
     }
     processed = add_serde_skip_if_none(&processed);
     processed = processed.replace("pub struct ", "#[serde(deny_unknown_fields)]\npub struct ");
+    processed = processed.replace(
+        "pub struct PromptCacheOptions {",
+        "#[ts(optional_fields)]\npub struct PromptCacheOptions {",
+    );
     // Answers always carry `name`, which is null for unnamed questions.
     processed.replace(
         "pub struct AnswerResource {\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub name: Option<String>,",

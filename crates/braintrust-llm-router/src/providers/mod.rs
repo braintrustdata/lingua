@@ -27,7 +27,7 @@ pub use openai::{
 pub(crate) use remote_media::{
     prepare_request_with_remote_media, reject_remote_responses_audio, RemoteMediaPolicy,
 };
-pub(crate) use typesafe::TypeSafeRequestParams;
+pub(crate) use typesafe::typesafe_client_headers;
 pub use typesafe::{TypeSafeConfig, TypeSafeProvider};
 pub use vertex::{VertexConfig, VertexProvider};
 

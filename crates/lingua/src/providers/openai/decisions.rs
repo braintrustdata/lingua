@@ -22,24 +22,16 @@ use crate::universal::message::{
     UserContent, UserContentPart,
 };
 use crate::universal::{
-    decision::DecisionParams, DecisionAnswer, DecisionChoice, DecisionChoiceProbability,
-    DecisionInput, DecisionLevelProbability, DecisionQuestion, DecisionQuestionKind,
-    DecisionResult, DecisionScoreLevel, DecisionValue, UniversalDecisionRequest,
-    UniversalDecisionResponse, UniversalUsage,
+    decision::{DecisionExtras, DecisionParams, OpenAIDecisionOptions},
+    DecisionAnswer, DecisionChoice, DecisionChoiceProbability, DecisionInput,
+    DecisionLevelProbability, DecisionQuestion, DecisionQuestionKind, DecisionResult,
+    DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
+    UniversalUsage,
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 const TO_UNIVERSAL: &str = "Lingua decision";
 const TO_DECISIONS: &str = "OpenAI Decisions";
-
-#[derive(Default, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-struct DecisionExtras {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    prompt_cache_options: Option<decisions::PromptCacheOptions>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    safety_identifier: Option<String>,
-}
 
 fn unsupported(from: impl Into<String>, to: &'static str) -> ConvertError {
     ConvertError::UnsupportedMapping {
@@ -109,20 +101,17 @@ impl TryFromLLM<decisions::DecisionRequest> for UniversalDecisionRequest {
             .enumerate()
             .map(|(index, question)| question_from_param(question, index))
             .collect::<Result<_, _>>()?;
-        let extras: serde_json::Map<String, serde_json::Value> =
-            serde_json::to_value(DecisionExtras {
-                prompt_cache_options: request.prompt_cache_options,
-                safety_identifier: request.safety_identifier,
-            })
-            .and_then(serde_json::from_value)
-            .map_err(|error| invalid(format!("invalid OpenAI Decisions options: {error}")))?;
-        let mut params = DecisionParams {
-            prompt_cache_key: request.prompt_cache_key,
-            ..Default::default()
+        let extras = OpenAIDecisionOptions {
+            prompt_cache_options: request.prompt_cache_options,
+            safety_identifier: request.safety_identifier,
         };
-        if !extras.is_empty() {
-            params.extras.insert(ProviderFormat::Decisions, extras);
-        }
+        let params = DecisionParams {
+            prompt_cache_key: request.prompt_cache_key,
+            extras: DecisionExtras {
+                decisions: (!extras.is_empty()).then_some(extras),
+                ..Default::default()
+            },
+        };
         Ok(Self {
             model: Some(request.model),
             input,
@@ -538,17 +527,8 @@ fn question_from_param(
 impl TryFromLLM<UniversalDecisionRequest> for decisions::DecisionRequest {
     type Error = ConvertError;
 
-    fn try_from(mut request: UniversalDecisionRequest) -> Result<Self, Self::Error> {
-        let extras = request
-            .params
-            .extras
-            .remove(&ProviderFormat::Decisions)
-            .map(|extras| {
-                serde_json::from_value::<DecisionExtras>(serde_json::Value::Object(extras))
-            })
-            .transpose()
-            .map_err(|error| invalid(format!("invalid OpenAI Decisions options: {error}")))?
-            .unwrap_or_default();
+    fn try_from(request: UniversalDecisionRequest) -> Result<Self, Self::Error> {
+        let extras = request.params.extras.decisions.unwrap_or_default();
         let input = match request.input {
             DecisionInput::Content(UserContent::String(text)) => {
                 decisions::DecisionInput::PurpleString(text)
@@ -1310,22 +1290,20 @@ mod tests {
 
     #[test]
     fn rejects_unknown_nested_cache_options() {
-        let request = serde_json::from_value(json!({"model":"gpt-6-luna","input":"x","questions":[],"params":{"extras":{"decisions":{"prompt_cache_options":{"mod":"explicit"}}}}})).unwrap();
-        let error = from_universal(request).unwrap_err();
+        let error = serde_json::from_value::<UniversalDecisionRequest>(json!({"model":"gpt-6-luna","input":"x","questions":[],"params":{"extras":{"decisions":{"prompt_cache_options":{"mod":"explicit"}}}}})).unwrap_err();
         assert!(error.to_string().contains("mod"), "{error}");
     }
 
     #[test]
     fn rejects_unknown_decisions_options() {
-        let request = serde_json::from_value(json!({
+        let error = serde_json::from_value::<UniversalDecisionRequest>(json!({
             "model": "gpt-6-luna",
             "input": "x",
             "questions": [{"type": "predicate", "instructions": "?"}],
             "params": {"extras": {"decisions": {"safety_identifer": "support"}}}
         }))
-        .unwrap();
-
-        let error = from_universal(request).unwrap_err().to_string();
+        .unwrap_err()
+        .to_string();
         assert!(
             error.contains("unknown field `safety_identifer`"),
             "{error}"

@@ -19,12 +19,13 @@ use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_request_with_remote_media, reject_remote_responses_audio,
-    rewrite_body_model_if_required, ClientHeaders, Provider, RemoteMediaPolicy,
-    TypeSafeRequestParams,
+    rewrite_body_model_if_required, typesafe_client_headers, ClientHeaders, Provider,
+    RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
 use lingua::serde_json::Value;
+use lingua::universal::decision::{DecisionParams, TypeSafeDecisionOptions};
 use lingua::ProviderFormat;
 use lingua::{DecisionResponseContext, ParsableResponseInfo, TransformError, TransformResult};
 use serde::Deserialize;
@@ -222,27 +223,15 @@ pub struct PreparedDecisionRequest {
     payload: Bytes,
     response_context: DecisionResponseContext,
     strategy: RetryStrategy,
-    typesafe_params: Option<TypeSafeRequestParams>,
+    typesafe_params: Option<TypeSafeDecisionOptions>,
 }
 
 impl PreparedDecisionRequest {
-    pub fn with_params(
-        mut self,
-        mut params: lingua::universal::decision::DecisionParams,
-    ) -> Result<Self> {
+    pub fn with_params(mut self, params: DecisionParams) -> Self {
         if self.format == ProviderFormat::TypeSafe {
-            self.typesafe_params = params
-                .extras
-                .remove(&ProviderFormat::TypeSafe)
-                .map(|extras| {
-                    lingua::serde_json::from_value(lingua::serde_json::Value::Object(extras))
-                })
-                .transpose()
-                .map_err(|error| {
-                    Error::InvalidRequest(format!("invalid TypeSafe parameters: {error}"))
-                })?;
+            self.typesafe_params = params.extras.typesafe;
         }
-        Ok(self)
+        self
     }
 }
 
@@ -793,7 +782,7 @@ impl Router {
             typesafe_params,
         } = request;
         let client_headers = match typesafe_params {
-            Some(params) => params.client_headers(client_headers),
+            Some(params) => typesafe_client_headers(&params, client_headers),
             None => Cow::Borrowed(client_headers),
         };
         let raw_response = self
