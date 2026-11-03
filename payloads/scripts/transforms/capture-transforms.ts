@@ -8,6 +8,7 @@ import { allTestCases, getCaseForProvider, GOOGLE_MODEL } from "../../cases";
 import { BASETEN_BASE_URL } from "../../cases/models";
 import { callBedrockConverse } from "../providers/bedrock";
 import { executeVertexAnthropic } from "../providers/vertex-anthropic";
+import { captureDecisionTransforms } from "./decisions";
 import {
   TRANSFORM_PAIRS,
   STREAMING_PAIRS,
@@ -386,6 +387,17 @@ export async function captureTransforms(
   }
 
   await runConcurrently(streamingTasks);
+
+  const decisions = await captureDecisionTransforms(
+    filter,
+    force,
+    requestedPair,
+    requestedCases,
+    requestedCaptureProviders
+  );
+  captured += decisions.captured;
+  skipped += decisions.skipped;
+  failed += decisions.failed;
 
   if (skipped > 0 && captured === 0 && failed === 0) {
     console.log(

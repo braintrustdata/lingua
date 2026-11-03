@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
@@ -19,12 +20,13 @@ use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_request_with_remote_media, reject_remote_responses_audio,
     rewrite_body_model_if_required, ClientHeaders, Provider, RemoteMediaPolicy,
+    TypeSafeRequestParams,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
-use lingua::{ParsableResponseInfo, TransformError, TransformResult};
+use lingua::{DecisionResponseContext, ParsableResponseInfo, TransformError, TransformResult};
 use serde::Deserialize;
 
 // Re-export for convenience in dependent crates
@@ -42,7 +44,7 @@ pub struct CompleteResponseWithRaw {
 use crate::providers::{
     is_openai_compatible, AnthropicProvider, AzureAiGatewayProvider, AzureProvider,
     BedrockProvider, DatabricksProvider, GoogleProvider, MistralProvider, OpenAIProvider,
-    VertexProvider,
+    TypeSafeProvider, VertexProvider,
 };
 
 /// Create a provider instance from configuration parameters.
@@ -133,6 +135,12 @@ pub fn create_provider(
             timeout,
             client_settings,
         )?)),
+        "typesafe" => Ok(Arc::new(TypeSafeProvider::from_config(
+            endpoint,
+            timeout,
+            metadata,
+            client_settings,
+        )?)),
         kind if is_openai_compatible(kind) => Ok(Arc::new(
             OpenAIProvider::from_config(
                 endpoint,
@@ -168,6 +176,10 @@ impl ProviderRoute {
     pub fn model(&self) -> &str {
         self.spec.model.as_str()
     }
+
+    pub fn format(&self) -> ProviderFormat {
+        self.format
+    }
 }
 
 /// Metadata about how an incoming request was interpreted, mainly to be used
@@ -200,6 +212,39 @@ type ResolvedProviderForTest = (
     Arc<ModelSpec>,
     ProviderFormat,
 );
+
+/// Decision request prepared by the router and ready for execution.
+pub struct PreparedDecisionRequest {
+    provider: Arc<dyn Provider>,
+    auth: AuthConfig,
+    spec: Arc<ModelSpec>,
+    format: ProviderFormat,
+    payload: Bytes,
+    response_context: DecisionResponseContext,
+    strategy: RetryStrategy,
+    typesafe_params: Option<TypeSafeRequestParams>,
+}
+
+impl PreparedDecisionRequest {
+    pub fn with_params(
+        mut self,
+        mut params: lingua::universal::decision::DecisionParams,
+    ) -> Result<Self> {
+        if self.format == ProviderFormat::TypeSafe {
+            self.typesafe_params = params
+                .extras
+                .remove(&ProviderFormat::TypeSafe)
+                .map(|extras| {
+                    lingua::serde_json::from_value(lingua::serde_json::Value::Object(extras))
+                })
+                .transpose()
+                .map_err(|error| {
+                    Error::InvalidRequest(format!("invalid TypeSafe parameters: {error}"))
+                })?;
+        }
+        Ok(self)
+    }
+}
 
 /// Request prepared by the router and ready for execution.
 pub struct PreparedRequest {
@@ -444,6 +489,20 @@ impl Router {
         stream: bool,
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
+        if output_format.is_decision()
+            || route.format.is_decision()
+            || route.spec.flavor == ModelFlavor::Decisions
+            || route
+                .provider
+                .provider_formats()
+                .iter()
+                .all(ProviderFormat::is_decision)
+        {
+            return Err(Error::InvalidRequest(format!(
+                "model {} only supports decision requests; use the /decisions endpoint",
+                route.spec.model
+            )));
+        }
         let native_request = if route.passthrough || output_format != route.format {
             None
         } else {
@@ -657,6 +716,114 @@ impl Router {
         })
     }
 
+    /// Prepare an OpenAI Decisions request body for a resolved route.
+    ///
+    /// Routes that serve the Decisions format receive the body unchanged apart
+    /// from the route's model, which `preserve_body_model` keeps as sent.
+    /// TypeSafe routes receive a System One request.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.create_decision_request",
+            skip(self, body, route),
+            fields(llm.model = %route.model())
+        )
+    )]
+    pub fn create_decision_request(
+        &self,
+        body: Bytes,
+        route: &ProviderRoute,
+        preserve_body_model: bool,
+        input_format: ProviderFormat,
+    ) -> Result<(PreparedDecisionRequest, RouterMetadata)> {
+        if !route.format.is_decision() {
+            return Err(Error::InvalidRequest(format!(
+                "provider {} does not serve decision requests for model {}",
+                route.provider_alias, route.spec.model
+            )));
+        }
+        let body = if route.passthrough || preserve_body_model {
+            body
+        } else {
+            rewrite_body_model_if_required(body, input_format, &route.spec.model)
+        };
+        let transformed = lingua::transform_decision_request(body, input_format, route.format)?;
+        Ok((
+            PreparedDecisionRequest {
+                provider: route.provider.clone(),
+                auth: route.auth.clone(),
+                spec: route.spec.clone(),
+                format: route.format,
+                payload: transformed.payload,
+                response_context: transformed.response_context,
+                strategy: self.retry_policy.strategy(),
+                typesafe_params: None,
+            },
+            RouterMetadata {
+                detected_input_format: input_format,
+                lingua_passthrough: route.format == input_format,
+                provider_alias: route.provider_alias.clone(),
+                provider_format: route.format,
+            },
+        ))
+    }
+
+    /// Execute a prepared decision request and return an OpenAI Decisions response.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete_decision",
+            skip(self, request, client_headers),
+            fields(llm.model = %request.spec.model)
+        )
+    )]
+    pub async fn complete_decision(
+        &self,
+        request: PreparedDecisionRequest,
+        client_headers: &ClientHeaders,
+    ) -> Result<CompleteResponseWithRaw> {
+        let PreparedDecisionRequest {
+            provider,
+            auth,
+            spec,
+            format,
+            payload,
+            response_context,
+            strategy,
+            typesafe_params,
+        } = request;
+        let client_headers = match typesafe_params {
+            Some(params) => params.client_headers(client_headers),
+            None => Cow::Borrowed(client_headers),
+        };
+        let raw_response = self
+            .execute_with_retry(
+                provider,
+                &auth,
+                spec,
+                format,
+                payload,
+                strategy,
+                &client_headers,
+            )
+            .await?;
+        let response = lingua::transform_decision_response(raw_response.clone(), &response_context)
+            .map_err(|source| Error::ResponseTransform {
+                source,
+                raw_response: raw_response.clone(),
+            })?;
+        Ok(CompleteResponseWithRaw {
+            response,
+            raw_response,
+            parsable_info: ParsableResponseInfo {
+                complete: true,
+                content_is_json: true,
+                saw_terminal_finish: true,
+            },
+            requires_json_response: false,
+        })
+    }
+
     /// Create a prepared streaming request from raw body bytes.
     ///
     /// # Arguments
@@ -792,13 +959,26 @@ impl Router {
         output_format: ProviderFormat,
         fallback_aliases: &[String],
     ) -> Result<Vec<ProviderRoute>> {
-        let (spec, catalog_format, aliases, passthrough) = match self.resolver.resolve(model) {
+        let resolved = self.resolver.resolve(model);
+        let catalogued = !matches!(&resolved, Err(Error::UnknownModel(_)));
+        let (spec, catalog_format, aliases, passthrough) = match resolved {
             Ok((spec, format, aliases)) => (spec, format, aliases, false),
             Err(Error::UnknownModel(_)) if !model.is_empty() => {
+                let typesafe_model = model.strip_prefix("braintrust/").unwrap_or(model);
+                let is_typesafe = typesafe_model.starts_with("jev-");
+                let format = if is_typesafe {
+                    ProviderFormat::TypeSafe
+                } else {
+                    output_format
+                };
                 let spec = Arc::new(ModelSpec {
-                    model: model.to_string(),
-                    format: output_format,
-                    flavor: ModelFlavor::Unknown,
+                    model: if is_typesafe { typesafe_model } else { model }.to_string(),
+                    format,
+                    flavor: if is_typesafe {
+                        ModelFlavor::Decisions
+                    } else {
+                        ModelFlavor::Unknown
+                    },
                     display_name: None,
                     parent: None,
                     input_cost_per_mil_tokens: None,
@@ -808,25 +988,33 @@ impl Router {
                     reasoning: None,
                     max_input_tokens: None,
                     max_output_tokens: None,
-                    supports_streaming: true,
+                    supports_streaming: !is_typesafe,
                     extra: Default::default(),
                     available_providers: Vec::new(),
                 });
                 let mut seen = HashSet::new();
                 let aliases = self
                     .formats
-                    .get(&output_format)
+                    .get(&format)
                     .into_iter()
                     .chain(fallback_aliases)
                     .filter_map(|alias| self.matching_provider_alias(alias, alias))
+                    .filter(|alias| {
+                        !is_typesafe
+                            || self.providers.get(alias).is_some_and(|provider| {
+                                provider
+                                    .provider_formats()
+                                    .contains(&ProviderFormat::TypeSafe)
+                            })
+                    })
                     .filter(|alias| seen.insert(alias.clone()))
                     .collect();
-                (spec, output_format, aliases, true)
+                (spec, format, aliases, !is_typesafe)
             }
             Err(error) => return Err(error),
         };
         Self::validate_http_model(&spec)?;
-        if !passthrough && !fallback_aliases.is_empty() {
+        if catalogued && !passthrough && !fallback_aliases.is_empty() {
             return self.resolve_provider_routes_for_failover(
                 model,
                 output_format,
@@ -1108,6 +1296,18 @@ impl Router {
                 return Err(Error::NoProvider(output_format));
             }
             output_format
+        } else if output_format.is_decision() {
+            // Decision requests use the decision API the provider serves, since
+            // native and custom model specs may describe the model as chat.
+            if provider_formats.contains(&output_format) {
+                output_format
+            } else {
+                provider_formats
+                    .iter()
+                    .copied()
+                    .find(ProviderFormat::is_decision)
+                    .unwrap_or(catalog_format)
+            }
         } else if provider.id() == "databricks"
             && !DatabricksProvider::supports_responses(&spec.model)
         {

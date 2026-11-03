@@ -510,6 +510,114 @@ pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValu
     transform_result_to_js(pass_through, bytes, source_format)
 }
 
+#[cfg(feature = "wasm-full")]
+fn parse_format(format: &str) -> Result<crate::capabilities::ProviderFormat, JsValue> {
+    format
+        .parse()
+        .map_err(|_| JsValue::from_str(&format!("Unknown format: {format}")))
+}
+
+#[cfg(feature = "wasm-full")]
+fn decision_adapter(
+    format: &str,
+) -> Result<&'static dyn crate::processing::adapters::DecisionAdapter, JsValue> {
+    let format = parse_format(format)?;
+    crate::processing::adapters::decision_adapter_for_format(format)
+        .ok_or_else(|| JsValue::from_str(&format!("No decision adapter for format: {format}")))
+}
+
+/// Transform a decision request from `source_format` to `target_format`.
+///
+/// Returns `{ passThrough: true, data, json }` when the formats match, or
+/// `{ transformed: true, data, json, sourceFormat }` otherwise. `json` is the
+/// payload exactly as serialized, since `data` loses key order for integer-like keys.
+#[cfg(feature = "wasm-full")]
+#[wasm_bindgen]
+pub fn transform_decision_request(
+    input: &str,
+    source_format: &str,
+    target_format: &str,
+) -> Result<JsValue, JsValue> {
+    use crate::processing::decisions::{
+        transform_decision_request as transform, DecisionResponseContext,
+    };
+
+    let source = parse_format(source_format)?;
+    let transformed = transform(
+        bytes::Bytes::from(input.to_owned()),
+        source,
+        parse_format(target_format)?,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let pass_through = matches!(
+        transformed.response_context,
+        DecisionResponseContext::PassThrough { .. }
+    );
+    let json = String::from_utf8_lossy(&transformed.payload).into_owned();
+    let result = transform_result_to_js(
+        pass_through,
+        transformed.payload,
+        (!pass_through).then_some(source),
+    )?;
+    js_sys::Reflect::set(&result, &"json".into(), &json.into())?;
+    Ok(result)
+}
+
+/// Transform a decision response in `target_format` back to `source_format`.
+///
+/// `request` is the `source_format` request the response answers; formats whose
+/// answers do not identify their questions need it.
+#[cfg(feature = "wasm-full")]
+#[wasm_bindgen]
+pub fn transform_decision_response(
+    request: &str,
+    response: &str,
+    source_format: &str,
+    target_format: &str,
+) -> Result<JsValue, JsValue> {
+    use crate::processing::decisions::{
+        transform_decision_request, transform_decision_response as transform,
+        DecisionResponseContext,
+    };
+
+    let target = parse_format(target_format)?;
+    let context = transform_decision_request(
+        bytes::Bytes::from(request.to_owned()),
+        parse_format(source_format)?,
+        target,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?
+    .response_context;
+    let bytes = transform(bytes::Bytes::from(response.to_owned()), &context)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let pass_through = matches!(context, DecisionResponseContext::PassThrough { .. });
+    transform_result_to_js(pass_through, bytes, (!pass_through).then_some(target))
+}
+
+/// Validate a JSON string as a decision request in `format`.
+#[cfg(feature = "wasm-full")]
+#[wasm_bindgen]
+pub fn validate_decision_request(json: &str, format: &str) -> Result<JsValue, JsValue> {
+    let payload = crate::processing::transform::parse_json_value(json.as_bytes())
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    decision_adapter(format)?
+        .validate_request(payload)
+        .map(|_| JsValue::NULL)
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as a decision response in `format`.
+#[cfg(feature = "wasm-full")]
+#[wasm_bindgen]
+pub fn validate_decision_response(json: &str, format: &str) -> Result<JsValue, JsValue> {
+    let payload = crate::processing::transform::parse_json_value(json.as_bytes())
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    decision_adapter(format)?
+        .validate_response(payload)
+        .map(|_| JsValue::NULL)
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
 #[wasm_bindgen]
 pub struct ImportedSpan {
     inner: crate::processing::import::ImportedSpan,

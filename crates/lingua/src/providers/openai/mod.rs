@@ -9,6 +9,9 @@ OpenAI OpenAPI specification.
 pub mod adapter;
 pub mod capabilities;
 pub mod convert;
+pub mod decisions;
+pub mod decisions_adapter;
+pub mod decisions_generated;
 pub mod detect;
 pub mod generated;
 pub mod params;
@@ -18,6 +21,7 @@ pub(crate) mod tool_parsing;
 
 // Re-export adapters and transformations
 pub use adapter::OpenAIAdapter;
+pub use decisions_adapter::{parse_decision_response, DecisionsAdapter};
 pub use responses_adapter::ResponsesAdapter;
 
 #[cfg(test)]

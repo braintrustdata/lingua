@@ -375,7 +375,9 @@ function evaluateProviderTypePrProvenance({
     !metadata.span_id ||
     metadata?.repository !== repository ||
     metadata?.workflow !== PROVIDER_TYPE_WORKFLOW_NAME ||
-    !["openai", "anthropic", "google"].includes(metadata?.provider) ||
+    !["openai", "anthropic", "google", "openai-decisions", "typesafe"].includes(
+      metadata?.provider
+    ) ||
     !/^\d+$/.test(String(metadata?.run_id || "")) ||
     !/^[1-9]\d*$/.test(String(metadata?.run_attempt || "")) ||
     !/^[0-9a-f]{40}$/.test(String(metadata?.sha || ""))
@@ -1034,7 +1036,12 @@ async function requestCodexRereview() {
 }
 
 function generatedProviderPath(provider) {
-  if (!["openai", "anthropic", "google"].includes(provider)) {
+  if (provider === "openai-decisions") {
+    return "crates/lingua/src/providers/openai/decisions_generated.rs";
+  }
+  if (
+    !["openai", "anthropic", "google", "typesafe"].includes(provider)
+  ) {
     return null;
   }
   return `crates/lingua/src/providers/${provider}/generated.rs`;
@@ -1047,7 +1054,8 @@ function isProhibitedAutofixPath(path, allowedGeneratedPath) {
     path.startsWith("specs/") ||
     path.startsWith("pipelines/") ||
     path.split("/").includes("AGENTS.md") ||
-    (basename === "generated.rs" && path !== allowedGeneratedPath) ||
+    ((basename === "generated.rs" || basename.endsWith("_generated.rs")) &&
+      path !== allowedGeneratedPath) ||
     basename.endsWith(".lock") ||
     [
       "Cargo.toml",

@@ -1,0 +1,347 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`decisions → typesafe > decisionCacheOptionsRequest > request 1`] = `"{"model":"jev-latest","questions":{"0":{"type":"noul","instructions":"Is this about billing?"}},"state":"I was charged twice."}"`;
+
+exports[`decisions → typesafe > decisionCacheOptionsRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "name": null,
+      "probability": 0.95,
+      "type": "predicate",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 276,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 20,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 296,
+  },
+}
+`;
+
+exports[`decisions → typesafe > decisionChoiceDescriptionsRequest > request 1`] = `"{"model":"jev-latest","questions":{"factuality":{"type":"choice","criteria":{"A":"Correct and complete, with no errors.","B":"Mostly correct, with minor omissions.","C":"Contains a factual error."},"instructions":"How factually accurate is the answer?"}},"state":"Question: Why is the sky blue?\\nAnswer: Air molecules scatter shorter (blue) wavelengths of sunlight more than longer ones, so blue light reaches your eyes from every direction."}"`;
+
+exports[`decisions → typesafe > decisionChoiceDescriptionsRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "choice": "A",
+      "confidence": 0.6,
+      "name": "factuality",
+      "probabilities": [
+        {
+          "probability": 0.73,
+          "value": "A",
+        },
+        {
+          "probability": 0.26,
+          "value": "B",
+        },
+        {
+          "probability": 0.01,
+          "value": "C",
+        },
+      ],
+      "type": "choice",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 376,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 40,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 416,
+  },
+}
+`;
+
+exports[`decisions → typesafe > decisionConversationRequest > request 1`] = `"{"model":"jev-latest","questions":{"resolved":{"type":"noul","instructions":"Did the agent resolve the customer's problem?"},"tone":{"type":"score","criteria":["rude","neutral","warm"],"instructions":"Rate the agent's tone."}},"state":{"messages":[{"role":"system","content":"You grade a support agent's replies. Judge only what the agent wrote."},{"role":"user","content":"Customer: My blender stopped working after two weeks.\\nAgent: Sorry to hear that! I've started a free replacement; you'll get a shipping label by email within the hour."}]}}"`;
+
+exports[`decisions → typesafe > decisionConversationRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "name": "resolved",
+      "probability": 0.77,
+      "type": "predicate",
+    },
+    {
+      "confidence": 1,
+      "name": "tone",
+      "probabilities": [
+        {
+          "label": "rude",
+          "probability": 0,
+          "value": 0,
+        },
+        {
+          "label": "neutral",
+          "probability": 0,
+          "value": 1,
+        },
+        {
+          "label": "warm",
+          "probability": 1,
+          "value": 2,
+        },
+      ],
+      "score": 2,
+      "type": "score",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 403,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 33,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 436,
+  },
+}
+`;
+
+exports[`decisions → typesafe > decisionImageInputRequest > request 1`] = `"{"assets":{"__lingua_image_0__":{"data_base64":"iVBORw0KGgoAAAANSUhEUgAAARgAAAEYCAIAAAAI7H7bAAACPElEQVR42u3TMQ0AAAjAsPk3DSI4eJpUwZLVBFxJAEYCI4GRACOBkcBIYCTASGAkMBIYCTASGAmMBEYCjARGAiOBkQAjgZHASGAkwEhgJDASYCQwEhgJjAQYCYwERgIjAUYCI4GRwEiAkcBIYCQwEmAkMBIYCYwEGAmMBEYCIwFGAiOBkQAjgZHASGAkwEhgJDASGAkwEhgJjARGAowERgIjgZEAI4GRwEhgJMBIYCQwEhhJAjASGAmMBBgJjARGAiMBRgIjgZHASICRwEhgJDASYCQwEhgJjAQYCYwERgIjAUYCI4GRACOBkcBIYCTASGAkMBIYCTASGAmMBEYCjARGAiOBkQAjgZHASGAkwEhgJDASGAkwEhgJjAQYCYwERgIjAUYCI4GRwEiAkcBIYCQwEmAkMBIYCYwEGAmMBEYCIwFGAiOBkcBIgJHASGAkwEhgJDASGAkwEhgJjARGAowERgIjgZEAI4GRwEhgJMBIYCQwEhgJMBIYCYwESABGAiOBkQAjgZHASGAkwEhgJDASGAkwEhgJjARGAowERgIjgZEAI4GRwEhgJMBIYCQwEmAkMBIYCYwEGAmMBEYCIwFGAiOBkcBIgJHASGAkMBJgJDASGAmMBBgJjARGAiMBRgIjgZEAI4GRwEhgJMBIYCQwEhgJMBIYCYwERgKMBEYCI4GRACOBkcBIYCTASGAkMBIgARgJjARGAowERgIjgZEAI4GRwEhgJMBIYCQwEhgJMBIYCYwERgKMBB8WJ/YfoHAN5uAAAAAASUVORK5CYII=","format":"png","type":"image"}},"model":"jev-latest","questions":{"green":{"type":"noul","instructions":"Is the image green?"}},"state":{"messages":[{"role":"user","content":[{"type":"text","text":"Inspect this image."},{"type":"image","image":"__lingua_image_0__"}]}]}}"`;
+
+exports[`decisions → typesafe > decisionImageInputRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "name": "green",
+      "probability": 0.99,
+      "type": "predicate",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 539,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 20,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 559,
+  },
+}
+`;
+
+exports[`decisions → typesafe > decisionMixedQuestionsRequest > request 1`] = `"{"model":"jev-latest","questions":{"0":{"type":"noul","instructions":"Is the answer correct?"},"shows_work":{"type":"choice","criteria":{"true":null,"false":null},"instructions":"Does the answer show how it was computed?"},"2":{"type":"score","criteria":["verbose","ok","concise"],"instructions":["Rate how concise the answer is."]}},"state":{"messages":[{"role":"user","content":[{"type":"text","text":"Question: What is 15% of 80?\\nAnswer: 15% of 80 is 12."}]}]}}"`;
+
+exports[`decisions → typesafe > decisionMixedQuestionsRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "name": null,
+      "probability": 0.99,
+      "type": "predicate",
+    },
+    {
+      "choice": false,
+      "confidence": 0.96,
+      "name": "shows_work",
+      "probabilities": [
+        {
+          "probability": 0.02,
+          "value": true,
+        },
+        {
+          "probability": 0.98,
+          "value": false,
+        },
+      ],
+      "type": "choice",
+    },
+    {
+      "confidence": 0.97,
+      "name": null,
+      "probabilities": [
+        {
+          "label": "verbose",
+          "probability": 0,
+          "value": 0,
+        },
+        {
+          "label": "ok",
+          "probability": 0.02,
+          "value": 1,
+        },
+        {
+          "label": "concise",
+          "probability": 0.98,
+          "value": 2,
+        },
+      ],
+      "score": 1.97,
+      "type": "score",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 410,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 62,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 472,
+  },
+}
+`;
+
+exports[`decisions → typesafe > decisionScoreLevelsRequest > request 1`] = `"{"model":"jev-latest","questions":{"faithfulness":{"type":"score","criteria":[{"description":"States things the source does not.","label":"unfaithful"},{"description":"Omits or blurs key facts.","label":"partial"},{"description":"Every claim is supported by the source.","label":"faithful"}],"instructions":"Rate how faithful the summary is to the source."}},"state":{"messages":[{"role":"user","content":"Summarize: The city council approved a new bike lane on Main Street after a three-month public comment period. Construction starts in May and will close one car lane for six weeks."},{"role":"assistant","content":"The council approved a Main Street bike lane; construction begins in May and closes a car lane for six weeks."}]}}"`;
+
+exports[`decisions → typesafe > decisionScoreLevelsRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "confidence": 0.26,
+      "name": "faithfulness",
+      "probabilities": [
+        {
+          "label": "unfaithful",
+          "probability": 0,
+          "value": 0,
+        },
+        {
+          "label": "partial",
+          "probability": 0.49,
+          "value": 1,
+        },
+        {
+          "label": "faithful",
+          "probability": 0.51,
+          "value": 2,
+        },
+      ],
+      "score": 1.51,
+      "type": "score",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 465,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 20,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 485,
+  },
+}
+`;
+
+exports[`decisions → typesafe > decisionTextInputRequest > request 1`] = `"{"model":"jev-latest","questions":{"department":{"type":"choice","criteria":{"billing":null,"shipping":null,"technical":null},"instructions":"Which team should handle this ticket?"}},"state":"I was charged twice for order 4417 and the second charge is still pending."}"`;
+
+exports[`decisions → typesafe > decisionTextInputRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "choice": "billing",
+      "confidence": 1,
+      "name": "department",
+      "probabilities": [
+        {
+          "probability": 1,
+          "value": "billing",
+        },
+        {
+          "probability": 0,
+          "value": "shipping",
+        },
+        {
+          "probability": 0,
+          "value": "technical",
+        },
+      ],
+      "type": "choice",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 314,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 38,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 352,
+  },
+}
+`;
+
+exports[`decisions → typesafe > decisionToolConversationRequest > request 1`] = `"{"model":"jev-latest","questions":{"grounded":{"type":"noul","instructions":"Is the assistant's final answer supported by the tool output?"},"grade":{"type":"choice","criteria":{"A":null,"B":null,"C":null},"instructions":"Grade the assistant's final answer."}},"state":{"messages":[{"role":"system","content":"You are a weather assistant. Use tools for live data."},{"role":"user","content":"Do I need an umbrella in Lisbon today?"},{"role":"assistant","content":"Let me check the forecast."},{"role":"assistant","content":[{"type":"tool_call","tool_call_id":"call_forecast_1","tool_name":"get_forecast","arguments":{"city":"Lisbon","day":"today"}}]},{"role":"tool","content":[{"type":"tool_result","tool_call_id":"call_forecast_1","tool_name":"get_forecast","output":"{\\"condition\\":\\"rain\\",\\"chance_of_rain\\":0.85,\\"high_c\\":17}"}]},{"role":"assistant","content":"Yes, bring an umbrella: there's an 85% chance of rain in Lisbon today, with a high of 17°C."}]}}"`;
+
+exports[`decisions → typesafe > decisionToolConversationRequest > response 1`] = `
+{
+  "answers": [
+    {
+      "name": "grounded",
+      "probability": 0.98,
+      "type": "predicate",
+    },
+    {
+      "choice": "A",
+      "confidence": 0.97,
+      "name": "grade",
+      "probabilities": [
+        {
+          "probability": 0.98,
+          "value": "A",
+        },
+        {
+          "probability": 0.01,
+          "value": "B",
+        },
+        {
+          "probability": 0.01,
+          "value": "C",
+        },
+      ],
+      "type": "choice",
+    },
+  ],
+  "model": "jev-1.14.0",
+  "usage": {
+    "input_tokens": 603,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 57,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 660,
+  },
+}
+`;

@@ -1,0 +1,15 @@
+{
+  "model": "jev-latest",
+  "state": "I was charged twice for order 4417 and the second charge is still pending.",
+  "questions": {
+    "department": {
+      "type": "choice",
+      "instructions": "Which team should handle this ticket?",
+      "criteria": {
+        "billing": null,
+        "shipping": null,
+        "technical": null
+      }
+    }
+  }
+}

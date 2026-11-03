@@ -1,0 +1,33 @@
+{
+  "model": "jev-1.14.0",
+  "answers": {
+    "faithfulness": {
+      "type": "score",
+      "score": 1.51,
+      "confidence": 0.26,
+      "legend": {
+        "0": {
+          "description": "States things the source does not.",
+          "label": "unfaithful"
+        },
+        "1": {
+          "description": "Omits or blurs key facts.",
+          "label": "partial"
+        },
+        "2": {
+          "description": "Every claim is supported by the source.",
+          "label": "faithful"
+        }
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.49,
+        "2": 0.51
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 465,
+    "output_tokens": 20
+  }
+}

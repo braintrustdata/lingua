@@ -3,7 +3,7 @@
 # Provider type generation script
 # 
 # This script follows the pipeline documented in generate-provider-types.md
-# Currently supports: OpenAI, Anthropic, Google
+# Currently supports: OpenAI, OpenAI Decisions, Anthropic, Google
 #
 # Usage: ./generate-provider-types.sh [provider] [--headless]
 # Default provider: openai
@@ -16,6 +16,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Parse arguments
 PROVIDER=""
 HEADLESS=false
+GENERATE_TYPES_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -54,11 +55,24 @@ download_provider_spec() {
             SPEC_URL="https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
             SPEC_FILE="$PROJECT_ROOT/specs/openai/openapi.yml"
             ;;
+        "openai-decisions")
+            # The full spec is only an input; generate-types keeps the Decisions
+            # excerpt in specs/openai/decisions.yml.
+            echo "Downloading OpenAI OpenAPI spec for the Decisions API..."
+            SPEC_URL="https://raw.githubusercontent.com/openai/openai-openapi/main/openapi.yaml"
+            SPEC_FILE="$(mktemp -t openai-openapi.XXXXXX)"
+            GENERATE_TYPES_ARGS=("$SPEC_FILE")
+            ;;
         "anthropic")
             echo "Downloading Anthropic OpenAPI spec from the official SDK..."
             # The SDK's scripts/mock uses this bundled spec; .stats.yml no longer publishes its URL.
             SPEC_URL="https://raw.githubusercontent.com/anthropics/anthropic-sdk-typescript/main/scripts/mock-spec.json.gz"
             SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.yml"
+            ;;
+        "typesafe")
+            echo "Downloading TypeSafe OpenAPI spec..."
+            SPEC_URL="https://api.typesafe.ai/openapi.json"
+            SPEC_FILE="$PROJECT_ROOT/specs/typesafe/openapi.json"
             ;;
         "google")
             echo "Downloading Google Discovery spec..."
@@ -103,7 +117,7 @@ download_provider_spec() {
     trap - EXIT
     
     if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
-        if [ "$PROVIDER" = "google" ]; then
+        if [ "$PROVIDER" = "google" ] || [ "$PROVIDER" = "typesafe" ]; then
             cargo run --quiet --manifest-path "$PROJECT_ROOT/Cargo.toml" --bin canonicalize-json -- "$SPEC_FILE"
         fi
 
@@ -214,7 +228,7 @@ cd "$PROJECT_ROOT"
 
 # Run the dedicated type generation script
 echo "Running type generation script for $PROVIDER..."
-cargo run --bin generate-types -- "$PROVIDER"
+cargo run --bin generate-types -- "$PROVIDER" "${GENERATE_TYPES_ARGS[@]}"
 
 if [ $? -ne 0 ]; then
     echo "❌ Type generation failed"
@@ -241,7 +255,13 @@ echo "✅ Type generation and validation completed"
 echo "🎉 Provider type generation completed successfully for: $PROVIDER"
 echo ""
 echo "Generated files:"
-if [ "$PROVIDER" = "google" ]; then
+if [ "$PROVIDER" = "openai-decisions" ]; then
+    echo "- $PROJECT_ROOT/crates/lingua/src/providers/openai/decisions_generated.rs (types from OpenAPI spec)"
+    echo "- $PROJECT_ROOT/specs/openai/decisions.yml (local Decisions OpenAPI excerpt)"
+elif [ "$PROVIDER" = "typesafe" ]; then
+    echo "- $PROJECT_ROOT/crates/lingua/src/providers/typesafe/generated.rs (types from OpenAPI spec)"
+    echo "- $PROJECT_ROOT/specs/typesafe/openapi.json (local OpenAPI spec)"
+elif [ "$PROVIDER" = "google" ]; then
     echo "- $PROJECT_ROOT/crates/lingua/src/providers/$PROVIDER/generated.rs (types from Google Discovery spec)"
     echo "- $PROJECT_ROOT/specs/$PROVIDER/discovery.json (local Google Discovery spec)"
 else

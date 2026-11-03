@@ -31,6 +31,11 @@ pub enum ProviderFormat {
     Converse,
     /// OpenAI Responses API format (for reasoning models like o1-pro, o3)
     Responses,
+    /// OpenAI Decisions API format (typed predicate, choice, and score answers)
+    Decisions,
+    /// TypeSafe System One API format (decision models such as Jev)
+    #[serde(rename = "typesafe")]
+    TypeSafe,
     /// Internal-only format for Bedrock Anthropic invoke envelope handling.
     #[serde(skip_serializing, skip_deserializing)]
     #[ts(skip)]
@@ -50,6 +55,12 @@ impl ProviderFormat {
     pub fn is_known(&self) -> bool {
         !matches!(self, ProviderFormat::Unknown)
     }
+
+    /// Returns true for decision APIs, which answer typed questions instead of
+    /// exchanging chat messages.
+    pub fn is_decision(&self) -> bool {
+        matches!(self, ProviderFormat::Decisions | ProviderFormat::TypeSafe)
+    }
 }
 
 impl std::fmt::Display for ProviderFormat {
@@ -61,6 +72,8 @@ impl std::fmt::Display for ProviderFormat {
             ProviderFormat::Mistral => "mistral",
             ProviderFormat::Converse => "converse",
             ProviderFormat::Responses => "responses",
+            ProviderFormat::Decisions => "decisions",
+            ProviderFormat::TypeSafe => "typesafe",
             ProviderFormat::BedrockAnthropic => "bedrock_anthropic",
             ProviderFormat::VertexAnthropic => "vertex_anthropic",
             ProviderFormat::Unknown => "unknown",
@@ -80,6 +93,8 @@ impl std::str::FromStr for ProviderFormat {
             "mistral" => Ok(ProviderFormat::Mistral),
             "converse" | "bedrock" => Ok(ProviderFormat::Converse),
             "responses" => Ok(ProviderFormat::Responses),
+            "decisions" => Ok(ProviderFormat::Decisions),
+            "typesafe" => Ok(ProviderFormat::TypeSafe),
             _ => Err(()),
         }
     }
@@ -106,6 +121,14 @@ mod tests {
         assert_eq!(
             "bedrock".parse::<ProviderFormat>().unwrap(),
             ProviderFormat::Converse
+        );
+        assert_eq!(
+            "decisions".parse::<ProviderFormat>().unwrap(),
+            ProviderFormat::Decisions
+        );
+        assert_eq!(
+            "TypeSafe".parse::<ProviderFormat>().unwrap(),
+            ProviderFormat::TypeSafe
         );
         assert_eq!(
             "unknown_format"

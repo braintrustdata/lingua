@@ -1,0 +1,25 @@
+{
+  "model": "gpt-6-luna",
+  "input": "Question: Why is the sky blue?\nAnswer: Air molecules scatter shorter (blue) wavelengths of sunlight more than longer ones, so blue light reaches your eyes from every direction.",
+  "questions": [
+    {
+      "type": "choice",
+      "name": "factuality",
+      "instructions": "How factually accurate is the answer?",
+      "choices": [
+        {
+          "value": "A",
+          "description": "Correct and complete, with no errors."
+        },
+        {
+          "value": "B",
+          "description": "Mostly correct, with minor omissions."
+        },
+        {
+          "value": "C",
+          "description": "Contains a factual error."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "model": "gpt-6-luna",
+  "answers": [
+    {
+      "type": "predicate",
+      "name": "grounded",
+      "probability": 1
+    },
+    {
+      "type": "choice",
+      "name": "grade",
+      "choice": "A",
+      "probabilities": [
+        {
+          "value": "A",
+          "probability": 0.76
+        },
+        {
+          "value": "B",
+          "probability": 0.12
+        },
+        {
+          "value": "C",
+          "probability": 0.12
+        }
+      ],
+      "confidence": 0.64
+    }
+  ],
+  "usage": {
+    "input_tokens": 392,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "output_tokens": 0,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 392
+  }
+}

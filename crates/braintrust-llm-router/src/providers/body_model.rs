@@ -1,13 +1,16 @@
 use bytes::Bytes;
-use lingua::serde_json::{self, Value};
+use lingua::serde_json::{self, value::RawValue};
 use lingua::ProviderFormat;
+use std::collections::BTreeMap;
 
 fn body_model_field(format: ProviderFormat) -> Option<&'static str> {
     match format {
         ProviderFormat::ChatCompletions
         | ProviderFormat::Responses
         | ProviderFormat::Anthropic
-        | ProviderFormat::Mistral => Some("model"),
+        | ProviderFormat::Mistral
+        | ProviderFormat::Decisions
+        | ProviderFormat::TypeSafe => Some("model"),
         ProviderFormat::Google
         | ProviderFormat::Converse
         | ProviderFormat::BedrockAnthropic
@@ -60,17 +63,14 @@ pub(crate) fn rewrite_body_model_if_required(
     let Some(model_field) = body_model_field(format) else {
         return payload;
     };
-    let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
+    let Ok(mut fields) = serde_json::from_slice::<BTreeMap<String, &RawValue>>(&payload) else {
         return payload;
     };
-    let Some(object) = value.as_object_mut() else {
+    let Ok(model) = serde_json::value::to_raw_value(model) else {
         return payload;
     };
-    if object.get(model_field).and_then(Value::as_str) == Some(model) {
-        return payload;
-    }
-    object.insert(model_field.to_string(), Value::String(model.to_string()));
-    match serde_json::to_vec(&value) {
+    fields.insert(model_field.to_string(), &model);
+    match serde_json::to_vec(&fields) {
         Ok(serialized) => Bytes::from(serialized),
         Err(_) => payload,
     }
@@ -79,6 +79,7 @@ pub(crate) fn rewrite_body_model_if_required(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use lingua::serde_json::Value;
 
     #[test]
     fn rewrite_body_model_if_required_leaves_matching_model_bytes_unchanged() {
@@ -100,6 +101,21 @@ mod tests {
         let value: Value = serde_json::from_slice(&updated).unwrap();
 
         assert_eq!(value.get("model").and_then(Value::as_str), Some("gpt-4o"));
+    }
+
+    #[test]
+    fn model_rewrite_preserves_typesafe_content_bytes() {
+        let payload = Bytes::from_static(
+            br#"{"model":"jev-latest","questions":{"score":{"type":"noul","instructions":{"z":"first", "a":"last"}}},"state":{"z":1.00, "a":{"y":2, "b":3}}}"#,
+        );
+
+        let updated =
+            rewrite_body_model_if_required(payload, ProviderFormat::TypeSafe, "jev-1.14.0");
+
+        assert_eq!(
+            updated.as_ref(),
+            br#"{"model":"jev-1.14.0","questions":{"score":{"type":"noul","instructions":{"z":"first", "a":"last"}}},"state":{"z":1.00, "a":{"y":2, "b":3}}}"#
+        );
     }
 
     #[test]
