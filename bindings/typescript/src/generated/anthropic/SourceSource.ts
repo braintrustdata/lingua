@@ -2,4 +2,4 @@
 import type { PurpleMediaType } from "./PurpleMediaType";
 import type { PurpleType } from "./PurpleType";
 
-export type SourceSource = { data: string | null, media_type: PurpleMediaType | null, type: PurpleType, url: string | null, };
+export type SourceSource = { data: string | null, media_type: PurpleMediaType | null, type: PurpleType, url: string | null, file_id: string | null, };
