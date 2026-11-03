@@ -1,15 +1,19 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+mod voice;
 pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };
 
-use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext};
+use crate::processing::import::{
+    is_instruction, ImportedSpan, OpaqueItem, SpanContext, VoiceHeader, VoicePayload,
+};
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    Agent, AgentResponse, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work, WorkStep,
+    Agent, AgentResponse, LLMAnalysis, Recording, Scope, ToolResult, Trajectory, Turn, Work,
+    WorkStep,
 };
 use crate::universal::{AssistantContent, AssistantContentPart, Message};
 use crate::UniversalUsage;
@@ -60,6 +64,7 @@ pub struct PreparedSpan {
     tool_result: Option<ToolResult>,
     failure: Option<ImportFailure>,
     warnings: Vec<String>,
+    voice: VoicePayload,
 }
 
 #[derive(Debug, Clone)]
@@ -152,6 +157,7 @@ impl PreparedSpan {
             tool_result: span.tool_result,
             failure,
             warnings: span.warnings,
+            voice: span.voice,
         })
     }
 
@@ -163,6 +169,7 @@ impl PreparedSpan {
         self.usage = None;
         self.tool_result = None;
         self.source.error = None;
+        self.voice = VoicePayload::default();
     }
 
     fn current_input(&self, initial_request: bool) -> impl Iterator<Item = &RequestMessage> {
@@ -178,6 +185,13 @@ impl PreparedSpan {
     fn has_request(&self, initial_request: bool) -> bool {
         self.current_input(initial_request)
             .any(|input| matches!(input.message, Message::User { .. }) && !input.context)
+    }
+
+    fn start_order(&self, other: &Self) -> std::cmp::Ordering {
+        self.start
+            .cmp(&other.start)
+            .then(self.source.exec_counter.cmp(&other.source.exec_counter))
+            .then(self.id.cmp(&other.id))
     }
 
     fn kind(&self) -> &str {
@@ -213,6 +227,24 @@ impl PreparedSpan {
             usage: self.usage(),
             start_time: Some(self.start),
             end_time: self.source.end,
+        }
+    }
+
+    fn analysis(&self) -> LLMAnalysis {
+        LLMAnalysis {
+            work: Some(
+                self.input
+                    .iter()
+                    .map(|input| &input.message)
+                    .chain(&self.output)
+                    .cloned()
+                    .collect(),
+            ),
+            opaque_input: self.opaque_input.clone(),
+            opaque_output: self.opaque_output.clone(),
+            model: self.source.model.clone(),
+            params: None,
+            usage: self.usage(),
         }
     }
 

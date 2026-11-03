@@ -1,0 +1,438 @@
+{
+  "spans": [
+    {
+      "id": "r-session",
+      "span_id": "s-session",
+      "root_span_id": "voice-edge-trace",
+      "span_attributes": {
+        "type": "task",
+        "name": "session"
+      },
+      "metrics": {
+        "start": 0,
+        "end": 30
+      },
+      "metadata": {
+        "audio.schema.version": "3.0.0",
+        "audio.timeline": {
+          "origin_unix_ms": 1793740000000.5
+        },
+        "audio.sources": {
+          "agent-output": {
+            "label": "Agent audio"
+          }
+        },
+        "audio.segments": {
+          "part-0": {
+            "state": "ready",
+            "start_offset_ms": 0,
+            "duration_ms": 10000,
+            "attachment": {
+              "ref": "/input/audio/part-0"
+            },
+            "mime_type": "audio/ogg",
+            "channels": {
+              "0": {
+                "sources": [
+                  "session-input"
+                ]
+              },
+              "1": {
+                "sources": [
+                  "agent-output"
+                ]
+              }
+            }
+          },
+          "part-1": {
+            "state": "omitted",
+            "start_offset_ms": 10000,
+            "reason": "storage failed"
+          },
+          "part-2": {
+            "state": "ready",
+            "start_offset_ms": 20000,
+            "duration_ms": 10000
+          }
+        }
+      },
+      "input": {
+        "audio": {
+          "part-0": {
+            "type": "braintrust_attachment",
+            "key": "00000000-0000-4000-8000-000000000001",
+            "filename": "part-0.ogg",
+            "content_type": "audio/ogg"
+          }
+        }
+      }
+    },
+    {
+      "id": "r-greeting",
+      "span_id": "s-greeting",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 1,
+        "end": 4
+      },
+      "metadata": {
+        "turn.id": "s-greeting"
+      }
+    },
+    {
+      "id": "r-greeting-llm",
+      "span_id": "s-greeting-llm",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-greeting"
+      ],
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response"
+      },
+      "metrics": {
+        "start": 1.1,
+        "end": 1.5
+      },
+      "metadata": {
+        "turn.id": "s-greeting",
+        "model": "gpt-test"
+      },
+      "input": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        }
+      ],
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Hello!"
+        }
+      ]
+    },
+    {
+      "id": "r-greeting-speech",
+      "span_id": "s-greeting-speech",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-greeting"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 1.6,
+        "end": 4
+      },
+      "metadata": {
+        "turn.id": "s-greeting",
+        "audio.source_id": "agent-output"
+      },
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Hello!"
+        }
+      ]
+    },
+    {
+      "id": "r-question",
+      "span_id": "s-question",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 5,
+        "end": 8
+      },
+      "metadata": {
+        "turn.id": "s-question"
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Hi"
+        }
+      ]
+    },
+    {
+      "id": "r-question-speech",
+      "span_id": "s-question-speech",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-question"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 5,
+        "end": 7
+      },
+      "metadata": {
+        "turn.id": "s-question",
+        "audio.source_id": "session-input"
+      }
+    },
+    {
+      "id": "r-question-stt",
+      "span_id": "s-question-stt",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-question"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "stt"
+      },
+      "metrics": {
+        "start": 4.5,
+        "end": 8
+      },
+      "metadata": {
+        "turn.id": "s-question"
+      },
+      "output": [
+        {
+          "role": "user",
+          "content": "Hi"
+        }
+      ]
+    },
+    {
+      "id": "r-reply",
+      "span_id": "s-reply",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn"
+      },
+      "metrics": {
+        "start": 8,
+        "end": 12
+      },
+      "metadata": {
+        "turn.id": "s-reply",
+        "turn.reply_to": "s-missing",
+        "contrib.livekit.interrupted": true
+      }
+    },
+    {
+      "id": "r-reply-speech",
+      "span_id": "s-reply-speech",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-reply"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech"
+      },
+      "metrics": {
+        "start": 9,
+        "end": 10
+      },
+      "metadata": {
+        "turn.id": "s-reply",
+        "contrib.livekit.interrupted": true
+      },
+      "output": [
+        {
+          "role": "assistant",
+          "content": "Sure"
+        }
+      ]
+    },
+    {
+      "id": "r-orphan-tts",
+      "span_id": "s-orphan-tts",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-reply"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "tts"
+      },
+      "metrics": {
+        "start": 9,
+        "end": 9.5
+      },
+      "metadata": {
+        "turn.id": "s-ghost"
+      }
+    },
+    {
+      "id": "r-trailing",
+      "span_id": "s-trailing",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 13,
+        "end": 13.5
+      },
+      "metadata": {
+        "turn.id": "s-trailing"
+      }
+    },
+    {
+      "id": "r-silent",
+      "span_id": "s-silent",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-session"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn"
+      },
+      "metrics": {
+        "start": 14,
+        "end": 15
+      },
+      "metadata": {
+        "turn.id": "s-silent"
+      }
+    },
+    {
+      "id": "r-silent-speech",
+      "span_id": "s-silent-speech",
+      "root_span_id": "voice-edge-trace",
+      "span_parents": [
+        "s-silent"
+      ],
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech"
+      },
+      "metrics": {
+        "start": 14,
+        "end": 14.5
+      },
+      "metadata": {
+        "turn.id": "s-silent",
+        "audio.source_id": "session-input"
+      }
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "r-greeting",
+      "response_id": "r-greeting-speech",
+      "response_text": "Hello!",
+      "work_ids": [
+        "r-greeting-llm"
+      ],
+      "user_texts": [],
+      "interrupted": null
+    },
+    {
+      "request_id": "r-question",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "r-question-stt"
+      ],
+      "user_texts": [
+        "Hi"
+      ],
+      "interrupted": null
+    },
+    {
+      "request_id": "r-reply",
+      "response_id": "r-reply-speech",
+      "response_text": "Sure",
+      "work_ids": [],
+      "user_texts": [],
+      "interrupted": true
+    }
+  ],
+  "import_failures": [
+    {
+      "span_id": "r-orphan-tts",
+      "message": "Unresolved turn.id s-ghost"
+    },
+    {
+      "span_id": "r-reply",
+      "message": "Unresolved turn.reply_to s-missing"
+    },
+    {
+      "span_id": "r-session",
+      "message": "Unknown audio source session-input in segment part-0; Ready audio segment part-2 has no attachment"
+    }
+  ],
+  "recordings": [
+    {
+      "id": "r-session",
+      "origin": "2026-11-03T21:06:40.000500Z",
+      "sources": [
+        {
+          "id": "agent-output",
+          "label": "Agent audio"
+        }
+      ],
+      "segments": [
+        {
+          "id": "part-0",
+          "state": "ready",
+          "start_offset_ms": 0,
+          "duration_ms": 10000,
+          "attachment_ref": "/input/audio/part-0",
+          "mime_type": "audio/ogg",
+          "channels": [
+            {
+              "index": 0,
+              "sources": [
+                "session-input"
+              ]
+            },
+            {
+              "index": 1,
+              "sources": [
+                "agent-output"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "part-1",
+          "state": "omitted",
+          "start_offset_ms": 10000,
+          "channels": [],
+          "reason": "storage failed"
+        },
+        {
+          "id": "part-2",
+          "state": "ready",
+          "start_offset_ms": 20000,
+          "duration_ms": 10000,
+          "channels": []
+        }
+      ]
+    }
+  ]
+}

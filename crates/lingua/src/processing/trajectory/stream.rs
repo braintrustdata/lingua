@@ -55,6 +55,10 @@ pub enum TrajectoryEvent {
         scope: TrajectoryScope,
         id: String,
     },
+    Recording {
+        scope: TrajectoryScope,
+        recording: Recording,
+    },
     Failure {
         root_span_id: String,
         span_id: String,
@@ -182,6 +186,7 @@ enum Role {
     Analysis,
     Tool,
     Task { fallback: bool },
+    Voice,
 }
 
 impl Role {
@@ -418,6 +423,10 @@ pub struct TrajectoryStream {
     exclude_system: bool,
     finished: bool,
     failures: Vec<ImportFailure>,
+    voice: voice::VoicePlan,
+    voice_opened: Vec<bool>,
+    voice_remaining: Vec<usize>,
+    voice_failed: HashSet<usize>,
 }
 
 impl TrajectoryStream {
@@ -480,7 +489,16 @@ impl TrajectoryStream {
                 }
             }
         }
-        let roles = classify_headers(&spans, &owners);
+        let mut roles = classify_headers(&spans, &owners);
+        let mut voice = voice::plan(&spans, &by_span_id, &parents, &owners);
+        for (index, role) in roles.iter_mut().enumerate() {
+            if voice.is_voice(index) {
+                *role = Role::Voice;
+            } else if voice.ignored.contains(&index) {
+                *role = Role::Ignored;
+            }
+        }
+        failures.append(&mut voice.failures);
         let ready = roles.iter().map(|role| *role == Role::Ignored).collect();
         let mut task_children = vec![Vec::new(); spans.len()];
         let task_resolved = roles
@@ -505,18 +523,7 @@ impl TrajectoryStream {
             }
         }
         for children in &mut task_children {
-            children.sort_by(|a, b| {
-                spans[*a]
-                    .start
-                    .cmp(&spans[*b].start)
-                    .then(
-                        spans[*a]
-                            .source
-                            .exec_counter
-                            .cmp(&spans[*b].source.exec_counter),
-                    )
-                    .then(spans[*a].id.cmp(&spans[*b].id))
-            });
+            children.sort_by(|a, b| spans[*a].start_order(&spans[*b]));
         }
         let mut stream = Self {
             ready,
@@ -538,6 +545,14 @@ impl TrajectoryStream {
             cursor: 0,
             exclude_system,
             finished: false,
+            voice_opened: vec![false; voice.exchanges.len()],
+            voice_remaining: voice
+                .exchanges
+                .iter()
+                .map(|exchange| exchange.members)
+                .collect(),
+            voice,
+            voice_failed: HashSet::new(),
         };
         let mut events = Vec::new();
         stream.initialize(&mut events)?;
@@ -682,7 +697,12 @@ impl TrajectoryStream {
             span_id: id.to_string(),
             message,
         });
-        self.roles[index] = Role::Ignored;
+        if self.roles[index] == Role::Voice {
+            // Keep the span's place so its exchange still opens and closes.
+            self.voice_failed.insert(index);
+        } else {
+            self.roles[index] = Role::Ignored;
+        }
         self.task_resolved[index] = true;
         self.ready[index] = true;
         self.spans[index].release_payload();
@@ -718,6 +738,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
@@ -730,6 +751,9 @@ impl TrajectoryStream {
             || end != &header.source.end
             || turn != &header.source.turn
             || analysis != &header.source.analysis
+            // Headers without voice fields plan the trace as non-voice, which the payload
+            // can't contradict; headers that have them must match.
+            || (header.source.voice != VoiceHeader::default() && voice != &header.source.voice)
             || compaction.as_ref().map(|value| &value.id)
                 != header.source.compaction.as_ref().map(|value| &value.id)
         {
@@ -844,6 +868,7 @@ impl TrajectoryStream {
                         instructions: None,
                     },
                     turns: Vec::new(),
+                    recordings: None,
                     sections: None,
                     findings: None,
                     metadata: Default::default(),
@@ -874,8 +899,10 @@ impl TrajectoryStream {
             {
                 break;
             }
-            if self.roles[index] != Role::Ignored {
-                self.advance(index, &mut events)?;
+            match self.roles[index] {
+                Role::Ignored => {}
+                Role::Voice => self.advance_voice(index, &mut events)?,
+                _ => self.advance(index, &mut events)?,
             }
             let remaining = self
                 .remaining
@@ -890,7 +917,7 @@ impl TrajectoryStream {
                     if let Some((candidate, _)) = state.candidate {
                         self.spans[candidate].release_payload();
                     }
-                } else if self.roles[index] != Role::Ignored {
+                } else if !matches!(self.roles[index], Role::Ignored | Role::Voice) {
                     return Err(format!(
                         "Missing turn state for span {}",
                         self.spans[index].id
@@ -947,21 +974,7 @@ impl TrajectoryStream {
                 format!("Missing imported tool result for {}", span.id)
             })?))
         } else if self.roles[index] == Role::Analysis {
-            Work::LLMAnalysis(Box::new(LLMAnalysis {
-                work: Some(
-                    span.input
-                        .iter()
-                        .map(|input| &input.message)
-                        .chain(&span.output)
-                        .cloned()
-                        .collect(),
-                ),
-                opaque_input: span.opaque_input.clone(),
-                opaque_output: span.opaque_output.clone(),
-                model: span.source.model.clone(),
-                params: None,
-                usage: span.usage(),
-            }))
+            Work::LLMAnalysis(Box::new(span.analysis()))
         } else {
             Work::AgentResponse(Box::new(span.response()))
         };
@@ -1203,6 +1216,113 @@ impl TrajectoryStream {
         Ok(())
     }
 
+    fn advance_voice(&mut self, index: usize, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
+        let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+        let scope = self.scope(&key);
+        let loaded = !self.voice_failed.contains(&index);
+        let span = &self.spans[index];
+        if loaded && !span.voice.errors.is_empty() {
+            self.failures
+                .push(voice::failure(span, span.voice.errors.join("; ")));
+        }
+        if self.voice.sessions.contains(&index) {
+            if loaded {
+                let (recording, errors) = voice::recording(span);
+                if !errors.is_empty() {
+                    self.failures.push(voice::failure(span, errors.join("; ")));
+                }
+                if let Some(recording) = recording {
+                    events.push(TrajectoryEvent::Recording { scope, recording });
+                }
+            }
+            self.spans[index].release_payload();
+            return Ok(());
+        }
+        let (exchange_index, slot) = self.voice.members[&index];
+        let exchange = &self.voice.exchanges[exchange_index];
+        let opener = &self.spans[exchange.opener];
+        let id = opener.id.clone();
+        let request = if index == exchange.opener && loaded {
+            self.request(span, None, true)
+        } else {
+            Vec::new()
+        };
+        self.voice_remaining[exchange_index] -= 1;
+        if !self.voice_opened[exchange_index] {
+            if index == exchange.opener && exchange.members == 1 && request.is_empty() {
+                // An empty user turn that nothing answers, such as a trailing one.
+                self.spans[index].release_payload();
+                return Ok(());
+            }
+            self.voice_opened[exchange_index] = true;
+            events.push(TrajectoryEvent::Turn {
+                scope: scope.clone(),
+                id: id.clone(),
+                turn: Box::new(Turn {
+                    request_id: id.clone(),
+                    request: Some(request),
+                    opaque_request: Vec::new(),
+                    response_id: None,
+                    response: None,
+                    work: Vec::new(),
+                    model: exchange.model.clone(),
+                    params: None,
+                    start_time: exchange.start_time,
+                    end_time: None,
+                    interrupted: None,
+                    compaction: None,
+                }),
+            });
+        } else if index == exchange.opener && loaded {
+            events.push(TrajectoryEvent::Request {
+                scope: scope.clone(),
+                id: id.clone(),
+                request_id: id.clone(),
+                request,
+                opaque_request: Vec::new(),
+            });
+        }
+        if span.source.voice.interrupted == Some(true) {
+            events.push(TrajectoryEvent::Interrupted {
+                scope: scope.clone(),
+                id: id.clone(),
+            });
+        }
+        match slot {
+            voice::Slot::Opener | voice::Slot::Reply => {}
+            voice::Slot::Work { kind, position } if loaded => match voice::work(span, kind) {
+                Ok(step) => events.push(TrajectoryEvent::Work {
+                    scope: scope.clone(),
+                    id: id.clone(),
+                    position,
+                    step,
+                }),
+                Err(message) => self.failures.push(voice::failure(span, message)),
+            },
+            voice::Slot::Work { .. } => {}
+            voice::Slot::Response => events.push(TrajectoryEvent::Response {
+                scope: scope.clone(),
+                id: id.clone(),
+                response_id: loaded.then(|| span.id.clone()),
+                response: loaded.then(|| Box::new(span.response())),
+                end_time: exchange.end_time,
+                model: exchange.model.clone(),
+            }),
+        }
+        if self.voice_remaining[exchange_index] == 0 && exchange.response.is_none() {
+            events.push(TrajectoryEvent::Response {
+                scope,
+                id,
+                response_id: None,
+                response: None,
+                end_time: exchange.end_time,
+                model: exchange.model.clone(),
+            });
+        }
+        self.spans[index].release_payload();
+        Ok(())
+    }
+
     pub fn finish(&mut self) -> Result<Vec<TrajectoryEvent>> {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
@@ -1406,6 +1526,14 @@ impl TrajectoryCollector {
             TrajectoryEvent::Interrupted { scope, id } => {
                 self.turn(&scope, &id)?.turn.interrupted = Some(true)
             }
+            TrajectoryEvent::Recording { scope, recording } => self
+                .scopes
+                .get_mut(&scope)
+                .ok_or("Unknown trajectory scope")?
+                .header
+                .recordings
+                .get_or_insert_with(Vec::new)
+                .push(recording),
             TrajectoryEvent::Failure {
                 root_span_id,
                 span_id,

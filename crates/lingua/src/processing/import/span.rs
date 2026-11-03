@@ -1,3 +1,4 @@
+use super::audio::{self, VoiceHeader, VoicePayload};
 use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
@@ -19,6 +20,11 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "trajectory_role",
     "request_kind",
     "compaction",
+    // Voice traces (audio trace schema v3).
+    "audio.schema.version",
+    "turn.id",
+    "turn.reply_to",
+    "contrib.livekit.interrupted",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,6 +49,8 @@ pub struct SpanContext {
     #[serde(default)]
     pub analysis: bool,
     pub compaction: Option<Compaction>,
+    #[serde(default)]
+    pub voice: VoiceHeader,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,6 +74,8 @@ pub struct ImportedSpan {
     pub errors: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub warnings: Vec<String>,
+    #[serde(default)]
+    pub voice: VoicePayload,
 }
 
 impl ImportedSpan {
@@ -82,6 +92,7 @@ impl ImportedSpan {
             interruption_messages: Vec::new(),
             errors: self.errors.clone(),
             warnings: self.warnings.clone(),
+            voice: VoicePayload::default(),
         }
     }
 }
@@ -136,7 +147,7 @@ struct Metadata {
     compaction: Option<json::Value>,
 }
 
-fn metadata_field<T: serde::de::DeserializeOwned>(
+pub(super) fn metadata_field<T: serde::de::DeserializeOwned>(
     value: Option<json::Value>,
     field: &str,
     errors: &mut Vec<String>,
@@ -182,6 +193,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         || request_kind.as_deref() == Some("reviewer");
     let compaction =
         metadata_field::<CompactionHint>(metadata.compaction, "compaction", &mut errors);
+    let (voice_header, voice) = audio::parse(source.metadata.as_ref());
     let start = source.metrics.start.and_then(timestamp).or(source.created);
     let end = source
         .metrics
@@ -207,6 +219,15 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             input: span.input.take(),
             output,
             content,
+        })
+    } else if source.span_attributes.kind.as_deref() == Some("task")
+        && audio::is_speech_task(source.span_attributes.name.as_deref())
+        && voice_header.turn_id.is_some()
+    {
+        Some(ToolResult {
+            input: span.input.clone(),
+            output: span.output.clone(),
+            content: None,
         })
     } else {
         None
@@ -291,6 +312,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
     source.header.turn = turn;
     source.header.analysis = analysis;
     source.header.compaction = compaction;
+    source.header.voice = voice_header;
     source.header.kind = source
         .span_attributes
         .kind
@@ -312,6 +334,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         interruption_messages,
         errors,
         warnings,
+        voice,
     })
 }
 
