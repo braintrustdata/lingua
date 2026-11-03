@@ -246,4 +246,33 @@ mod tests {
         assert!(obj.contains_key("messages"));
         assert!(obj.contains_key("max_tokens"));
     }
+
+    #[test]
+    fn response_and_stream_read_served_service_tier() {
+        use crate::universal::ServedServiceTier;
+
+        let adapter = VertexAnthropicAdapter::new();
+        let message = json!({
+            "id": "msg_vrtx_service_tier",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-20250514",
+            "content": [],
+            "stop_reason": null,
+            "stop_sequence": null,
+            "usage": {"input_tokens": 10, "output_tokens": 1, "service_tier": "priority"}
+        });
+
+        let response = adapter.response_to_universal(message.clone()).unwrap();
+        assert_eq!(
+            response.served_service_tier,
+            Some(ServedServiceTier::Priority)
+        );
+
+        let chunk = adapter
+            .stream_to_universal(json!({"type": "message_start", "message": message}))
+            .unwrap()
+            .unwrap();
+        assert_eq!(chunk.served_service_tier, Some(ServedServiceTier::Priority));
+    }
 }
