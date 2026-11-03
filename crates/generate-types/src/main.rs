@@ -3,6 +3,7 @@
 //! Usage: cargo run --bin generate-types -- [provider]
 
 use big_serde_json as serde_json;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
 
@@ -668,6 +669,11 @@ fn generate_anthropic_types_with_quicktype(
     // Post-process the quicktype output
     let mut processed_output = post_process_quicktype_output_for_anthropic(&quicktype_output);
 
+    // quicktype names unioned and anonymous schemas from whichever member names happen to
+    // be in scope, so the same wire shape can change identity between regenerations. Pin
+    // the public names before anything else is generated against them.
+    processed_output = apply_anthropic_stable_public_type_names(&processed_output)?;
+
     // Quicktype generates a flat `pub struct Tool` with all fields optional, but the
     // OpenAPI spec defines Tool as a discriminated union (oneOf with a "type" tag).
     // We replace quicktype's struct with a proper Rust enum using #[serde(tag = "type")]
@@ -707,11 +713,17 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
     println!("🔧 Preprocessing Anthropic schema for request/response separation...");
 
     let default_map = serde_json::Map::new();
-    let all_schemas = spec
+    let mut all_schemas = spec
         .get("components")
         .and_then(|c| c.get("schemas"))
         .and_then(|s| s.as_object())
-        .unwrap_or(&default_map);
+        .unwrap_or(&default_map)
+        .clone();
+
+    // Step 0: Re-add request members that upstream dropped from the published
+    // spec but that the Messages API still accepts (see function docs).
+    apply_anthropic_request_compatibility_overlay(&mut all_schemas);
+    let all_schemas = &all_schemas;
 
     // Step 1: Analyze endpoints to identify request vs response schemas
     let (request_schemas, response_schemas) = analyze_anthropic_endpoints(spec);
@@ -773,6 +785,137 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
     });
 
     root_schema
+}
+
+/// Restores Anthropic request members that the upstream spec snapshot stopped
+/// publishing while the Messages API still accepts them.
+///
+/// Upstream removed these from `CreateMessageParams` / `InputContentBlock`, but
+/// they are not gone from the wire:
+///
+/// * `temperature` / `top_p` / `top_k` were published as `deprecated: true` in the
+///   previous synchronized snapshot and are still accepted (`@anthropic-ai/sdk`
+///   documents `temperature` as "accepted for backwards compatibility"). Lingua
+///   must keep reading them off inbound Anthropic payloads — including Bedrock and
+///   Vertex Anthropic requests and requests for pre-Opus-4.6 models — instead of
+///   silently dropping them during Anthropic -> universal conversion.
+/// * `mid_conv_system` content blocks were superseded by `role: "system"` input
+///   messages, but previously-valid payloads (stored transcripts, the import path,
+///   same-format passthrough) still carry the block form.
+///
+/// Dropping them would make the generated request type silently discard data that
+/// existing acceptance tests cover, so the member is re-added to the preprocessed
+/// schema rather than removed from the converters. Each insert is conditional, so
+/// the overlay becomes a no-op if upstream republishes the member.
+fn apply_anthropic_request_compatibility_overlay(
+    schemas: &mut serde_json::Map<String, serde_json::Value>,
+) {
+    const MID_CONV_SYSTEM_SCHEMA: &str = "RequestMidConvSystemBlock";
+    const MID_CONV_SYSTEM_DISCRIMINATOR: &str = "mid_conv_system";
+
+    // Deprecated-but-accepted sampling parameters.
+    let sampling_params = [
+        (
+            "temperature",
+            serde_json::json!({
+                "deprecated": true,
+                "description": "Amount of randomness injected into the response.\n\nDefaults to `1.0`. Ranges from `0.0` to `1.0`. Models released after Claude Opus 4.6 only accept `1.0`.",
+                "maximum": 1,
+                "minimum": 0,
+                "title": "Temperature",
+                "type": "number"
+            }),
+        ),
+        (
+            "top_p",
+            serde_json::json!({
+                "deprecated": true,
+                "description": "Use nucleus sampling.\n\nRecommended for advanced use cases only.",
+                "maximum": 1,
+                "minimum": 0,
+                "title": "Top P",
+                "type": "number"
+            }),
+        ),
+        (
+            "top_k",
+            serde_json::json!({
+                "deprecated": true,
+                "description": "Only sample from the top K options for each subsequent token.\n\nRecommended for advanced use cases only.",
+                "minimum": 0,
+                "title": "Top K",
+                "type": "integer"
+            }),
+        ),
+    ];
+
+    if let Some(properties) = schemas
+        .get_mut("CreateMessageParams")
+        .and_then(|schema| schema.get_mut("properties"))
+        .and_then(|properties| properties.as_object_mut())
+    {
+        for (name, schema) in sampling_params {
+            if !properties.contains_key(name) {
+                properties.insert(name.to_string(), schema);
+            }
+        }
+    }
+
+    // Mid-conversation system instruction blocks.
+    schemas
+        .entry(MID_CONV_SYSTEM_SCHEMA)
+        .or_insert_with(|| serde_json::json!({
+            "additionalProperties": false,
+            "description": "System instructions that appear mid-conversation.\n\nUse this block to provide or update system-level instructions at a specific\npoint in the conversation, rather than only via the top-level `system` parameter.",
+            "properties": {
+                "cache_control": {
+                    "anyOf": [
+                        { "$ref": "#/components/schemas/CacheControlEphemeral" },
+                        { "type": "null" }
+                    ],
+                    "description": "Create a cache control breakpoint at this content block.",
+                    "title": "Cache Control"
+                },
+                "content": {
+                    "description": "System instruction text blocks.",
+                    "items": { "$ref": "#/components/schemas/RequestTextBlock" },
+                    "title": "Content",
+                    "type": "array"
+                },
+                "type": {
+                    "const": MID_CONV_SYSTEM_DISCRIMINATOR,
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": ["content", "type"],
+            "title": MID_CONV_SYSTEM_SCHEMA,
+            "type": "object"
+        }));
+
+    let member_ref = format!("#/components/schemas/{MID_CONV_SYSTEM_SCHEMA}");
+    let Some(union) = schemas.get_mut("InputContentBlock") else {
+        return;
+    };
+
+    if let Some(one_of) = union.get_mut("oneOf").and_then(|v| v.as_array_mut()) {
+        let already_present = one_of
+            .iter()
+            .any(|member| member.get("$ref").and_then(|r| r.as_str()) == Some(member_ref.as_str()));
+        if !already_present {
+            one_of.push(serde_json::json!({ "$ref": member_ref }));
+        }
+    }
+
+    if let Some(mapping) = union
+        .get_mut("discriminator")
+        .and_then(|d| d.get_mut("mapping"))
+        .and_then(|m| m.as_object_mut())
+    {
+        mapping
+            .entry(MID_CONV_SYSTEM_DISCRIMINATOR)
+            .or_insert_with(|| serde_json::Value::String(member_ref.clone()));
+    }
 }
 
 fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
@@ -1180,6 +1323,263 @@ pub struct ToolSearchTool {
         "    #[serde(untagged)]\n    Custom(CustomTool),",
         "    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]\n    Custom(CustomTool),",
     )
+}
+
+/// Public type names quicktype is not allowed to pick for itself.
+///
+/// quicktype derives a name for every unioned or anonymous schema from whichever member
+/// names happen to be in scope, so an upstream edit that only adds a `oneOf` member can
+/// silently re-point an existing public identifier at a different type — the Anthropic
+/// resync moved `Block` off the `tool_result` content item and onto the input content
+/// block union, which still compiles wherever the two share a field — or fall back to a
+/// truncation artifact: `Er*Config` is what survives of `Browser*Config`/`Computer*Config`
+/// once quicktype combines the two toolsets' identical member configs.
+///
+/// Each entry pins one quicktype-chosen identifier to the name Lingua exports. The
+/// left-hand names are checked for existence, so a quicktype naming change shows up as a
+/// generation failure instead of a silent identifier reassignment.
+const ANTHROPIC_STABLE_TYPE_NAMES: &[(&str, &str)] = &[
+    // The request-side input content block union and its members.
+    ("Block", "InputContentBlock"),
+    ("BlockType", "InputContentBlockType"),
+    ("BlockContent", "InputContentBlockContent"),
+    ("ContentElement", "Block"),
+    ("TBlock", "RequestTextBlock"),
+    ("InputMessageContent", "MessageContent"),
+    ("InputMessageRole", "MessageRole"),
+    ("Content", "Base64ImageSourceContent"),
+    ("ContainerClass", "Container"),
+    // Toolset member configs shared by the browser and computer toolsets, which quicktype
+    // combines into one definition named after the common `Brows-er`/`Comput-er` suffix.
+    ("ErToolsetConfigs", "ToolsetConfigs"),
+    ("ErDoubleClickConfig", "ToolsetDoubleClickConfig"),
+    ("ErHoldKeyConfig", "ToolsetHoldKeyConfig"),
+    ("ErKeyConfig", "ToolsetKeyConfig"),
+    ("ErLeftClickConfig", "ToolsetLeftClickConfig"),
+    ("ErLeftClickDragConfig", "ToolsetLeftClickDragConfig"),
+    ("ErLeftMouseDownConfig", "ToolsetLeftMouseDownConfig"),
+    ("ErLeftMouseUpConfig", "ToolsetLeftMouseUpConfig"),
+    ("ErMiddleClickConfig", "ToolsetMiddleClickConfig"),
+    ("ErMouseMoveConfig", "ToolsetMouseMoveConfig"),
+    ("ErRightClickConfig", "ToolsetRightClickConfig"),
+    ("ErScreenshotConfig", "ToolsetScreenshotConfig"),
+    ("ErScrollConfig", "ToolsetScrollConfig"),
+    ("ErTripleClickConfig", "ToolsetTripleClickConfig"),
+    ("ErTypeConfig", "ToolsetTypeConfig"),
+    ("ErWaitConfig", "ToolsetWaitConfig"),
+    ("ErZoomConfig", "ToolsetZoomConfig"),
+];
+
+/// Discriminator fields quicktype named after a type that [`ANTHROPIC_STABLE_TYPE_NAMES`]
+/// re-points. Keyed by the quicktype type name so each rename stays scoped to a single
+/// definition: `block_type` names the discriminator of two different structs before the
+/// type rename runs, and only one of them should change.
+const ANTHROPIC_STABLE_FIELD_NAMES: &[(&str, &str, &str)] = &[
+    ("Block", "block_type", "input_content_block_type"),
+    ("TBlock", "t_block_type", "request_text_block_type"),
+    (
+        "ErToolsetConfigs",
+        "er_toolset_configs_type",
+        "toolset_configs_type",
+    ),
+];
+
+/// Suffixes quicktype appends when two schemas propose the same name.
+const QUICKTYPE_COLLISION_SUFFIXES: &[&str] = &["Class", "Element"];
+
+/// Rewrites the generated Anthropic types to the public names Lingua exports.
+///
+/// Returns an error rather than a best-effort rename when a pinned name is missing, when
+/// two definitions end up sharing a name, or when a generator naming artifact survives:
+/// all three mean the table no longer describes what quicktype emits, and silently
+/// publishing whatever it chose is exactly the failure this pass exists to prevent.
+fn apply_anthropic_stable_public_type_names(source: &str) -> Result<String, String> {
+    let mut renamed = source.to_string();
+
+    // Scoped field renames run first, while the definitions still carry the quicktype
+    // names the table is keyed by.
+    for (type_name, from, to) in ANTHROPIC_STABLE_FIELD_NAMES {
+        let span = rust_type_definition_span(&renamed, type_name).ok_or_else(|| {
+            format!("Anthropic naming pass: no definition of `{type_name}` to rename `{from}` in")
+        })?;
+        let scoped = rename_rust_identifiers(
+            &renamed[span.clone()],
+            &HashMap::from([((*from).to_string(), (*to).to_string())]),
+        );
+        renamed.replace_range(span, &scoped);
+    }
+
+    let mut renames = HashMap::new();
+    for (from, to) in ANTHROPIC_STABLE_TYPE_NAMES {
+        if !contains_rust_type_definition(&renamed, from) {
+            return Err(format!(
+                "Anthropic naming pass: quicktype no longer emits `{from}`, so it cannot be pinned to `{to}`"
+            ));
+        }
+        renames.insert((*from).to_string(), (*to).to_string());
+        // quicktype names untagged array variants after their element type.
+        renames.insert(format!("{from}Array"), format!("{to}Array"));
+    }
+    let renamed = rename_rust_identifiers(&renamed, &renames);
+
+    let mut seen = HashSet::new();
+    let mut duplicates = Vec::new();
+    let mut artifacts = Vec::new();
+    for name in public_rust_type_names(&renamed) {
+        if !seen.insert(name.clone()) {
+            duplicates.push(name.clone());
+        }
+        if is_quicktype_naming_artifact(&name) {
+            artifacts.push(name);
+        }
+    }
+    if !duplicates.is_empty() {
+        return Err(format!(
+            "Anthropic naming pass: duplicate public type names after renaming: {duplicates:?}"
+        ));
+    }
+    if !artifacts.is_empty() {
+        return Err(format!(
+            "Anthropic naming pass: generator naming artifacts left unpinned: {artifacts:?}"
+        ));
+    }
+
+    Ok(renamed)
+}
+
+/// Whether a public name is a quicktype fallback rather than a schema-derived name.
+fn is_quicktype_naming_artifact(name: &str) -> bool {
+    if QUICKTYPE_COLLISION_SUFFIXES
+        .iter()
+        .any(|suffix| name.ends_with(suffix))
+    {
+        return true;
+    }
+
+    // A truncation artifact of combining similar names, e.g. `Brows-er` + `Comput-er`.
+    if let Some(rest) = name.strip_prefix("Er") {
+        if rest.starts_with(|c: char| c.is_ascii_uppercase()) {
+            return true;
+        }
+    }
+
+    let mut chars = name.chars();
+    // A single-letter leading word, e.g. `TBlock` from combining `Text..`/`Tool..`.
+    if let (Some(first), Some(second), Some(third)) = (chars.next(), chars.next(), chars.next()) {
+        if first.is_ascii_uppercase() && second.is_ascii_uppercase() && third.is_ascii_lowercase() {
+            return true;
+        }
+    }
+
+    // A numeric disambiguation suffix such as `Source1`. Date-stamped provider tool names
+    // carry eight digits, so only a short run that follows a letter counts.
+    let digits = name.len() - name.trim_end_matches(|c: char| c.is_ascii_digit()).len();
+    (1..=3).contains(&digits)
+}
+
+/// The byte range of a `pub struct`/`pub enum` definition, attributes excluded.
+fn rust_type_definition_span(source: &str, type_name: &str) -> Option<std::ops::Range<usize>> {
+    let start = ["pub struct ", "pub enum "]
+        .iter()
+        .filter_map(|keyword| source.find(&format!("{keyword}{type_name} ")))
+        .min()?;
+    let open = start + source[start..].find('{')?;
+    let mut depth = 0usize;
+    for (offset, ch) in source[open..].char_indices() {
+        match ch {
+            '{' => depth += 1,
+            '}' => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(start..open + offset + 1);
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Every `pub struct`/`pub enum` name declared in the generated source.
+fn public_rust_type_names(source: &str) -> Vec<String> {
+    source
+        .lines()
+        .filter_map(|line| {
+            let rest = line
+                .strip_prefix("pub struct ")
+                .or_else(|| line.strip_prefix("pub enum "))?;
+            let name = rest.split([' ', '{', '(', '<', ';']).next()?;
+            (!name.is_empty()).then(|| name.to_string())
+        })
+        .collect()
+}
+
+/// Whether an identifier is a payload-less enum variant, which lives in its own namespace
+/// and must survive a type rename: `Base64ImageSourceType::Content` is the `"content"`
+/// source kind, not the `Content` type.
+fn is_unit_enum_variant(source: &str, start: usize, end: usize) -> bool {
+    let line_prefix = &source[source[..start].rfind('\n').map_or(0, |at| at + 1)..start];
+    let line_suffix = &source[end..source[end..]
+        .find('\n')
+        .map_or(source.len(), |offset| end + offset)];
+    line_prefix.trim().is_empty() && matches!(line_suffix.trim(), "" | ",")
+}
+
+/// Rewrites whole Rust identifiers, leaving comments and string literals untouched so a
+/// doc sentence or a serde rename never changes with the type it describes.
+fn rename_rust_identifiers(source: &str, renames: &HashMap<String, String>) -> String {
+    let bytes = source.as_bytes();
+    let mut out = String::with_capacity(source.len());
+    let mut index = 0;
+
+    while index < bytes.len() {
+        if bytes[index] == b'/' && bytes.get(index + 1) == Some(&b'/') {
+            let end = source[index..]
+                .find('\n')
+                .map_or(bytes.len(), |offset| index + offset);
+            out.push_str(&source[index..end]);
+            index = end;
+        } else if bytes[index] == b'"' {
+            let mut end = index + 1;
+            while end < bytes.len() {
+                match bytes[end] {
+                    b'\\' => end += 2,
+                    b'"' => {
+                        end += 1;
+                        break;
+                    }
+                    _ => end += 1,
+                }
+            }
+            let end = end.min(bytes.len());
+            out.push_str(&source[index..end]);
+            index = end;
+        } else if bytes[index].is_ascii_alphabetic() || bytes[index] == b'_' {
+            let mut end = index;
+            while end < bytes.len() && (bytes[end].is_ascii_alphanumeric() || bytes[end] == b'_') {
+                end += 1;
+            }
+            let identifier = &source[index..end];
+            let renamed = if is_unit_enum_variant(source, index, end) {
+                identifier
+            } else {
+                renames
+                    .get(identifier)
+                    .map_or(identifier, |renamed| renamed.as_str())
+            };
+            out.push_str(renamed);
+            index = end;
+        } else {
+            let character = source[index..]
+                .chars()
+                .next()
+                .expect("index is on a character boundary");
+            out.push(character);
+            index += character.len_utf8();
+        }
+    }
+
+    out
 }
 
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
@@ -2544,6 +2944,190 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    // Disambiguate the outer `use big_serde_json as serde_json` alias from the
+    // `serde_json` crate itself, which the glob import above leaves ambiguous.
+    use big_serde_json as serde_json;
+
+    fn anthropic_generated_source() -> String {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../lingua/src/providers/anthropic/generated.rs");
+        std::fs::read_to_string(&path)
+            .unwrap_or_else(|error| panic!("reading {}: {error}", path.display()))
+    }
+
+    fn anthropic_schemas(value: serde_json::Value) -> serde_json::Map<String, serde_json::Value> {
+        serde_json::from_value(value).expect("fixture is an object")
+    }
+
+    #[test]
+    fn anthropic_generated_names_are_stable_and_collision_free() {
+        let names = public_rust_type_names(&anthropic_generated_source());
+
+        for retained in [
+            "InputContentBlock",
+            "InputContentBlockType",
+            "InputContentBlockContent",
+            "Block",
+            "RequestTextBlock",
+            "MessageContent",
+            "MessageRole",
+            "Base64ImageSourceContent",
+            "Container",
+            "ToolsetConfigs",
+        ] {
+            assert_eq!(
+                names.iter().filter(|name| *name == retained).count(),
+                1,
+                "`{retained}` must be declared exactly once"
+            );
+        }
+
+        let artifacts: Vec<_> = names
+            .iter()
+            .filter(|name| is_quicktype_naming_artifact(name))
+            .collect();
+        assert!(
+            artifacts.is_empty(),
+            "generator naming artifacts reached the public API: {artifacts:?}"
+        );
+
+        let mut seen = HashSet::new();
+        let duplicates: Vec<_> = names.iter().filter(|name| !seen.insert(*name)).collect();
+        assert!(
+            duplicates.is_empty(),
+            "two definitions share a public name: {duplicates:?}"
+        );
+    }
+
+    #[test]
+    fn anthropic_naming_pass_recognizes_generator_fallback_names() {
+        for artifact in [
+            "ErZoomConfig",
+            "ContainerClass",
+            "ContentElement",
+            "TBlock",
+            "Source1",
+        ] {
+            assert!(
+                is_quicktype_naming_artifact(artifact),
+                "`{artifact}` is a quicktype fallback name"
+            );
+        }
+
+        for stable in [
+            "InputContentBlock",
+            "Container",
+            "ToolsetZoomConfig",
+            "BrowserToolset20260801",
+            "WebFetchTool20260318",
+            "MCPToolset",
+            "Ttl",
+        ] {
+            assert!(
+                !is_quicktype_naming_artifact(stable),
+                "`{stable}` is a schema-derived name"
+            );
+        }
+    }
+
+    #[test]
+    fn anthropic_naming_pass_leaves_unit_enum_variants_alone() {
+        let source = "pub enum Base64ImageSourceType {\n    Content,\n    Url,\n}\n\npub struct Source {\n    /// Content of the source.\n    pub content: Option<Content>,\n}\n\npub enum Content {\n    PurpleString(String),\n}\n";
+
+        let renamed = rename_rust_identifiers(
+            source,
+            &HashMap::from([(
+                "Content".to_string(),
+                "Base64ImageSourceContent".to_string(),
+            )]),
+        );
+
+        assert!(renamed.contains("\n    Content,\n"), "{renamed}");
+        assert!(renamed.contains("/// Content of the source."), "{renamed}");
+        assert!(
+            renamed.contains("pub content: Option<Base64ImageSourceContent>,"),
+            "{renamed}"
+        );
+        assert!(
+            renamed.contains("pub enum Base64ImageSourceContent {"),
+            "{renamed}"
+        );
+    }
+
+    #[test]
+    fn anthropic_compatibility_overlay_restores_dropped_request_members() {
+        let mut schemas = anthropic_schemas(serde_json::json!({
+            "CreateMessageParams": {
+                "type": "object",
+                "properties": {"max_tokens": {"type": "integer"}},
+                "required": ["max_tokens"]
+            },
+            "InputContentBlock": {
+                "oneOf": [{"$ref": "#/components/schemas/RequestTextBlock"}],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {"text": "#/components/schemas/RequestTextBlock"}
+                }
+            }
+        }));
+
+        apply_anthropic_request_compatibility_overlay(&mut schemas);
+
+        let properties = schemas["CreateMessageParams"]["properties"]
+            .as_object()
+            .expect("properties stay an object");
+        for member in ["temperature", "top_p", "top_k"] {
+            assert!(
+                properties.contains_key(member),
+                "`{member}` must be restored"
+            );
+        }
+
+        assert!(schemas.contains_key("RequestMidConvSystemBlock"));
+        let union = &schemas["InputContentBlock"];
+        assert!(union["oneOf"]
+            .as_array()
+            .expect("oneOf stays an array")
+            .iter()
+            .any(|member| member["$ref"] == "#/components/schemas/RequestMidConvSystemBlock"));
+        assert_eq!(
+            union["discriminator"]["mapping"]["mid_conv_system"],
+            serde_json::Value::String("#/components/schemas/RequestMidConvSystemBlock".to_string())
+        );
+    }
+
+    #[test]
+    fn anthropic_compatibility_overlay_is_noop_when_upstream_republishes() {
+        let published = anthropic_schemas(serde_json::json!({
+            "CreateMessageParams": {
+                "type": "object",
+                "properties": {
+                    "temperature": {"type": "number", "title": "Republished upstream"},
+                    "top_p": {"type": "number"},
+                    "top_k": {"type": "integer"}
+                }
+            },
+            "RequestMidConvSystemBlock": {"type": "object", "title": "Republished upstream"},
+            "InputContentBlock": {
+                "oneOf": [{"$ref": "#/components/schemas/RequestMidConvSystemBlock"}],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "mid_conv_system": "#/components/schemas/RequestMidConvSystemBlock"
+                    }
+                }
+            }
+        }));
+
+        let mut overlaid = published.clone();
+        apply_anthropic_request_compatibility_overlay(&mut overlaid);
+
+        assert_eq!(
+            serde_json::Value::Object(overlaid),
+            serde_json::Value::Object(published),
+            "the overlay must not rewrite members upstream republished"
+        );
+    }
 
     #[test]
     fn openai_compatibility_aliases_skip_generated_name_collisions() {

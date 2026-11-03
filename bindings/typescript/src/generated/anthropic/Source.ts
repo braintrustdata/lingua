@@ -3,4 +3,4 @@ import type { Base64ImageSourceContent } from "./Base64ImageSourceContent";
 import type { Base64ImageSourceMediaType } from "./Base64ImageSourceMediaType";
 import type { Base64ImageSourceType } from "./Base64ImageSourceType";
 
-export type Source = { data: string | null, media_type: Base64ImageSourceMediaType | null, type: Base64ImageSourceType, url: string | null, content: Base64ImageSourceContent | null, };
+export type Source = { data: string | null, media_type: Base64ImageSourceMediaType | null, type: Base64ImageSourceType, url: string | null, file_id: string | null, content: Base64ImageSourceContent | null, };

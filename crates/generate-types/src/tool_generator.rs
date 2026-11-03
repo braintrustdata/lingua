@@ -355,6 +355,12 @@ fn generate_tool_struct_direct(
             let rust_type = match (provider, prop_name.as_str()) {
                 ("anthropic", "allowed_callers") => "Vec<AllowedCaller>".to_string(),
                 ("anthropic", "response_inclusion") => "ResponseInclusion".to_string(),
+                // Toolset member configuration and the web_fetch URL-source policy are
+                // both `$ref`s, which schema_type_to_rust widens to serde_json::Value.
+                // Name the quicktype-generated types so the policies stay inside the
+                // typed boundary.
+                ("anthropic", "configs") => "ToolsetConfigs".to_string(),
+                ("anthropic", "url_sources") => "WebFetchUrlSources".to_string(),
                 _ => schema_type_to_rust(prop_schema, all_schemas),
             };
             let is_required = required.contains(prop_name);

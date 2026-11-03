@@ -929,6 +929,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         text_part.cache_control,
                                     );
                                     Some(generated::InputContentBlock {
+                                        toolset_name: None,
+                                        transformations: None,
                                         cache_control,
                                         citations: None,
                                         text: Some(text_part.text),
@@ -975,6 +977,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                         if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(&media_block.data) {
                                                             if let Ok(text) = String::from_utf8(bytes) {
                                                                 return Some(generated::InputContentBlock {
+                                                                    toolset_name: None,
+                                                                    transformations: None,
                                                                     cache_control: None,
                                                                     citations: None,
                                                                     text: Some(text),
@@ -1049,12 +1053,15 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         };
 
                                         Some(generated::InputContentBlock {
+                                            toolset_name: None,
+                                            transformations: None,
                                             cache_control: None,
                                             citations: None,
                                             text: None,
                                             input_content_block_type: block_type,
                                             source: Some(generated::SourceUnion::Source(
                                                 generated::Source {
+                                                    file_id: None,
                                                     data: source_data,
                                                     media_type: anthropic_media_type,
                                                     source_type,
@@ -1121,6 +1128,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         || data_str.starts_with("https://");
 
                                     Some(generated::InputContentBlock {
+                                        toolset_name: None,
+                                        transformations: None,
                                         cache_control: None,
                                         citations: None,
                                         text: None,
@@ -1128,6 +1137,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             generated::InputContentBlockType::Document,
                                         source: Some(generated::SourceUnion::Source(
                                             generated::Source {
+                                                file_id: None,
                                                 data: if is_url {
                                                     None
                                                 } else {
@@ -1192,6 +1202,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     );
 
                                     Some(generated::InputContentBlock {
+                                        toolset_name: None,
+                                        transformations: None,
                                         cache_control,
                                         citations,
                                         text: Some(text_part.text),
@@ -1217,6 +1229,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     text,
                                     encrypted_content,
                                 } => Some(generated::InputContentBlock {
+                                    toolset_name: None,
+                                    transformations: None,
                                     cache_control: None,
                                     citations: None,
                                     text: None,
@@ -1264,6 +1278,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 );
 
                                 Some(generated::InputContentBlock {
+                                    toolset_name: None,
+                                    transformations: None,
                                     cache_control: None,
                                     citations: None,
                                     text: None,
@@ -1291,6 +1307,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 arguments,
                                 ..
                             } => Some(generated::InputContentBlock {
+                                toolset_name: None,
+                                transformations: None,
                                 cache_control: None,
                                 citations: None,
                                 text: None,
@@ -1334,6 +1352,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         .and_then(|v| serde_json::from_value::<generated::InputContentBlockContent>(v.clone()).ok());
 
                                     Some(generated::InputContentBlock {
+                                        toolset_name: None,
+                                        transformations: None,
                                         cache_control: None,
                                         citations: None,
                                         text: None,
@@ -1393,6 +1413,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             };
 
                             blocks.push(generated::InputContentBlock {
+                                toolset_name: None,
+                                transformations: None,
                                 cache_control: None,
                                 citations: None,
                                 text: None,
@@ -1416,6 +1438,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                         }
                         ToolContentPart::ToolDiscoveryResult(discovery_result) => {
                             blocks.push(generated::InputContentBlock {
+                                toolset_name: None,
+                                transformations: None,
                                 cache_control: None,
                                 citations: None,
                                 text: None,
@@ -1516,6 +1540,8 @@ fn mixed_user_tool_result_groups(
 
 fn text_input_content_block(text: String) -> generated::InputContentBlock {
     generated::InputContentBlock {
+        toolset_name: None,
+        transformations: None,
         cache_control: None,
         citations: None,
         text: Some(text),
@@ -2102,6 +2128,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                 Message::Assistant { content, .. } => match content {
                     AssistantContent::String(text) => {
                         content_blocks.push(generated::ContentBlock {
+                            toolset_name: None,
                             citations: None,
                             text: Some(text),
                             content_block_type: generated::ContentBlockType::Text,
@@ -2125,6 +2152,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         &text_part.provider_options,
                                     );
                                     content_blocks.push(generated::ContentBlock {
+                                        toolset_name: None,
                                         citations,
                                         text: Some(text_part.text),
                                         content_block_type: generated::ContentBlockType::Text,
@@ -2145,6 +2173,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     encrypted_content,
                                 } => {
                                     content_blocks.push(generated::ContentBlock {
+                                        toolset_name: None,
                                         citations: None,
                                         text: None,
                                         content_block_type: generated::ContentBlockType::Thinking,
@@ -2188,6 +2217,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     );
 
                                     content_blocks.push(generated::ContentBlock {
+                                        toolset_name: None,
                                         citations: None,
                                         text: None,
                                         content_block_type: block_type,
@@ -2211,6 +2241,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     ..
                                 } => {
                                     content_blocks.push(generated::ContentBlock {
+                                        toolset_name: None,
                                         citations: None,
                                         text: None,
                                         content_block_type:
@@ -2256,6 +2287,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         });
 
                                         content_blocks.push(generated::ContentBlock {
+                                            toolset_name: None,
                                             citations: None,
                                             text: None,
                                             content_block_type:
@@ -2286,6 +2318,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                     for part in content {
                         if let ToolContentPart::ToolDiscoveryResult(discovery_result) = part {
                             content_blocks.push(generated::ContentBlock {
+                                toolset_name: None,
                                 citations: None,
                                 text: None,
                                 content_block_type:
@@ -3634,11 +3667,14 @@ mod tests {
             role: generated::MessageRole::User,
             content: generated::MessageContent::InputContentBlockArray(vec![
                 generated::InputContentBlock {
+                    toolset_name: None,
+                    transformations: None,
                     cache_control: None,
                     citations: None,
                     text: None,
                     input_content_block_type: generated::InputContentBlockType::Document,
                     source: Some(generated::SourceUnion::Source(generated::Source {
+                        file_id: None,
                         data: None,
                         media_type: None,
                         source_type: generated::Base64ImageSourceType::Url,
