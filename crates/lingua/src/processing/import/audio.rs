@@ -15,7 +15,8 @@ use std::collections::BTreeMap;
 /// Voice fields that can be read from a span header. Turn references are span ids.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct VoiceHeader {
-    pub schema_version: Option<String>,
+    /// `audio.schema.version`, or why it isn't a string.
+    pub schema_version: Option<Result<String, String>>,
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
     /// `contrib.livekit.interrupted`.
@@ -101,11 +102,10 @@ pub(super) fn parse(metadata: Option<&json::Value>) -> (VoiceHeader, VoicePayloa
         }
     };
     let header = VoiceHeader {
-        schema_version: metadata_field(
-            metadata.schema_version,
-            "audio.schema.version",
-            &mut header_errors,
-        ),
+        schema_version: metadata.schema_version.map(|value| {
+            String::deserialize(value)
+                .map_err(|error| format!("Invalid metadata.audio.schema.version: {error}"))
+        }),
         turn_id: metadata_field(metadata.turn_id, "turn.id", &mut header_errors),
         reply_to: metadata_field(metadata.reply_to, "turn.reply_to", &mut header_errors),
         livekit_interrupted: metadata_field(

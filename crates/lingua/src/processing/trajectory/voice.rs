@@ -73,6 +73,8 @@ pub(super) struct Exchange {
 
 #[derive(Default)]
 pub(super) struct VoicePlan {
+    /// Roots whose headers hold an audio schema version.
+    pub(super) roots: HashSet<String>,
     pub(super) sessions: HashSet<usize>,
     pub(super) members: HashMap<usize, (usize, Slot)>,
     pub(super) exchanges: Vec<Exchange>,
@@ -116,7 +118,8 @@ pub(super) fn failure(span: &PreparedSpan, message: String) -> ImportFailure {
 }
 
 /// Plans every span of the roots that hold a v3 voice session. Spans owned by tools keep
-/// the chat path; unsupported schema versions are reported and their roots ignored.
+/// the chat path; unsupported or invalid schema versions are reported and their roots
+/// ignored.
 pub(super) fn plan(
     spans: &[PreparedSpan],
     by_span_id: &HashMap<(&str, &str), usize>,
@@ -129,6 +132,15 @@ pub(super) fn plan(
     for (index, span) in spans.iter().enumerate() {
         let Some(version) = &span.source.voice.schema_version else {
             continue;
+        };
+        plan.roots.insert(span.root_span_id.clone());
+        let version = match version {
+            Ok(version) => version,
+            Err(error) => {
+                unsupported.insert(span.root_span_id.clone());
+                plan.failures.push(failure(span, error.clone()));
+                continue;
+            }
         };
         let message = match (version.split('.').next(), Framework::detect(span)) {
             (Some("3"), Some(framework)) => {
@@ -370,6 +382,14 @@ pub(super) fn recording(span: &PreparedSpan) -> (Option<Recording>, Vec<String>)
         segments,
     });
     (recording, errors)
+}
+
+/// What a response span played, or `None` when it played nothing.
+pub(super) fn response(span: &PreparedSpan) -> Option<AgentResponse> {
+    let response = span.response();
+    let silent = response.opaque_output.is_empty()
+        && matches!(&response.response, Some(AssistantContent::Array(parts)) if parts.is_empty());
+    (!silent).then_some(response)
 }
 
 pub(super) fn work(span: &PreparedSpan, kind: WorkKind) -> std::result::Result<WorkStep, String> {

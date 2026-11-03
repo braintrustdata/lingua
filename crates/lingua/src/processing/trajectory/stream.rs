@@ -441,7 +441,9 @@ impl TrajectoryStream {
     ) -> Result<Self> {
         let mut failures = failures;
         let mut spans = Vec::with_capacity(headers.len());
-        for header in headers {
+        for mut header in headers {
+            // A header's raw result is empty; its pushed payload brings the real one.
+            header.tool_result = None;
             let context = header.header.clone();
             match PreparedSpan::new(header) {
                 Ok(span) => spans.push(span),
@@ -624,8 +626,13 @@ impl TrajectoryStream {
         self.push_prepared(PreparedSpan::new(span)?)
     }
 
-    pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
+    pub fn push_prepared(&mut self, mut span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
         let index = self.pending_index(&span)?;
+        if !matches!(self.roles[index], Role::Tool | Role::Voice) {
+            // Import keeps every task span's raw payload, and only tool and voice steps
+            // read it.
+            span.tool_result = None;
+        }
         self.spans[index] = span;
         self.ready[index] = true;
         if !self.task_resolved[index] {
@@ -751,9 +758,9 @@ impl TrajectoryStream {
             || end != &header.source.end
             || turn != &header.source.turn
             || analysis != &header.source.analysis
-            // Headers without voice fields plan the trace as non-voice, which the payload
-            // can't contradict; headers that have them must match.
-            || (header.source.voice != VoiceHeader::default() && voice != &header.source.voice)
+            // A root planned without voice fields builds as chat, which the payload can't
+            // contradict; in a voice root, the payload's voice fields must match.
+            || (self.voice.roots.contains(&header.root_span_id) && voice != &header.source.voice)
             || compaction.as_ref().map(|value| &value.id)
                 != header.source.compaction.as_ref().map(|value| &value.id)
         {
@@ -1242,14 +1249,18 @@ impl TrajectoryStream {
         let exchange = &self.voice.exchanges[exchange_index];
         let opener = &self.spans[exchange.opener];
         let id = opener.id.clone();
-        let request = if index == exchange.opener && loaded {
-            self.request(span, None, true)
+        let (request, opaque_request) = if index == exchange.opener && loaded {
+            (self.request(span, None, true), span.opaque_input.clone())
         } else {
-            Vec::new()
+            (Vec::new(), Vec::new())
         };
         self.voice_remaining[exchange_index] -= 1;
         if !self.voice_opened[exchange_index] {
-            if index == exchange.opener && exchange.members == 1 && request.is_empty() {
+            if index == exchange.opener
+                && exchange.members == 1
+                && request.is_empty()
+                && opaque_request.is_empty()
+            {
                 // An empty user turn that nothing answers, such as a trailing one.
                 self.spans[index].release_payload();
                 return Ok(());
@@ -1261,7 +1272,7 @@ impl TrajectoryStream {
                 turn: Box::new(Turn {
                     request_id: id.clone(),
                     request: Some(request),
-                    opaque_request: Vec::new(),
+                    opaque_request,
                     response_id: None,
                     response: None,
                     work: Vec::new(),
@@ -1279,7 +1290,7 @@ impl TrajectoryStream {
                 id: id.clone(),
                 request_id: id.clone(),
                 request,
-                opaque_request: Vec::new(),
+                opaque_request,
             });
         }
         if self.voice.interrupted.contains(&index) {
@@ -1300,14 +1311,17 @@ impl TrajectoryStream {
                 Err(message) => self.failures.push(voice::failure(span, message)),
             },
             voice::Slot::Work { .. } => {}
-            voice::Slot::Response => events.push(TrajectoryEvent::Response {
-                scope: scope.clone(),
-                id: id.clone(),
-                response_id: loaded.then(|| span.id.clone()),
-                response: loaded.then(|| Box::new(span.response())),
-                end_time: exchange.end_time,
-                model: exchange.model.clone(),
-            }),
+            voice::Slot::Response => {
+                let response = if loaded { voice::response(span) } else { None };
+                events.push(TrajectoryEvent::Response {
+                    scope: scope.clone(),
+                    id: id.clone(),
+                    response_id: response.as_ref().map(|_| span.id.clone()),
+                    response: response.map(Box::new),
+                    end_time: exchange.end_time,
+                    model: exchange.model.clone(),
+                })
+            }
         }
         if self.voice_remaining[exchange_index] == 0 && exchange.response.is_none() {
             events.push(TrajectoryEvent::Response {
