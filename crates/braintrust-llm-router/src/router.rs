@@ -1481,6 +1481,7 @@ fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
         "ANTHROPIC_API_KEY" => Some("anthropic"),
         "GEMINI_API_KEY" => Some("google"),
         "MISTRAL_API_KEY" => Some("mistral"),
+        "OPENROUTER_API_KEY" => Some("openrouter"),
         "AWS_DEFAULT_CREDENTIALS" => Some("bedrock"),
         "GOOGLE_DEFAULT_CREDENTIALS" => Some("vertex"),
         "AZURE_DEFAULT_CREDENTIALS" => Some("azure"),
@@ -4755,6 +4756,38 @@ mod tests {
             )
             .expect("routes"),
             vec!["my-openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn fallback_provider_routes_match_named_openrouter_secret_for_default_alias() {
+        let model = "gpt-6.1-terra";
+        let mut catalog = ModelCatalog::empty();
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["OPENROUTER_API_KEY".into()];
+        catalog.insert(model.into(), spec);
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "my-openrouter",
+                FakeOpenAICompatibleProvider {
+                    alias: "openrouter",
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["my-openrouter"]
+            )
+            .expect("routes"),
+            vec!["my-openrouter".to_string()]
         );
     }
 
