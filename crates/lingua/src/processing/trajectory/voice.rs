@@ -4,8 +4,8 @@
 //! planner works only on those. Headers fix where every span goes before any payload loads.
 //! A user turn opens an exchange, an agent turn joins the one named by its `turn.reply_to`
 //! (or opens its own), and other spans join through `turn.id` or their nearest turn
-//! ancestor. The last agent speech is the response; LLM calls, tools, STT, TTS and earlier
-//! speech are work.
+//! ancestor. The last agent speech is the response unless it failed; LLM calls, tools, STT,
+//! TTS, earlier speech and a failed last speech are work.
 
 mod livekit;
 
@@ -56,8 +56,10 @@ pub(super) enum Slot {
         kind: WorkKind,
         position: usize,
     },
-    /// The exchange's last `agent_speech`.
-    Response,
+    /// The exchange's last `agent_speech`. It is work at `position` if it failed.
+    Response {
+        position: usize,
+    },
 }
 
 pub(super) struct Exchange {
@@ -274,7 +276,12 @@ pub(super) fn plan(
                 }
                 _ if index == opener => Slot::Opener,
                 Some(Kind::UserTurn | Kind::AgentTurn) => Slot::Reply,
-                _ if Some(index) == response => Slot::Response,
+                _ if Some(index) == response => {
+                    position += 1;
+                    Slot::Response {
+                        position: position - 1,
+                    }
+                }
                 Some(Kind::Work(kind)) => {
                     position += 1;
                     Slot::Work {

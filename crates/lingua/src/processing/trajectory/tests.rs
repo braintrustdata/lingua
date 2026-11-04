@@ -2717,6 +2717,20 @@ fn voice_turns_keep_inherited_steps_unsupported_input_and_silent_speech() {
 }
 
 #[test]
+fn voice_failed_final_speech_is_work() {
+    let mut sources = voice_sources();
+    sources[4]
+        .other
+        .insert("error".to_string(), json::json!("TTS failed"));
+    sources[4].output = Some(json::json!([{ "role": "assistant", "content": "Sorry" }]));
+    let result = load_voice(&sources, &sources).unwrap();
+    let turn = &result[0]["turns"][0];
+    assert!(turn["response"].is_null());
+    assert_eq!(turn["work"][1]["id"], "speech");
+    assert_eq!(turn["work"][1]["error"], "TTS failed");
+}
+
+#[test]
 fn voice_payloads_must_match_their_root_headers() {
     let mut sources = voice_sources();
     // A wrong-typed schema version fails its root instead of building it as chat.
