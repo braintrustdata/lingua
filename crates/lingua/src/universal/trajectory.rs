@@ -20,10 +20,69 @@ pub struct Trajectory {
     #[ts(optional)]
     pub findings: Option<Vec<Finding>>,
     pub turns: Vec<Turn>,
+    /// Call recordings, one per voice session span.
+    #[ts(optional)]
+    pub recordings: Option<Vec<Recording>>,
     #[ts(type = "Record<string, unknown>")]
     pub metadata: Map<String, Value>,
     #[ts(optional)]
     pub version: Option<String>,
+}
+
+/// A voice session's audio: its timeline origin, sources, and stored segments.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct Recording {
+    /// The session span; segment attachment refs point into this row.
+    pub id: String,
+    /// The zero for every offset in this recording.
+    pub origin: DateTime<Utc>,
+    pub sources: Vec<AudioSource>,
+    /// By `start_offset_ms`. Empty when the session stored no audio.
+    pub segments: Vec<RecordingSegment>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct AudioSource {
+    pub id: String,
+    #[ts(optional)]
+    pub label: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct RecordingSegment {
+    pub id: String,
+    pub state: SegmentState,
+    #[ts(type = "number")]
+    pub start_offset_ms: u64,
+    #[ts(optional, type = "number")]
+    pub duration_ms: Option<u64>,
+    /// JSON pointer into the session row; set when the segment is ready.
+    #[ts(optional)]
+    pub attachment_ref: Option<String>,
+    #[ts(optional)]
+    pub mime_type: Option<String>,
+    pub channels: Vec<Channel>,
+    /// Why the segment was omitted.
+    #[ts(optional)]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum SegmentState {
+    Ready,
+    Pending,
+    Omitted,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct Channel {
+    pub index: u32,
+    /// Source ids mixed into this channel; may be empty.
+    pub sources: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
