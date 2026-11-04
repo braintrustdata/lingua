@@ -168,7 +168,7 @@ struct ScopeKey {
 impl ScopeKey {
     fn new(span: &PreparedSpan, owner: &Ownership) -> Self {
         Self {
-            root_span_id: span.root_span_id.clone(),
+            root_span_id: span.trajectory_root_span_id().to_owned(),
             tool: owner.tool,
             compaction: owner.compaction,
         }
@@ -400,6 +400,7 @@ fn decide_response(
 
 pub struct TrajectoryStream {
     spans: Vec<PreparedSpan>,
+    grouped_trace_ids: Vec<String>,
     ready: Vec<bool>,
     by_id: HashMap<String, usize>,
     owners: HashMap<usize, Ownership>,
@@ -429,6 +430,23 @@ impl TrajectoryStream {
         headers: Vec<ImportedSpan>,
         failures: Vec<ImportFailure>,
         exclude_system: bool,
+    ) -> Result<Self> {
+        Self::build(headers, failures, exclude_system, false)
+    }
+
+    pub fn with_grouped_traces(
+        headers: Vec<ImportedSpan>,
+        failures: Vec<ImportFailure>,
+        exclude_system: bool,
+    ) -> Result<Self> {
+        Self::build(headers, failures, exclude_system, true)
+    }
+
+    fn build(
+        headers: Vec<ImportedSpan>,
+        failures: Vec<ImportFailure>,
+        exclude_system: bool,
+        group_traces: bool,
     ) -> Result<Self> {
         let mut failures = failures;
         let mut spans = Vec::with_capacity(headers.len());
@@ -460,6 +478,24 @@ impl TrajectoryStream {
                 })
             })
             .collect();
+        let grouped_trace_ids: Vec<String> = if group_traces {
+            spans
+                .iter()
+                .map(|span| span.root_span_id.as_str())
+                .chain(failures.iter().map(|failure| failure.root_span_id.as_str()))
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .map(str::to_owned)
+                .collect()
+        } else {
+            Vec::new()
+        };
+        if let Some(root_span_id) = grouped_trace_ids.first() {
+            let group_root_span_id: Arc<str> = root_span_id.as_str().into();
+            for span in &mut spans {
+                span.group_root_span_id = Some(Arc::clone(&group_root_span_id));
+            }
+        }
         let mut owners = HashMap::new();
         for index in 0..spans.len() {
             let mut visiting = HashSet::new();
@@ -519,6 +555,7 @@ impl TrajectoryStream {
             });
         }
         let mut stream = Self {
+            grouped_trace_ids,
             ready,
             spans,
             by_id,
@@ -609,8 +646,10 @@ impl TrajectoryStream {
         self.push_prepared(PreparedSpan::new(span)?)
     }
 
-    pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
+    pub fn push_prepared(&mut self, mut span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
         let index = self.pending_index(&span)?;
+        span.group_root_span_id
+            .clone_from(&self.spans[index].group_root_span_id);
         self.spans[index] = span;
         self.ready[index] = true;
         if !self.task_resolved[index] {
@@ -805,7 +844,7 @@ impl TrajectoryStream {
         for span in &self.spans {
             scopes.insert(
                 TrajectoryScope {
-                    root_span_id: span.root_span_id.clone(),
+                    root_span_id: span.trajectory_root_span_id().to_owned(),
                     owner_span_id: None,
                 },
                 None,
@@ -814,7 +853,11 @@ impl TrajectoryStream {
         for failure in &self.failures {
             scopes.insert(
                 TrajectoryScope {
-                    root_span_id: failure.root_span_id.clone(),
+                    root_span_id: self
+                        .grouped_trace_ids
+                        .first()
+                        .unwrap_or(&failure.root_span_id)
+                        .clone(),
                     owner_span_id: None,
                 },
                 None,
@@ -831,12 +874,19 @@ impl TrajectoryStream {
             events.push(TrajectoryEvent::Start {
                 trajectory: Trajectory {
                     version: Some("1".to_string()),
-                    scope: vec![scope.owner_span_id.as_ref().map_or_else(
-                        || Scope::Trace {
+                    scope: match &scope.owner_span_id {
+                        Some(id) => vec![Scope::Span { id: id.clone() }],
+                        None if !self.grouped_trace_ids.is_empty() => self
+                            .grouped_trace_ids
+                            .iter()
+                            .map(|trace_id| Scope::Trace {
+                                trace_id: trace_id.clone(),
+                            })
+                            .collect(),
+                        None => vec![Scope::Trace {
                             trace_id: scope.root_span_id.clone(),
-                        },
-                        |id| Scope::Span { id: id.clone() },
-                    )],
+                        }],
+                    },
                     agent: Agent {
                         name,
                         version: None,
@@ -1223,15 +1273,17 @@ impl TrajectoryStream {
         failures.dedup_by(|a, b| {
             a.root_span_id == b.root_span_id && a.span_id == b.span_id && a.message == b.message
         });
-        events.extend(
-            failures
-                .into_iter()
-                .map(|failure| TrajectoryEvent::Failure {
-                    root_span_id: failure.root_span_id,
-                    span_id: failure.span_id,
-                    message: failure.message,
-                }),
-        );
+        events.extend(failures.into_iter().map(|failure| {
+            TrajectoryEvent::Failure {
+                root_span_id: self
+                    .grouped_trace_ids
+                    .first()
+                    .cloned()
+                    .unwrap_or(failure.root_span_id),
+                span_id: failure.span_id,
+                message: failure.message,
+            }
+        }));
         let mut warnings: Vec<_> = self
             .spans
             .iter()
@@ -1242,7 +1294,7 @@ impl TrajectoryStream {
         warnings.sort_by(|a, b| a.id.cmp(&b.id));
         for span in warnings {
             events.push(TrajectoryEvent::Warning {
-                root_span_id: span.root_span_id.clone(),
+                root_span_id: span.trajectory_root_span_id().to_owned(),
                 span_id: span.id.clone(),
                 message: span.warnings.join("; "),
             });

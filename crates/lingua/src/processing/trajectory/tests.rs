@@ -35,6 +35,77 @@ fn collect(collector: &mut TrajectoryCollector, events: Vec<TrajectoryEvent>) {
     }
 }
 
+#[test]
+fn grouped_traces_share_conversation_history() {
+    let request = json!({"role": "user", "content": "Question"});
+    let call = json!({"role": "assistant", "tool_calls": [{
+        "id": "call", "type": "function",
+        "function": {"name": "lookup", "arguments": "{}"}
+    }]});
+    let result = json!({"role": "tool", "tool_call_id": "call", "content": "Found"});
+    let answer = json!({"role": "assistant", "content": "Answer"});
+    let mut sources = vec![
+        span("first", 1, json!([request]), json!([call])),
+        span(
+            "continuation",
+            3,
+            json!([request, call, result]),
+            json!([answer]),
+        ),
+        span(
+            "next",
+            5,
+            json!([request, call, result, answer,
+            {"role": "user", "content": "Next question"}]),
+            json!([{"role": "assistant", "content": "Next answer"}]),
+        ),
+    ];
+    for (index, source) in sources.iter_mut().enumerate() {
+        source
+            .other
+            .insert("root_span_id".into(), format!("trace-{index}").into());
+    }
+    let imported: Vec<_> = sources
+        .into_iter()
+        .map(|source| import_span(source).unwrap())
+        .collect();
+    let mut stream = TrajectoryStream::with_grouped_traces(
+        imported.iter().map(ImportedSpan::header_only).collect(),
+        vec![ImportFailure {
+            root_span_id: "trace-2".into(),
+            span_id: "broken".into(),
+            message: "Invalid input".into(),
+        }],
+        false,
+    )
+    .unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first() {
+        let source = imported
+            .iter()
+            .find(|span| span.header.id.as_ref() == Some(id))
+            .unwrap();
+        collect(&mut collector, stream.push(source.clone()).unwrap());
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let trajectories = collector.snapshot().unwrap();
+    assert_eq!(trajectories.len(), 1);
+    assert_eq!(trajectories[0].turns.len(), 2);
+    assert_eq!(trajectories[0].turns[0].request_id, "first");
+    assert_eq!(
+        trajectories[0].turns[0].response_id.as_deref(),
+        Some("continuation")
+    );
+    assert_eq!(trajectories[0].turns[1].request_id, "next");
+    assert_eq!(trajectories[0].scope.len(), 3);
+    assert_eq!(
+        trajectories[0].metadata["import_failures"],
+        json::json!([{
+            "span_id": "broken", "message": "Invalid input"
+        }])
+    );
+}
+
 #[derive(Clone, Deserialize)]
 struct ImportFixture {
     #[serde(default)]
