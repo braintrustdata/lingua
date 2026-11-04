@@ -1,0 +1,37 @@
+{
+  "model": "gpt-5.4-mini",
+  "input": [
+    {
+      "role": "user",
+      "content": "Generate a SQL WHERE expression for traces where metadata.session_id contains 'afd' and metrics.latency is greater than 5."
+    }
+  ],
+  "instructions": "You generate SQL filters using the sql_query tool. Before calling the tool, send a brief commentary progress message explaining what you will do. Then call sql_query exactly once. Do not provide a final answer before receiving the tool result. Stop and wait for the tool result.",
+  "tools": [
+    {
+      "type": "function",
+      "name": "sql_query",
+      "description": "Submit a SQL filter for validation.",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "parallel_tool_calls": false,
+  "reasoning": {
+    "effort": "low"
+  },
+  "max_output_tokens": 300,
+  "store": false,
+  "stream": true
+}

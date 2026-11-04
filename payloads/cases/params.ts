@@ -1143,6 +1143,47 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  // A commentary message followed by a tool call and no final answer: the
+  // model stops to wait for the tool result. Responses -> Chat Completions
+  // streaming must complete the tool-call turn instead of aborting.
+  responsesCommentaryToolCallStreamingParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_MINI_REASONING_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Generate a SQL WHERE expression for traces where metadata.session_id contains 'afd' and metrics.latency is greater than 5.",
+        },
+      ],
+      instructions:
+        "You generate SQL filters using the sql_query tool. Before calling the tool, send a brief commentary progress message explaining what you will do. Then call sql_query exactly once. Do not provide a final answer before receiving the tool result. Stop and wait for the tool result.",
+      tools: [
+        {
+          type: "function",
+          name: "sql_query",
+          description: "Submit a SQL filter for validation.",
+          strict: true,
+          parameters: {
+            type: "object",
+            properties: { query: { type: "string" } },
+            required: ["query"],
+            additionalProperties: false,
+          },
+        },
+      ],
+      parallel_tool_calls: false,
+      reasoning: { effort: "low" },
+      max_output_tokens: 300,
+      store: false,
+      stream: true,
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   responsesGpt56ReasoningMaxProContextParam: {
     "chat-completions": null,
     responses: {
