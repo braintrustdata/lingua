@@ -545,18 +545,7 @@ impl TrajectoryStream {
             }
         }
         for children in &mut task_children {
-            children.sort_by(|a, b| {
-                spans[*a]
-                    .start
-                    .cmp(&spans[*b].start)
-                    .then(
-                        spans[*a]
-                            .source
-                            .exec_counter
-                            .cmp(&spans[*b].source.exec_counter),
-                    )
-                    .then(spans[*a].id.cmp(&spans[*b].id))
-            });
+            children.sort_by(|a, b| spans[*a].start_order(&spans[*b]));
         }
         let mut stream = Self {
             grouped_trace_ids,
@@ -761,6 +750,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice: _,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
@@ -1002,21 +992,7 @@ impl TrajectoryStream {
                 format!("Missing imported tool result for {}", span.id)
             })?))
         } else if self.roles[index] == Role::Analysis {
-            Work::LLMAnalysis(Box::new(LLMAnalysis {
-                work: Some(
-                    span.input
-                        .iter()
-                        .map(|input| &input.message)
-                        .chain(&span.output)
-                        .cloned()
-                        .collect(),
-                ),
-                opaque_input: span.opaque_input.clone(),
-                opaque_output: span.opaque_output.clone(),
-                model: span.source.model.clone(),
-                params: None,
-                usage: span.usage(),
-            }))
+            Work::LLMAnalysis(Box::new(span.analysis()))
         } else {
             Work::AgentResponse(Box::new(span.response()))
         };
