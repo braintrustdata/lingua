@@ -58,6 +58,9 @@ struct GoogleAssistantPartProviderOptions {
 /// Rejects Google part fields whose semantics depend on provider-owned
 /// execution or resources and therefore have no universal representation.
 pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
+    if let Some(function_response) = &part.function_response {
+        reject_google_provider_only_function_response(function_response)?;
+    }
     let field = if part.audio_transcription.is_some() {
         "audioTranscription"
     } else if part.media_processing.is_some() {
@@ -66,6 +69,8 @@ pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), 
         "speechMetadata"
     } else if part.tool_call.is_some() {
         "toolCall"
+    } else if part.tool_response.is_some() {
+        "toolResponse"
     } else {
         return Ok(());
     };
@@ -73,6 +78,40 @@ pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), 
         from: format!("Google part {field}"),
         to: "Lingua universal message",
     })
+}
+
+/// Rejects `FunctionResponse.parts`, which carries provider-hosted tool-result
+/// media: Files API handles, Google-managed media processing, and the
+/// `inlineData.displayName` that `FunctionResponse.response` resolves its
+/// `{"$ref": ...}` multimedia indirection against. Only `response` has a
+/// universal representation, so converting a response that references a part
+/// would leave a dangling `$ref` behind.
+fn reject_google_provider_only_function_response(
+    function_response: &GoogleFunctionResponse,
+) -> Result<(), ConvertError> {
+    for part in function_response.parts.iter().flatten() {
+        // `mediaProcessing` is reported first because it is only meaningful
+        // alongside a media carrier; naming the carrier instead would always
+        // hide it.
+        let field = if part.media_processing.is_some() {
+            "mediaProcessing"
+        } else if part.file_data.is_some() {
+            "fileData"
+        } else if let Some(inline_data) = &part.inline_data {
+            if inline_data.display_name.is_some() {
+                "inlineData displayName"
+            } else {
+                "inlineData"
+            }
+        } else {
+            continue;
+        };
+        return Err(ConvertError::UnsupportedMapping {
+            from: format!("Google functionResponse part {field}"),
+            to: "Lingua universal message",
+        });
+    }
+    Ok(())
 }
 
 fn text_part(text: String) -> GooglePart {

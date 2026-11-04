@@ -1259,6 +1259,9 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::{
+        FunctionResponsePart, MediaProcessing, Part as GooglePart, ToolType,
+    };
     use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
@@ -2585,5 +2588,205 @@ mod tests {
             })),
             "toolCall",
         );
+    }
+
+    /// Wraps a `FunctionResponsePart` in the tool-result turn it belongs to, so
+    /// the assertion exercises the nested descent rather than an outer `Part`
+    /// field of the same name.
+    fn google_function_response_part_payloads(part: Value) -> (Value, Value) {
+        let function_response = json!({
+            "functionResponse": {
+                "id": "call_0",
+                "name": "render_chart",
+                "response": {"chart": {"$ref": "chart.png"}},
+                "parts": [part]
+            }
+        });
+        (
+            json!({
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Chart it."}]},
+                    {"role": "model", "parts": [{
+                        "functionCall": {"name": "render_chart", "args": {}}
+                    }]},
+                    {"role": "user", "parts": [function_response.clone()]}
+                ]
+            }),
+            json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [function_response]}
+                }]
+            }),
+        )
+    }
+
+    #[test]
+    fn test_google_function_response_file_data_native_passthrough() {
+        let (request, response) = google_function_response_part_payloads(json!({
+            "fileData": {
+                "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/abc123",
+                "mimeType": "video/mp4",
+                "displayName": "clip.mp4"
+            }
+        }));
+        assert_google_provider_only_passthrough(
+            Some(request),
+            Some(response),
+            "functionResponse part fileData",
+        );
+    }
+
+    #[test]
+    fn test_google_function_response_media_processing_native_passthrough() {
+        let (request, response) = google_function_response_part_payloads(json!({
+            "inlineData": {"mimeType": "video/mp4", "data": "AAAA"},
+            "mediaProcessing": "AGENTIC"
+        }));
+        assert_google_provider_only_passthrough(
+            Some(request),
+            Some(response),
+            "functionResponse part mediaProcessing",
+        );
+    }
+
+    #[test]
+    fn test_google_function_response_blob_display_name_native_passthrough() {
+        let (request, response) = google_function_response_part_payloads(json!({
+            "inlineData": {
+                "mimeType": "image/png",
+                "data": "iVBORw0KGgo=",
+                "displayName": "chart.png"
+            }
+        }));
+        assert_google_provider_only_passthrough(
+            Some(request),
+            Some(response),
+            "functionResponse part inlineData displayName",
+        );
+    }
+
+    #[test]
+    fn test_google_function_response_part_round_trips_file_data_and_media_processing() {
+        let wire = json!({
+            "fileData": {
+                "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/abc123",
+                "mimeType": "video/mp4",
+                "displayName": "clip.mp4"
+            },
+            "inlineData": {
+                "mimeType": "image/png",
+                "data": "iVBORw0KGgo=",
+                "displayName": "chart.png"
+            },
+            "mediaProcessing": "AGENTIC"
+        });
+
+        let typed: FunctionResponsePart =
+            serde_json::from_value(wire.clone()).expect("native function response part parses");
+        let file_data = typed.file_data.as_ref().expect("fileData is typed");
+        assert_eq!(
+            file_data.file_uri.as_deref(),
+            Some("https://generativelanguage.googleapis.com/v1beta/files/abc123")
+        );
+        assert_eq!(file_data.display_name.as_deref(), Some("clip.mp4"));
+        assert_eq!(
+            typed
+                .inline_data
+                .as_ref()
+                .and_then(|blob| blob.display_name.as_deref()),
+            Some("chart.png")
+        );
+        assert_eq!(typed.media_processing, Some(MediaProcessing::Agentic));
+
+        assert_eq!(serde_json::to_value(&typed).unwrap(), wire);
+    }
+
+    #[test]
+    fn test_google_tool_type_media_processing_native_passthrough() {
+        let part = json!({
+            "toolCall": {
+                "id": "srv_media_1",
+                "toolType": "MEDIA_PROCESSING",
+                "toolName": "media_processing",
+                "args": {"fileUri": "files/abc123"}
+            }
+        });
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Describe the video."}]},
+                    {"role": "model", "parts": [part.clone()]}
+                ]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "toolCall",
+        );
+    }
+
+    #[test]
+    fn test_google_tool_response_native_passthrough() {
+        let part = json!({
+            "toolResponse": {
+                "id": "srv_media_1",
+                "toolType": "MEDIA_PROCESSING",
+                "response": {"frames": 42}
+            }
+        });
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Describe the video."}]},
+                    {"role": "model", "parts": [part.clone()]}
+                ]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "toolResponse",
+        );
+    }
+
+    #[test]
+    fn test_google_tool_type_media_processing_round_trips() {
+        let wire = json!({
+            "toolCall": {
+                "id": "srv_media_1",
+                "toolType": "MEDIA_PROCESSING",
+                "toolName": "media_processing"
+            },
+            "toolResponse": {
+                "id": "srv_media_1",
+                "toolType": "MEDIA_PROCESSING",
+                "response": {"frames": 42}
+            }
+        });
+
+        let typed: GooglePart =
+            serde_json::from_value(wire.clone()).expect("native tool call part parses");
+        assert_eq!(
+            typed
+                .tool_call
+                .as_ref()
+                .and_then(|call| call.tool_type.clone()),
+            Some(ToolType::MediaProcessing)
+        );
+        assert_eq!(
+            typed
+                .tool_response
+                .as_ref()
+                .and_then(|response| response.tool_type.clone()),
+            Some(ToolType::MediaProcessing)
+        );
+
+        assert_eq!(serde_json::to_value(&typed).unwrap(), wire);
     }
 }
