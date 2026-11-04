@@ -1361,8 +1361,25 @@ impl TrajectoryStream {
                 Err(message) => self.failures.push(voice::failure(span, message)),
             },
             voice::Slot::Work { .. } => {}
-            voice::Slot::Response => {
-                let response = if loaded { voice::response(span) } else { None };
+            voice::Slot::Response { position } => {
+                let failed = loaded && span.source.error.is_some();
+                if failed {
+                    // As in chat, a failed final candidate is work, which keeps its error.
+                    match voice::work(span, voice::WorkKind::Speech) {
+                        Ok(step) => events.push(TrajectoryEvent::Work {
+                            scope: scope.clone(),
+                            id: id.clone(),
+                            position,
+                            step,
+                        }),
+                        Err(message) => self.failures.push(voice::failure(span, message)),
+                    }
+                }
+                let response = if loaded && !failed {
+                    voice::response(span)
+                } else {
+                    None
+                };
                 events.push(TrajectoryEvent::Response {
                     scope: scope.clone(),
                     id: id.clone(),
