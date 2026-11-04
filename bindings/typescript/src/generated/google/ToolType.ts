@@ -6,4 +6,4 @@
  * Required. The type of tool that was called, matching the `tool_type` in the corresponding
  * `ToolCall`.
  */
-export type ToolType = "FILE_SEARCH" | "GOOGLE_MAPS" | "GOOGLE_SEARCH_IMAGE" | "GOOGLE_SEARCH_WEB" | "TOOL_TYPE_UNSPECIFIED" | "URL_CONTEXT";
+export type ToolType = "FILE_SEARCH" | "GOOGLE_MAPS" | "GOOGLE_SEARCH_IMAGE" | "GOOGLE_SEARCH_WEB" | "MEDIA_PROCESSING" | "TOOL_TYPE_UNSPECIFIED" | "URL_CONTEXT";
