@@ -177,6 +177,10 @@ pub(super) fn failure(span: &PreparedSpan, message: String) -> ImportFailure {
     }
 }
 
+pub(super) fn is_supported_version(version: &str) -> bool {
+    version.split('.').next() == Some("3")
+}
+
 /// Plans every span inside a v3 voice session. Spans outside sessions or owned by tools
 /// keep the chat path; unsupported or invalid schema versions are reported and their
 /// sessions ignored.
@@ -202,7 +206,7 @@ pub(super) fn plan(
                 continue;
             }
         };
-        if version.split('.').next() == Some("3") {
+        if is_supported_version(version) {
             plan.sessions.insert(index);
         } else {
             unsupported.insert(index);
