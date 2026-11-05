@@ -2802,3 +2802,100 @@ fn voice_payloads_must_match_their_root_headers() {
         "Trajectory structure changed for span stt"
     );
 }
+
+fn transcript_lines(messages: &[Message]) -> Vec<(&'static str, String)> {
+    let text = |parts: Vec<&str>| parts.join("\n");
+    messages
+        .iter()
+        .map(|message| match message {
+            Message::User {
+                content: UserContent::String(content),
+            } => ("user", content.clone()),
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } => (
+                "assistant",
+                text(
+                    parts
+                        .iter()
+                        .map(|part| match part {
+                            AssistantContentPart::Text(part) => part.text.as_str(),
+                            other => panic!("Unexpected transcript part {other:?}"),
+                        })
+                        .collect(),
+                ),
+            ),
+            other => panic!("Unexpected transcript message {other:?}"),
+        })
+        .collect()
+}
+
+fn voice_fixture(fixture: &str) -> ImportFixture {
+    serde_json::from_str(fixture).unwrap()
+}
+
+#[test]
+fn voice_transcript_is_what_the_caller_heard() {
+    let fixture = voice_fixture(include_str!(
+        "fixtures/voice-interruption-during-playback.json"
+    ));
+    let transcript = voice_transcript(fixture.spans).unwrap().unwrap();
+    let lines = [
+        ("user", "Hello there."),
+        ("assistant", "Thanks for calling Mortimer's Magical Emporium, this is Pip. How can I help you today?"),
+        ("user", "Hello, Pip. Bramstonefist here. Could you check the status of my order? My ledger says one zero zero four"),
+        ("assistant", "You have a Self-Stirring Cauldron that's been shipped by owl. It should arrive"),
+        ("user", "Cauldron? I ordered no cauldron. Misread my ledger. One zero one four, the lanterns."),
+        ("assistant", "Your Dwarven Lanterns have been shipped by dragon. They should arrive on October twenty-sixth, twenty-twenty-seven."),
+        ("user", "Thanks, Pip."),
+        ("user", "Good to know the lanterns have shipped."),
+        ("user", "Goodbye."),
+        ("assistant", "Have a wonderful day!"),
+    ];
+    assert_eq!(
+        transcript_lines(&transcript),
+        lines.map(|(role, text)| (role, text.to_string())),
+    );
+}
+
+#[test]
+fn voice_transcript_follows_turns_and_needs_only_voice_spans() {
+    for fixture in [
+        include_str!("fixtures/voice-interruption-before-playback.json"),
+        include_str!("fixtures/voice-interruption-during-playback.json"),
+    ] {
+        let fixture = voice_fixture(fixture);
+        let mut expected = Vec::new();
+        for turn in &fixture.turns {
+            expected.extend(turn.user_texts.iter().map(|text| ("user", text.clone())));
+            if turn.response_id.is_some() {
+                expected.push(("assistant", turn.response_text.clone()));
+            }
+        }
+        let voice_spans: Vec<_> = fixture
+            .spans
+            .iter()
+            .filter(|span| span.other.get("metadata").is_some_and(is_voice_span))
+            .cloned()
+            .collect();
+        assert!(voice_spans.len() < fixture.spans.len());
+        for spans in [fixture.spans.clone(), voice_spans] {
+            let transcript = voice_transcript(spans).unwrap().unwrap();
+            assert_eq!(transcript_lines(&transcript), expected);
+        }
+    }
+}
+
+#[test]
+fn voice_transcript_ignores_traces_without_a_voice_session() {
+    let fixture = voice_fixture(include_str!("fixtures/chat-tool-cycle.json"));
+    assert!(voice_transcript(fixture.spans).unwrap().is_none());
+    assert!(!is_voice_span(
+        &crate::serde_json::json!({"turn_id": "turn-1"})
+    ));
+    assert!(!is_voice_span(&crate::serde_json::json!("not metadata")));
+    assert!(is_voice_span(
+        &crate::serde_json::json!({"turn.id": "span-1"})
+    ));
+}

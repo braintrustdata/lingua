@@ -1,10 +1,12 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+mod transcript;
 mod voice;
 pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };
+pub use transcript::{is_voice_span, voice_transcript};
 
 use crate::processing::import::{
     is_instruction, ImportedSpan, OpaqueItem, SpanContext, VoicePayload,
