@@ -76,6 +76,9 @@ pub enum SegmentState {
     Ready,
     Pending,
     Omitted,
+    /// A state this version doesn't know, such as one a newer SDK adds.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
