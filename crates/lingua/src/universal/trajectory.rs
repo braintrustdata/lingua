@@ -20,7 +20,7 @@ pub struct Trajectory {
     #[ts(optional)]
     pub findings: Option<Vec<Finding>>,
     pub turns: Vec<Turn>,
-    /// Call recordings, one per voice session span.
+    /// One per voice session span.
     #[ts(optional)]
     pub recordings: Option<Vec<Recording>>,
     #[ts(type = "Record<string, unknown>")]
@@ -29,16 +29,15 @@ pub struct Trajectory {
     pub version: Option<String>,
 }
 
-/// A voice session's audio: its timeline origin, sources, and stored segments.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Recording {
-    /// The session span; segment attachment refs point into this row.
+    /// The voice session span id; `attachment_ref`s point into its row.
     pub id: String,
-    /// The zero for every offset in this recording.
+    /// Time zero for segment offsets.
     pub origin: DateTime<Utc>,
     pub sources: Vec<AudioSource>,
-    /// By `start_offset_ms`. Empty when the session stored no audio.
+    /// Sorted by `start_offset_ms`.
     pub segments: Vec<RecordingSegment>,
 }
 
@@ -59,13 +58,13 @@ pub struct RecordingSegment {
     pub start_offset_ms: u64,
     #[ts(optional, type = "number")]
     pub duration_ms: Option<u64>,
-    /// JSON pointer into the session row; set when the segment is ready.
+    /// JSON pointer into the session row; set when ready.
     #[ts(optional)]
     pub attachment_ref: Option<String>,
     #[ts(optional)]
     pub mime_type: Option<String>,
     pub channels: Vec<Channel>,
-    /// Why the segment was omitted.
+    /// Set when omitted.
     #[ts(optional)]
     pub reason: Option<String>,
 }
@@ -76,7 +75,7 @@ pub enum SegmentState {
     Ready,
     Pending,
     Omitted,
-    /// A state this version doesn't know, such as one a newer SDK adds.
+    /// A state this version doesn't recognize.
     #[serde(other)]
     Unknown,
 }
@@ -84,7 +83,7 @@ pub enum SegmentState {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Channel {
     pub index: u32,
-    /// Source ids mixed into this channel; may be empty.
+    /// `AudioSource` ids mixed into this channel.
     pub sources: Vec<String>,
 }
 

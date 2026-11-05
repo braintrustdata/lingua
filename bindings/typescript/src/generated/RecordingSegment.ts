@@ -4,10 +4,10 @@ import type { SegmentState } from "./SegmentState";
 
 export type RecordingSegment = { id: string, state: SegmentState, start_offset_ms: number, duration_ms?: number, 
 /**
- * JSON pointer into the session row; set when the segment is ready.
+ * JSON pointer into the session row; set when ready.
  */
 attachment_ref?: string, mime_type?: string, channels: Array<Channel>, 
 /**
- * Why the segment was omitted.
+ * Set when omitted.
  */
 reason?: string, };

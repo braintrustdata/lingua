@@ -2,19 +2,16 @@
 import type { AudioSource } from "./AudioSource";
 import type { RecordingSegment } from "./RecordingSegment";
 
-/**
- * A voice session's audio: its timeline origin, sources, and stored segments.
- */
 export type Recording = { 
 /**
- * The session span; segment attachment refs point into this row.
+ * The voice session span id; `attachment_ref`s point into its row.
  */
 id: string, 
 /**
- * The zero for every offset in this recording.
+ * Time zero for segment offsets.
  */
 origin: string, sources: Array<AudioSource>, 
 /**
- * By `start_offset_ms`. Empty when the session stored no audio.
+ * Sorted by `start_offset_ms`.
  */
 segments: Array<RecordingSegment>, };

@@ -2,6 +2,6 @@
 
 export type Channel = { index: number, 
 /**
- * Source ids mixed into this channel; may be empty.
+ * `AudioSource` ids mixed into this channel.
  */
 sources: Array<string>, };

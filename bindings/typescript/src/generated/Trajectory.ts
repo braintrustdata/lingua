@@ -8,6 +8,6 @@ import type { Turn } from "./Turn";
 
 export type Trajectory = { scope: Array<Scope>, agent: Agent, sections?: Array<Section>, findings?: Array<Finding>, turns: Array<Turn>, 
 /**
- * Call recordings, one per voice session span.
+ * One per voice session span.
  */
 recordings?: Array<Recording>, metadata: Record<string, unknown>, version?: string, };
