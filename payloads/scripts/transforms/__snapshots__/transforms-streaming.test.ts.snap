@@ -11337,6 +11337,28 @@ data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","ob
 "
 `;
 
+exports[`streaming: responses → google > responsesFinalAnswerStreamingParam > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"08brauXuHIGQjrEPveyOoQ8","model":"gemini-3.6-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":34,"input_tokens_details":{"cached_tokens":0},"output_tokens":96,"output_tokens_details":{"reasoning_tokens":96},"total_tokens":130}},"sequence_number":0,"type":"response.created"}
+
+event: response.output_item.added
+data: {"item":{"id":"rs_0","summary":[],"type":"reasoning"},"output_index":0,"sequence_number":1,"type":"response.output_item.added"}
+
+event: response.reasoning_summary_text.delta
+data: {"delta":"**Defining the Response**\\n\\nI'm currently focused on defining the appropriate AI persona and the constraints of a single-sentence response. The goal is to formulate a reply that is both fitting for the AI assistant role and adheres strictly to the single-sentence limitation.\\n\\n\\n","item_id":"rs_0","output_index":0,"sequence_number":2,"summary_index":0,"type":"response.reasoning_summary_text.delta"}
+
+event: response.reasoning_summary_text.delta
+data: {"delta":"**Refining the Answer**\\n\\nI've zeroed in on the critical constraint: a concise, single-sentence response. Now, I'm generating some candidate sentences. The aim is to ensure the response stays within this limit, while remaining clear and fitting the role of an AI assistant. I'm carefully evaluating phrasing to ensure the essence is captured effectively.\\n\\n\\n","item_id":"rs_0","output_index":0,"sequence_number":3,"summary_index":0,"type":"response.reasoning_summary_text.delta"}
+
+event: response.output_item.done
+data: {"item":{"id":"rs_0","summary":[{"text":"**Defining the Response**\\n\\nI'm currently focused on defining the appropriate AI persona and the constraints of a single-sentence response. The goal is to formulate a reply that is both fitting for the AI assistant role and adheres strictly to the single-sentence limitation.\\n\\n\\n**Refining the Answer**\\n\\nI've zeroed in on the critical constraint: a concise, single-sentence response. Now, I'm generating some candidate sentences. The aim is to ensure the response stays within this limit, while remaining clear and fitting the role of an AI assistant. I'm carefully evaluating phrasing to ensure the essence is captured effectively.\\n\\n\\n","type":"summary_text"}],"type":"reasoning"},"output_index":0,"sequence_number":4,"type":"response.output_item.done"}
+
+event: response.incomplete
+data: {"response":{"id":"08brauXuHIGQjrEPveyOoQ8","model":"gemini-3.6-flash","object":"response","output":[{"id":"rs_0","summary":[{"text":"**Defining the Response**\\n\\nI'm currently focused on defining the appropriate AI persona and the constraints of a single-sentence response. The goal is to formulate a reply that is both fitting for the AI assistant role and adheres strictly to the single-sentence limitation.\\n\\n\\n**Refining the Answer**\\n\\nI've zeroed in on the critical constraint: a concise, single-sentence response. Now, I'm generating some candidate sentences. The aim is to ensure the response stays within this limit, while remaining clear and fitting the role of an AI assistant. I'm carefully evaluating phrasing to ensure the essence is captured effectively.\\n\\n\\n","type":"summary_text"}],"type":"reasoning"}],"status":"incomplete","usage":{"input_tokens":34,"input_tokens_details":{"cached_tokens":0},"output_tokens":96,"output_tokens_details":{"reasoning_tokens":96},"total_tokens":130}},"sequence_number":5,"type":"response.incomplete"}
+
+"
+`;
+
 exports[`streaming: responses → google > simpleRequest > streaming 1`] = `
 "event: response.created
 data: {"response":{"id":"iG_VacqLI7aX_uMP96rw0Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":8,"input_tokens_details":{"cached_tokens":0},"output_tokens":17,"output_tokens_details":{"reasoning_tokens":17},"total_tokens":25}},"sequence_number":0,"type":"response.created"}

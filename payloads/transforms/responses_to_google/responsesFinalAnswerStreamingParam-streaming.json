@@ -1,0 +1,93 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Defining the Response**\n\nI'm currently focused on defining the appropriate AI persona and the constraints of a single-sentence response. The goal is to formulate a reply that is both fitting for the AI assistant role and adheres strictly to the single-sentence limitation.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 34,
+      "totalTokenCount": 130,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 34
+        }
+      ],
+      "thoughtsTokenCount": 96,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.6-flash",
+    "responseId": "08brauXuHIGQjrEPveyOoQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Refining the Answer**\n\nI've zeroed in on the critical constraint: a concise, single-sentence response. Now, I'm generating some candidate sentences. The aim is to ensure the response stays within this limit, while remaining clear and fitting the role of an AI assistant. I'm carefully evaluating phrasing to ensure the essence is captured effectively.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 34,
+      "totalTokenCount": 130,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 34
+        }
+      ],
+      "thoughtsTokenCount": 96,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.6-flash",
+    "responseId": "08brauXuHIGQjrEPveyOoQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "Eq4ECqsEAWkUfRPC0l3g062MjVdMTICMsZk0/1s/8XbH12OUwbLIsR8WfVvp9kMSydxAY2j5O0xyr1fe9wLhrTT7kSk+IT2VTOf68eRz2560pP3z5/4nl7OMbdzIyOsq6bc9KHKMyqIeV5EgP08ephTbZpHwmCQAI4oZnU7UuAoMhZ5Hx6ZGpUDeKleJ1YB5lliV9ySqlK+PfVKf4zH1bdLhwTjrXoWTyLyLlW54kMFS9mZHJq17Km7nbx6al37VguNLf1LNJicEvV1rJ8xuX775g15sVcl89TUXUzd98hbXSdMKHbJgrT4xWI0Lhv7hTRUYDjtBgXsEfo1QNRJE8+uoj7wOfI81sRhzqO4YX2gcwgFU4kRlfIAH8EgMWDvTT/AQvXKUzRusJiPtJtimgCuR5b6TvhNXwrhAmu18d51ospWYh4gAjDg7Mxjb7qMuXrpi7+zYinjoarm4d+5CU1l/tea1plId/47js9CnR9Dfl3pk6yUKv9Qde6NJyfFc1QGq5OzNlAda821ffm3HnDE+tN8XXwMegl5pj3fuUJThxELBm8ow4+OXXJZfnmewK8A+82TSJmsedkbrGYOOnQx/d8o7agO2P/Now9lyJ4/szuEgfjV5GtCTh9WhASGC1PjKc8OLjAt4MRpBmEOLz+HOTDKbF6EKWu5qG1eGljDfmZAThcfcbummNrQns/CzH9Y0Dmgcxd9/DhISe6ytz6bWjYntLn7U59Oegm/E4FQX"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 34,
+      "totalTokenCount": 130,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 34
+        }
+      ],
+      "thoughtsTokenCount": 96,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.6-flash",
+    "responseId": "08brauXuHIGQjrEPveyOoQ8"
+  }
+]
