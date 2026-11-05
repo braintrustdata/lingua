@@ -186,8 +186,8 @@ impl ScopeKey {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Role {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum Role {
     Ignored,
     Conversation,
     Analysis,
@@ -238,6 +238,28 @@ fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) 
         }
     }
     roles
+}
+
+fn work_step(span: &PreparedSpan, role: Role) -> Result<WorkStep> {
+    let work = match role {
+        Role::Tool => {
+            Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
+                format!("Missing imported tool result for {}", span.id)
+            })?))
+        }
+        Role::Analysis => Work::LLMAnalysis(Box::new(span.analysis())),
+        _ => Work::AgentResponse(Box::new(span.response())),
+    };
+    Ok(WorkStep {
+        id: span.id.clone(),
+        span_type: span.kind().to_string(),
+        name: span.source.name.clone(),
+        error: span.source.error.clone(),
+        start_time: span.start,
+        end_time: span.source.end,
+        work,
+        sub_agent: None,
+    })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -528,7 +550,7 @@ impl TrajectoryStream {
             }
         }
         let mut roles = classify_headers(&spans, &owners);
-        let mut voice = voice::plan(&spans, &by_span_id, &parents, &owners);
+        let mut voice = voice::plan(&spans, &by_span_id, &parents, &owners, &roles);
         for (index, role) in roles.iter_mut().enumerate() {
             if voice.is_voice(index) {
                 *role = Role::Voice;
@@ -1027,36 +1049,15 @@ impl TrajectoryStream {
         index: usize,
         position: usize,
     ) -> Result<Option<TrajectoryEvent>> {
-        let span = &self.spans[index];
-        if matches!(
-            self.roles[index],
-            Role::Ignored | Role::Task { fallback: false }
-        ) {
+        let role = self.roles[index];
+        if matches!(role, Role::Ignored | Role::Task { fallback: false }) {
             return Ok(None);
         }
-        let work = if self.roles[index] == Role::Tool {
-            Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
-                format!("Missing imported tool result for {}", span.id)
-            })?))
-        } else if self.roles[index] == Role::Analysis {
-            Work::LLMAnalysis(Box::new(span.analysis()))
-        } else {
-            Work::AgentResponse(Box::new(span.response()))
-        };
         Ok(Some(TrajectoryEvent::Work {
             scope: scope.clone(),
             id: id.to_string(),
             position,
-            step: WorkStep {
-                id: span.id.clone(),
-                span_type: span.kind().to_string(),
-                name: span.source.name.clone(),
-                error: span.source.error.clone(),
-                start_time: span.start,
-                end_time: span.source.end,
-                work,
-                sub_agent: None,
-            },
+            step: work_step(&self.spans[index], role)?,
         }))
     }
 
@@ -1362,7 +1363,7 @@ impl TrajectoryStream {
         }
         match role {
             voice::VoiceRole::Request | voice::VoiceRole::Reply => {}
-            voice::VoiceRole::Work { kind, position } if loaded => match voice::work(span, kind) {
+            voice::VoiceRole::Work { role, position } if loaded => match work_step(span, role) {
                 Ok(step) => events.push(TrajectoryEvent::Work {
                     scope: scope.clone(),
                     id: id.clone(),
@@ -1376,15 +1377,12 @@ impl TrajectoryStream {
                 let failed = loaded && span.source.error.is_some();
                 if failed {
                     // As in chat, a failed final candidate is work, which keeps its error.
-                    match voice::work(span, voice::WorkKind::Speech) {
-                        Ok(step) => events.push(TrajectoryEvent::Work {
-                            scope: scope.clone(),
-                            id: id.clone(),
-                            position,
-                            step,
-                        }),
-                        Err(message) => self.failures.push(voice::failure(span, message)),
-                    }
+                    events.push(TrajectoryEvent::Work {
+                        scope: scope.clone(),
+                        id: id.clone(),
+                        position,
+                        step: work_step(span, Role::Conversation)?,
+                    });
                 }
                 let response = if loaded && !failed {
                     voice::response(span)
