@@ -1,0 +1,37 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011CfxGs8ZPmy9ez9CHRC5WJ",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "The user is asking me to say \"ok\". This is a simple, straightforward request that doesn't involve anything harmful or problematic. I'll simply respond with \"ok\" as requested.",
+      "signature": "EswDCroBCBIYAipAb5xu5xrnAYEG1XihhV0Fg35FzeIqEYWmofwg41d9B3+mcrJ8S669Hq9cYIFhGd9pfGY/9XJfQfAIMEdI0REMZDIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAaqMs9YGEgwe4hRkOkix+9Or6mEaDL4SUVx8qVGa+kpJhCIwPSYelQ+jbvLPtE7Mj8uKpJKVWg+VC0k7j/jkG4eXDuhG7rnXyoOw0ZV2Ct6tU6IGKr4B6eYLSANsVnejmkozzi4KPCikXR82OLSwtghW/Jw6oPcPUEVtSYrHYnBTg13p3xrptKcALUkdi57ILNeYqksOgxObPeOJphyTHSLd2mdOvvmbRtdDXqeF9eU0THyEkdBFd2eDkDsyZRGhEp9OsmdJ++9ggYGLTnSEXKgZj5unHwYkwjPdhfBEIOgm6uViLJHC6T7WLtpUEjB5rESOVmHmZ+r4ROHS7ZsT40cbF/z910k8Z0jn+cHySLtlYgihExgB"
+    },
+    {
+      "type": "text",
+      "text": "ok"
+    }
+  ],
+  "container": null,
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 39,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 51,
+    "output_tokens_details": {
+      "thinking_tokens": 44
+    },
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  },
+  "diagnostics": null
+}
