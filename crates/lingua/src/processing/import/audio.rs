@@ -14,13 +14,14 @@ use std::collections::BTreeMap;
 
 /// Voice fields that can be read from a span header. Turn references are span ids.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-pub struct VoiceHeader {
+pub struct VoiceContext {
     /// `audio.schema.version`, or why it isn't a string.
     pub schema_version: Option<Result<String, String>>,
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
+    /// Whether the agent's speech was cut off. Only LiveKit reports it today, as
     /// `contrib.livekit.interrupted`.
-    pub livekit_interrupted: Option<bool>,
+    pub interrupted: Option<bool>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
 }
@@ -91,7 +92,7 @@ struct Timeline {
     origin_unix_ms: f64,
 }
 
-pub(super) fn parse(metadata: Option<&json::Value>) -> (VoiceHeader, VoicePayload) {
+pub(super) fn parse(metadata: Option<&json::Value>) -> (VoiceContext, VoicePayload) {
     let mut header_errors = Vec::new();
     let mut errors = Vec::new();
     let metadata = match metadata.map(Metadata::deserialize).transpose() {
@@ -101,14 +102,14 @@ pub(super) fn parse(metadata: Option<&json::Value>) -> (VoiceHeader, VoicePayloa
             Metadata::default()
         }
     };
-    let header = VoiceHeader {
+    let header = VoiceContext {
         schema_version: metadata.schema_version.map(|value| {
             String::deserialize(value)
                 .map_err(|error| format!("Invalid metadata.audio.schema.version: {error}"))
         }),
         turn_id: metadata_field(metadata.turn_id, "turn.id", &mut header_errors),
         reply_to: metadata_field(metadata.reply_to, "turn.reply_to", &mut header_errors),
-        livekit_interrupted: metadata_field(
+        interrupted: metadata_field(
             metadata.interrupted,
             "contrib.livekit.interrupted",
             &mut header_errors,
