@@ -1,10 +1,6 @@
-//! Voice metadata in audio trace schema v3, as the Braintrust JS SDK logs voice sessions.
-//!
-//! Scalar fields, including framework keys such as LiveKit's interruption flag, are read
-//! from span headers. The session's `audio.*` maps are read from payloads, because
-//! Brainstore headers can't carry maps of objects. Which framework traced a session is
-//! decided by the trajectory builder. Parse errors are kept here and reported only for
-//! voice traces.
+//! Voice metadata in audio trace schema v3. The `audio.*` maps come from payloads because
+//! Brainstore headers can't carry maps of objects. Parse errors stay out of the span's
+//! errors because only voice traces report them.
 
 use super::span::metadata_field;
 use crate::serde_json as json;
@@ -12,21 +8,20 @@ use crate::universal::trajectory::SegmentState;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// Voice fields that can be read from a span header. Turn references are span ids.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct VoiceContext {
-    /// `audio.schema.version`, or why it isn't a string.
+    /// Kept even when invalid, because any version marks the span as a voice session.
     pub schema_version: Option<Result<String, String>>,
+    /// Span id.
     pub turn_id: Option<String>,
+    /// Span id.
     pub reply_to: Option<String>,
-    /// Whether the agent's speech was cut off. Only LiveKit reports it today, as
-    /// `contrib.livekit.interrupted`.
+    /// Whether the agent's speech was cut off, from `contrib.livekit.interrupted`.
     pub interrupted: Option<bool>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
 }
 
-/// Voice fields that are read from a span payload.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct VoicePayload {
     pub session: Option<SessionAudio>,
