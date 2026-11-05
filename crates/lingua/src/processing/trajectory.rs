@@ -311,6 +311,8 @@ fn message_keys(messages: &[Message]) -> Vec<u64> {
 #[derive(Clone, Default)]
 struct Ownership {
     turn: Option<String>,
+    /// The nearest `turn.id`, as `turn` is the nearest chat turn id.
+    voice_turn: Option<String>,
     tool: Option<usize>,
     compaction: Option<usize>,
     skipped: bool,
@@ -342,6 +344,9 @@ fn ownership(
     }
     if span.source.turn.is_some() {
         result.turn.clone_from(&span.source.turn);
+    }
+    if span.source.voice.turn_id.is_some() {
+        result.voice_turn.clone_from(&span.source.voice.turn_id);
     }
     if result.compaction.is_none() && span.source.compaction.is_some() {
         result.compaction = Some(index);
