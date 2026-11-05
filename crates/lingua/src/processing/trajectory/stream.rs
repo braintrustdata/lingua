@@ -490,12 +490,6 @@ impl TrajectoryStream {
         } else {
             Vec::new()
         };
-        if let Some(root_span_id) = grouped_trace_ids.first() {
-            let group_root_span_id: Arc<str> = root_span_id.as_str().into();
-            for span in &mut spans {
-                span.group_root_span_id = Some(Arc::clone(&group_root_span_id));
-            }
-        }
         let mut owners = HashMap::new();
         for index in 0..spans.len() {
             let mut visiting = HashSet::new();
@@ -517,6 +511,12 @@ impl TrajectoryStream {
             }
         }
         let roles = classify_headers(&spans, &owners);
+        if let Some(root_span_id) = grouped_trace_ids.first() {
+            let group_root_span_id: Arc<str> = root_span_id.as_str().into();
+            for span in &mut spans {
+                span.group_root_span_id = Some(Arc::clone(&group_root_span_id));
+            }
+        }
         let ready = roles.iter().map(|role| *role == Role::Ignored).collect();
         let mut task_children = vec![Vec::new(); spans.len()];
         let task_resolved = roles
