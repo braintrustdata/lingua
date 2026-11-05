@@ -1,7 +1,5 @@
 use super::*;
-use crate::processing::import::{
-    import_span, import_span_with_options, ImportOptions, Span, TRAJECTORY_METADATA_FIELDS,
-};
+use crate::processing::import::{import_span, import_span_with_options, ImportOptions, Span};
 use crate::universal::{UserContent, UserContentPart};
 use proptest::prelude::*;
 use serde_json::json;
@@ -16,20 +14,14 @@ fn span(id: &str, start: i64, input: Value, output: Value) -> Span {
     .unwrap()
 }
 
-/// Mirrors Brainstore's header projection: no bodies, and only the allowlisted metadata.
-fn header_source(mut source: Span) -> Span {
-    source.input = None;
-    source.output = None;
-    if let Some(json::Value::Object(metadata)) = source.other.get_mut("metadata") {
-        metadata.retain(|key, _| TRAJECTORY_METADATA_FIELDS.contains(&key.as_str()));
-    }
-    source
-}
-
 fn stream_from_sources(sources: Vec<Span>) -> Result<TrajectoryStream> {
     let headers = sources
         .into_iter()
-        .map(|source| import_span(header_source(source)))
+        .map(|mut source| {
+            source.input = None;
+            source.output = None;
+            import_span(source)
+        })
         .collect::<Result<Vec<_>>>()?;
     TrajectoryStream::new(headers, false)
 }
@@ -396,11 +388,11 @@ fn run_fixture(
     let headers: Vec<_> = spans
         .iter()
         .map(|(_, source)| {
-            let source = if import_bodies {
-                source.clone()
-            } else {
-                header_source(source.clone())
-            };
+            let mut source = source.clone();
+            if !import_bodies {
+                source.input = None;
+                source.output = None;
+            }
             import_span_with_options(source, fixture.import_options)
                 .unwrap()
                 .header_only()
