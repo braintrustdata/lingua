@@ -69,15 +69,15 @@ pub struct RecordingSegment {
     pub reason: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum SegmentState {
     Ready,
     Pending,
     Omitted,
-    /// A state this version doesn't recognize.
-    #[serde(other)]
-    Unknown,
+    /// A state this version doesn't recognize, kept as sent.
+    #[serde(untagged)]
+    Unknown(String),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
