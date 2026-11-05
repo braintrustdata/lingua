@@ -2747,9 +2747,45 @@ fn voice_recordings_keep_and_report_unknown_segment_states() {
 }
 
 #[test]
+fn voice_planning_stays_inside_the_session() {
+    let mut sources = voice_sources();
+    sources[0]
+        .other
+        .insert("span_parents".to_string(), json::json!(["job"]));
+    sources.push(voice_span(
+        "job",
+        "",
+        "job",
+        0,
+        [Value::Null, Value::Null, Value::Null],
+    ));
+    sources.last_mut().unwrap().other["span_parents"] = json::json!([]);
+    let mut llm = span(
+        "llm",
+        30,
+        json!([{ "role": "user", "content": "Summarize the call" }]),
+        json!([{ "role": "assistant", "content": "Done" }]),
+    );
+    llm.other["span_parents"] = json::json!(["job"]);
+    sources.push(llm);
+    let result = load_voice(&sources, &sources).unwrap();
+    assert!(result[0]["metadata"]["import_failures"].is_null());
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert!(turns.iter().any(|turn| turn["request_id"] == "user"));
+    assert!(turns.iter().any(|turn| turn["response_id"] == "llm"));
+
+    // An unsupported session is ignored without taking the rest of the trace with it.
+    sources[0].other["metadata"]["audio.schema.version"] = json::json!("4.0.0");
+    let result = load_voice(&sources, &sources).unwrap();
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert!(turns.iter().all(|turn| turn["request_id"] != "user"));
+    assert!(turns.iter().any(|turn| turn["response_id"] == "llm"));
+}
+
+#[test]
 fn voice_payloads_must_match_their_root_headers() {
     let mut sources = voice_sources();
-    // A wrong-typed schema version fails its root instead of building it as chat.
+    // A wrong-typed schema version fails its session instead of building it as chat.
     sources[0].other["metadata"]["audio.schema.version"] = json::json!(3);
     let result = load_voice(&sources, &sources).unwrap();
     assert!(result[0]["metadata"]["import_failures"][0]["message"]
