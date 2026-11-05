@@ -72,6 +72,13 @@ pub enum TrajectoryEvent {
     Done,
 }
 
+/// How far a planned voice turn has streamed.
+#[derive(Debug, Clone, Copy)]
+struct VoiceTurnState {
+    started: bool,
+    remaining: usize,
+}
+
 #[derive(Default)]
 struct TurnState {
     id: Option<String>,
@@ -425,8 +432,7 @@ pub struct TrajectoryStream {
     finished: bool,
     failures: Vec<ImportFailure>,
     voice: voice::VoicePlan,
-    voice_opened: Vec<bool>,
-    voice_remaining: Vec<usize>,
+    voice_states: Vec<VoiceTurnState>,
     voice_failed: HashSet<usize>,
 }
 
@@ -584,11 +590,13 @@ impl TrajectoryStream {
             cursor: 0,
             exclude_system,
             finished: false,
-            voice_opened: vec![false; voice.exchanges.len()],
-            voice_remaining: voice
-                .exchanges
+            voice_states: voice
+                .turns
                 .iter()
-                .map(|exchange| exchange.members)
+                .map(|turn| VoiceTurnState {
+                    started: false,
+                    remaining: turn.span_count,
+                })
                 .collect(),
             voice,
             voice_failed: HashSet::new(),
@@ -744,7 +752,7 @@ impl TrajectoryStream {
             message,
         });
         if self.roles[index] == Role::Voice {
-            // Keep the span's place so its exchange still opens and closes.
+            // Keep the span's place so its voice turn still opens and closes.
             self.voice_failed.insert(index);
         } else {
             self.roles[index] = Role::Ignored;
@@ -1295,19 +1303,22 @@ impl TrajectoryStream {
             self.spans[index].release_payload();
             return Ok(());
         }
-        let (exchange_index, slot) = self.voice.members[&index];
-        let exchange = &self.voice.exchanges[exchange_index];
-        let opener = &self.spans[exchange.opener];
-        let id = opener.id.clone();
-        let (request, opaque_request) = if index == exchange.opener && loaded {
+        let voice::VoiceOwnership {
+            turn: turn_index,
+            role,
+        } = self.voice.owners[&index];
+        let voice_turn = &self.voice.turns[turn_index];
+        let id = self.spans[voice_turn.request].id.clone();
+        let (request, opaque_request) = if index == voice_turn.request && loaded {
             (self.request(span, None, true), span.opaque_input.clone())
         } else {
             (Vec::new(), Vec::new())
         };
-        self.voice_remaining[exchange_index] -= 1;
-        if !self.voice_opened[exchange_index] {
-            if index == exchange.opener
-                && exchange.members == 1
+        let state = &mut self.voice_states[turn_index];
+        state.remaining -= 1;
+        if !state.started {
+            if index == voice_turn.request
+                && voice_turn.span_count == 1
                 && request.is_empty()
                 && opaque_request.is_empty()
             {
@@ -1315,7 +1326,7 @@ impl TrajectoryStream {
                 self.spans[index].release_payload();
                 return Ok(());
             }
-            self.voice_opened[exchange_index] = true;
+            state.started = true;
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
                 id: id.clone(),
@@ -1326,15 +1337,15 @@ impl TrajectoryStream {
                     response_id: None,
                     response: None,
                     work: Vec::new(),
-                    model: exchange.model.clone(),
+                    model: voice_turn.model.clone(),
                     params: None,
-                    start_time: exchange.start_time,
+                    start_time: voice_turn.start_time,
                     end_time: None,
                     interrupted: None,
                     compaction: None,
                 }),
             });
-        } else if index == exchange.opener && loaded {
+        } else if index == voice_turn.request && loaded {
             events.push(TrajectoryEvent::Request {
                 scope: scope.clone(),
                 id: id.clone(),
@@ -1349,9 +1360,9 @@ impl TrajectoryStream {
                 id: id.clone(),
             });
         }
-        match slot {
-            voice::Slot::Opener | voice::Slot::Reply => {}
-            voice::Slot::Work { kind, position } if loaded => match voice::work(span, kind) {
+        match role {
+            voice::VoiceRole::Request | voice::VoiceRole::Reply => {}
+            voice::VoiceRole::Work { kind, position } if loaded => match voice::work(span, kind) {
                 Ok(step) => events.push(TrajectoryEvent::Work {
                     scope: scope.clone(),
                     id: id.clone(),
@@ -1360,8 +1371,8 @@ impl TrajectoryStream {
                 }),
                 Err(message) => self.failures.push(voice::failure(span, message)),
             },
-            voice::Slot::Work { .. } => {}
-            voice::Slot::Response { position } => {
+            voice::VoiceRole::Work { .. } => {}
+            voice::VoiceRole::Response { position } => {
                 let failed = loaded && span.source.error.is_some();
                 if failed {
                     // As in chat, a failed final candidate is work, which keeps its error.
@@ -1385,19 +1396,19 @@ impl TrajectoryStream {
                     id: id.clone(),
                     response_id: response.as_ref().map(|_| span.id.clone()),
                     response: response.map(Box::new),
-                    end_time: exchange.end_time,
-                    model: exchange.model.clone(),
+                    end_time: voice_turn.end_time,
+                    model: voice_turn.model.clone(),
                 })
             }
         }
-        if self.voice_remaining[exchange_index] == 0 && exchange.response.is_none() {
+        if self.voice_states[turn_index].remaining == 0 && voice_turn.response.is_none() {
             events.push(TrajectoryEvent::Response {
                 scope,
                 id,
                 response_id: None,
                 response: None,
-                end_time: exchange.end_time,
-                model: exchange.model.clone(),
+                end_time: voice_turn.end_time,
+                model: voice_turn.model.clone(),
             });
         }
         self.spans[index].release_payload();
