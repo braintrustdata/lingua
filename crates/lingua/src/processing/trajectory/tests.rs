@@ -2591,7 +2591,10 @@ fn voice_headers_missing_from_projection_build_as_chat() {
         spans
             .iter()
             .map(|source| {
-                import_span(without_voice_metadata(header_source(source.clone()))).unwrap()
+                let mut source = without_voice_metadata(source.clone());
+                source.input = None;
+                source.output = None;
+                import_span(source).unwrap()
             })
             .collect()
     };
@@ -2681,7 +2684,12 @@ fn load_voice(headers: &[Span], payloads: &[Span]) -> Result<crate::serde_json::
     };
     let headers = headers
         .iter()
-        .map(|source| import_span_with_options(header_source(source.clone()), options))
+        .map(|source| {
+            let mut source = source.clone();
+            source.input = None;
+            source.output = None;
+            import_span_with_options(source, options)
+        })
         .collect::<Result<Vec<_>>>()?;
     let mut stream = TrajectoryStream::new(headers, false)?;
     let mut collector = TrajectoryCollector::default();

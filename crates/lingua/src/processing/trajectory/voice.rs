@@ -1,44 +1,16 @@
 //! Voice traces in audio trace schema v3: one `Turn` per conversational exchange.
 //!
-//! Each framework module maps its span names and keys onto the neutral `SpanKind`s below;
-//! the planner works only on those. Headers fix where every span goes before any payload
-//! loads. A `user_turn` span opens a `VoiceTurn`, an `agent_turn` joins the one its
-//! `turn.reply_to` names (or opens its own), and other spans join through `turn.id` or
-//! their nearest turn-span ancestor. The last agent speech is the response unless it
+//! A span whose header has a 3.x `audio.schema.version` is a session, and its descendants
+//! are planned here, from headers, before any payload loads. A `user_turn` span opens a
+//! `VoiceTurn`, an `agent_turn` joins the one its `turn.reply_to` names (or opens its own),
+//! and other spans join the turn their nearest `turn.id` names, their own or an ancestor's,
+//! as chat spans inherit `turn_id`. The last agent speech is the response unless it
 //! failed; LLM calls, tools, STT, TTS, earlier speech and a failed last speech are work.
+//! Span names are the ones the Braintrust JS SDK traces.
 
-mod livekit;
-
+use super::stream::Role;
 use super::*;
 use crate::universal::trajectory::{AudioSource, Channel, RecordingSegment, SegmentState};
-
-/// The framework that traced a voice session, detected once per session from its header.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Framework {
-    LiveKit,
-}
-
-impl Framework {
-    fn detect(session: &PreparedSpan) -> Option<Self> {
-        livekit::is_session(session).then_some(Self::LiveKit)
-    }
-
-    /// The neutral kind of a task span.
-    fn task_kind(self, span: &PreparedSpan) -> Option<SpanKind> {
-        match self {
-            Self::LiveKit => livekit::task_kind(span),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum WorkKind {
-    Conversation,
-    Analysis,
-    Tool,
-    SpeechTask,
-    Speech,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum VoiceRole {
@@ -46,14 +18,10 @@ pub(super) enum VoiceRole {
     Request,
     /// An `agent_turn` that answers the turn's `user_turn`.
     Reply,
-    Work {
-        kind: WorkKind,
-        position: usize,
-    },
+    /// A step built as a chat span with `role` would be.
+    Work { role: Role, position: usize },
     /// The turn's last `agent_speech`. It is work at `position` if it failed.
-    Response {
-        position: usize,
-    },
+    Response { position: usize },
 }
 
 /// A planned output `Turn`, which may combine a `user_turn` and the `agent_turn` that
@@ -103,15 +71,25 @@ enum SpanKind {
     UserTurn,
     AgentTurn,
     UserSpeech,
-    Work(WorkKind),
+    AgentSpeech,
+    Work(Role),
 }
 
-fn kind(span: &PreparedSpan, framework: Framework) -> Option<SpanKind> {
-    match span.kind() {
-        "llm" if span.source.analysis => Some(SpanKind::Work(WorkKind::Analysis)),
-        "llm" => Some(SpanKind::Work(WorkKind::Conversation)),
-        "tool" => Some(SpanKind::Work(WorkKind::Tool)),
-        "task" => framework.task_kind(span),
+/// LLM and tool spans keep their chat role; task spans are known by their schema v3 name.
+fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
+    if matches!(role, Role::Conversation | Role::Analysis | Role::Tool) {
+        return Some(SpanKind::Work(role));
+    }
+    if span.kind() != "task" {
+        return None;
+    }
+    match span.source.name.as_deref()? {
+        "user_turn" => Some(SpanKind::UserTurn),
+        "agent_turn" => Some(SpanKind::AgentTurn),
+        "user_speech" => Some(SpanKind::UserSpeech),
+        "agent_speech" => Some(SpanKind::AgentSpeech),
+        // Speech tasks keep their raw input and output, as tools do.
+        "stt" | "tts" | "transcript_received" => Some(SpanKind::Work(Role::Tool)),
         _ => None,
     }
 }
@@ -132,9 +110,9 @@ pub(super) fn plan(
     by_span_id: &HashMap<(&str, &str), usize>,
     parents: &[Option<usize>],
     owners: &HashMap<usize, Ownership>,
+    roles: &[Role],
 ) -> VoicePlan {
     let mut plan = VoicePlan::default();
-    let mut supported = HashMap::new();
     let mut unsupported = HashSet::new();
     for (index, span) in spans.iter().enumerate() {
         let Some(version) = &span.source.voice.schema_version else {
@@ -149,17 +127,15 @@ pub(super) fn plan(
                 continue;
             }
         };
-        let message = match (version.split('.').next(), Framework::detect(span)) {
-            (Some("3"), Some(framework)) => {
-                supported.insert(index, framework);
-                plan.sessions.insert(index);
-                continue;
-            }
-            (Some("3"), None) => "Unrecognized voice framework".to_string(),
-            _ => format!("Unsupported audio schema version {version}"),
-        };
-        unsupported.insert(index);
-        plan.failures.push(failure(span, message));
+        if version.split('.').next() == Some("3") {
+            plan.sessions.insert(index);
+        } else {
+            unsupported.insert(index);
+            plan.failures.push(failure(
+                span,
+                format!("Unsupported audio schema version {version}"),
+            ));
+        }
     }
     // A span's session is its nearest ancestor, or itself, with an audio schema version.
     let session_of: Vec<Option<usize>> = (0..spans.len())
@@ -180,64 +156,40 @@ pub(super) fn plan(
             plan.ignored.insert(index);
         }
     }
-    let framework = |index: usize| session_of[index].and_then(|session| supported.get(&session));
     let in_scope = |index: usize| {
         let owner = &owners[&index];
-        framework(index).is_some() && owner.tool.is_none() && owner.compaction.is_none()
+        session_of[index].is_some_and(|session| plan.sessions.contains(&session))
+            && owner.tool.is_none()
+            && owner.compaction.is_none()
     };
     let kinds: Vec<_> = (0..spans.len())
         .map(|index| {
             (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
-                .then(|| kind(&spans[index], *framework(index)?))
+                .then(|| kind(&spans[index], roles[index]))
                 .flatten()
         })
         .collect();
+    let is_turn =
+        |index: usize| matches!(kinds[index], Some(SpanKind::UserTurn | SpanKind::AgentTurn));
     let resolve = |index: usize, id: &str| {
         by_span_id
             .get(&(spans[index].root_span_id.as_str(), id))
             .copied()
     };
-    // The turn span a span belongs to: itself for turn spans, else `turn.id`, else the
-    // nearest ancestor's turn.
-    let mut turn_spans: Vec<Option<std::result::Result<usize, String>>> = vec![None; spans.len()];
+    let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     for index in 0..spans.len() {
         if kinds[index].is_none() {
             continue;
         }
-        let mut current = Some(index);
-        let mut found = None;
-        while let Some(at) = current {
-            if !in_scope(at) {
-                break;
-            }
-            if matches!(kinds[at], Some(SpanKind::UserTurn | SpanKind::AgentTurn)) {
-                found = Some(Ok(at));
-                break;
-            }
-            if let Some(turn_id) = &spans[at].source.voice.turn_id {
-                found = Some(match resolve(at, turn_id) {
-                    Some(turn)
-                        if matches!(
-                            kinds[turn],
-                            Some(SpanKind::UserTurn | SpanKind::AgentTurn)
-                        ) =>
-                    {
-                        Ok(turn)
-                    }
-                    Some(_) => Err(format!("turn.id {turn_id} is not a user or agent turn")),
-                    None => Err(format!("Unresolved turn.id {turn_id}")),
-                });
-                break;
-            }
-            current = parents[at];
-        }
-        turn_spans[index] =
-            Some(found.unwrap_or_else(|| Err("Voice span has no turn".to_string())));
-    }
-    let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
-    for index in 0..spans.len() {
-        let Some(turn) = turn_spans[index].take() else {
-            continue;
+        // A turn span is its own turn; any other span takes its nearest `turn.id`.
+        let turn = match &owners[&index].voice_turn {
+            _ if is_turn(index) => Ok(index),
+            None => Err("Voice span has no turn".to_string()),
+            Some(turn_id) => match resolve(index, turn_id) {
+                Some(turn) if is_turn(turn) => Ok(turn),
+                Some(_) => Err(format!("turn.id {turn_id} is not a user or agent turn")),
+                None => Err(format!("Unresolved turn.id {turn_id}")),
+            },
         };
         let turn = match turn {
             Ok(turn) => turn,
@@ -271,7 +223,7 @@ pub(super) fn plan(
             .iter()
             .rev()
             .copied()
-            .find(|index| kinds[*index] == Some(SpanKind::Work(WorkKind::Speech)));
+            .find(|index| kinds[*index] == Some(SpanKind::AgentSpeech));
         let end_time = group
             .iter()
             .map(|index| spans[*index].source.end)
@@ -279,7 +231,7 @@ pub(super) fn plan(
             .and_then(|ends| ends.into_iter().max());
         let model = group
             .iter()
-            .find(|index| kinds[**index] == Some(SpanKind::Work(WorkKind::Conversation)))
+            .find(|index| kinds[**index] == Some(SpanKind::Work(Role::Conversation)))
             .and_then(|index| spans[*index].source.model.clone());
         let start_time = spans[group[0]].start;
         let mut position = 0;
@@ -292,21 +244,18 @@ pub(super) fn plan(
                 }
                 _ if index == request => VoiceRole::Request,
                 Some(SpanKind::UserTurn | SpanKind::AgentTurn) => VoiceRole::Reply,
-                _ if Some(index) == response => {
-                    position += 1;
-                    VoiceRole::Response {
-                        position: position - 1,
-                    }
-                }
-                Some(SpanKind::Work(kind)) => {
-                    position += 1;
-                    VoiceRole::Work {
-                        kind,
-                        position: position - 1,
-                    }
-                }
+                _ if Some(index) == response => VoiceRole::Response { position },
+                // Earlier speech is work, as an earlier chat reply is.
+                Some(SpanKind::AgentSpeech) => VoiceRole::Work {
+                    role: Role::Conversation,
+                    position,
+                },
+                Some(SpanKind::Work(role)) => VoiceRole::Work { role, position },
                 None => continue,
             };
+            if matches!(role, VoiceRole::Work { .. } | VoiceRole::Response { .. }) {
+                position += 1;
+            }
             span_count += 1;
             plan.owners.insert(index, VoiceOwnership { turn, role });
         }
@@ -416,26 +365,4 @@ pub(super) fn response(span: &PreparedSpan) -> Option<AgentResponse> {
     let silent = response.opaque_output.is_empty()
         && matches!(&response.response, Some(AssistantContent::Array(parts)) if parts.is_empty());
     (!silent).then_some(response)
-}
-
-pub(super) fn work(span: &PreparedSpan, kind: WorkKind) -> std::result::Result<WorkStep, String> {
-    let work = match kind {
-        WorkKind::Conversation | WorkKind::Speech => Work::AgentResponse(Box::new(span.response())),
-        WorkKind::Analysis => Work::LLMAnalysis(Box::new(span.analysis())),
-        WorkKind::Tool | WorkKind::SpeechTask => {
-            Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
-                format!("Missing imported tool result for {}", span.id)
-            })?))
-        }
-    };
-    Ok(WorkStep {
-        id: span.id.clone(),
-        span_type: span.kind().to_string(),
-        name: span.source.name.clone(),
-        error: span.source.error.clone(),
-        start_time: span.start,
-        end_time: span.source.end,
-        work,
-        sub_agent: None,
-    })
 }
