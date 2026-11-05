@@ -6,6 +6,7 @@ pub use ai_sdk::try_import_ai_sdk_prompt_message;
 mod langchain;
 mod pydantic_ai;
 mod span;
+mod voice;
 use crate::processing::import::ai_sdk::try_parse_ai_sdk_for_import;
 use crate::processing::import::langchain::try_parse_langchain_for_import;
 use crate::processing::import::pydantic_ai::try_parse_pydantic_ai_for_import;
@@ -39,6 +40,7 @@ use serde::{Deserialize, Serialize};
 pub use span::{
     import_span, import_span_with_options, ImportedSpan, SpanContext, TRAJECTORY_METADATA_FIELDS,
 };
+pub use voice::{SpanLink, SpanVoice};
 
 pub(crate) fn is_instruction(message: &Message) -> bool {
     matches!(

@@ -1,3 +1,4 @@
+use super::voice::{import_voice, SpanVoice};
 use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
@@ -19,6 +20,15 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "trajectory_role",
     "request_kind",
     "compaction",
+    "audio.recordings",
+    "audio.selection",
+    "audio.selections",
+    "links",
+    "contrib.livekit.message_ids",
+    "contrib.livekit.response_id",
+    "contrib.livekit.participant_kind",
+    "turn.id",
+    "turn.reply_to",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,6 +53,8 @@ pub struct SpanContext {
     #[serde(default)]
     pub analysis: bool,
     pub compaction: Option<Compaction>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub voice: Option<SpanVoice>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -228,7 +240,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         mut opaque_input,
         mut opaque_output,
         errors: message_errors,
-        warnings,
+        mut warnings,
     } = import_span_messages(
         span.input,
         span.output,
@@ -285,6 +297,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
                 _ => None,
             },
         });
+    source.header.voice = import_voice(source.metadata.as_ref(), &mut warnings);
     source.header.model = model.or(source.header.model);
     source.header.start = start;
     source.header.end = end;

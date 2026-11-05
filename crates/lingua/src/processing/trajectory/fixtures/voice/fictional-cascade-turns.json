@@ -1,0 +1,785 @@
+{
+ "description": "Fictional cascade call with framework user_turn/agent_turn containers, stt, tts and turn.reply_to. A2 plays fewer words than TTS2 synthesized and U3 overlaps A2 (9.4-9.6s) without any interruption flag. UT3 never completed (turn.incomplete). Audio key is fictional.",
+ "spans": [
+  {
+   "id": "row-S",
+   "span_id": "S",
+   "root_span_id": "S",
+   "span_parents": [],
+   "span_attributes": {
+    "type": "task",
+    "name": "session"
+   },
+   "metrics": {
+    "start": 1800000000.0,
+    "end": 1800000011.0
+   },
+   "created": null,
+   "metadata": {
+    "audio.recordings": [
+     {
+      "id": "call",
+      "state": "ready",
+      "mime_type": "audio/ogg",
+      "duration_ms": 11000,
+      "channel_count": 2,
+      "attachment": {
+       "span_id": "S",
+       "ref": "/input/audio/call"
+      },
+      "sources": [
+       {
+        "boundary": "session_input",
+        "channel_index": 0
+       },
+       {
+        "boundary": "local_audio_output",
+        "channel_index": 1
+       }
+      ],
+      "timeline": {
+       "basis": "recorder_sample_clock",
+       "origin_unix_ms": 1800000000000.0,
+       "recording_start_offset_ms": 0
+      }
+     }
+    ]
+   },
+   "input": {
+    "audio": {
+     "call": {
+      "type": "braintrust_attachment",
+      "key": "fixture-cascade-call",
+      "filename": "call.ogg",
+      "content_type": "audio/ogg"
+     }
+    }
+   }
+  },
+  {
+   "id": "row-UT1",
+   "span_id": "UT1",
+   "root_span_id": "S",
+   "span_parents": [
+    "S"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "user_turn"
+   },
+   "metrics": {
+    "start": 1800000001.0,
+    "end": 1800000002.5
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "UT1"
+   }
+  },
+  {
+   "id": "row-U1",
+   "span_id": "U1",
+   "root_span_id": "S",
+   "span_parents": [
+    "UT1"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "user_speech"
+   },
+   "metrics": {
+    "start": 1800000001.0,
+    "end": 1800000002.4
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "UT1",
+    "audio.selections": [
+     {
+      "recording_span_id": "S",
+      "recording_id": "call",
+      "start_offset_ms": 1000,
+      "end_offset_ms": 2400,
+      "channel_index": 0
+     }
+    ],
+    "audio.selection": {
+     "recording_span_id": "S",
+     "recording_id": "call",
+     "start_offset_ms": 1000,
+     "end_offset_ms": 2400,
+     "channel_index": 0
+    },
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "transcribed_by"
+      },
+      "context": {
+       "spanId": "ST1",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "input": [
+    {
+     "role": "user",
+     "content": "Where is my order?"
+    }
+   ]
+  },
+  {
+   "id": "row-ST1",
+   "span_id": "ST1",
+   "root_span_id": "S",
+   "span_parents": [
+    "UT1"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "stt"
+   },
+   "metrics": {
+    "start": 1800000001.0,
+    "end": 1800000002.5
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "UT1"
+   },
+   "output": [
+    {
+     "role": "user",
+     "content": "Where is my order?"
+    }
+   ]
+  },
+  {
+   "id": "row-AT1",
+   "span_id": "AT1",
+   "root_span_id": "S",
+   "span_parents": [
+    "S"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "agent_turn"
+   },
+   "metrics": {
+    "start": 1800000002.5,
+    "end": 1800000006.0
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT1",
+    "turn.reply_to": "UT1"
+   }
+  },
+  {
+   "id": "row-M1",
+   "span_id": "M1",
+   "root_span_id": "S",
+   "span_parents": [
+    "AT1"
+   ],
+   "span_attributes": {
+    "type": "llm",
+    "name": "llm_response"
+   },
+   "metrics": {
+    "start": 1800000002.5,
+    "end": 1800000003.1
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT1",
+    "model": "fixture-model",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "U1",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "input": [
+    {
+     "role": "user",
+     "content": "Where is my order?"
+    }
+   ],
+   "output": [
+    {
+     "role": "assistant",
+     "content": null,
+     "tool_calls": [
+      {
+       "id": "call_1",
+       "type": "function",
+       "function": {
+        "name": "lookup_order",
+        "arguments": "{\"order_id\":\"A7\"}"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "row-T1",
+   "span_id": "T1",
+   "root_span_id": "S",
+   "span_parents": [
+    "AT1"
+   ],
+   "span_attributes": {
+    "type": "tool",
+    "name": "lookup_order"
+   },
+   "metrics": {
+    "start": 1800000003.1,
+    "end": 1800000003.3
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT1",
+    "gen_ai.tool.call.id": "call_1",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "requested_by"
+      },
+      "context": {
+       "spanId": "M1",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "input": {
+    "order_id": "A7"
+   },
+   "output": {
+    "status": "in_transit",
+    "delivery": "Friday"
+   }
+  },
+  {
+   "id": "row-M2",
+   "span_id": "M2",
+   "root_span_id": "S",
+   "span_parents": [
+    "AT1"
+   ],
+   "span_attributes": {
+    "type": "llm",
+    "name": "llm_response"
+   },
+   "metrics": {
+    "start": 1800000003.3,
+    "end": 1800000003.9
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT1",
+    "model": "fixture-model",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "U1",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "consumes_tool_result"
+      },
+      "context": {
+       "spanId": "T1",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "input": [
+    {
+     "role": "user",
+     "content": "Where is my order?"
+    },
+    {
+     "role": "assistant",
+     "content": null,
+     "tool_calls": [
+      {
+       "id": "call_1",
+       "type": "function",
+       "function": {
+        "name": "lookup_order",
+        "arguments": "{\"order_id\":\"A7\"}"
+       }
+      }
+     ]
+    },
+    {
+     "role": "tool",
+     "tool_call_id": "call_1",
+     "content": "{\"status\": \"in_transit\", \"delivery\": \"Friday\"}"
+    }
+   ],
+   "output": [
+    {
+     "role": "assistant",
+     "content": "Your order A7 arrives Friday."
+    }
+   ]
+  },
+  {
+   "id": "row-TT1",
+   "span_id": "TT1",
+   "root_span_id": "S",
+   "span_parents": [
+    "AT1"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "tts"
+   },
+   "metrics": {
+    "start": 1800000003.9,
+    "end": 1800000004.2
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT1",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "generated_by"
+      },
+      "context": {
+       "spanId": "M2",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "input": {
+    "text": "Your order A7 arrives Friday."
+   }
+  },
+  {
+   "id": "row-A1",
+   "span_id": "A1",
+   "root_span_id": "S",
+   "span_parents": [
+    "AT1"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "agent_speech"
+   },
+   "metrics": {
+    "start": 1800000004.2,
+    "end": 1800000006.0
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT1",
+    "audio.selections": [
+     {
+      "recording_span_id": "S",
+      "recording_id": "call",
+      "start_offset_ms": 4200,
+      "end_offset_ms": 6000,
+      "channel_index": 1
+     }
+    ],
+    "audio.selection": {
+     "recording_span_id": "S",
+     "recording_id": "call",
+     "start_offset_ms": 4200,
+     "end_offset_ms": 6000,
+     "channel_index": 1
+    },
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "generated_by"
+      },
+      "context": {
+       "spanId": "TT1",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "output": [
+    {
+     "role": "assistant",
+     "content": "Your order A7 arrives Friday."
+    }
+   ]
+  },
+  {
+   "id": "row-UT2",
+   "span_id": "UT2",
+   "root_span_id": "S",
+   "span_parents": [
+    "S"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "user_turn"
+   },
+   "metrics": {
+    "start": 1800000006.6,
+    "end": 1800000008.0
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "UT2"
+   }
+  },
+  {
+   "id": "row-U2",
+   "span_id": "U2",
+   "root_span_id": "S",
+   "span_parents": [
+    "UT2"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "user_speech"
+   },
+   "metrics": {
+    "start": 1800000006.6,
+    "end": 1800000008.0
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "UT2",
+    "audio.selections": [
+     {
+      "recording_span_id": "S",
+      "recording_id": "call",
+      "start_offset_ms": 6600,
+      "end_offset_ms": 8000,
+      "channel_index": 0
+     }
+    ],
+    "audio.selection": {
+     "recording_span_id": "S",
+     "recording_id": "call",
+     "start_offset_ms": 6600,
+     "end_offset_ms": 8000,
+     "channel_index": 0
+    },
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "transcribed_by"
+      },
+      "context": {
+       "spanId": "ST2",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "input": [
+    {
+     "role": "user",
+     "content": "Can I change the delivery address?"
+    }
+   ]
+  },
+  {
+   "id": "row-ST2",
+   "span_id": "ST2",
+   "root_span_id": "S",
+   "span_parents": [
+    "UT2"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "stt"
+   },
+   "metrics": {
+    "start": 1800000006.6,
+    "end": 1800000008.1
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "UT2"
+   },
+   "output": [
+    {
+     "role": "user",
+     "content": "Can I change the delivery address?"
+    }
+   ]
+  },
+  {
+   "id": "row-AT2",
+   "span_id": "AT2",
+   "root_span_id": "S",
+   "span_parents": [
+    "S"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "agent_turn"
+   },
+   "metrics": {
+    "start": 1800000008.1,
+    "end": 1800000010.0
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT2",
+    "turn.reply_to": "UT2"
+   }
+  },
+  {
+   "id": "row-M3",
+   "span_id": "M3",
+   "root_span_id": "S",
+   "span_parents": [
+    "AT2"
+   ],
+   "span_attributes": {
+    "type": "llm",
+    "name": "llm_response"
+   },
+   "metrics": {
+    "start": 1800000008.1,
+    "end": 1800000008.6
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT2",
+    "model": "fixture-model",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "U1",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "A1",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     },
+     {
+      "attributes": {
+       "braintrust.relationship.type": "input_context"
+      },
+      "context": {
+       "spanId": "U2",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "input": [
+    {
+     "role": "user",
+     "content": "Where is my order?"
+    },
+    {
+     "role": "assistant",
+     "content": "Your order A7 arrives Friday."
+    },
+    {
+     "role": "user",
+     "content": "Can I change the delivery address?"
+    }
+   ],
+   "output": [
+    {
+     "role": "assistant",
+     "content": "Yes, I can change it. What is the new address?"
+    }
+   ]
+  },
+  {
+   "id": "row-TT2",
+   "span_id": "TT2",
+   "root_span_id": "S",
+   "span_parents": [
+    "AT2"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "tts"
+   },
+   "metrics": {
+    "start": 1800000008.6,
+    "end": 1800000008.8
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT2",
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "generated_by"
+      },
+      "context": {
+       "spanId": "M3",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "input": {
+    "text": "Yes, I can change it. What is the new address?"
+   }
+  },
+  {
+   "id": "row-A2",
+   "span_id": "A2",
+   "root_span_id": "S",
+   "span_parents": [
+    "AT2"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "agent_speech"
+   },
+   "metrics": {
+    "start": 1800000008.8,
+    "end": 1800000009.6
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "AT2",
+    "audio.selections": [
+     {
+      "recording_span_id": "S",
+      "recording_id": "call",
+      "start_offset_ms": 8800,
+      "end_offset_ms": 9600,
+      "channel_index": 1
+     }
+    ],
+    "audio.selection": {
+     "recording_span_id": "S",
+     "recording_id": "call",
+     "start_offset_ms": 8800,
+     "end_offset_ms": 9600,
+     "channel_index": 1
+    },
+    "links": [
+     {
+      "attributes": {
+       "braintrust.relationship.type": "generated_by"
+      },
+      "context": {
+       "spanId": "TT2",
+       "traceId": "fixturecascade0000000000000000001",
+       "traceFlags": 1
+      }
+     }
+    ]
+   },
+   "output": [
+    {
+     "role": "assistant",
+     "content": "Yes, I can change it."
+    }
+   ]
+  },
+  {
+   "id": "row-UT3",
+   "span_id": "UT3",
+   "root_span_id": "S",
+   "span_parents": [
+    "S"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "user_turn"
+   },
+   "metrics": {
+    "start": 1800000009.4,
+    "end": 1800000010.6
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "UT3",
+    "turn.incomplete": true
+   }
+  },
+  {
+   "id": "row-U3",
+   "span_id": "U3",
+   "root_span_id": "S",
+   "span_parents": [
+    "UT3"
+   ],
+   "span_attributes": {
+    "type": "task",
+    "name": "user_speech"
+   },
+   "metrics": {
+    "start": 1800000009.4,
+    "end": 1800000010.6
+   },
+   "created": null,
+   "metadata": {
+    "turn.id": "UT3",
+    "audio.selections": [
+     {
+      "recording_span_id": "S",
+      "recording_id": "call",
+      "start_offset_ms": 9400,
+      "end_offset_ms": 10600,
+      "channel_index": 0
+     }
+    ],
+    "audio.selection": {
+     "recording_span_id": "S",
+     "recording_id": "call",
+     "start_offset_ms": 9400,
+     "end_offset_ms": 10600,
+     "channel_index": 0
+    }
+   },
+   "input": [
+    {
+     "role": "user",
+     "content": "It's 12 Elm Street."
+    }
+   ]
+  }
+ ]
+}
