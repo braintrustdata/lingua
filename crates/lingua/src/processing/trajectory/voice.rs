@@ -119,9 +119,9 @@ pub(super) fn failure(span: &PreparedSpan, message: String) -> ImportFailure {
     }
 }
 
-/// Plans every span of the roots that hold a v3 voice session. Spans owned by tools keep
-/// the chat path; unsupported or invalid schema versions are reported and their roots
-/// ignored.
+/// Plans every span inside a v3 voice session. Spans outside sessions or owned by tools
+/// keep the chat path; unsupported or invalid schema versions are reported and their
+/// sessions ignored.
 pub(super) fn plan(
     spans: &[PreparedSpan],
     by_span_id: &HashMap<(&str, &str), usize>,
@@ -139,46 +139,51 @@ pub(super) fn plan(
         let version = match version {
             Ok(version) => version,
             Err(error) => {
-                unsupported.insert(span.root_span_id.clone());
+                unsupported.insert(index);
                 plan.failures.push(failure(span, error.clone()));
                 continue;
             }
         };
         let message = match (version.split('.').next(), Framework::detect(span)) {
             (Some("3"), Some(framework)) => {
-                match supported.insert(span.root_span_id.clone(), framework) {
-                    Some(other) if other != framework => {
-                        "Voice sessions from different frameworks in one trace".to_string()
-                    }
-                    _ => {
-                        plan.sessions.insert(index);
-                        continue;
-                    }
-                }
+                supported.insert(index, framework);
+                plan.sessions.insert(index);
+                continue;
             }
             (Some("3"), None) => "Unrecognized voice framework".to_string(),
             _ => format!("Unsupported audio schema version {version}"),
         };
-        unsupported.insert(span.root_span_id.clone());
+        unsupported.insert(index);
         plan.failures.push(failure(span, message));
     }
-    for (index, span) in spans.iter().enumerate() {
-        if unsupported.contains(&span.root_span_id) {
-            plan.sessions.remove(&index);
+    // A span's session is its nearest ancestor, or itself, with an audio schema version.
+    let session_of: Vec<Option<usize>> = (0..spans.len())
+        .map(|index| {
+            let mut current = Some(index);
+            for _ in 0..spans.len() {
+                let at = current?;
+                if spans[at].source.voice.schema_version.is_some() {
+                    return Some(at);
+                }
+                current = parents[at];
+            }
+            None
+        })
+        .collect();
+    for (index, session) in session_of.iter().enumerate() {
+        if session.is_some_and(|session| unsupported.contains(&session)) {
             plan.ignored.insert(index);
         }
     }
+    let framework = |index: usize| session_of[index].and_then(|session| supported.get(&session));
     let in_scope = |index: usize| {
         let owner = &owners[&index];
-        supported.contains_key(&spans[index].root_span_id)
-            && !unsupported.contains(&spans[index].root_span_id)
-            && owner.tool.is_none()
-            && owner.compaction.is_none()
+        framework(index).is_some() && owner.tool.is_none() && owner.compaction.is_none()
     };
     let kinds: Vec<_> = (0..spans.len())
         .map(|index| {
             (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
-                .then(|| kind(&spans[index], supported[&spans[index].root_span_id]))
+                .then(|| kind(&spans[index], *framework(index)?))
                 .flatten()
         })
         .collect();
@@ -311,7 +316,7 @@ pub(super) fn plan(
             plan.ignored.insert(index);
             continue;
         }
-        if supported[&span.root_span_id].interrupted(span) {
+        if framework(index).is_some_and(|framework| framework.interrupted(span)) {
             plan.interrupted.insert(index);
         }
         if !span.source.voice.errors.is_empty() {
