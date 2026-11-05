@@ -1,4 +1,4 @@
-use super::audio::{self, VoiceHeader, VoicePayload};
+use super::audio::{self, VoiceContext, VoicePayload};
 use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
@@ -50,7 +50,7 @@ pub struct SpanContext {
     pub analysis: bool,
     pub compaction: Option<Compaction>,
     #[serde(default)]
-    pub voice: VoiceHeader,
+    pub voice: VoiceContext,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
