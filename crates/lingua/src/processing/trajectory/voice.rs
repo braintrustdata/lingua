@@ -1,11 +1,11 @@
-//! Voice traces in audio trace schema v3: one turn per conversational exchange.
+//! Voice traces in audio trace schema v3: one `Turn` per conversational exchange.
 //!
-//! Each framework module maps its span names and keys onto the neutral `Kind`s below; the
-//! planner works only on those. Headers fix where every span goes before any payload loads.
-//! A user turn opens an exchange, an agent turn joins the one named by its `turn.reply_to`
-//! (or opens its own), and other spans join through `turn.id` or their nearest turn
-//! ancestor. The last agent speech is the response unless it failed; LLM calls, tools, STT,
-//! TTS, earlier speech and a failed last speech are work.
+//! Each framework module maps its span names and keys onto the neutral `SpanKind`s below;
+//! the planner works only on those. Headers fix where every span goes before any payload
+//! loads. A `user_turn` span opens a `VoiceTurn`, an `agent_turn` joins the one its
+//! `turn.reply_to` names (or opens its own), and other spans join through `turn.id` or
+//! their nearest turn-span ancestor. The last agent speech is the response unless it
+//! failed; LLM calls, tools, STT, TTS, earlier speech and a failed last speech are work.
 
 mod livekit;
 
@@ -24,22 +24,16 @@ impl Framework {
     }
 
     /// The neutral kind of a task span.
-    fn task_kind(self, span: &PreparedSpan) -> Option<Kind> {
+    fn task_kind(self, span: &PreparedSpan) -> Option<SpanKind> {
         match self {
             Self::LiveKit => livekit::task_kind(span),
-        }
-    }
-
-    fn interrupted(self, span: &PreparedSpan) -> bool {
-        match self {
-            Self::LiveKit => livekit::interrupted(span),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum WorkKind {
-    Llm,
+    Conversation,
     Analysis,
     Tool,
     SpeechTask,
@@ -47,26 +41,29 @@ pub(super) enum WorkKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum Slot {
+pub(super) enum VoiceRole {
     /// The `user_turn`, or an `agent_turn` that answers no user turn. It holds the request.
-    Opener,
-    /// An `agent_turn` that answers the exchange's `user_turn`.
+    Request,
+    /// An `agent_turn` that answers the turn's `user_turn`.
     Reply,
     Work {
         kind: WorkKind,
         position: usize,
     },
-    /// The exchange's last `agent_speech`. It is work at `position` if it failed.
+    /// The turn's last `agent_speech`. It is work at `position` if it failed.
     Response {
         position: usize,
     },
 }
 
-pub(super) struct Exchange {
-    pub(super) opener: usize,
-    /// Spans the voice path loads for this exchange, the opener included. A turn
+/// A planned output `Turn`, which may combine a `user_turn` and the `agent_turn` that
+/// answers it.
+pub(super) struct VoiceTurn {
+    /// The span that holds the request.
+    pub(super) request: usize,
+    /// Spans the voice path loads for this turn, the request span included. A turn
     /// without speech closes when the last of them drains.
-    pub(super) members: usize,
+    pub(super) span_count: usize,
     pub(super) response: Option<usize>,
     pub(super) start_time: DateTime<Utc>,
     pub(super) end_time: Option<DateTime<Utc>>,
@@ -78,34 +75,42 @@ pub(super) struct VoicePlan {
     /// Roots whose headers hold an audio schema version.
     pub(super) roots: HashSet<String>,
     pub(super) sessions: HashSet<usize>,
-    pub(super) members: HashMap<usize, (usize, Slot)>,
-    pub(super) exchanges: Vec<Exchange>,
+    pub(super) owners: HashMap<usize, VoiceOwnership>,
+    pub(super) turns: Vec<VoiceTurn>,
     /// Spans of voice roots that the voice path doesn't load.
     pub(super) ignored: HashSet<usize>,
-    /// Spans whose framework reports the agent's speech was cut off.
+    /// Spans that report the agent's speech was cut off.
     pub(super) interrupted: HashSet<usize>,
     pub(super) failures: Vec<ImportFailure>,
 }
 
 impl VoicePlan {
     pub(super) fn is_voice(&self, index: usize) -> bool {
-        self.sessions.contains(&index) || self.members.contains_key(&index)
+        self.sessions.contains(&index) || self.owners.contains_key(&index)
     }
 }
 
+/// Where a span goes. `turn` indexes `VoicePlan.turns`, unlike chat's `Ownership.turn`,
+/// which is a turn id.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct VoiceOwnership {
+    pub(super) turn: usize,
+    pub(super) role: VoiceRole,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Kind {
+enum SpanKind {
     UserTurn,
     AgentTurn,
     UserSpeech,
     Work(WorkKind),
 }
 
-fn kind(span: &PreparedSpan, framework: Framework) -> Option<Kind> {
+fn kind(span: &PreparedSpan, framework: Framework) -> Option<SpanKind> {
     match span.kind() {
-        "llm" if span.source.analysis => Some(Kind::Work(WorkKind::Analysis)),
-        "llm" => Some(Kind::Work(WorkKind::Llm)),
-        "tool" => Some(Kind::Work(WorkKind::Tool)),
+        "llm" if span.source.analysis => Some(SpanKind::Work(WorkKind::Analysis)),
+        "llm" => Some(SpanKind::Work(WorkKind::Conversation)),
+        "tool" => Some(SpanKind::Work(WorkKind::Tool)),
         "task" => framework.task_kind(span),
         _ => None,
     }
@@ -194,7 +199,7 @@ pub(super) fn plan(
     };
     // The turn span a span belongs to: itself for turn spans, else `turn.id`, else the
     // nearest ancestor's turn.
-    let mut turns: Vec<Option<std::result::Result<usize, String>>> = vec![None; spans.len()];
+    let mut turn_spans: Vec<Option<std::result::Result<usize, String>>> = vec![None; spans.len()];
     for index in 0..spans.len() {
         if kinds[index].is_none() {
             continue;
@@ -205,13 +210,18 @@ pub(super) fn plan(
             if !in_scope(at) {
                 break;
             }
-            if matches!(kinds[at], Some(Kind::UserTurn | Kind::AgentTurn)) {
+            if matches!(kinds[at], Some(SpanKind::UserTurn | SpanKind::AgentTurn)) {
                 found = Some(Ok(at));
                 break;
             }
             if let Some(turn_id) = &spans[at].source.voice.turn_id {
                 found = Some(match resolve(at, turn_id) {
-                    Some(turn) if matches!(kinds[turn], Some(Kind::UserTurn | Kind::AgentTurn)) => {
+                    Some(turn)
+                        if matches!(
+                            kinds[turn],
+                            Some(SpanKind::UserTurn | SpanKind::AgentTurn)
+                        ) =>
+                    {
                         Ok(turn)
                     }
                     Some(_) => Err(format!("turn.id {turn_id} is not a user or agent turn")),
@@ -221,11 +231,12 @@ pub(super) fn plan(
             }
             current = parents[at];
         }
-        turns[index] = Some(found.unwrap_or_else(|| Err("Voice span has no turn".to_string())));
+        turn_spans[index] =
+            Some(found.unwrap_or_else(|| Err("Voice span has no turn".to_string())));
     }
     let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     for index in 0..spans.len() {
-        let Some(turn) = turns[index].take() else {
+        let Some(turn) = turn_spans[index].take() else {
             continue;
         };
         let turn = match turn {
@@ -236,9 +247,9 @@ pub(super) fn plan(
                 continue;
             }
         };
-        let opener = match (kinds[turn], &spans[turn].source.voice.reply_to) {
-            (Some(Kind::AgentTurn), Some(reply_to)) => match resolve(turn, reply_to) {
-                Some(user_turn) if kinds[user_turn] == Some(Kind::UserTurn) => user_turn,
+        let request = match (kinds[turn], &spans[turn].source.voice.reply_to) {
+            (Some(SpanKind::AgentTurn), Some(reply_to)) => match resolve(turn, reply_to) {
+                Some(user_turn) if kinds[user_turn] == Some(SpanKind::UserTurn) => user_turn,
                 _ => {
                     if index == turn {
                         plan.failures.push(failure(
@@ -251,16 +262,16 @@ pub(super) fn plan(
             },
             _ => turn,
         };
-        groups.entry(opener).or_default().push(index);
+        groups.entry(request).or_default().push(index);
     }
-    for (opener, mut group) in groups {
+    for (request, mut group) in groups {
         group.sort_by(|a, b| spans[*a].start_order(&spans[*b]));
-        let exchange = plan.exchanges.len();
+        let turn = plan.turns.len();
         let response = group
             .iter()
             .rev()
             .copied()
-            .find(|index| kinds[*index] == Some(Kind::Work(WorkKind::Speech)));
+            .find(|index| kinds[*index] == Some(SpanKind::Work(WorkKind::Speech)));
         let end_time = group
             .iter()
             .map(|index| spans[*index].source.end)
@@ -268,40 +279,40 @@ pub(super) fn plan(
             .and_then(|ends| ends.into_iter().max());
         let model = group
             .iter()
-            .find(|index| kinds[**index] == Some(Kind::Work(WorkKind::Llm)))
+            .find(|index| kinds[**index] == Some(SpanKind::Work(WorkKind::Conversation)))
             .and_then(|index| spans[*index].source.model.clone());
         let start_time = spans[group[0]].start;
         let mut position = 0;
-        let mut members = 0;
+        let mut span_count = 0;
         for &index in &group {
-            let slot = match kinds[index] {
-                Some(Kind::UserSpeech) => {
+            let role = match kinds[index] {
+                Some(SpanKind::UserSpeech) => {
                     plan.ignored.insert(index);
                     continue;
                 }
-                _ if index == opener => Slot::Opener,
-                Some(Kind::UserTurn | Kind::AgentTurn) => Slot::Reply,
+                _ if index == request => VoiceRole::Request,
+                Some(SpanKind::UserTurn | SpanKind::AgentTurn) => VoiceRole::Reply,
                 _ if Some(index) == response => {
                     position += 1;
-                    Slot::Response {
+                    VoiceRole::Response {
                         position: position - 1,
                     }
                 }
-                Some(Kind::Work(kind)) => {
+                Some(SpanKind::Work(kind)) => {
                     position += 1;
-                    Slot::Work {
+                    VoiceRole::Work {
                         kind,
                         position: position - 1,
                     }
                 }
                 None => continue,
             };
-            members += 1;
-            plan.members.insert(index, (exchange, slot));
+            span_count += 1;
+            plan.owners.insert(index, VoiceOwnership { turn, role });
         }
-        plan.exchanges.push(Exchange {
-            opener,
-            members,
+        plan.turns.push(VoiceTurn {
+            request,
+            span_count,
             response,
             start_time,
             end_time,
@@ -316,7 +327,7 @@ pub(super) fn plan(
             plan.ignored.insert(index);
             continue;
         }
-        if framework(index).is_some_and(|framework| framework.interrupted(span)) {
+        if span.source.voice.interrupted == Some(true) {
             plan.interrupted.insert(index);
         }
         if !span.source.voice.errors.is_empty() {
@@ -409,7 +420,7 @@ pub(super) fn response(span: &PreparedSpan) -> Option<AgentResponse> {
 
 pub(super) fn work(span: &PreparedSpan, kind: WorkKind) -> std::result::Result<WorkStep, String> {
     let work = match kind {
-        WorkKind::Llm | WorkKind::Speech => Work::AgentResponse(Box::new(span.response())),
+        WorkKind::Conversation | WorkKind::Speech => Work::AgentResponse(Box::new(span.response())),
         WorkKind::Analysis => Work::LLMAnalysis(Box::new(span.analysis())),
         WorkKind::Tool | WorkKind::SpeechTask => {
             Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
