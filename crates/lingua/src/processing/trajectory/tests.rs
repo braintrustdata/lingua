@@ -2642,8 +2642,8 @@ fn voice_sources() -> Vec<Span> {
             1,
             [json!({ "turn.id": "user" }), hello.clone(), Value::Null],
         ),
-        // Joins the user turn through its parent.
-        voice_span("stt", "user", "stt", 2, [Value::Null, Value::Null, hello]),
+        // Joins the user turn through its parent, and opens before the caller speaks.
+        voice_span("stt", "user", "stt", 0, [Value::Null, Value::Null, hello]),
         voice_span(
             "agent",
             "session",
@@ -2715,6 +2715,9 @@ fn voice_turns_keep_inherited_steps_unsupported_input_and_silent_speech() {
     let turns = result[0]["turns"].as_array().unwrap();
     assert_eq!(turns.len(), 2);
     assert_eq!(turns[0]["work"][0]["id"], "stt");
+    assert_eq!(turns[0]["work"][0]["work"]["output"], "Hello");
+    // The turn starts at its `user_turn`, not at the earlier STT step.
+    assert!(turns[0]["work"][0]["start_time"].as_str() < turns[0]["start_time"].as_str());
     assert!(turns[0]["response"].is_null());
     assert!(turns[0]["response_id"].is_null());
     assert_eq!(turns[1]["request_id"], "trailing");

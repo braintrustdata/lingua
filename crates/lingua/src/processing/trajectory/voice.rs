@@ -6,11 +6,13 @@
 //! and other spans join the turn their nearest `turn.id` names, their own or an ancestor's,
 //! as chat spans inherit `turn_id`. The last agent speech is the response unless it
 //! failed; LLM calls, tools, STT, TTS, earlier speech and a failed last speech are work.
+//! STT and TTS steps hold only the text they heard or spoke.
 //! Span names are the ones the Braintrust JS SDK traces.
 
-use super::stream::Role;
+use super::stream::{self, Role};
 use super::*;
 use crate::universal::trajectory::{AudioSource, Channel, RecordingSegment, SegmentState};
+use crate::universal::{UserContent, UserContentPart};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum VoiceRole {
@@ -18,10 +20,14 @@ pub(super) enum VoiceRole {
     Request,
     /// An `agent_turn` that answers the turn's `user_turn`.
     Reply,
-    /// A step built as a chat span with `role` would be.
-    Work { role: Role, position: usize },
+    Work {
+        kind: StepKind,
+        position: usize,
+    },
     /// The turn's last `agent_speech`. It is work at `position` if it failed.
-    Response { position: usize },
+    Response {
+        position: usize,
+    },
 }
 
 /// A planned output `Turn`, which may combine a `user_turn` and the `agent_turn` that
@@ -66,19 +72,29 @@ pub(super) struct VoiceOwnership {
     pub(super) role: VoiceRole,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum StepKind {
+    /// Built as a chat span with this role would be.
+    Chat(Role),
+    /// An `stt` span: a tool result whose output is the text it heard.
+    Heard,
+    /// A `tts` span: a tool result whose input is the text it spoke.
+    Spoken,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SpanKind {
     UserTurn,
     AgentTurn,
     UserSpeech,
     AgentSpeech,
-    Work(Role),
+    Work(StepKind),
 }
 
 /// LLM and tool spans keep their chat role; task spans are known by their schema v3 name.
 fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
     if matches!(role, Role::Conversation | Role::Analysis | Role::Tool) {
-        return Some(SpanKind::Work(role));
+        return Some(SpanKind::Work(StepKind::Chat(role)));
     }
     if span.kind() != "task" {
         return None;
@@ -88,9 +104,68 @@ fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
         "agent_turn" => Some(SpanKind::AgentTurn),
         "user_speech" => Some(SpanKind::UserSpeech),
         "agent_speech" => Some(SpanKind::AgentSpeech),
-        // Speech tasks keep their raw input and output, as tools do.
-        "stt" | "tts" | "transcript_received" => Some(SpanKind::Work(Role::Tool)),
+        "stt" => Some(SpanKind::Work(StepKind::Heard)),
+        "tts" => Some(SpanKind::Work(StepKind::Spoken)),
         _ => None,
+    }
+}
+
+pub(super) fn work_step(span: &PreparedSpan, kind: StepKind) -> Result<WorkStep> {
+    let speech = |input, output| {
+        Work::ToolResult(Box::new(ToolResult {
+            input,
+            output,
+            content: None,
+        }))
+    };
+    let work = match kind {
+        StepKind::Chat(role) => return stream::work_step(span, role),
+        StepKind::Heard => speech(None, joined(span.output.iter().flat_map(user_text))),
+        StepKind::Spoken => speech(joined(span.output.iter().flat_map(assistant_text)), None),
+    };
+    Ok(stream::step(span, work))
+}
+
+fn joined<'a>(texts: impl Iterator<Item = &'a str>) -> Option<json::Value> {
+    let text = texts.collect::<Vec<_>>().join(" ");
+    (!text.is_empty()).then_some(json::Value::String(text))
+}
+
+fn user_text(message: &Message) -> Vec<&str> {
+    match message {
+        Message::User {
+            content: UserContent::String(text),
+        } => vec![text],
+        Message::User {
+            content: UserContent::Array(parts),
+        } => parts
+            .iter()
+            .filter_map(|part| match part {
+                UserContentPart::Text(part) => Some(part.text.as_str()),
+                _ => None,
+            })
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
+fn assistant_text(message: &Message) -> Vec<&str> {
+    match message {
+        Message::Assistant {
+            content: AssistantContent::String(text),
+            ..
+        } => vec![text],
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } => parts
+            .iter()
+            .filter_map(|part| match part {
+                AssistantContentPart::Text(part) => Some(part.text.as_str()),
+                _ => None,
+            })
+            .collect(),
+        _ => Vec::new(),
     }
 }
 
@@ -231,9 +306,12 @@ pub(super) fn plan(
             .and_then(|ends| ends.into_iter().max());
         let model = group
             .iter()
-            .find(|index| kinds[**index] == Some(SpanKind::Work(Role::Conversation)))
+            .find(|index| {
+                kinds[**index] == Some(SpanKind::Work(StepKind::Chat(Role::Conversation)))
+            })
             .and_then(|index| spans[*index].source.model.clone());
-        let start_time = spans[group[0]].start;
+        // The exchange starts when its opener does; earlier STT streams are only work.
+        let start_time = spans[request].start;
         let mut position = 0;
         let mut span_count = 0;
         for &index in &group {
@@ -247,10 +325,10 @@ pub(super) fn plan(
                 _ if Some(index) == response => VoiceRole::Response { position },
                 // Earlier speech is work, as an earlier chat reply is.
                 Some(SpanKind::AgentSpeech) => VoiceRole::Work {
-                    role: Role::Conversation,
+                    kind: StepKind::Chat(Role::Conversation),
                     position,
                 },
-                Some(SpanKind::Work(role)) => VoiceRole::Work { role, position },
+                Some(SpanKind::Work(kind)) => VoiceRole::Work { kind, position },
                 None => continue,
             };
             if matches!(role, VoiceRole::Work { .. } | VoiceRole::Response { .. }) {
