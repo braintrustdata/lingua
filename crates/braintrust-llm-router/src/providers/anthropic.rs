@@ -4,7 +4,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::{ensure_trailing_slash, ClientHeaders};
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -48,9 +48,10 @@ impl AnthropicProvider {
     }
 
     pub fn new_with_client_settings(
-        config: AnthropicConfig,
+        mut config: AnthropicConfig,
         mut settings: ClientSettings,
     ) -> Result<Self> {
+        ensure_trailing_slash(&mut config.endpoint);
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -274,5 +275,42 @@ impl crate::providers::Provider for AnthropicProvider {
                 http: None,
             })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn provider(endpoint: &str) -> AnthropicProvider {
+        AnthropicProvider::new(AnthropicConfig {
+            endpoint: Url::parse(endpoint).unwrap(),
+            ..AnthropicConfig::default()
+        })
+        .expect("provider")
+    }
+
+    #[test]
+    fn urls_keep_endpoint_path_without_trailing_slash() {
+        let provider = provider("https://api.anthropic.com/v1");
+
+        assert_eq!(
+            provider.messages_url().as_str(),
+            "https://api.anthropic.com/v1/messages"
+        );
+        assert_eq!(
+            provider.chat_completions_url().as_str(),
+            "https://api.anthropic.com/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn urls_keep_endpoint_path_with_trailing_slash() {
+        let provider = provider("https://api.anthropic.com/v1/");
+
+        assert_eq!(
+            provider.messages_url().as_str(),
+            "https://api.anthropic.com/v1/messages"
+        );
     }
 }
