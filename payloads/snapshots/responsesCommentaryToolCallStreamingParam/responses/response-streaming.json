@@ -1,0 +1,888 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0db65386af253c33016aeb90cd8a5c87d2847ee0d7b84d71d1",
+      "object": "response",
+      "created_at": 1793822925,
+      "status": "in_progress",
+      "access_programs": null,
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "image": {
+        "context_compression": "disabled"
+      },
+      "incomplete_details": null,
+      "instructions": "You generate SQL filters using the sql_query tool. Before calling the tool, send a brief commentary progress message explaining what you will do. Then call sql_query exactly once. Do not provide a final answer before receiving the tool result. Stop and wait for the tool result.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": false,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "low",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Submit a SQL filter for validation.",
+          "name": "sql_query",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0db65386af253c33016aeb90cd8a5c87d2847ee0d7b84d71d1",
+      "object": "response",
+      "created_at": 1793822925,
+      "status": "in_progress",
+      "access_programs": null,
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "image": {
+        "context_compression": "disabled"
+      },
+      "incomplete_details": null,
+      "instructions": "You generate SQL filters using the sql_query tool. Before calling the tool, send a brief commentary progress message explaining what you will do. Then call sql_query exactly once. Do not provide a final answer before receiving the tool result. Stop and wait for the tool result.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": false,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "low",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Submit a SQL filter for validation.",
+          "name": "sql_query",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "phase": "commentary",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "I",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "vHqA0IscpZta5Ja",
+    "output_index": 0,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’ll",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "QJce2e6nKxN0L",
+    "output_index": 0,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " validate",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "qBubNqB",
+    "output_index": 0,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " a",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "rPC8qvKyH6Peso",
+    "output_index": 0,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " SQL",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "9rggBobt9lGQ",
+    "output_index": 0,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " WHERE",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "e6hUXP2qfZ",
+    "output_index": 0,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " expression",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "3moCM",
+    "output_index": 0,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " that",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "GfeY3Fl6unq",
+    "output_index": 0,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " matches",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "ag4B2YTu",
+    "output_index": 0,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " traces",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "JTLyRZguJ",
+    "output_index": 0,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " whose",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "sLnquvmZYD",
+    "output_index": 0,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "SM7tFzN4o84Gfd",
+    "output_index": 0,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "metadata",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "dRSaNOuU",
+    "output_index": 0,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".session",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "XKw5b3QK",
+    "output_index": 0,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "_id",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "AQtzDYsXzFPLx",
+    "output_index": 0,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "DxtzayaVBc4EGDz",
+    "output_index": 0,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " contains",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "aGpzhHw",
+    "output_index": 0,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "BHYr7MmSzeJhG9",
+    "output_index": 0,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "afd",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "pzTBgto91IMps",
+    "output_index": 0,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "v1YBUiebkk0MoVp",
+    "output_index": 0,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "wTigx35UTHZ1",
+    "output_index": 0,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " whose",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "RcO7RCmWkX",
+    "output_index": 0,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "oZfxlsZdK2x3eS",
+    "output_index": 0,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "metrics",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "W7VgBtXnT",
+    "output_index": 0,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".lat",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "TufaiGLBhPw0",
+    "output_index": 0,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "ency",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "zoJjfwXeZhk4",
+    "output_index": 0,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "yxOnWAkQvd5FazM",
+    "output_index": 0,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " is",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "dINfEcVxQSFr2",
+    "output_index": 0,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " greater",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "wj2hByv6",
+    "output_index": 0,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " than",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "WG7joGj8FUe",
+    "output_index": 0,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " ",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "HVmRepFXlmX36ru",
+    "output_index": 0,
+    "sequence_number": 34
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "5",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "rtcpthrzW9KU8ec",
+    "output_index": 0,
+    "sequence_number": 35
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "obfuscation": "vfKqop8yTYhhdzv",
+    "output_index": 0,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "logprobs": [],
+    "output_index": 0,
+    "sequence_number": 37,
+    "text": "I’ll validate a SQL WHERE expression that matches traces whose `metadata.session_id` contains `afd` and whose `metrics.latency` is greater than 5."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "I’ll validate a SQL WHERE expression that matches traces whose `metadata.session_id` contains `afd` and whose `metrics.latency` is greater than 5."
+    },
+    "sequence_number": 38
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I’ll validate a SQL WHERE expression that matches traces whose `metadata.session_id` contains `afd` and whose `metrics.latency` is greater than 5."
+        }
+      ],
+      "phase": "commentary",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 39
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "",
+      "call_id": "call_XtRzaM5eQcFnnAMCfM1Ap67S",
+      "name": "sql_query"
+    },
+    "output_index": 1,
+    "sequence_number": 40
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "{\"",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "pAfq6KQ6WJhiP3",
+    "output_index": 1,
+    "sequence_number": 41
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "query",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "Vn812oIdGem",
+    "output_index": 1,
+    "sequence_number": 42
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "\":\"",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "96x31wvnqyUXE",
+    "output_index": 1,
+    "sequence_number": 43
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "metadata",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "ZqlxLL1t",
+    "output_index": 1,
+    "sequence_number": 44
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": ".session",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "IZb8RBD8",
+    "output_index": 1,
+    "sequence_number": 45
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "_id",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "l3YLgPd61VLNQ",
+    "output_index": 1,
+    "sequence_number": 46
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " LIKE",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "cTt9GVSGhwq",
+    "output_index": 1,
+    "sequence_number": 47
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " '%",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "1K1plWFcSF2A3",
+    "output_index": 1,
+    "sequence_number": 48
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "afd",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "LyM1Y83vZTFTZ",
+    "output_index": 1,
+    "sequence_number": 49
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "%'",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "uBFnSjqRsVaEdm",
+    "output_index": 1,
+    "sequence_number": 50
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " AND",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "jrhBQJSMGJBH",
+    "output_index": 1,
+    "sequence_number": 51
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " metrics",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "yEMjw3jj",
+    "output_index": 1,
+    "sequence_number": 52
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": ".lat",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "dpCR9v86N8VL",
+    "output_index": 1,
+    "sequence_number": 53
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "ency",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "3JTXB9JTQjuK",
+    "output_index": 1,
+    "sequence_number": 54
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " >",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "sPDaUmuRvdY04j",
+    "output_index": 1,
+    "sequence_number": 55
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " ",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "c59mOgcKoamu6DA",
+    "output_index": 1,
+    "sequence_number": 56
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "5",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "yslfPze3D8dFS11",
+    "output_index": 1,
+    "sequence_number": 57
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "\"}",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "obfuscation": "4wgnNZ2agJZSgb",
+    "output_index": 1,
+    "sequence_number": 58
+  },
+  {
+    "type": "response.function_call_arguments.done",
+    "arguments": "{\"query\":\"metadata.session_id LIKE '%afd%' AND metrics.latency > 5\"}",
+    "item_id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+    "output_index": 1,
+    "sequence_number": 59
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"query\":\"metadata.session_id LIKE '%afd%' AND metrics.latency > 5\"}",
+      "call_id": "call_XtRzaM5eQcFnnAMCfM1Ap67S",
+      "name": "sql_query"
+    },
+    "output_index": 1,
+    "sequence_number": 60
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0db65386af253c33016aeb90cd8a5c87d2847ee0d7b84d71d1",
+      "object": "response",
+      "created_at": 1793822925,
+      "status": "completed",
+      "access_programs": null,
+      "background": false,
+      "completed_at": 1793822926,
+      "error": null,
+      "frequency_penalty": 0,
+      "image": {
+        "context_compression": "disabled"
+      },
+      "incomplete_details": null,
+      "instructions": "You generate SQL filters using the sql_query tool. Before calling the tool, send a brief commentary progress message explaining what you will do. Then call sql_query exactly once. Do not provide a final answer before receiving the tool result. Stop and wait for the tool result.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "moderation": null,
+      "output": [
+        {
+          "id": "msg_0db65386af253c33016aeb90ce0f7c87d2bb493506f6d96307",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "I’ll validate a SQL WHERE expression that matches traces whose `metadata.session_id` contains `afd` and whose `metrics.latency` is greater than 5."
+            }
+          ],
+          "phase": "commentary",
+          "role": "assistant"
+        },
+        {
+          "id": "fc_0db65386af253c33016aeb90ce490087d28a6bdf58d22c88c9",
+          "type": "function_call",
+          "status": "completed",
+          "arguments": "{\"query\":\"metadata.session_id LIKE '%afd%' AND metrics.latency > 5\"}",
+          "call_id": "call_XtRzaM5eQcFnnAMCfM1Ap67S",
+          "name": "sql_query"
+        }
+      ],
+      "parallel_tool_calls": false,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "low",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Submit a SQL filter for validation.",
+          "name": "sql_query",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 204,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 71,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 275
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 61
+  }
+]

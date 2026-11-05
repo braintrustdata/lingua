@@ -110,10 +110,17 @@ pub struct StreamTransformSession {
     next_responses_sequence_number: u64,
     responses_tool_call_indexes: BTreeMap<u32, u32>,
     next_responses_tool_call_index: u32,
+    // Responses message output items by output index, `true` when the item is
+    // `commentary`. Commentary text is not forwarded as Chat Completions
+    // content; only the final-answer message is.
     #[cfg(feature = "openai")]
     responses_message_items: BTreeMap<u32, bool>,
     #[cfg(feature = "openai")]
     responses_answer_item: Option<u32>,
+    // Whether the Responses stream opened a tool-call output item. A turn that
+    // ends on a tool call legitimately has no final-answer message yet.
+    #[cfg(feature = "openai")]
+    responses_tool_call_item_started: bool,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
 }
@@ -149,6 +156,8 @@ impl StreamTransformSession {
             responses_message_items: BTreeMap::new(),
             #[cfg(feature = "openai")]
             responses_answer_item: None,
+            #[cfg(feature = "openai")]
+            responses_tool_call_item_started: false,
             bedrock_tool_call_indexes: BTreeMap::new(),
             next_bedrock_tool_call_index: 0,
         }
@@ -254,8 +263,15 @@ impl StreamTransformSession {
                     }
                 }
             }
+            ResponsesTextMessageEvent::ToolCallAdded => {
+                self.responses_tool_call_item_started = true;
+            }
+            // Commentary without a final answer is only an error when nothing else
+            // completes the turn. A tool-call turn ends on the tool call; the final
+            // answer comes in a later turn, after the tool result.
             ResponsesTextMessageEvent::Completed
                 if self.responses_answer_item.is_none()
+                    && !self.responses_tool_call_item_started
                     && self
                         .responses_message_items
                         .values()
@@ -3923,6 +3939,222 @@ mod tests {
         .unwrap_err();
         assert!(
             matches!(error, TransformError::ToUniversalFailed(ref message) if message.contains("phase changed"))
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_responses_commentary_tool_call_turn_completes_without_final_answer() {
+        // A Responses turn that sends a commentary message and then calls a tool
+        // has no final-answer message yet: the model is waiting for the tool
+        // result. The Chat Completions stream must still complete as a tool-call
+        // turn instead of aborting after the function call was already emitted.
+        fn run_chat(events: &[Value]) -> Result<(Vec<Value>, Vec<Bytes>), TransformError> {
+            let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+            let mut chunks = Vec::new();
+            for event in events {
+                chunks.extend(session.push(to_bytes(event))?);
+            }
+            chunks.extend(session.finish());
+            let values = chunks
+                .iter()
+                .map(|chunk| crate::serde_json::from_slice::<Value>(&chunk.data).unwrap())
+                .collect();
+            Ok((values, session.finish_sse()))
+        }
+
+        let arguments = "{\"query\":\"metadata.session_id LIKE '%afd%' AND metrics.latency > 5\"}";
+        let commentary_text = "I'll draft the SQL filter now.";
+        let created = json!({
+            "type": "response.created",
+            "response": {"id": "resp_sql", "model": "gpt-6.1-sol", "status": "in_progress", "output": []}
+        });
+        let reasoning_added = json!({
+            "type": "response.output_item.added", "output_index": 0,
+            "item": {"id": "rs_1", "type": "reasoning", "summary": []}
+        });
+        let reasoning_done = json!({
+            "type": "response.output_item.done", "output_index": 0,
+            "item": {"id": "rs_1", "type": "reasoning", "summary": []}
+        });
+        let commentary_added = json!({
+            "type": "response.output_item.added", "output_index": 1,
+            "item": {
+                "id": "msg_1", "type": "message", "role": "assistant", "status": "in_progress",
+                "phase": "commentary", "content": []
+            }
+        });
+        let commentary_part_added = json!({
+            "type": "response.content_part.added", "output_index": 1, "content_index": 0,
+            "part": {"type": "output_text", "text": "", "annotations": []}
+        });
+        let commentary_delta = json!({
+            "type": "response.output_text.delta", "output_index": 1, "content_index": 0,
+            "delta": commentary_text
+        });
+        let commentary_text_done = json!({
+            "type": "response.output_text.done", "output_index": 1, "content_index": 0,
+            "text": commentary_text
+        });
+        let commentary_part_done = json!({
+            "type": "response.content_part.done", "output_index": 1, "content_index": 0,
+            "part": {"type": "output_text", "text": commentary_text, "annotations": []}
+        });
+        let commentary_item = json!({
+            "id": "msg_1", "type": "message", "role": "assistant", "status": "completed",
+            "phase": "commentary",
+            "content": [{"type": "output_text", "text": commentary_text, "annotations": []}]
+        });
+        let commentary_done = json!({
+            "type": "response.output_item.done", "output_index": 1, "item": commentary_item
+        });
+        let tool_added = json!({
+            "type": "response.output_item.added", "output_index": 2,
+            "item": {
+                "id": "fc_1", "type": "function_call", "status": "in_progress",
+                "call_id": "call_sql", "name": "sql_query", "arguments": ""
+            }
+        });
+        let tool_args_1 = json!({
+            "type": "response.function_call_arguments.delta", "output_index": 2, "item_id": "fc_1",
+            "delta": &arguments[..40]
+        });
+        let tool_args_2 = json!({
+            "type": "response.function_call_arguments.delta", "output_index": 2, "item_id": "fc_1",
+            "delta": &arguments[40..]
+        });
+        let tool_args_done = json!({
+            "type": "response.function_call_arguments.done", "output_index": 2, "item_id": "fc_1",
+            "arguments": arguments
+        });
+        let tool_item = json!({
+            "id": "fc_1", "type": "function_call", "status": "completed",
+            "call_id": "call_sql", "name": "sql_query", "arguments": arguments
+        });
+        let tool_done = json!({
+            "type": "response.output_item.done", "output_index": 2, "item": tool_item
+        });
+        let completed = json!({
+            "type": "response.completed",
+            "response": {
+                "id": "resp_sql", "model": "gpt-6.1-sol", "status": "completed",
+                "output": [
+                    {"id": "rs_1", "type": "reasoning", "summary": []},
+                    commentary_item,
+                    tool_item
+                ],
+                "usage": {"input_tokens": 120, "output_tokens": 40, "total_tokens": 160}
+            }
+        });
+
+        let (chunks, trailer) = run_chat(&[
+            created,
+            reasoning_added,
+            reasoning_done,
+            commentary_added.clone(),
+            commentary_part_added,
+            commentary_delta.clone(),
+            commentary_text_done,
+            commentary_part_done,
+            commentary_done.clone(),
+            tool_added,
+            tool_args_1,
+            tool_args_2,
+            tool_args_done,
+            tool_done,
+            completed.clone(),
+        ])
+        .expect("commentary followed by a tool call is a complete turn");
+
+        // Commentary is not the answer, so it is not emitted as content.
+        let content: String = chunks
+            .iter()
+            .filter_map(|chunk| {
+                chunk
+                    .pointer("/choices/0/delta/content")
+                    .and_then(Value::as_str)
+            })
+            .collect();
+        assert_eq!(content, "");
+
+        // The tool call is preserved with a Chat Completions tool index.
+        let tool_calls: Vec<&Value> = chunks
+            .iter()
+            .filter_map(|chunk| chunk.pointer("/choices/0/delta/tool_calls/0"))
+            .collect();
+        assert!(
+            !tool_calls.is_empty(),
+            "missing tool call chunks: {chunks:?}"
+        );
+        assert_eq!(tool_calls[0]["index"], json!(0));
+        assert_eq!(tool_calls[0]["id"], json!("call_sql"));
+        assert_eq!(tool_calls[0]["function"]["name"], json!("sql_query"));
+        let streamed_arguments: String = tool_calls
+            .iter()
+            .filter_map(|tool_call| {
+                tool_call
+                    .pointer("/function/arguments")
+                    .and_then(Value::as_str)
+            })
+            .collect();
+        assert_eq!(streamed_arguments, arguments);
+
+        // The turn ends with a terminal finish chunk, usage, and the [DONE] marker.
+        let terminal = chunks.last().expect("terminal chunk");
+        assert!(
+            terminal
+                .pointer("/choices/0/finish_reason")
+                .and_then(Value::as_str)
+                .is_some(),
+            "terminal chunk has no finish_reason: {terminal}"
+        );
+        assert_eq!(terminal["usage"]["total_tokens"], json!(160));
+        assert_eq!(
+            trailer.last().map(Bytes::as_ref),
+            Some(b"data: [DONE]\n\n".as_slice())
+        );
+
+        // Custom tool calls are tool-call turns too.
+        let custom_added = json!({
+            "type": "response.output_item.added", "output_index": 1,
+            "item": {
+                "id": "ctc_1", "type": "custom_tool_call", "status": "in_progress",
+                "call_id": "call_note", "name": "write_release_note", "input": ""
+            }
+        });
+        let custom_input = json!({
+            "type": "response.custom_tool_call_input.delta", "output_index": 1, "item_id": "ctc_1",
+            "sequence_number": 7, "delta": "Streaming fix shipped."
+        });
+        let (chunks, _) = run_chat(&[
+            commentary_added.clone(),
+            commentary_delta.clone(),
+            commentary_done.clone(),
+            custom_added,
+            custom_input,
+            completed.clone(),
+        ])
+        .expect("commentary followed by a custom tool call is a complete turn");
+        assert!(chunks
+            .iter()
+            .any(|chunk| chunk.pointer("/choices/0/delta/tool_calls/0/id")
+                == Some(&json!("call_note"))));
+        assert!(chunks
+            .last()
+            .and_then(|chunk| chunk.pointer("/choices/0/finish_reason"))
+            .and_then(Value::as_str)
+            .is_some());
+
+        // Without any tool call, a commentary-only turn still has no answer to emit.
+        let error = run_chat(&[
+            commentary_added,
+            commentary_delta,
+            commentary_done,
+            completed,
+        ])
+        .unwrap_err();
+        assert!(
+            matches!(error, TransformError::ToUniversalFailed(ref message) if message.contains("no final answer"))
         );
     }
 
