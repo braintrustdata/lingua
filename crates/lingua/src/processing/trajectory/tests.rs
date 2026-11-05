@@ -2731,6 +2731,22 @@ fn voice_failed_final_speech_is_work() {
 }
 
 #[test]
+fn voice_recordings_keep_and_report_unknown_segment_states() {
+    let mut sources = voice_sources();
+    sources[0].other["metadata"]["audio.segments"] =
+        json::json!({ "part-0": { "state": "failed", "start_offset_ms": 0 } });
+    let result = load_voice(&sources, &sources).unwrap();
+    assert_eq!(
+        result[0]["recordings"][0]["segments"][0]["state"],
+        "unknown"
+    );
+    assert!(result[0]["metadata"]["import_failures"][0]["message"]
+        .as_str()
+        .unwrap()
+        .contains("Audio segment part-0 has an unknown state"));
+}
+
+#[test]
 fn voice_payloads_must_match_their_root_headers() {
     let mut sources = voice_sources();
     // A wrong-typed schema version fails its root instead of building it as chat.

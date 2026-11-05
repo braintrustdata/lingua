@@ -356,6 +356,9 @@ pub(super) fn recording(span: &PreparedSpan) -> (Option<Recording>, Vec<String>)
         }
         channels.sort_by_key(|channel| channel.index);
         let state = entry.state;
+        if state == SegmentState::Unknown {
+            errors.push(format!("Audio segment {id} has an unknown state"));
+        }
         if state == SegmentState::Ready && entry.attachment.is_none() {
             errors.push(format!("Ready audio segment {id} has no attachment"));
         }
