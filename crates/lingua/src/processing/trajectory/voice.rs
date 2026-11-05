@@ -115,7 +115,8 @@ pub(super) fn work_step(span: &PreparedSpan, kind: StepKind) -> Result<WorkStep>
         Work::ToolResult(Box::new(ToolResult {
             input,
             output,
-            content: None,
+            // Empty, not missing: speech steps are complete, so the app shouldn't wait for content.
+            content: Some(Vec::new()),
         }))
     };
     let work = match kind {
