@@ -219,14 +219,6 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
             output,
             content,
         })
-    } else if source.span_attributes.kind.as_deref() == Some("task") {
-        // Task spans keep what they observed. Import doesn't know voice span names, so
-        // the trajectory builder decides which of them become work steps.
-        Some(ToolResult {
-            input: span.input.clone(),
-            output: span.output.clone(),
-            content: None,
-        })
     } else {
         None
     };

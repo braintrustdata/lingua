@@ -240,7 +240,7 @@ fn classify_headers(spans: &[PreparedSpan], owners: &HashMap<usize, Ownership>) 
     roles
 }
 
-fn work_step(span: &PreparedSpan, role: Role) -> Result<WorkStep> {
+pub(super) fn work_step(span: &PreparedSpan, role: Role) -> Result<WorkStep> {
     let work = match role {
         Role::Tool => {
             Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
@@ -250,7 +250,11 @@ fn work_step(span: &PreparedSpan, role: Role) -> Result<WorkStep> {
         Role::Analysis => Work::LLMAnalysis(Box::new(span.analysis())),
         _ => Work::AgentResponse(Box::new(span.response())),
     };
-    Ok(WorkStep {
+    Ok(step(span, work))
+}
+
+pub(super) fn step(span: &PreparedSpan, work: Work) -> WorkStep {
+    WorkStep {
         id: span.id.clone(),
         span_type: span.kind().to_string(),
         name: span.source.name.clone(),
@@ -259,7 +263,7 @@ fn work_step(span: &PreparedSpan, role: Role) -> Result<WorkStep> {
         end_time: span.source.end,
         work,
         sub_agent: None,
-    })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -487,9 +491,7 @@ impl TrajectoryStream {
     ) -> Result<Self> {
         let mut failures = failures;
         let mut spans = Vec::with_capacity(headers.len());
-        for mut header in headers {
-            // A header's raw result is empty; its pushed payload brings the real one.
-            header.tool_result = None;
+        for header in headers {
             let context = header.header.clone();
             match PreparedSpan::new(header) {
                 Ok(span) => spans.push(span),
@@ -697,11 +699,6 @@ impl TrajectoryStream {
         let index = self.pending_index(&span)?;
         span.group_root_span_id
             .clone_from(&self.spans[index].group_root_span_id);
-        if !matches!(self.roles[index], Role::Tool | Role::Voice) {
-            // Import keeps every task span's raw payload, and only tool and voice steps
-            // read it.
-            span.tool_result = None;
-        }
         self.spans[index] = span;
         self.ready[index] = true;
         if !self.task_resolved[index] {
@@ -1363,15 +1360,17 @@ impl TrajectoryStream {
         }
         match role {
             voice::VoiceRole::Request | voice::VoiceRole::Reply => {}
-            voice::VoiceRole::Work { role, position } if loaded => match work_step(span, role) {
-                Ok(step) => events.push(TrajectoryEvent::Work {
-                    scope: scope.clone(),
-                    id: id.clone(),
-                    position,
-                    step,
-                }),
-                Err(message) => self.failures.push(voice::failure(span, message)),
-            },
+            voice::VoiceRole::Work { kind, position } if loaded => {
+                match voice::work_step(span, kind) {
+                    Ok(step) => events.push(TrajectoryEvent::Work {
+                        scope: scope.clone(),
+                        id: id.clone(),
+                        position,
+                        step,
+                    }),
+                    Err(message) => self.failures.push(voice::failure(span, message)),
+                }
+            }
             voice::VoiceRole::Work { .. } => {}
             voice::VoiceRole::Response { position } => {
                 let failed = loaded && span.source.error.is_some();
