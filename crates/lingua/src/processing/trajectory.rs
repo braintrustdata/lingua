@@ -15,7 +15,8 @@ use crate::universal::{AssistantContent, AssistantContentPart, Message};
 use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::sync::Arc;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -46,6 +47,7 @@ impl ImportFailure {
 pub struct PreparedSpan {
     id: String,
     root_span_id: String,
+    group_root_span_id: Option<Arc<str>>,
     span_id: String,
     start: DateTime<Utc>,
     source: SpanContext,
@@ -138,6 +140,7 @@ impl PreparedSpan {
         Ok(Self {
             id,
             root_span_id,
+            group_root_span_id: None,
             span_id,
             start,
             source,
@@ -163,6 +166,12 @@ impl PreparedSpan {
         self.usage = None;
         self.tool_result = None;
         self.source.error = None;
+    }
+
+    fn trajectory_root_span_id(&self) -> &str {
+        self.group_root_span_id
+            .as_deref()
+            .unwrap_or(&self.root_span_id)
     }
 
     fn current_input(&self, initial_request: bool) -> impl Iterator<Item = &RequestMessage> {
