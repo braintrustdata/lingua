@@ -2,11 +2,11 @@
 import type { Channel } from "./Channel";
 import type { SegmentState } from "./SegmentState";
 
-export type RecordingSegment = { id: string, state: SegmentState, start_offset_ms: number, duration_ms?: number, 
+export type RecordingSegment = { id: string, 
 /**
  * JSON pointer into the session row; set when ready.
  */
-attachment_ref?: string, mime_type?: string, channels: Array<Channel>, 
+attachment_ref?: string, channels: Array<Channel>, state: SegmentState, start_offset_ms: number, duration_ms?: number, mime_type?: string, 
 /**
  * Set when omitted.
  */

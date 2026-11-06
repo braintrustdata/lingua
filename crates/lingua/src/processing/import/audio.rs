@@ -4,7 +4,7 @@
 
 use super::span::metadata_field;
 use crate::serde_json as json;
-use crate::universal::trajectory::SegmentState;
+use crate::universal::trajectory::SegmentInfo;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -43,14 +43,11 @@ pub struct AudioSourceEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SegmentEntry {
-    pub state: SegmentState,
-    pub start_offset_ms: u64,
-    pub duration_ms: Option<u64>,
+    #[serde(flatten)]
+    pub info: SegmentInfo,
     pub attachment: Option<AttachmentEntry>,
-    pub mime_type: Option<String>,
     #[serde(default)]
     pub channels: BTreeMap<String, ChannelEntry>,
-    pub reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
