@@ -399,27 +399,24 @@ pub(super) fn recording(span: &PreparedSpan) -> (Option<Recording>, Vec<String>)
             });
         }
         channels.sort_by_key(|channel| channel.index);
-        let state = entry.state;
-        if let SegmentState::Unknown(value) = &state {
+        let state = &entry.info.state;
+        if let SegmentState::Unknown(value) = state {
             errors.push(format!("Audio segment {id} has an unknown state: {value}"));
         }
-        if state == SegmentState::Ready && entry.attachment.is_none() {
+        if *state == SegmentState::Ready && entry.attachment.is_none() {
             errors.push(format!("Ready audio segment {id} has no attachment"));
         }
         segments.push(RecordingSegment {
             id,
-            state,
-            start_offset_ms: entry.start_offset_ms,
-            duration_ms: entry.duration_ms,
+            info: entry.info,
             attachment_ref: entry.attachment.map(|attachment| attachment.reference),
-            mime_type: entry.mime_type,
             channels,
-            reason: entry.reason,
         });
     }
     segments.sort_by(|a, b| {
-        a.start_offset_ms
-            .cmp(&b.start_offset_ms)
+        a.info
+            .start_offset_ms
+            .cmp(&b.info.start_offset_ms)
             .then(a.id.cmp(&b.id))
     });
     let recording = origin.map(|origin| Recording {
