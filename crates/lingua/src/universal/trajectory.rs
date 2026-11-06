@@ -53,17 +53,25 @@ pub struct AudioSource {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct RecordingSegment {
     pub id: String,
+    #[serde(flatten)]
+    pub info: SegmentInfo,
+    /// JSON pointer into the session row; set when ready.
+    #[ts(optional)]
+    pub attachment_ref: Option<String>,
+    pub channels: Vec<Channel>,
+}
+
+/// The segment fields that trace metadata and the trajectory share as-is.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct SegmentInfo {
     pub state: SegmentState,
     #[ts(type = "number")]
     pub start_offset_ms: u64,
     #[ts(optional, type = "number")]
     pub duration_ms: Option<u64>,
-    /// JSON pointer into the session row; set when ready.
-    #[ts(optional)]
-    pub attachment_ref: Option<String>,
     #[ts(optional)]
     pub mime_type: Option<String>,
-    pub channels: Vec<Channel>,
     /// Set when omitted.
     #[ts(optional)]
     pub reason: Option<String>,
