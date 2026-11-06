@@ -168,6 +168,16 @@ impl FromIterator<(String, String)> for ClientHeaders {
     }
 }
 
+/// Ensures the endpoint path ends with `/` so `Url::join` appends to the
+/// configured base path (for example `/v1`) instead of replacing its last
+/// segment.
+pub(crate) fn ensure_trailing_slash(url: &mut reqwest::Url) {
+    if !url.path().ends_with('/') {
+        let path = format!("{}/", url.path());
+        url.set_path(&path);
+    }
+}
+
 pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
     let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
         return payload;
