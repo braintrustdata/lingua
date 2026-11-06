@@ -20,10 +20,79 @@ pub struct Trajectory {
     #[ts(optional)]
     pub findings: Option<Vec<Finding>>,
     pub turns: Vec<Turn>,
+    /// One per voice session span.
+    #[ts(optional)]
+    pub recordings: Option<Vec<Recording>>,
     #[ts(type = "Record<string, unknown>")]
     pub metadata: Map<String, Value>,
     #[ts(optional)]
     pub version: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct Recording {
+    /// The voice session span id; `attachment_ref`s point into its row.
+    pub id: String,
+    /// Time zero for segment offsets.
+    pub origin: DateTime<Utc>,
+    pub sources: Vec<AudioSource>,
+    /// Sorted by `start_offset_ms`.
+    pub segments: Vec<RecordingSegment>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct AudioSource {
+    pub id: String,
+    #[ts(optional)]
+    pub label: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct RecordingSegment {
+    pub id: String,
+    #[serde(flatten)]
+    pub info: SegmentInfo,
+    /// JSON pointer into the session row; set when ready.
+    #[ts(optional)]
+    pub attachment_ref: Option<String>,
+    pub channels: Vec<Channel>,
+}
+
+/// The segment fields that trace metadata and the trajectory share as-is.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct SegmentInfo {
+    pub state: SegmentState,
+    #[ts(type = "number")]
+    pub start_offset_ms: u64,
+    #[ts(optional, type = "number")]
+    pub duration_ms: Option<u64>,
+    #[ts(optional)]
+    pub mime_type: Option<String>,
+    /// Set when omitted.
+    #[ts(optional)]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum SegmentState {
+    Ready,
+    Pending,
+    Omitted,
+    /// A state this version doesn't recognize, kept as sent.
+    #[serde(untagged)]
+    Unknown(String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct Channel {
+    pub index: u32,
+    /// `AudioSource` ids mixed into this channel.
+    pub sources: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
