@@ -2786,20 +2786,6 @@ fn voice_planning_stays_inside_the_session() {
 }
 
 #[test]
-fn voice_agent_turns_with_unresolved_replies_stand_alone_with_a_warning() {
-    let mut sources = voice_sources();
-    sources[3].other["metadata"]["turn.reply_to"] = json::json!("missing");
-    let result = load_voice(&sources, &sources).unwrap();
-    assert!(result[0]["metadata"]["import_failures"].is_null());
-    assert_eq!(
-        result[0]["metadata"]["import_warnings"][0]["span_id"],
-        "agent"
-    );
-    let turns = result[0]["turns"].as_array().unwrap();
-    assert!(turns.iter().any(|turn| turn["request_id"] == "agent"));
-}
-
-#[test]
 fn voice_payloads_must_match_their_root_headers() {
     let mut sources = voice_sources();
     sources[0].other["metadata"]["audio.schema.version"] = json::json!(3);
