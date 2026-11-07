@@ -19,7 +19,7 @@ pub enum AuthType {
     Custom,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AuthConfig {
     ApiKey {
@@ -48,6 +48,21 @@ pub enum AuthConfig {
     Custom {
         headers: HashMap<String, String>,
     },
+}
+
+impl std::fmt::Debug for AuthConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AuthConfig")
+            .field("auth_type", &self.auth_type())
+            .finish_non_exhaustive()
+    }
+}
+
+fn credential_header_value(value: &str) -> Result<HeaderValue> {
+    let mut value = HeaderValue::from_str(value)
+        .map_err(|_| Error::Auth("invalid authentication header value".to_string()))?;
+    value.set_sensitive(true);
+    Ok(value)
 }
 
 /// Convenience function to create an API key authentication configuration.
@@ -90,8 +105,7 @@ impl AuthConfig {
                     header_name.parse::<HeaderName>().map_err(|e| {
                         Error::Auth(format!("invalid header name '{header_name}': {e}"))
                     })?,
-                    HeaderValue::from_str(&value)
-                        .map_err(|e| Error::Auth(format!("invalid header value: {e}")))?,
+                    credential_header_value(&value)?,
                 );
                 Ok(())
             }
@@ -101,20 +115,12 @@ impl AuthConfig {
             } => {
                 let prefix = token_type.as_deref().unwrap_or("Bearer");
                 let value = format!("{prefix} {access_token}");
-                headers.insert(
-                    AUTHORIZATION,
-                    HeaderValue::from_str(&value)
-                        .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
-                );
+                headers.insert(AUTHORIZATION, credential_header_value(&value)?);
                 Ok(())
             }
             AuthConfig::AzureEntra { bearer_token } => {
                 let value = format!("Bearer {bearer_token}");
-                headers.insert(
-                    AUTHORIZATION,
-                    HeaderValue::from_str(&value)
-                        .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
-                );
+                headers.insert(AUTHORIZATION, credential_header_value(&value)?);
                 Ok(())
             }
             AuthConfig::Custom { headers: custom } => {
@@ -122,11 +128,7 @@ impl AuthConfig {
                     let name = key
                         .parse::<HeaderName>()
                         .map_err(|e| Error::Auth(format!("invalid header name '{key}' : {e}")))?;
-                    headers.insert(
-                        name,
-                        HeaderValue::from_str(value)
-                            .map_err(|e| Error::Auth(format!("invalid header value: {e}")))?,
-                    );
+                    headers.insert(name, credential_header_value(value)?);
                 }
                 Ok(())
             }
@@ -175,5 +177,43 @@ impl AuthConfig {
             )),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn api_key_headers_preserve_bytes_and_redact_debug() {
+        let key = "credential+/=&<>\"'";
+        for prefix in [None, Some("Token")] {
+            let auth = AuthConfig::ApiKey {
+                key: key.into(),
+                header: Some("apikey".into()),
+                prefix: prefix.map(str::to_string),
+            };
+            assert!(!format!("{auth:?}").contains(key));
+            let mut headers = HeaderMap::new();
+            auth.apply_headers(&mut headers).unwrap();
+            let expected = prefix.map(|prefix| format!("{prefix} {key}"));
+            assert_eq!(
+                headers["apikey"].to_str().unwrap(),
+                expected.as_deref().unwrap_or(key)
+            );
+            assert!(headers["apikey"].is_sensitive());
+            assert!(!format!("{headers:?}").contains(key));
+        }
+    }
+
+    #[test]
+    fn custom_auth_debug_redacts_header_values() {
+        let auth = AuthConfig::Custom {
+            headers: HashMap::from([("apikey".into(), "private-key".into())]),
+        };
+        assert!(!format!("{auth:?}").contains("private-key"));
+        let mut headers = HeaderMap::new();
+        auth.apply_headers(&mut headers).unwrap();
+        assert!(headers["apikey"].is_sensitive());
     }
 }
