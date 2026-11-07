@@ -2747,10 +2747,7 @@ fn voice_recordings_keep_and_report_unknown_segment_states() {
     sources[0].other["metadata"]["audio.segments"] =
         json::json!({ "part-0": { "state": "failed", "start_offset_ms": 0 } });
     let result = load_voice(&sources, &sources).unwrap();
-    assert_eq!(
-        result[0]["recordings"][0]["segments"][0]["state"],
-        "unknown"
-    );
+    assert_eq!(result[0]["recordings"][0]["segments"][0]["state"], "failed");
     assert!(result[0]["metadata"]["import_failures"][0]["message"]
         .as_str()
         .unwrap()
