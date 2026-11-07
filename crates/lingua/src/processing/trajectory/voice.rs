@@ -33,6 +33,7 @@ pub(super) struct VoicePlan {
     pub(super) ignored: HashSet<usize>,
     pub(super) interrupted: HashSet<usize>,
     pub(super) failures: Vec<ImportFailure>,
+    pub(super) warnings: HashMap<usize, String>,
 }
 
 impl VoicePlan {
@@ -253,12 +254,10 @@ pub(super) fn plan(
             (Some(SpanKind::AgentTurn), Some(reply_to)) => match resolve(turn, reply_to) {
                 Some(user_turn) if kinds[user_turn] == Some(SpanKind::UserTurn) => user_turn,
                 _ => {
-                    if index == turn {
-                        plan.failures.push(failure(
-                            &spans[turn],
-                            format!("Unresolved turn.reply_to {reply_to}"),
-                        ));
-                    }
+                    plan.warnings.insert(
+                        turn,
+                        format!("turn.reply_to {reply_to} is not a user turn in this trace"),
+                    );
                     turn
                 }
             },

@@ -1306,6 +1306,9 @@ impl TrajectoryStream {
         let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
         let scope = self.scope(&key);
         let loaded = !self.voice_failed.contains(&index);
+        if let Some(warning) = self.voice.warnings.remove(&index) {
+            self.spans[index].warnings.push(warning);
+        }
         let span = &self.spans[index];
         if loaded && !span.voice.errors.is_empty() {
             self.failures
