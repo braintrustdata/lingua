@@ -1290,11 +1290,7 @@ impl TrajectoryStream {
         }
         if self.voice.sessions.contains(&index) {
             if loaded {
-                let (recording, errors) = voice::recording(span);
-                if !errors.is_empty() {
-                    self.failures.push(voice::failure(span, errors.join("; ")));
-                }
-                if let Some(recording) = recording {
+                if let Some(recording) = self.spans[index].voice.recording.take() {
                     events.push(TrajectoryEvent::Recording { scope, recording });
                 }
             }

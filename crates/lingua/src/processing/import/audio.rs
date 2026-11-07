@@ -4,7 +4,10 @@
 
 use super::span::metadata_field;
 use crate::serde_json as json;
-use crate::universal::trajectory::SegmentState;
+use crate::universal::trajectory::{
+    AudioSource, Channel, Recording, RecordingSegment, SegmentState,
+};
+use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -24,44 +27,37 @@ pub struct VoiceContext {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct VoicePayload {
-    pub session: Option<SessionAudio>,
+    pub recording: Option<Recording>,
     #[serde(default)]
     pub errors: Vec<String>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct SessionAudio {
-    pub origin_unix_ms: Option<f64>,
-    pub sources: BTreeMap<String, AudioSourceEntry>,
-    pub segments: BTreeMap<String, SegmentEntry>,
+#[derive(Deserialize)]
+struct AudioSourceEntry {
+    label: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AudioSourceEntry {
-    pub label: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SegmentEntry {
-    pub state: SegmentState,
-    pub start_offset_ms: u64,
-    pub duration_ms: Option<u64>,
-    pub attachment: Option<AttachmentEntry>,
-    pub mime_type: Option<String>,
+#[derive(Deserialize)]
+struct SegmentEntry {
+    state: SegmentState,
+    start_offset_ms: u64,
+    duration_ms: Option<u64>,
+    attachment: Option<AttachmentEntry>,
+    mime_type: Option<String>,
     #[serde(default)]
-    pub channels: BTreeMap<String, ChannelEntry>,
-    pub reason: Option<String>,
+    channels: BTreeMap<String, ChannelEntry>,
+    reason: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttachmentEntry {
+#[derive(Deserialize)]
+struct AttachmentEntry {
     #[serde(rename = "ref")]
-    pub reference: String,
+    reference: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelEntry {
-    pub sources: Vec<String>,
+#[derive(Deserialize)]
+struct ChannelEntry {
+    sources: Vec<String>,
 }
 
 #[derive(Default, Deserialize)]
@@ -87,7 +83,10 @@ struct Timeline {
     origin_unix_ms: f64,
 }
 
-pub(super) fn parse(metadata: Option<&json::Value>) -> (VoiceContext, VoicePayload) {
+pub(super) fn parse(
+    span_id: Option<&str>,
+    metadata: Option<&json::Value>,
+) -> (VoiceContext, VoicePayload) {
     let mut header_errors = Vec::new();
     let mut errors = Vec::new();
     let metadata = match metadata.map(Metadata::deserialize).transpose() {
@@ -111,20 +110,94 @@ pub(super) fn parse(metadata: Option<&json::Value>) -> (VoiceContext, VoicePaylo
         ),
         errors: header_errors,
     };
-    let session = (metadata.timeline.is_some()
-        || metadata.sources.is_some()
-        || metadata.segments.is_some())
-    .then(|| SessionAudio {
-        origin_unix_ms: metadata_field::<Timeline>(
+    let recording = match (span_id, &header.schema_version) {
+        (Some(span_id), Some(_)) => recording(
+            span_id,
             metadata.timeline,
-            "audio.timeline",
+            metadata.sources,
+            metadata.segments,
             &mut errors,
-        )
-        .map(|timeline| timeline.origin_unix_ms),
-        sources: metadata_field(metadata.sources, "audio.sources", &mut errors).unwrap_or_default(),
-        segments: metadata_field(metadata.segments, "audio.segments", &mut errors)
-            .unwrap_or_default(),
-    });
-    let payload = VoicePayload { session, errors };
+        ),
+        _ => None,
+    };
+    let payload = VoicePayload { recording, errors };
     (header, payload)
+}
+
+/// The recording a session span describes. Problems are reported without dropping the
+/// recording; only a missing origin leaves no recording.
+fn recording(
+    span_id: &str,
+    timeline: Option<json::Value>,
+    sources: Option<json::Value>,
+    segments: Option<json::Value>,
+    errors: &mut Vec<String>,
+) -> Option<Recording> {
+    let origin = metadata_field::<Timeline>(timeline, "audio.timeline", errors)
+        .map(|timeline| timeline.origin_unix_ms)
+        .filter(|ms| ms.is_finite())
+        .and_then(|ms| DateTime::from_timestamp_micros((ms * 1000.0).round() as i64));
+    if origin.is_none() {
+        errors.push("Voice session has no valid audio.timeline.origin_unix_ms".to_string());
+    }
+    let sources: BTreeMap<String, AudioSourceEntry> =
+        metadata_field(sources, "audio.sources", errors).unwrap_or_default();
+    let entries: BTreeMap<String, SegmentEntry> =
+        metadata_field(segments, "audio.segments", errors).unwrap_or_default();
+    let mut segments = Vec::new();
+    for (id, entry) in entries {
+        let mut channels = Vec::new();
+        for (index, channel) in entry.channels {
+            let Ok(index) = index.parse() else {
+                errors.push(format!(
+                    "Invalid channel index {index} in audio segment {id}"
+                ));
+                continue;
+            };
+            for source in &channel.sources {
+                if !sources.contains_key(source) {
+                    errors.push(format!("Unknown audio source {source} in segment {id}"));
+                }
+            }
+            channels.push(Channel {
+                index,
+                sources: channel.sources,
+            });
+        }
+        channels.sort_by_key(|channel| channel.index);
+        let state = entry.state;
+        if let SegmentState::Unknown(value) = &state {
+            errors.push(format!("Audio segment {id} has an unknown state: {value}"));
+        }
+        if state == SegmentState::Ready && entry.attachment.is_none() {
+            errors.push(format!("Ready audio segment {id} has no attachment"));
+        }
+        segments.push(RecordingSegment {
+            id,
+            state,
+            start_offset_ms: entry.start_offset_ms,
+            duration_ms: entry.duration_ms,
+            attachment_ref: entry.attachment.map(|attachment| attachment.reference),
+            mime_type: entry.mime_type,
+            channels,
+            reason: entry.reason,
+        });
+    }
+    segments.sort_by(|a, b| {
+        a.start_offset_ms
+            .cmp(&b.start_offset_ms)
+            .then(a.id.cmp(&b.id))
+    });
+    origin.map(|origin| Recording {
+        id: span_id.to_string(),
+        origin,
+        sources: sources
+            .into_iter()
+            .map(|(id, source)| AudioSource {
+                id,
+                label: source.label,
+            })
+            .collect(),
+        segments,
+    })
 }

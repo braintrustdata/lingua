@@ -11,7 +11,6 @@
 
 use super::stream::{self, Role};
 use super::*;
-use crate::universal::trajectory::{AudioSource, Channel, RecordingSegment, SegmentState};
 use crate::universal::{UserContent, UserContentPart};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -364,78 +363,6 @@ pub(super) fn plan(
         }
     }
     plan
-}
-
-/// The recording a session span's payload describes, and its problems. Problems are
-/// reported without dropping the recording; only a missing origin leaves no recording.
-pub(super) fn recording(span: &PreparedSpan) -> (Option<Recording>, Vec<String>) {
-    let session = span.voice.session.clone().unwrap_or_default();
-    let mut errors = Vec::new();
-    let origin = session
-        .origin_unix_ms
-        .filter(|ms| ms.is_finite())
-        .and_then(|ms| DateTime::from_timestamp_micros((ms * 1000.0).round() as i64));
-    if origin.is_none() {
-        errors.push("Voice session has no valid audio.timeline.origin_unix_ms".to_string());
-    }
-    let mut segments = Vec::new();
-    for (id, entry) in session.segments {
-        let mut channels = Vec::new();
-        for (index, channel) in entry.channels {
-            let Ok(index) = index.parse() else {
-                errors.push(format!(
-                    "Invalid channel index {index} in audio segment {id}"
-                ));
-                continue;
-            };
-            for source in &channel.sources {
-                if !session.sources.contains_key(source) {
-                    errors.push(format!("Unknown audio source {source} in segment {id}"));
-                }
-            }
-            channels.push(Channel {
-                index,
-                sources: channel.sources,
-            });
-        }
-        channels.sort_by_key(|channel| channel.index);
-        let state = entry.state;
-        if let SegmentState::Unknown(value) = &state {
-            errors.push(format!("Audio segment {id} has an unknown state: {value}"));
-        }
-        if state == SegmentState::Ready && entry.attachment.is_none() {
-            errors.push(format!("Ready audio segment {id} has no attachment"));
-        }
-        segments.push(RecordingSegment {
-            id,
-            state,
-            start_offset_ms: entry.start_offset_ms,
-            duration_ms: entry.duration_ms,
-            attachment_ref: entry.attachment.map(|attachment| attachment.reference),
-            mime_type: entry.mime_type,
-            channels,
-            reason: entry.reason,
-        });
-    }
-    segments.sort_by(|a, b| {
-        a.start_offset_ms
-            .cmp(&b.start_offset_ms)
-            .then(a.id.cmp(&b.id))
-    });
-    let recording = origin.map(|origin| Recording {
-        id: span.id.clone(),
-        origin,
-        sources: session
-            .sources
-            .into_iter()
-            .map(|(id, source)| AudioSource {
-                id,
-                label: source.label,
-            })
-            .collect(),
-        segments,
-    });
-    (recording, errors)
 }
 
 /// What a response span played, or `None` when it played nothing.
