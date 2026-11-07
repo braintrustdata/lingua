@@ -2642,7 +2642,6 @@ fn voice_sources() -> Vec<Span> {
             1,
             [json!({ "turn.id": "user" }), hello.clone(), Value::Null],
         ),
-        // Joins the user turn through its parent, and opens before the caller speaks.
         voice_span("stt", "user", "stt", 0, [Value::Null, Value::Null, hello]),
         voice_span(
             "agent",
@@ -2655,7 +2654,6 @@ fn voice_sources() -> Vec<Span> {
                 Value::Null,
             ],
         ),
-        // Cut off before anything played.
         voice_span(
             "speech",
             "agent",
@@ -2663,7 +2661,6 @@ fn voice_sources() -> Vec<Span> {
             4,
             [json!({ "turn.id": "agent" }), Value::Null, Value::Null],
         ),
-        // A trailing user turn that holds only unsupported input.
         voice_span(
             "trailing",
             "session",
@@ -2716,7 +2713,6 @@ fn voice_turns_keep_inherited_steps_unsupported_input_and_silent_speech() {
     assert_eq!(turns.len(), 2);
     assert_eq!(turns[0]["work"][0]["id"], "stt");
     assert_eq!(turns[0]["work"][0]["work"]["output"], "Hello");
-    // The turn starts at its `user_turn`, not at the earlier STT step.
     assert!(turns[0]["work"][0]["start_time"].as_str() < turns[0]["start_time"].as_str());
     assert!(turns[0]["response"].is_null());
     assert!(turns[0]["response_id"].is_null());
@@ -2782,7 +2778,6 @@ fn voice_planning_stays_inside_the_session() {
     assert!(turns.iter().any(|turn| turn["request_id"] == "user"));
     assert!(turns.iter().any(|turn| turn["response_id"] == "llm"));
 
-    // An unsupported session is ignored without taking the rest of the trace with it.
     sources[0].other["metadata"]["audio.schema.version"] = json::json!("4.0.0");
     let result = load_voice(&sources, &sources).unwrap();
     let turns = result[0]["turns"].as_array().unwrap();
@@ -2793,7 +2788,6 @@ fn voice_planning_stays_inside_the_session() {
 #[test]
 fn voice_payloads_must_match_their_root_headers() {
     let mut sources = voice_sources();
-    // A wrong-typed schema version fails its session instead of building it as chat.
     sources[0].other["metadata"]["audio.schema.version"] = json::json!(3);
     let result = load_voice(&sources, &sources).unwrap();
     assert!(result[0]["metadata"]["import_failures"][0]["message"]
@@ -2801,7 +2795,6 @@ fn voice_payloads_must_match_their_root_headers() {
         .unwrap()
         .starts_with("Invalid metadata.audio.schema.version"));
 
-    // In a voice root, a payload can't move a span to another turn.
     let mut payloads = voice_sources();
     payloads[2].other["metadata"] = json::json!({ "turn.id": "agent" });
     assert_eq!(

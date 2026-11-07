@@ -1,42 +1,21 @@
-//! Voice traces in audio trace schema v3: one `Turn` per conversational exchange.
-//!
-//! A span whose header has a 3.x `audio.schema.version` is a session, and its descendants
-//! are planned here, from headers, before any payload loads. A `user_turn` span opens a
-//! `VoiceTurn`, an `agent_turn` joins the one its `turn.reply_to` names (or opens its own),
-//! and other spans join the turn their nearest `turn.id` names, their own or an ancestor's,
-//! as chat spans inherit `turn_id`. The last agent speech is the response unless it
-//! failed; LLM calls, tools, STT, TTS, earlier speech and a failed last speech are work.
-//! STT and TTS steps hold only the text they heard or spoke.
-//! Span names are the ones the Braintrust JS SDK traces.
+//! Voice traces in audio trace schema v3: one `Turn` per exchange. A `user_turn` opens a
+//! turn, an `agent_turn` joins the one its `turn.reply_to` names, and other spans join their
+//! nearest `turn.id`. The last agent speech is the response; the rest is work.
 
-use super::stream::{self, Role};
+use super::stream::Role;
 use super::*;
-use crate::universal::trajectory::{AudioSource, Channel, RecordingSegment, SegmentState};
 use crate::universal::{UserContent, UserContentPart};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum VoiceRole {
-    /// The `user_turn`, or an `agent_turn` that answers no user turn. It holds the request.
     Request,
-    /// An `agent_turn` that answers the turn's `user_turn`.
     Reply,
-    Work {
-        kind: StepKind,
-        position: usize,
-    },
-    /// The turn's last `agent_speech`. It is work at `position` if it failed.
-    Response {
-        position: usize,
-    },
+    Work { kind: StepKind, position: usize },
+    Response { position: usize },
 }
 
-/// A planned output `Turn`, which may combine a `user_turn` and the `agent_turn` that
-/// answers it.
 pub(super) struct VoiceTurn {
-    /// The span that holds the request.
     pub(super) request: usize,
-    /// Spans the voice path loads for this turn, the request span included. A turn
-    /// without speech closes when the last of them drains.
     pub(super) span_count: usize,
     pub(super) response: Option<usize>,
     pub(super) start_time: DateTime<Utc>,
@@ -46,14 +25,12 @@ pub(super) struct VoiceTurn {
 
 #[derive(Default)]
 pub(super) struct VoicePlan {
-    /// Roots whose headers hold an audio schema version.
+    /// Traces with a span whose header holds an audio schema version.
     pub(super) roots: HashSet<String>,
     pub(super) sessions: HashSet<usize>,
     pub(super) owners: HashMap<usize, VoiceOwnership>,
     pub(super) turns: Vec<VoiceTurn>,
-    /// Spans of voice roots that the voice path doesn't load.
     pub(super) ignored: HashSet<usize>,
-    /// Spans that report the agent's speech was cut off.
     pub(super) interrupted: HashSet<usize>,
     pub(super) failures: Vec<ImportFailure>,
 }
@@ -74,11 +51,8 @@ pub(super) struct VoiceOwnership {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum StepKind {
-    /// Built as a chat span with this role would be.
     Chat(Role),
-    /// An `stt` span: a tool result whose output is the text it heard.
     Heard,
-    /// A `tts` span: a tool result whose input is the text it spoke.
     Spoken,
 }
 
@@ -91,7 +65,6 @@ enum SpanKind {
     Work(StepKind),
 }
 
-/// LLM and tool spans keep their chat role; task spans are known by their schema v3 name.
 fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
     if matches!(role, Role::Conversation | Role::Analysis | Role::Tool) {
         return Some(SpanKind::Work(StepKind::Chat(role)));
@@ -110,21 +83,27 @@ fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
     }
 }
 
-pub(super) fn work_step(span: &PreparedSpan, kind: StepKind) -> Result<WorkStep> {
-    let speech = |input, output| {
-        Work::ToolResult(Box::new(ToolResult {
+pub(super) fn speech_step(span: &PreparedSpan, kind: StepKind) -> WorkStep {
+    let (input, output) = if kind == StepKind::Heard {
+        (None, joined(span.output.iter().flat_map(user_text)))
+    } else {
+        (joined(span.output.iter().flat_map(assistant_text)), None)
+    };
+    WorkStep {
+        id: span.id.clone(),
+        span_type: span.kind().to_string(),
+        name: span.source.name.clone(),
+        error: span.source.error.clone(),
+        start_time: span.start,
+        end_time: span.source.end,
+        work: Work::ToolResult(Box::new(ToolResult {
             input,
             output,
             // Empty, not missing: speech steps are complete, so the app shouldn't wait for content.
             content: Some(Vec::new()),
-        }))
-    };
-    let work = match kind {
-        StepKind::Chat(role) => return stream::work_step(span, role),
-        StepKind::Heard => speech(None, joined(span.output.iter().flat_map(user_text))),
-        StepKind::Spoken => speech(joined(span.output.iter().flat_map(assistant_text)), None),
-    };
-    Ok(stream::step(span, work))
+        })),
+        sub_agent: None,
+    }
 }
 
 fn joined<'a>(texts: impl Iterator<Item = &'a str>) -> Option<json::Value> {
@@ -178,9 +157,6 @@ pub(super) fn failure(span: &PreparedSpan, message: String) -> ImportFailure {
     }
 }
 
-/// Plans every span inside a v3 voice session. Spans outside sessions or owned by tools
-/// keep the chat path; unsupported or invalid schema versions are reported and their
-/// sessions ignored.
 pub(super) fn plan(
     spans: &[PreparedSpan],
     by_span_id: &HashMap<(&str, &str), usize>,
@@ -213,7 +189,6 @@ pub(super) fn plan(
             ));
         }
     }
-    // A span's session is its nearest ancestor, or itself, with an audio schema version.
     let session_of: Vec<Option<usize>> = (0..spans.len())
         .map(|index| {
             let mut current = Some(index);
@@ -257,7 +232,6 @@ pub(super) fn plan(
         if kinds[index].is_none() {
             continue;
         }
-        // A turn span is its own turn; any other span takes its nearest `turn.id`.
         let turn = match &owners[&index].voice_turn {
             _ if is_turn(index) => Ok(index),
             None => Err("Voice span has no turn".to_string()),
@@ -293,7 +267,18 @@ pub(super) fn plan(
         groups.entry(request).or_default().push(index);
     }
     for (request, mut group) in groups {
-        group.sort_by(|a, b| spans[*a].start_order(&spans[*b]));
+        group.sort_by(|a, b| {
+            spans[*a]
+                .start
+                .cmp(&spans[*b].start)
+                .then(
+                    spans[*a]
+                        .source
+                        .exec_counter
+                        .cmp(&spans[*b].source.exec_counter),
+                )
+                .then(spans[*a].id.cmp(&spans[*b].id))
+        });
         let turn = plan.turns.len();
         let response = group
             .iter()
@@ -324,7 +309,6 @@ pub(super) fn plan(
                 _ if index == request => VoiceRole::Request,
                 Some(SpanKind::UserTurn | SpanKind::AgentTurn) => VoiceRole::Reply,
                 _ if Some(index) == response => VoiceRole::Response { position },
-                // Earlier speech is work, as an earlier chat reply is.
                 Some(SpanKind::AgentSpeech) => VoiceRole::Work {
                     kind: StepKind::Chat(Role::Conversation),
                     position,
@@ -366,79 +350,6 @@ pub(super) fn plan(
     plan
 }
 
-/// The recording a session span's payload describes, and its problems. Problems are
-/// reported without dropping the recording; only a missing origin leaves no recording.
-pub(super) fn recording(span: &PreparedSpan) -> (Option<Recording>, Vec<String>) {
-    let session = span.voice.session.clone().unwrap_or_default();
-    let mut errors = Vec::new();
-    let origin = session
-        .origin_unix_ms
-        .filter(|ms| ms.is_finite())
-        .and_then(|ms| DateTime::from_timestamp_micros((ms * 1000.0).round() as i64));
-    if origin.is_none() {
-        errors.push("Voice session has no valid audio.timeline.origin_unix_ms".to_string());
-    }
-    let mut segments = Vec::new();
-    for (id, entry) in session.segments {
-        let mut channels = Vec::new();
-        for (index, channel) in entry.channels {
-            let Ok(index) = index.parse() else {
-                errors.push(format!(
-                    "Invalid channel index {index} in audio segment {id}"
-                ));
-                continue;
-            };
-            for source in &channel.sources {
-                if !session.sources.contains_key(source) {
-                    errors.push(format!("Unknown audio source {source} in segment {id}"));
-                }
-            }
-            channels.push(Channel {
-                index,
-                sources: channel.sources,
-            });
-        }
-        channels.sort_by_key(|channel| channel.index);
-        let state = entry.state;
-        if let SegmentState::Unknown(value) = &state {
-            errors.push(format!("Audio segment {id} has an unknown state: {value}"));
-        }
-        if state == SegmentState::Ready && entry.attachment.is_none() {
-            errors.push(format!("Ready audio segment {id} has no attachment"));
-        }
-        segments.push(RecordingSegment {
-            id,
-            state,
-            start_offset_ms: entry.start_offset_ms,
-            duration_ms: entry.duration_ms,
-            attachment_ref: entry.attachment.map(|attachment| attachment.reference),
-            mime_type: entry.mime_type,
-            channels,
-            reason: entry.reason,
-        });
-    }
-    segments.sort_by(|a, b| {
-        a.start_offset_ms
-            .cmp(&b.start_offset_ms)
-            .then(a.id.cmp(&b.id))
-    });
-    let recording = origin.map(|origin| Recording {
-        id: span.id.clone(),
-        origin,
-        sources: session
-            .sources
-            .into_iter()
-            .map(|(id, source)| AudioSource {
-                id,
-                label: source.label,
-            })
-            .collect(),
-        segments,
-    });
-    (recording, errors)
-}
-
-/// What a response span played, or `None` when it played nothing.
 pub(super) fn response(span: &PreparedSpan) -> Option<AgentResponse> {
     let response = span.response();
     let silent = response.opaque_output.is_empty()
