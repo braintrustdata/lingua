@@ -20,7 +20,6 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "trajectory_role",
     "request_kind",
     "compaction",
-    // Audio trace schema v3.
     "audio.schema.version",
     "turn.id",
     "turn.reply_to",
@@ -193,7 +192,7 @@ pub fn import_span_with_options(mut span: Span, options: ImportOptions) -> Resul
         || request_kind.as_deref() == Some("reviewer");
     let compaction =
         metadata_field::<CompactionHint>(metadata.compaction, "compaction", &mut errors);
-    let (voice_header, voice) = audio::parse(source.metadata.as_ref());
+    let (voice_header, voice) = audio::parse(source.header.id.as_deref(), source.metadata.as_ref());
     let start = source.metrics.start.and_then(timestamp).or(source.created);
     let end = source
         .metrics
