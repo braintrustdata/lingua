@@ -1,13 +1,6 @@
-//! Voice traces in audio trace schema v3: one `Turn` per conversational exchange.
-//!
-//! A span whose header has a 3.x `audio.schema.version` is a session, and its descendants
-//! are planned here, from headers, before any payload loads. A `user_turn` span opens a
-//! `VoiceTurn`, an `agent_turn` joins the one its `turn.reply_to` names (or opens its own),
-//! and other spans join the turn their nearest `turn.id` names, their own or an ancestor's,
-//! as chat spans inherit `turn_id`. The last agent speech is the response unless it
-//! failed; LLM calls, tools, STT, TTS, earlier speech and a failed last speech are work.
-//! STT and TTS steps hold only the text they heard or spoke.
-//! Span names are the ones the Braintrust JS SDK traces.
+//! Voice traces in audio trace schema v3: one `Turn` per exchange. A `user_turn` opens a
+//! turn, an `agent_turn` joins the one its `turn.reply_to` names, and other spans join their
+//! nearest `turn.id`. The last agent speech is the response; the rest is work.
 
 use super::stream::Role;
 use super::*;
@@ -15,27 +8,14 @@ use crate::universal::{UserContent, UserContentPart};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum VoiceRole {
-    /// The `user_turn`, or an `agent_turn` that answers no user turn. It holds the request.
     Request,
-    /// An `agent_turn` that answers the turn's `user_turn`.
     Reply,
-    Work {
-        kind: StepKind,
-        position: usize,
-    },
-    /// The turn's last `agent_speech`. It is work at `position` if it failed.
-    Response {
-        position: usize,
-    },
+    Work { kind: StepKind, position: usize },
+    Response { position: usize },
 }
 
-/// A planned output `Turn`, which may combine a `user_turn` and the `agent_turn` that
-/// answers it.
 pub(super) struct VoiceTurn {
-    /// The span that holds the request.
     pub(super) request: usize,
-    /// Spans the voice path loads for this turn, the request span included. A turn
-    /// without speech closes when the last of them drains.
     pub(super) span_count: usize,
     pub(super) response: Option<usize>,
     pub(super) start_time: DateTime<Utc>,
@@ -50,9 +30,7 @@ pub(super) struct VoicePlan {
     pub(super) sessions: HashSet<usize>,
     pub(super) owners: HashMap<usize, VoiceOwnership>,
     pub(super) turns: Vec<VoiceTurn>,
-    /// Spans of voice traces that the voice path doesn't load.
     pub(super) ignored: HashSet<usize>,
-    /// Spans that report the agent's speech was cut off.
     pub(super) interrupted: HashSet<usize>,
     pub(super) failures: Vec<ImportFailure>,
 }
@@ -73,11 +51,8 @@ pub(super) struct VoiceOwnership {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum StepKind {
-    /// Built as a chat span with this role would be.
     Chat(Role),
-    /// An `stt` span: a tool result whose output is the text it heard.
     Heard,
-    /// A `tts` span: a tool result whose input is the text it spoke.
     Spoken,
 }
 
@@ -90,7 +65,6 @@ enum SpanKind {
     Work(StepKind),
 }
 
-/// LLM and tool spans keep their chat role; task spans are known by their schema v3 name.
 fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
     if matches!(role, Role::Conversation | Role::Analysis | Role::Tool) {
         return Some(SpanKind::Work(StepKind::Chat(role)));
@@ -183,9 +157,6 @@ pub(super) fn failure(span: &PreparedSpan, message: String) -> ImportFailure {
     }
 }
 
-/// Plans every span inside a v3 voice session. Spans outside sessions or owned by tools
-/// keep the chat path; unsupported or invalid schema versions are reported and their
-/// sessions ignored.
 pub(super) fn plan(
     spans: &[PreparedSpan],
     by_span_id: &HashMap<(&str, &str), usize>,
@@ -218,7 +189,6 @@ pub(super) fn plan(
             ));
         }
     }
-    // A span's session is its nearest ancestor, or itself, with an audio schema version.
     let session_of: Vec<Option<usize>> = (0..spans.len())
         .map(|index| {
             let mut current = Some(index);
@@ -262,7 +232,6 @@ pub(super) fn plan(
         if kinds[index].is_none() {
             continue;
         }
-        // A turn span is its own turn; any other span takes its nearest `turn.id`.
         let turn = match &owners[&index].voice_turn {
             _ if is_turn(index) => Ok(index),
             None => Err("Voice span has no turn".to_string()),
@@ -340,7 +309,6 @@ pub(super) fn plan(
                 _ if index == request => VoiceRole::Request,
                 Some(SpanKind::UserTurn | SpanKind::AgentTurn) => VoiceRole::Reply,
                 _ if Some(index) == response => VoiceRole::Response { position },
-                // Earlier speech is work, as an earlier chat reply is.
                 Some(SpanKind::AgentSpeech) => VoiceRole::Work {
                     kind: StepKind::Chat(Role::Conversation),
                     position,
@@ -382,7 +350,6 @@ pub(super) fn plan(
     plan
 }
 
-/// What a response span played, or `None` when it played nothing.
 pub(super) fn response(span: &PreparedSpan) -> Option<AgentResponse> {
     let response = span.response();
     let silent = response.opaque_output.is_empty()

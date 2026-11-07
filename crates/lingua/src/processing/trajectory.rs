@@ -286,7 +286,6 @@ fn message_keys(messages: &[Message]) -> Vec<u64> {
 #[derive(Clone, Default)]
 struct Ownership {
     turn: Option<String>,
-    /// The nearest `turn.id`, as `turn` is the nearest chat turn id.
     voice_turn: Option<String>,
     tool: Option<usize>,
     compaction: Option<usize>,

@@ -13,13 +13,9 @@ use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct VoiceContext {
-    /// Kept even when invalid, because any version marks the span as a voice session.
     pub schema_version: Option<Result<String, String>>,
-    /// Span id.
     pub turn_id: Option<String>,
-    /// Span id.
     pub reply_to: Option<String>,
-    /// Whether the agent's speech was cut off, from `contrib.livekit.interrupted`.
     pub interrupted: Option<bool>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
@@ -124,8 +120,6 @@ pub(super) fn parse(
     (header, payload)
 }
 
-/// The recording a session span describes. Problems are reported without dropping the
-/// recording; only a missing origin leaves no recording.
 fn recording(
     span_id: &str,
     timeline: Option<json::Value>,

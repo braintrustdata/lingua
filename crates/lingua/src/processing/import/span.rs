@@ -20,7 +20,6 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "trajectory_role",
     "request_kind",
     "compaction",
-    // Audio trace schema v3.
     "audio.schema.version",
     "turn.id",
     "turn.reply_to",

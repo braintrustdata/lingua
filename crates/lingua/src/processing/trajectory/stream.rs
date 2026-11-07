@@ -72,7 +72,6 @@ pub enum TrajectoryEvent {
     Done,
 }
 
-/// How far a planned voice turn has streamed.
 #[derive(Debug, Clone, Copy)]
 struct VoiceTurnState {
     started: bool,
@@ -1340,7 +1339,6 @@ impl TrajectoryStream {
                 && request.is_empty()
                 && opaque_request.is_empty()
             {
-                // An empty user turn that nothing answers, such as a trailing one.
                 self.spans[index].release_payload();
                 return Ok(());
             }
