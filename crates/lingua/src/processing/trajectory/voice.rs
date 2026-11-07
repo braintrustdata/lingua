@@ -9,7 +9,7 @@
 //! STT and TTS steps hold only the text they heard or spoke.
 //! Span names are the ones the Braintrust JS SDK traces.
 
-use super::stream::{self, Role};
+use super::stream::Role;
 use super::*;
 use crate::universal::{UserContent, UserContentPart};
 
@@ -45,12 +45,12 @@ pub(super) struct VoiceTurn {
 
 #[derive(Default)]
 pub(super) struct VoicePlan {
-    /// Roots whose headers hold an audio schema version.
+    /// Traces with a span whose header holds an audio schema version.
     pub(super) roots: HashSet<String>,
     pub(super) sessions: HashSet<usize>,
     pub(super) owners: HashMap<usize, VoiceOwnership>,
     pub(super) turns: Vec<VoiceTurn>,
-    /// Spans of voice roots that the voice path doesn't load.
+    /// Spans of voice traces that the voice path doesn't load.
     pub(super) ignored: HashSet<usize>,
     /// Spans that report the agent's speech was cut off.
     pub(super) interrupted: HashSet<usize>,
@@ -109,21 +109,27 @@ fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
     }
 }
 
-pub(super) fn work_step(span: &PreparedSpan, kind: StepKind) -> Result<WorkStep> {
-    let speech = |input, output| {
-        Work::ToolResult(Box::new(ToolResult {
+pub(super) fn speech_step(span: &PreparedSpan, kind: StepKind) -> WorkStep {
+    let (input, output) = if kind == StepKind::Heard {
+        (None, joined(span.output.iter().flat_map(user_text)))
+    } else {
+        (joined(span.output.iter().flat_map(assistant_text)), None)
+    };
+    WorkStep {
+        id: span.id.clone(),
+        span_type: span.kind().to_string(),
+        name: span.source.name.clone(),
+        error: span.source.error.clone(),
+        start_time: span.start,
+        end_time: span.source.end,
+        work: Work::ToolResult(Box::new(ToolResult {
             input,
             output,
             // Empty, not missing: speech steps are complete, so the app shouldn't wait for content.
             content: Some(Vec::new()),
-        }))
-    };
-    let work = match kind {
-        StepKind::Chat(role) => return stream::work_step(span, role),
-        StepKind::Heard => speech(None, joined(span.output.iter().flat_map(user_text))),
-        StepKind::Spoken => speech(joined(span.output.iter().flat_map(assistant_text)), None),
-    };
-    Ok(stream::step(span, work))
+        })),
+        sub_agent: None,
+    }
 }
 
 fn joined<'a>(texts: impl Iterator<Item = &'a str>) -> Option<json::Value> {
@@ -292,7 +298,18 @@ pub(super) fn plan(
         groups.entry(request).or_default().push(index);
     }
     for (request, mut group) in groups {
-        group.sort_by(|a, b| spans[*a].start_order(&spans[*b]));
+        group.sort_by(|a, b| {
+            spans[*a]
+                .start
+                .cmp(&spans[*b].start)
+                .then(
+                    spans[*a]
+                        .source
+                        .exec_counter
+                        .cmp(&spans[*b].source.exec_counter),
+                )
+                .then(spans[*a].id.cmp(&spans[*b].id))
+        });
         let turn = plan.turns.len();
         let response = group
             .iter()

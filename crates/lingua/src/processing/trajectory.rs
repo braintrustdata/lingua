@@ -196,13 +196,6 @@ impl PreparedSpan {
             .any(|input| matches!(input.message, Message::User { .. }) && !input.context)
     }
 
-    fn start_order(&self, other: &Self) -> std::cmp::Ordering {
-        self.start
-            .cmp(&other.start)
-            .then(self.source.exec_counter.cmp(&other.source.exec_counter))
-            .then(self.id.cmp(&other.id))
-    }
-
     fn kind(&self) -> &str {
         &self.source.kind
     }
@@ -236,24 +229,6 @@ impl PreparedSpan {
             usage: self.usage(),
             start_time: Some(self.start),
             end_time: self.source.end,
-        }
-    }
-
-    fn analysis(&self) -> LLMAnalysis {
-        LLMAnalysis {
-            work: Some(
-                self.input
-                    .iter()
-                    .map(|input| &input.message)
-                    .chain(&self.output)
-                    .cloned()
-                    .collect(),
-            ),
-            opaque_input: self.opaque_input.clone(),
-            opaque_output: self.opaque_output.clone(),
-            model: self.source.model.clone(),
-            params: None,
-            usage: self.usage(),
         }
     }
 
