@@ -28,6 +28,15 @@ pub enum GoogleThinkingStyle {
 /// First Gemini major version that uses thinkingLevel
 const FIRST_THINKING_LEVEL_MAJOR_VERSION: u32 = 3;
 
+/// Gemini 3+ models that accept thinkingLevel MINIMAL. Gemini 3.1 Pro, 3.7
+/// Flash, 3.8 Flash and Gemini 4 reject it with a 400.
+const MINIMAL_THINKING_LEVEL_PREFIXES: &[&str] = &[
+    "gemini-3-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.6-flash",
+];
+
 /// Model prefixes that use thinkingBudget (Gemini 2.5)
 const THINKING_BUDGET_PREFIXES: &[&str] = &["gemini-2.5", "gemini-2.0"];
 
@@ -35,11 +44,18 @@ const THINKING_BUDGET_PREFIXES: &[&str] = &["gemini-2.5", "gemini-2.0"];
 pub struct GoogleCapabilities {
     pub thinking_style: GoogleThinkingStyle,
     pub requires_thought_signature_for_function_call_history: bool,
+    pub supports_minimal_thinking_level: bool,
 }
 
 impl GoogleCapabilities {
     /// Detect capabilities from model name
     pub fn detect(model: Option<&str>) -> Self {
+        let supports_minimal_thinking_level = model.is_some_and(|m| {
+            let m_lower = normalize_google_model_id(m).to_ascii_lowercase();
+            MINIMAL_THINKING_LEVEL_PREFIXES
+                .iter()
+                .any(|p| m_lower.starts_with(p))
+        });
         let thinking_style = model
             .map(|m| {
                 let m_lower = normalize_google_model_id(m).to_ascii_lowercase();
@@ -65,6 +81,7 @@ impl GoogleCapabilities {
         Self {
             thinking_style,
             requires_thought_signature_for_function_call_history,
+            supports_minimal_thinking_level,
         }
     }
 }
@@ -127,10 +144,14 @@ pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
 
 /// Convert ReasoningEffort to Google ThinkingLevel enum value.
 ///
-/// Gemini 3+ cannot turn thinking off, and several models (3.1 Pro, 3.8 Flash,
-/// 4) reject MINIMAL, so none and minimal map to LOW.
-pub fn effort_to_thinking_level(effort: ReasoningEffort) -> ThinkingLevel {
+/// Gemini 3+ cannot turn thinking off, so none maps to LOW. Minimal maps to
+/// MINIMAL only on models that accept it.
+pub fn effort_to_thinking_level(
+    effort: ReasoningEffort,
+    supports_minimal_thinking_level: bool,
+) -> ThinkingLevel {
     match effort {
+        ReasoningEffort::Minimal if supports_minimal_thinking_level => ThinkingLevel::Minimal,
         ReasoningEffort::None | ReasoningEffort::Minimal | ReasoningEffort::Low => {
             ThinkingLevel::Low
         }
@@ -312,30 +333,67 @@ mod tests {
 
     #[test]
     fn test_effort_to_thinking_level() {
+        for supports_minimal in [false, true] {
+            assert_eq!(
+                effort_to_thinking_level(ReasoningEffort::Low, supports_minimal),
+                ThinkingLevel::Low
+            );
+            assert_eq!(
+                effort_to_thinking_level(ReasoningEffort::Medium, supports_minimal),
+                ThinkingLevel::Medium
+            );
+            assert_eq!(
+                effort_to_thinking_level(ReasoningEffort::High, supports_minimal),
+                ThinkingLevel::High
+            );
+            assert_eq!(
+                effort_to_thinking_level(ReasoningEffort::None, supports_minimal),
+                ThinkingLevel::Low
+            );
+            assert_eq!(
+                effort_to_thinking_level(ReasoningEffort::Xhigh, supports_minimal),
+                ThinkingLevel::High
+            );
+        }
         assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::Low),
+            effort_to_thinking_level(ReasoningEffort::Minimal, false),
             ThinkingLevel::Low
         );
         assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::Medium),
-            ThinkingLevel::Medium
+            effort_to_thinking_level(ReasoningEffort::Minimal, true),
+            ThinkingLevel::Minimal
         );
-        assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::High),
-            ThinkingLevel::High
-        );
-        assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::Minimal),
-            ThinkingLevel::Low
-        );
-        assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::None),
-            ThinkingLevel::Low
-        );
-        assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::Xhigh),
-            ThinkingLevel::High
-        );
+    }
+
+    #[test]
+    fn test_detect_minimal_thinking_level_support() {
+        for model in [
+            "gemini-3-flash-preview",
+            "gemini-3.1-flash-lite",
+            "gemini-3.1-flash-lite-preview",
+            "gemini-3.5-flash",
+            "gemini-3.5-flash-lite",
+            "publishers/google/models/gemini-3.5-flash",
+            "gemini-3.6-flash",
+        ] {
+            assert!(
+                GoogleCapabilities::detect(Some(model)).supports_minimal_thinking_level,
+                "{model}"
+            );
+        }
+        for model in [
+            "gemini-3.1-pro-preview",
+            "gemini-3.7-flash",
+            "gemini-3.8-flash",
+            "gemini-4-argon",
+            "publishers/google/models/gemini-4-argon",
+            "gemini-2.5-flash",
+        ] {
+            assert!(
+                !GoogleCapabilities::detect(Some(model)).supports_minimal_thinking_level,
+                "{model}"
+            );
+        }
     }
 
     #[test]
@@ -346,7 +404,7 @@ mod tests {
             ThinkingLevel::High,
         ] {
             let effort = thinking_level_to_effort(&level);
-            let back = effort_to_thinking_level(effort);
+            let back = effort_to_thinking_level(effort, true);
             assert_eq!(back, level);
         }
     }

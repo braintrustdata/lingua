@@ -18008,7 +18008,7 @@ exports[`chat-completions → google > reasoningEffortMinimalParam > request 1`]
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "LOW",
+      "thinkingLevel": "MINIMAL",
     },
   },
   "model": "gemini-3.5-flash",
@@ -36671,7 +36671,7 @@ exports[`responses → google > reasoningEffortMinimalParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "LOW",
+      "thinkingLevel": "MINIMAL",
     },
   },
   "model": "gemini-3.5-flash",
@@ -38379,7 +38379,7 @@ exports[`responses → google > simpleRequest > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "LOW",
+      "thinkingLevel": "MINIMAL",
     },
   },
   "model": "gemini-3.5-flash",

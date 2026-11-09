@@ -531,7 +531,12 @@ impl ProviderAdapter for GoogleAdapter {
                             }
                             _ => r
                                 .effort
-                                .map(effort_to_thinking_level)
+                                .map(|effort| {
+                                    effort_to_thinking_level(
+                                        effort,
+                                        caps.supports_minimal_thinking_level,
+                                    )
+                                })
                                 .unwrap_or(ThinkingLevel::High),
                         };
                         Some(ThinkingConfig {
@@ -1561,6 +1566,14 @@ mod tests {
                 Some(ThinkingLevel::Low),
             ),
             (
+                json!({"model": "gemini-3.5-flash", "reasoning_effort": "minimal"}),
+                Some(ThinkingLevel::Minimal),
+            ),
+            (
+                json!({"model": "publishers/google/models/gemini-3-flash-preview", "reasoning_effort": "minimal"}),
+                Some(ThinkingLevel::Minimal),
+            ),
+            (
                 json!({"model": "publishers/google/models/gemini-3.1-pro", "reasoning_effort": "minimal"}),
                 Some(ThinkingLevel::Low),
             ),
@@ -1595,6 +1608,30 @@ mod tests {
                 thinking_config.thinking_level, expected_level,
                 "{chat_request}"
             );
+        }
+    }
+
+    #[test]
+    fn test_google_roundtrip_preserves_minimal_only_where_supported() {
+        for (model, expected_level) in [
+            ("gemini-3.5-flash", ThinkingLevel::Minimal),
+            ("gemini-3.8-flash", ThinkingLevel::Low),
+        ] {
+            let universal = GoogleAdapter
+                .request_to_universal(json!({
+                    "model": model,
+                    "contents": [{"role": "user", "parts": [{"text": "hi"}]}],
+                    "generationConfig": {"thinkingConfig": {"thinkingLevel": "MINIMAL"}}
+                }))
+                .unwrap();
+            let payload = GoogleAdapter.request_from_universal(&universal).unwrap();
+            let typed: GenerateContentRequest =
+                serde_json::from_value(payload).expect("request should deserialize");
+            let level = typed
+                .generation_config
+                .and_then(|config| config.thinking_config)
+                .and_then(|config| config.thinking_level);
+            assert_eq!(level, Some(expected_level), "{model}");
         }
     }
 
