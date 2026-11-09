@@ -13,8 +13,8 @@ use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::google::capabilities::{
-    effort_to_thinking_level, supports_disabling_thinking, thinking_level_to_effort,
-    GoogleCapabilities, GoogleThinkingStyle,
+    budget_to_thinking_level, effort_to_thinking_level, supports_disabling_thinking,
+    thinking_level_to_effort, GoogleCapabilities, GoogleThinkingStyle,
 };
 use crate::providers::google::convert::{
     reject_google_provider_only_part, SYNTHETIC_CALL_ID_PREFIX,
@@ -488,6 +488,16 @@ impl ProviderAdapter for GoogleAdapter {
                             thinking_level: None,
                         });
                     }
+                    // Gemini 3+ cannot turn thinking off, so an opt-out sends the lowest level.
+                    if r.enabled == Some(false)
+                        && caps.thinking_style == GoogleThinkingStyle::ThinkingLevelBased
+                    {
+                        return Some(ThinkingConfig {
+                            include_thoughts: None,
+                            thinking_budget: None,
+                            thinking_level: Some(ThinkingLevel::Low),
+                        });
+                    }
                     return None;
                 }
 
@@ -513,10 +523,17 @@ impl ProviderAdapter for GoogleAdapter {
 
                         // Gemini 3: use thinkingLevel (effort-based) unless the source was
                         // Google's native thinkingBudget and must roundtrip unchanged.
-                        let level = r
-                            .effort
-                            .map(effort_to_thinking_level)
-                            .unwrap_or(ThinkingLevel::High);
+                        // Gemini 4 rejects thinkingBudget on Vertex, so explicit budgets map
+                        // to the level band Gemini 4 applies to them on the Gemini API.
+                        let level = match (r.canonical, r.budget_tokens) {
+                            (Some(ReasoningCanonical::BudgetTokens), Some(budget)) => {
+                                budget_to_thinking_level(budget)
+                            }
+                            _ => r
+                                .effort
+                                .map(effort_to_thinking_level)
+                                .unwrap_or(ThinkingLevel::High),
+                        };
                         Some(ThinkingConfig {
                             include_thoughts: Some(true),
                             thinking_budget: None,
@@ -1503,7 +1520,113 @@ mod tests {
 
         assert_eq!(thinking_config.thinking_budget, None);
         assert_eq!(thinking_config.include_thoughts, Some(true));
-        assert_eq!(thinking_config.thinking_level, Some(ThinkingLevel::Medium));
+        assert_eq!(thinking_config.thinking_level, Some(ThinkingLevel::Low));
+    }
+
+    fn chat_completions_to_google_thinking_config(
+        mut chat_request: Value,
+    ) -> Option<ThinkingConfig> {
+        chat_request["messages"] = json!([{"role": "user", "content": "hi"}]);
+        let universal = crate::providers::openai::adapter::OpenAIAdapter
+            .request_to_universal(chat_request)
+            .unwrap();
+        let payload = GoogleAdapter.request_from_universal(&universal).unwrap();
+        let typed: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        typed
+            .generation_config
+            .and_then(|config| config.thinking_config)
+    }
+
+    // GATE-123: Gemini 3+ must always get a thinkingLevel. Gemini 4 rejects
+    // thinkingBudget on Vertex and treats budgets <= 1024 as no thinking on the
+    // Gemini API. Mirrors the legacy proxy mapping.
+    #[test]
+    fn test_google_gemini_3_plus_chat_completions_reasoning_maps_to_thinking_level() {
+        let cases = [
+            (
+                json!({"model": "gemini-4-argon", "reasoning_effort": "high"}),
+                Some(ThinkingLevel::High),
+            ),
+            (
+                json!({"model": "gemini-4-argon", "reasoning_effort": "medium"}),
+                Some(ThinkingLevel::Medium),
+            ),
+            (
+                json!({"model": "gemini-4-argon", "reasoning_effort": "minimal"}),
+                Some(ThinkingLevel::Low),
+            ),
+            (
+                json!({"model": "gemini-3.8-flash", "reasoning_effort": "minimal"}),
+                Some(ThinkingLevel::Low),
+            ),
+            (
+                json!({"model": "publishers/google/models/gemini-3.1-pro", "reasoning_effort": "minimal"}),
+                Some(ThinkingLevel::Low),
+            ),
+            (
+                json!({"model": "gemini-4-argon", "reasoning_enabled": true, "reasoning_budget": 1024}),
+                Some(ThinkingLevel::Low),
+            ),
+            (
+                json!({"model": "gemini-4-argon", "reasoning_budget": 8000}),
+                Some(ThinkingLevel::Medium),
+            ),
+            (
+                json!({"model": "publishers/google/models/gemini-4-argon", "reasoning_budget": 24576}),
+                Some(ThinkingLevel::High),
+            ),
+            (
+                json!({"model": "gemini-4-argon", "reasoning_budget": 2000, "max_tokens": 2048}),
+                Some(ThinkingLevel::Low),
+            ),
+        ];
+
+        for (chat_request, expected_level) in cases {
+            let thinking_config = chat_completions_to_google_thinking_config(chat_request.clone())
+                .unwrap_or_else(|| panic!("thinkingConfig missing for {chat_request}"));
+            assert_eq!(thinking_config.thinking_budget, None, "{chat_request}");
+            assert_eq!(
+                thinking_config.include_thoughts,
+                Some(true),
+                "{chat_request}"
+            );
+            assert_eq!(
+                thinking_config.thinking_level, expected_level,
+                "{chat_request}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_google_gemini_3_plus_reasoning_off_emits_low_thinking_level() {
+        for chat_request in [
+            json!({"model": "gemini-4-argon", "reasoning_enabled": false}),
+            json!({"model": "publishers/google/models/gemini-4-argon", "reasoning_budget": 0}),
+            json!({"model": "gemini-3.8-flash", "reasoning_enabled": false}),
+        ] {
+            let thinking_config = chat_completions_to_google_thinking_config(chat_request.clone())
+                .unwrap_or_else(|| panic!("thinkingConfig missing for {chat_request}"));
+            assert_eq!(
+                thinking_config,
+                ThinkingConfig {
+                    include_thoughts: None,
+                    thinking_budget: None,
+                    thinking_level: Some(ThinkingLevel::Low),
+                },
+                "{chat_request}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_google_gemini_2_5_chat_completions_reasoning_still_uses_budget() {
+        let thinking_config = chat_completions_to_google_thinking_config(
+            json!({"model": "gemini-2.5-flash", "reasoning_enabled": true, "reasoning_budget": 1024}),
+        )
+        .expect("thinkingConfig should be present");
+        assert_eq!(thinking_config.thinking_budget, Some(1024));
+        assert_eq!(thinking_config.thinking_level, None);
     }
 
     #[test]

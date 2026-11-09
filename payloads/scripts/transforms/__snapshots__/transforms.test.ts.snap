@@ -2772,6 +2772,9 @@ exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > 
   "generationConfig": {
     "maxOutputTokens": 4096,
     "responseSchema": null,
+    "thinkingConfig": {
+      "thinkingLevel": "LOW",
+    },
   },
   "model": "gemini-3.5-flash",
 }
@@ -5462,6 +5465,9 @@ exports[`anthropic → google > thinkingDisabledParam > request 1`] = `
   "generationConfig": {
     "maxOutputTokens": 1024,
     "responseSchema": null,
+    "thinkingConfig": {
+      "thinkingLevel": "LOW",
+    },
   },
   "model": "gemini-3.5-flash",
 }
@@ -18002,7 +18008,7 @@ exports[`chat-completions → google > reasoningEffortMinimalParam > request 1`]
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "MINIMAL",
+      "thinkingLevel": "LOW",
     },
   },
   "model": "gemini-3.5-flash",
@@ -18057,7 +18063,7 @@ exports[`chat-completions → google > reasoningEffortNoneParam > request 1`] = 
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "THINKING_LEVEL_UNSPECIFIED",
+      "thinkingLevel": "LOW",
     },
   },
   "model": "gemini-3.5-flash",
@@ -36665,7 +36671,7 @@ exports[`responses → google > reasoningEffortMinimalParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "MINIMAL",
+      "thinkingLevel": "LOW",
     },
   },
   "model": "gemini-3.5-flash",
@@ -36749,7 +36755,7 @@ exports[`responses → google > reasoningEffortNoneParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "THINKING_LEVEL_UNSPECIFIED",
+      "thinkingLevel": "LOW",
     },
   },
   "model": "gemini-3.5-flash",
@@ -38373,7 +38379,7 @@ exports[`responses → google > simpleRequest > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "MINIMAL",
+      "thinkingLevel": "LOW",
     },
   },
   "model": "gemini-3.5-flash",

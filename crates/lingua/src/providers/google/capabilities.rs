@@ -25,8 +25,8 @@ pub enum GoogleThinkingStyle {
     None,
 }
 
-/// Model prefixes that use thinkingLevel (Gemini 3+)
-const THINKING_LEVEL_PREFIXES: &[&str] = &["gemini-3"];
+/// First Gemini major version that uses thinkingLevel
+const FIRST_THINKING_LEVEL_MAJOR_VERSION: u32 = 3;
 
 /// Model prefixes that use thinkingBudget (Gemini 2.5)
 const THINKING_BUDGET_PREFIXES: &[&str] = &["gemini-2.5", "gemini-2.0"];
@@ -43,9 +43,8 @@ impl GoogleCapabilities {
         let thinking_style = model
             .map(|m| {
                 let m_lower = normalize_google_model_id(m).to_ascii_lowercase();
-                if THINKING_LEVEL_PREFIXES
-                    .iter()
-                    .any(|p| m_lower.starts_with(p))
+                if gemini_major_version(&m_lower)
+                    .is_some_and(|major| major >= FIRST_THINKING_LEVEL_MAJOR_VERSION)
                 {
                     GoogleThinkingStyle::ThinkingLevelBased
                 } else if THINKING_BUDGET_PREFIXES
@@ -96,6 +95,26 @@ fn normalize_google_model_id(model: &str) -> &str {
         .unwrap_or(model)
 }
 
+fn gemini_major_version(model: &str) -> Option<u32> {
+    let version = model.strip_prefix("gemini-")?;
+    let digits_end = version
+        .find(|c: char| !c.is_ascii_digit())
+        .unwrap_or(version.len());
+    version[..digits_end].parse().ok()
+}
+
+/// Thinking level for an absolute token budget, using the bands Gemini 4
+/// applies to thinkingBudget on the Gemini API.
+pub fn budget_to_thinking_level(budget: i64) -> ThinkingLevel {
+    if budget < 4096 {
+        ThinkingLevel::Low
+    } else if budget < 16384 {
+        ThinkingLevel::Medium
+    } else {
+        ThinkingLevel::High
+    }
+}
+
 pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
     match level {
         ThinkingLevel::Minimal => ReasoningEffort::Minimal,
@@ -106,12 +125,15 @@ pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
     }
 }
 
-/// Convert ReasoningEffort to Google ThinkingLevel enum value
+/// Convert ReasoningEffort to Google ThinkingLevel enum value.
+///
+/// Gemini 3+ cannot turn thinking off, and several models (3.1 Pro, 3.8 Flash,
+/// 4) reject MINIMAL, so none and minimal map to LOW.
 pub fn effort_to_thinking_level(effort: ReasoningEffort) -> ThinkingLevel {
     match effort {
-        ReasoningEffort::None => ThinkingLevel::ThinkingLevelUnspecified,
-        ReasoningEffort::Minimal => ThinkingLevel::Minimal,
-        ReasoningEffort::Low => ThinkingLevel::Low,
+        ReasoningEffort::None | ReasoningEffort::Minimal | ReasoningEffort::Low => {
+            ThinkingLevel::Low
+        }
         ReasoningEffort::Medium => ThinkingLevel::Medium,
         ReasoningEffort::High => ThinkingLevel::High,
         ReasoningEffort::Xhigh | ReasoningEffort::Max => ThinkingLevel::High,
@@ -203,6 +225,51 @@ mod tests {
     }
 
     #[test]
+    fn test_detect_gemini_4_and_later_models() {
+        for model in [
+            "gemini-4-argon",
+            "publishers/google/models/gemini-4-argon",
+            "models/gemini-4-argon",
+            "Gemini-4-Argon",
+            "gemini-5-pro",
+            "gemini-10-flash",
+        ] {
+            let caps = GoogleCapabilities::detect(Some(model));
+            assert_eq!(
+                caps.thinking_style,
+                GoogleThinkingStyle::ThinkingLevelBased,
+                "{model}"
+            );
+            assert!(
+                caps.requires_thought_signature_for_function_call_history,
+                "{model}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_detect_non_versioned_gemini_models_use_budget() {
+        for model in ["gemini-pro", "gemini-embedding-001", "gemini-exp-1206"] {
+            assert_eq!(
+                GoogleCapabilities::detect(Some(model)).thinking_style,
+                GoogleThinkingStyle::ThinkingBudget,
+                "{model}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_budget_to_thinking_level() {
+        assert_eq!(budget_to_thinking_level(1), ThinkingLevel::Low);
+        assert_eq!(budget_to_thinking_level(1024), ThinkingLevel::Low);
+        assert_eq!(budget_to_thinking_level(4095), ThinkingLevel::Low);
+        assert_eq!(budget_to_thinking_level(4096), ThinkingLevel::Medium);
+        assert_eq!(budget_to_thinking_level(8000), ThinkingLevel::Medium);
+        assert_eq!(budget_to_thinking_level(16384), ThinkingLevel::High);
+        assert_eq!(budget_to_thinking_level(24576), ThinkingLevel::High);
+    }
+
+    #[test]
     fn test_detect_unknown_models() {
         // Unknown models default to ThinkingBudget for backwards compatibility
         assert_eq!(
@@ -259,7 +326,11 @@ mod tests {
         );
         assert_eq!(
             effort_to_thinking_level(ReasoningEffort::Minimal),
-            ThinkingLevel::Minimal
+            ThinkingLevel::Low
+        );
+        assert_eq!(
+            effort_to_thinking_level(ReasoningEffort::None),
+            ThinkingLevel::Low
         );
         assert_eq!(
             effort_to_thinking_level(ReasoningEffort::Xhigh),
