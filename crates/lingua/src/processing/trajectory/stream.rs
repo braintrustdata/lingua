@@ -55,6 +55,10 @@ pub enum TrajectoryEvent {
         scope: TrajectoryScope,
         id: String,
     },
+    Recording {
+        scope: TrajectoryScope,
+        recording: Recording,
+    },
     Failure {
         root_span_id: String,
         span_id: String,
@@ -894,6 +898,7 @@ impl TrajectoryStream {
                         instructions: None,
                     },
                     turns: Vec::new(),
+                    recordings: None,
                     sections: None,
                     findings: None,
                     metadata: Default::default(),
@@ -1458,6 +1463,14 @@ impl TrajectoryCollector {
             TrajectoryEvent::Interrupted { scope, id } => {
                 self.turn(&scope, &id)?.turn.interrupted = Some(true)
             }
+            TrajectoryEvent::Recording { scope, recording } => self
+                .scopes
+                .get_mut(&scope)
+                .ok_or("Unknown trajectory scope")?
+                .header
+                .recordings
+                .get_or_insert_with(Vec::new)
+                .push(recording),
             TrajectoryEvent::Failure {
                 root_span_id,
                 span_id,
