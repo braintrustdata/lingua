@@ -1,10 +1,12 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+mod transcript;
 mod voice;
 pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };
+pub use transcript::{is_voice_span, voice_transcript};
 
 use crate::processing::import::{
     is_instruction, ImportedSpan, OpaqueItem, SpanContext, VoicePayload,
@@ -331,7 +333,6 @@ fn ownership(
     Ok(result)
 }
 
-#[cfg(test)]
 fn assemble(
     spans: &[ImportedSpan],
     failures: &[ImportFailure],
@@ -342,13 +343,16 @@ fn assemble(
         failures.to_vec(),
         exclude_system,
     )?;
+    let by_id: HashMap<_, _> = spans
+        .iter()
+        .filter_map(|span| Some((span.header.id.as_deref()?, span)))
+        .collect();
     let mut collector = TrajectoryCollector::default();
     while let Some(id) = stream.pending_ids(1).first() {
-        let span = spans
-            .iter()
-            .find(|span| span.header.id.as_ref() == Some(id))
-            .unwrap();
-        for event in stream.push(span.clone())? {
+        let span = by_id
+            .get(id.as_str())
+            .ok_or_else(|| format!("Missing trajectory span {id}"))?;
+        for event in stream.push((*span).clone())? {
             collector.push(event)?;
         }
     }

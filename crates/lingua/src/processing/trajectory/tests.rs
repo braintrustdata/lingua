@@ -2802,3 +2802,63 @@ fn voice_payloads_must_match_their_root_headers() {
         "Trajectory structure changed for span stt"
     );
 }
+
+#[test]
+fn voice_transcript_is_each_turns_request_then_played_response() {
+    for fixture in [
+        include_str!("fixtures/voice-interruption-before-playback.json"),
+        include_str!("fixtures/voice-interruption-during-playback.json"),
+    ] {
+        let fixture: ImportFixture = serde_json::from_str(fixture).unwrap();
+        let mut expected = Vec::new();
+        for turn in &fixture.turns {
+            expected.extend(
+                turn.user_texts
+                    .iter()
+                    .map(|text| json!({"role": "user", "content": text})),
+            );
+            if turn.response_id.is_some() {
+                expected.push(json!({
+                    "role": "assistant",
+                    "content": [{"type": "text", "text": turn.response_text}],
+                }));
+            }
+        }
+        let expected =
+            serde_json::to_value(Vec::<Message>::deserialize(Value::Array(expected)).unwrap())
+                .unwrap();
+        let voice_spans: Vec<_> = fixture
+            .spans
+            .iter()
+            .filter(|span| span.other.get("metadata").is_some_and(is_voice_span))
+            .cloned()
+            .collect();
+        assert!(voice_spans.len() < fixture.spans.len());
+        for spans in [fixture.spans, voice_spans] {
+            let spans = spans
+                .into_iter()
+                .map(import_span)
+                .collect::<Result<Vec<_>>>()
+                .unwrap();
+            let transcript = voice_transcript(&spans).unwrap().unwrap();
+            assert_eq!(serde_json::to_value(transcript).unwrap(), expected);
+        }
+    }
+}
+
+#[test]
+fn voice_transcript_ignores_traces_without_a_voice_session() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/chat-tool-cycle.json")).unwrap();
+    let spans = fixture
+        .spans
+        .into_iter()
+        .map(import_span)
+        .collect::<Result<Vec<_>>>()
+        .unwrap();
+    assert!(voice_transcript(&spans).unwrap().is_none());
+    use crate::serde_json::json;
+    assert!(!is_voice_span(&json!({"turn_id": "turn-1"})));
+    assert!(!is_voice_span(&json!("not metadata")));
+    assert!(is_voice_span(&json!({"turn.id": "span-1"})));
+}
