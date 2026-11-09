@@ -190,6 +190,9 @@ pub(super) fn plan(
             ));
         }
     }
+    if plan.roots.is_empty() {
+        return plan;
+    }
     let session_of: Vec<Option<usize>> = (0..spans.len())
         .map(|index| {
             let mut current = Some(index);
