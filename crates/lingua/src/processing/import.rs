@@ -2,6 +2,7 @@ use crate::import_parse::{try_parsers_in_order, MessageParser};
 use crate::import_value::Field;
 pub use crate::import_value::{ImportValue, InputKind};
 mod ai_sdk;
+mod audio;
 pub use ai_sdk::try_import_ai_sdk_prompt_message;
 mod langchain;
 mod pydantic_ai;
@@ -35,6 +36,7 @@ use crate::universal::{
     AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
+pub use audio::{VoiceContext, VoicePayload};
 use serde::{Deserialize, Serialize};
 pub use span::{
     import_span, import_span_with_options, ImportedSpan, SpanContext, TRAJECTORY_METADATA_FIELDS,
