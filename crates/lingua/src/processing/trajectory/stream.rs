@@ -1339,6 +1339,7 @@ impl TrajectoryStream {
         if !state.started {
             if index == voice_turn.request
                 && voice_turn.span_count == 1
+                && span.source.name.as_deref() != Some("user_speech")
                 && request.is_empty()
                 && opaque_request.is_empty()
             {

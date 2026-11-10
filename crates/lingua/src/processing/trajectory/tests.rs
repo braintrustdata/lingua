@@ -1218,6 +1218,14 @@ import_fixture!(
     voice_interruption_during_playback,
     "fixtures/voice-interruption-during-playback.json"
 );
+import_fixture!(
+    voice_unowned_user_speech,
+    "fixtures/voice-unowned-user-speech.json"
+);
+import_fixture!(
+    voice_user_turn_with_unowned_speech,
+    "fixtures/voice-user-turn-with-unowned-speech.json"
+);
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
 import_fixture!(
@@ -2705,6 +2713,22 @@ fn load_voice(headers: &[Span], payloads: &[Span]) -> Result<crate::serde_json::
 }
 
 #[test]
+fn voice_unowned_tools() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-unowned-tools.json")).unwrap();
+    let result = load_voice(&fixture.spans, &fixture.spans).unwrap();
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert_eq!(turns.len(), 1);
+    assert_eq!(turns[0]["response"]["response"][0]["text"], "Hello");
+    assert_eq!(turns[0]["work"], json::json!([]));
+    assert!(result[0]["metadata"]["import_warnings"].is_null());
+    assert_eq!(
+        result[0]["metadata"]["import_failures"],
+        json::json!(fixture.import_failures)
+    );
+}
+
+#[test]
 fn voice_turns_keep_inherited_steps_unsupported_input_and_silent_speech() {
     let sources = voice_sources();
     let result = load_voice(&sources, &sources).unwrap();
@@ -2801,4 +2825,47 @@ fn voice_payloads_must_match_their_root_headers() {
         load_voice(&voice_sources(), &payloads).unwrap_err(),
         "Trajectory structure changed for span stt"
     );
+}
+
+#[test]
+fn voice_realtime_keeps_generated_work_separate_from_played_speech() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-realtime.json")).unwrap();
+    check_fixture(&fixture);
+    check_fixture_variants(&fixture);
+    let mut structural = fixture.clone();
+    for span in &mut structural.spans {
+        if let Some(metadata) = span
+            .other
+            .get_mut("metadata")
+            .and_then(|value| value.as_object_mut())
+        {
+            metadata.remove("turn.id");
+        }
+    }
+    check_fixture(&structural);
+    check_fixture_variants(&structural);
+    let trajectories = run_fixture(&fixture, 1, false, &[]);
+    for step in trajectories[0].turns.iter().flat_map(|turn| &turn.work) {
+        if step.span_type == "llm" {
+            assert!(matches!(step.work, Work::LLMAnalysis(_)));
+        }
+    }
+    let result = crate::serde_json::to_value(&trajectories).unwrap();
+    let work = &result[0]["turns"][2]["work"];
+    assert_eq!(
+        work[2]["work"]["work"][0]["content"],
+        "Your order 1042 is in transit and will be delivered on Friday."
+    );
+    assert_eq!(work[2]["work"]["model"], "gpt-realtime");
+    assert_eq!(result[0]["turns"][2]["model"], "gpt-realtime");
+    assert_eq!(work[2]["work"]["usage"]["total_tokens"], 307);
+    assert_eq!(work[1]["work"]["type"], "tool_result");
+    assert_eq!(work[1]["work"]["input"]["order_id"], "1042");
+    assert_eq!(work[1]["work"]["output"]["status"], "in_transit");
+    assert_eq!(
+        work[0]["work"]["work"][0]["content"][0]["tool_call_id"],
+        "call_QoHy5Zh7T40Q0G9V"
+    );
+    assert_eq!(result[0]["recordings"].as_array().unwrap().len(), 1);
 }
