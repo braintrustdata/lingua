@@ -1218,6 +1218,10 @@ import_fixture!(
     voice_interruption_during_playback,
     "fixtures/voice-interruption-during-playback.json"
 );
+import_fixture!(
+    voice_unowned_user_speech,
+    "fixtures/voice-unowned-user-speech.json"
+);
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
 import_fixture!(
@@ -2706,14 +2710,7 @@ fn load_voice(headers: &[Span], payloads: &[Span]) -> Result<crate::serde_json::
 
 #[test]
 fn voice_turns_keep_inherited_steps_unsupported_input_and_silent_speech() {
-    let mut sources = voice_sources();
-    sources.push(voice_span(
-        "heard",
-        "session",
-        "user_speech",
-        2,
-        [Value::Null, Value::Null, Value::Null],
-    ));
+    let sources = voice_sources();
     let result = load_voice(&sources, &sources).unwrap();
     assert!(result[0]["metadata"]["import_failures"].is_null());
     let turns = result[0]["turns"].as_array().unwrap();

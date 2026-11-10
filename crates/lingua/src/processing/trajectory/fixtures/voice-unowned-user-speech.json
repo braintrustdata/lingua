@@ -1,0 +1,43 @@
+{
+  "spans": [
+    {
+      "id": "session", "span_id": "session", "root_span_id": "root",
+      "span_attributes": {"type": "task", "name": "session"},
+      "metrics": {"start": 0, "end": 10},
+      "metadata": {
+        "audio.schema.version": "3.0.0",
+        "audio.timeline": {"origin_unix_ms": 0},
+        "audio.sources": {}, "audio.segments": {}
+      }
+    },
+    {
+      "id": "heard", "span_id": "heard", "root_span_id": "root",
+      "span_parents": ["session"],
+      "span_attributes": {"type": "task", "name": "user_speech"},
+      "metrics": {"start": 1, "end": 8}
+    },
+    {
+      "id": "agent", "span_id": "agent", "root_span_id": "root",
+      "span_parents": ["session"],
+      "span_attributes": {"type": "task", "name": "agent_turn"},
+      "metrics": {"start": 2, "end": 5},
+      "metadata": {"turn.id": "agent"}
+    },
+    {
+      "id": "spoken", "span_id": "spoken", "root_span_id": "root",
+      "span_parents": ["agent"],
+      "span_attributes": {"type": "task", "name": "agent_speech"},
+      "metrics": {"start": 3, "end": 4},
+      "output": [{"role": "assistant", "content": "Hello"}]
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "agent", "response_id": "spoken",
+      "response_text": "Hello", "work_ids": [], "user_texts": []
+    }
+  ],
+  "requests": [[]],
+  "end_times": ["1970-01-01T00:00:05Z"],
+  "recordings": [{"id": "session", "origin": "1970-01-01T00:00:00Z", "sources": [], "segments": []}]
+}
