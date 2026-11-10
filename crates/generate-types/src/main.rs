@@ -1139,7 +1139,102 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
 
+    processed = pin_anthropic_generated_names(&processed);
+    processed = add_anthropic_compatibility_aliases(&processed);
+
     processed
+}
+
+/// Pin the enum variants and struct field that quicktype names after a
+/// synthesized union type.
+///
+/// A type alias cannot rename a variant or a field, so the names quicktype
+/// derives from `Block`/`TBlock` have to be restored here. Each replacement is
+/// anchored on the full declaration (variant name plus payload type, or field
+/// name plus field type), which is unique in the generated output, so this
+/// cannot rewrite an unrelated type that happens to share a field name.
+///
+/// These renames are Rust-side only. The wire representation is unchanged:
+/// the variants are `#[serde(untagged)]` and the field keeps its
+/// `#[serde(rename = "type")]` attribute.
+fn pin_anthropic_generated_names(processed: &str) -> String {
+    let pinned_names = [
+        // `InputMessageContent::BlockArray` -> element type's stable name.
+        (
+            "BlockArray(Vec<Block>)",
+            "InputContentBlockArray(Vec<Block>)",
+        ),
+        // `BlockContent::ContentElementArray` -> nested block array.
+        (
+            "ContentElementArray(Vec<ContentElement>)",
+            "BlockArray(Vec<ContentElement>)",
+        ),
+        // `System::TBlockArray` -> request text block array.
+        (
+            "TBlockArray(Vec<TBlock>)",
+            "RequestTextBlockArray(Vec<TBlock>)",
+        ),
+        // `Block::block_type` -> discriminator field name used by the adapters.
+        (
+            "pub block_type: BlockType,",
+            "pub input_content_block_type: BlockType,",
+        ),
+    ];
+
+    let mut pinned = processed.to_string();
+    for (generated, stable) in pinned_names {
+        debug_assert_eq!(
+            pinned.matches(generated).count(),
+            1,
+            "expected exactly one `{generated}` declaration to pin"
+        );
+        pinned = pinned.replace(generated, stable);
+    }
+    pinned
+}
+
+/// Re-expose the names Lingua's hand-written Anthropic adapters import.
+///
+/// quicktype synthesizes a fresh name whenever it flattens a `oneOf` into a
+/// single struct, and that name is derived from the union members rather than
+/// from the referencing schema. The name therefore drifts whenever the upstream
+/// spec is restructured: splitting `InputMessage` into a role-discriminated
+/// union renamed `InputContentBlock` to `Block` and `RequestTextBlock` to
+/// `TBlock` without any wire-shape change. Pinning the schema `title` does not
+/// help, because the synthesized union type never inherits it.
+///
+/// Aliasing keeps the adapters compiling against stable names while leaving the
+/// generated wire types authoritative. An alias is emitted only when the target
+/// actually exists, so a genuine removal still fails the build loudly instead of
+/// silently resolving to the wrong type.
+fn add_anthropic_compatibility_aliases(processed: &str) -> String {
+    let compatibility_aliases = [
+        ("InputContentBlock", "Block"),
+        ("InputContentBlockType", "BlockType"),
+        ("InputContentBlockContent", "BlockContent"),
+        ("MessageContent", "InputMessageContent"),
+        ("MessageRole", "InputMessageRole"),
+        ("RequestTextBlock", "TBlock"),
+        ("Container", "ContainerClass"),
+    ];
+
+    let aliases: Vec<String> = compatibility_aliases
+        .into_iter()
+        .filter(|(alias, target)| {
+            !contains_rust_type_definition(processed, alias)
+                && contains_rust_type_definition(processed, target)
+        })
+        .map(|(alias, target)| format!("pub type {alias} = {target};"))
+        .collect();
+
+    if aliases.is_empty() {
+        return processed.to_string();
+    }
+
+    format!(
+        "{processed}\n\n// Compatibility aliases for names used by Lingua's hand-written adapters.\n{}\n",
+        aliases.join("\n")
+    )
 }
 
 fn add_anthropic_tool_search_tool_variants(processed: &str) -> String {
