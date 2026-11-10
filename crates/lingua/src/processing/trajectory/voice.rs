@@ -242,7 +242,14 @@ pub(super) fn plan(
         }
         let turn = match &owners[&index].voice_turn {
             _ if is_turn(index) => Ok(index),
-            None => Err("Voice span has no turn".to_string()),
+            None => {
+                plan.warnings.insert(
+                    index,
+                    "Voice span has no turn; omitted from conversation".to_string(),
+                );
+                plan.ignored.insert(index);
+                continue;
+            }
             Some(turn_id) => match resolve(index, turn_id) {
                 Some(turn) if is_turn(turn) => Ok(turn),
                 Some(_) => Err(format!("turn.id {turn_id} is not a user or agent turn")),

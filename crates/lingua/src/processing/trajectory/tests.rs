@@ -546,7 +546,15 @@ fn check_span_coverage(
             }
             if !excluded {
                 let id = header.id.as_ref().unwrap();
-                assert!(owners.contains_key(id.as_str()), "Lost span {id}");
+                let diagnosed = fixture
+                    .import_failures
+                    .iter()
+                    .chain(&fixture.import_warnings)
+                    .any(|diagnostic| diagnostic["span_id"].as_str() == Some(id.as_str()));
+                assert!(
+                    owners.contains_key(id.as_str()) || diagnosed,
+                    "Lost span {id}"
+                );
             }
         }
         for source in &fixture.spans {
@@ -1222,6 +1230,7 @@ import_fixture!(
     voice_unowned_user_speech,
     "fixtures/voice-unowned-user-speech.json"
 );
+import_fixture!(voice_unowned_tools, "fixtures/voice-unowned-tools.json");
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
 import_fixture!(

@@ -527,6 +527,9 @@ impl TrajectoryStream {
         let mut roles = classify_headers(&spans, &owners);
         let mut voice = voice::plan(&spans, &by_span_id, &parents, &owners, &roles);
         for (index, role) in roles.iter_mut().enumerate() {
+            if let Some(warning) = voice.warnings.remove(&index) {
+                spans[index].warnings.push(warning);
+            }
             if voice.is_voice(index) {
                 *role = Role::Voice;
             } else if voice.ignored.contains(&index) {
@@ -1306,9 +1309,6 @@ impl TrajectoryStream {
         let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
         let scope = self.scope(&key);
         let loaded = !self.voice_failed.contains(&index);
-        if let Some(warning) = self.voice.warnings.remove(&index) {
-            self.spans[index].warnings.push(warning);
-        }
         let span = &self.spans[index];
         if loaded && !span.voice.errors.is_empty() {
             self.failures
