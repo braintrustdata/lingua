@@ -948,7 +948,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
-                                    })
+                                    toolset_name: None,transformations: None,})
                                 },
                                 UserContentPart::Image {
                                     image, media_type, ..
@@ -993,7 +993,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                                     is_error: None,
                                                                     tool_use_id: None,
                                                                     file_id: None,
-                                                                });
+                                                                toolset_name: None,transformations: None,});
                                                             }
                                                         }
                                                     }
@@ -1060,7 +1060,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                     source_type,
                                                     url: source_url,
                                                     content: None,
-                                                },
+                                                file_id: None,},
                                             )),
                                             context: None,
                                             title: None,
@@ -1075,7 +1075,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             is_error: None,
                                             tool_use_id: None,
                                             file_id: None,
-                                        })
+                                        toolset_name: None,transformations: None,})
                                     } else {
                                         None
                                     }
@@ -1147,7 +1147,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                 },
                                                 url: if is_url { Some(data_str) } else { None },
                                                 content: None,
-                                            },
+                                            file_id: None,},
                                         )),
                                         context,
                                         title,
@@ -1162,7 +1162,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
-                                    })
+                                    toolset_name: None,transformations: None,})
                                 },
                                 UserContentPart::Audio { .. } => None,
                             })
@@ -1211,7 +1211,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
-                                    })
+                                    toolset_name: None,transformations: None,})
                                 },
                                 AssistantContentPart::Reasoning {
                                     text,
@@ -1237,7 +1237,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     is_error: None,
                                     tool_use_id: None,
                                     file_id: None,
-                                }),
+                                toolset_name: None,transformations: None,}),
                                 AssistantContentPart::ToolCall {
                                 tool_call_id,
                                 tool_name,
@@ -1282,7 +1282,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     is_error: None,
                                     tool_use_id: None,
                                     file_id: None,
-                                })
+                                toolset_name: None,transformations: None,})
                                 },
                                 AssistantContentPart::ToolDiscoveryCall {
                                 tool_call_id,
@@ -1315,7 +1315,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 is_error: None,
                                 tool_use_id: None,
                                 file_id: None,
-                                }),
+                                toolset_name: None,transformations: None,}),
                                 AssistantContentPart::ToolResult {
                                 tool_call_id,
                                 output,
@@ -1353,7 +1353,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         is_error: None,
                                         tool_use_id: Some(tool_call_id.clone()),
                                         file_id: None,
-                                    })
+                                    toolset_name: None,transformations: None,})
                                 } else {
                                     None // Skip other tool results in assistant messages
                                 }
@@ -1412,7 +1412,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 is_error: None,
                                 tool_use_id: Some(tool_result.tool_call_id),
                                 file_id: None,
-                            });
+                            toolset_name: None,transformations: None,});
                         }
                         ToolContentPart::ToolDiscoveryResult(discovery_result) => {
                             blocks.push(generated::InputContentBlock {
@@ -1439,7 +1439,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     &discovery_result.tool_call_id,
                                 )),
                                 file_id: None,
-                            });
+                            toolset_name: None,transformations: None,});
                         }
                     }
                 }
@@ -1534,6 +1534,8 @@ fn text_input_content_block(text: String) -> generated::InputContentBlock {
         is_error: None,
         tool_use_id: None,
         file_id: None,
+        toolset_name: None,
+        transformations: None,
     }
 }
 
@@ -2115,6 +2117,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                             content: None,
                             tool_use_id: None,
                             file_id: None,
+                            toolset_name: None,
                         });
                     }
                     AssistantContent::Array(parts) => {
@@ -2138,6 +2141,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
+                                        toolset_name: None,
                                     });
                                 }
                                 AssistantContentPart::Reasoning {
@@ -2159,6 +2163,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
+                                        toolset_name: None,
                                     });
                                 }
                                 AssistantContentPart::ToolCall {
@@ -2201,6 +2206,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
+                                        toolset_name: None,
                                     });
                                 }
                                 AssistantContentPart::ToolDiscoveryCall {
@@ -2232,6 +2238,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
+                                        toolset_name: None,
                                     });
                                 }
                                 AssistantContentPart::ToolResult {
@@ -2270,6 +2277,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                             content,
                                             tool_use_id: Some(tool_call_id.clone()),
                                             file_id: None,
+                                            toolset_name: None,
                                         });
                                     }
                                     // Skip other tool results - they shouldn't appear in response content
@@ -2304,6 +2312,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     &discovery_result.tool_call_id,
                                 )),
                                 file_id: None,
+                                toolset_name: None,
                             });
                         }
                     }
@@ -3644,6 +3653,7 @@ mod tests {
                         source_type: generated::Base64ImageSourceType::Url,
                         url: Some("https://example.com/report.pdf".to_string()),
                         content: None,
+                        file_id: None,
                     })),
                     context: None,
                     title: Some("Doc".to_string()),
@@ -3658,6 +3668,8 @@ mod tests {
                     is_error: None,
                     tool_use_id: None,
                     file_id: None,
+                    toolset_name: None,
+                    transformations: None,
                 },
             ]),
         };
