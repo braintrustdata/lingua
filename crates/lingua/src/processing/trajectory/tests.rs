@@ -177,8 +177,6 @@ struct ImportFixture {
     turns: Vec<ExpectedTurn>,
     #[serde(default)]
     worker_responses: Vec<String>,
-    #[serde(default)]
-    ignored_span_ids: Vec<String>,
     start_times: Option<Vec<DateTime<Utc>>>,
     end_times: Option<Vec<Option<DateTime<Utc>>>>,
     compactions: Option<Vec<Value>>,
@@ -548,17 +546,7 @@ fn check_span_coverage(
             }
             if !excluded {
                 let id = header.id.as_ref().unwrap();
-                let diagnosed = fixture
-                    .import_failures
-                    .iter()
-                    .chain(&fixture.import_warnings)
-                    .any(|diagnostic| diagnostic["span_id"].as_str() == Some(id.as_str()));
-                assert!(
-                    owners.contains_key(id.as_str())
-                        || diagnosed
-                        || fixture.ignored_span_ids.contains(id),
-                    "Lost span {id}"
-                );
+                assert!(owners.contains_key(id.as_str()), "Lost span {id}");
             }
         }
         for source in &fixture.spans {
@@ -939,7 +927,6 @@ fn generated_conversation(
         turns: expected,
         import_options: ImportOptions::default(),
         worker_responses,
-        ignored_span_ids: Vec::new(),
         import_failures: Vec::new(),
         import_warnings: Vec::new(),
         start_times: None,
@@ -1235,7 +1222,6 @@ import_fixture!(
     voice_unowned_user_speech,
     "fixtures/voice-unowned-user-speech.json"
 );
-import_fixture!(voice_unowned_tools, "fixtures/voice-unowned-tools.json");
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
 import_fixture!(
@@ -2720,6 +2706,22 @@ fn load_voice(headers: &[Span], payloads: &[Span]) -> Result<crate::serde_json::
     }
     collect(&mut collector, stream.finish()?);
     Ok(crate::serde_json::to_value(collector.snapshot()?).unwrap())
+}
+
+#[test]
+fn voice_unowned_tools() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-unowned-tools.json")).unwrap();
+    let result = load_voice(&fixture.spans, &fixture.spans).unwrap();
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert_eq!(turns.len(), 1);
+    assert_eq!(turns[0]["response"]["response"][0]["text"], "Hello");
+    assert_eq!(turns[0]["work"], json::json!([]));
+    assert!(result[0]["metadata"]["import_warnings"].is_null());
+    assert_eq!(
+        result[0]["metadata"]["import_failures"],
+        json::json!(fixture.import_failures)
+    );
 }
 
 #[test]
