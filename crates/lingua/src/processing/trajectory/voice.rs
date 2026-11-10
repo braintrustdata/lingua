@@ -231,9 +231,16 @@ pub(super) fn plan(
             .get(&(spans[index].root_span_id.as_str(), id))
             .copied()
     };
+    let user_sessions: HashSet<_> = (0..spans.len())
+        .filter(|index| kinds[*index] == Some(SpanKind::UserTurn))
+        .filter_map(|index| session_of[index])
+        .collect();
     let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     for index in 0..spans.len() {
-        if kinds[index] == Some(SpanKind::UserSpeech) {
+        if kinds[index] == Some(SpanKind::UserSpeech)
+            && (owners[&index].voice_turn.is_some()
+                || session_of[index].is_some_and(|session| user_sessions.contains(&session)))
+        {
             plan.ignored.insert(index);
             continue;
         }
@@ -241,7 +248,7 @@ pub(super) fn plan(
             continue;
         }
         let turn = match &owners[&index].voice_turn {
-            _ if is_turn(index) => Ok(index),
+            _ if is_turn(index) || kinds[index] == Some(SpanKind::UserSpeech) => Ok(index),
             None => {
                 plan.ignored.insert(index);
                 continue;

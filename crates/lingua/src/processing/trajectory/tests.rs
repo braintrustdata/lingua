@@ -1222,6 +1222,10 @@ import_fixture!(
     voice_unowned_user_speech,
     "fixtures/voice-unowned-user-speech.json"
 );
+import_fixture!(
+    voice_user_turn_with_unowned_speech,
+    "fixtures/voice-user-turn-with-unowned-speech.json"
+);
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
 import_fixture!(

@@ -31,13 +31,9 @@
       "output": [{"role": "assistant", "content": "Hello"}]
     }
   ],
-  "turns": [
-    {
-      "request_id": "agent", "response_id": "spoken",
-      "response_text": "Hello", "work_ids": [], "user_texts": []
-    }
-  ],
-  "requests": [[]],
-  "end_times": ["1970-01-01T00:00:05Z"],
-  "recordings": [{"id": "session", "origin": "1970-01-01T00:00:00Z", "sources": [], "segments": []}]
+  "turns": [{"request_id": "heard", "response_id": null, "response_text": "", "work_ids": [], "user_texts": []}, {"request_id": "agent", "response_id": "spoken", "response_text": "Hello", "work_ids": [], "user_texts": []}],
+  "requests": [[], []],
+  "end_times": ["1970-01-01T00:00:08Z", "1970-01-01T00:00:05Z"],
+  "recordings": [{"id": "session", "origin": "1970-01-01T00:00:00Z", "sources": [], "segments": []}],
+  "start_times": ["1970-01-01T00:00:01Z", "1970-01-01T00:00:02Z"]
 }
