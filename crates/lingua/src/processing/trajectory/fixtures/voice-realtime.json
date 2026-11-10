@@ -1,0 +1,94 @@
+{
+  "spans": [
+    {
+      "span_id": "agent_speech-2",
+      "span_parents": ["agent_turn-2"],
+      "span_attributes": {"name": "agent_speech", "type": "task"},
+      "output": [{"content": "Your order 1042 is in transit and should arrive on Friday.", "role": "assistant"}],
+      "metadata": {"audio.participant_ids": ["participant-1"], "audio.selections": {"selection-0": {"end_offset_ms": 12800, "start_offset_ms": 8750}}, "audio.source_id": "agent-output", "turn.id": "agent_turn-2"},
+      "metrics": {"end": 1794336247.0440273, "start": 1794336242.9940274},
+      "id": "agent_speech-2",
+      "root_span_id": "root"
+    },
+    {
+      "span_id": "llm_response-3",
+      "span_parents": ["agent_turn-2"],
+      "span_attributes": {"name": "llm_response", "type": "llm"},
+      "input": [{"content": "{'order_id': '1042', 'status': 'in_transit', 'delivery': 'Friday', 'demo_data': True}", "role": "tool", "tool_call_id": "call_xn4hqU55Be3UJUEn"}],
+      "output": [{"content": "Your order 1042 is in transit and should arrive on Friday.", "role": "assistant"}],
+      "metadata": {"model": "gpt-realtime", "provider": "api.openai.com", "turn.id": "agent_turn-2"},
+      "metrics": {"cache_read_input_tokens": 64, "completion_audio_tokens": 81, "completion_tokens": 107, "end": 1794336243.684536, "prompt_audio_tokens": 42, "prompt_tokens": 185, "start": 1794336242.723264, "tokens": 292},
+      "id": "llm_response-3",
+      "root_span_id": "root"
+    },
+    {
+      "span_id": "transcript_received-1",
+      "span_parents": ["user_turn-1"],
+      "span_attributes": {"name": "transcript_received", "type": "task"},
+      "output": [{"content": "Hi, where's my order demo1042?", "role": "user"}],
+      "metadata": {"audio.participant_ids": ["participant-0"], "audio.source_id": "session-input", "turn.id": "user_turn-1"},
+      "metrics": {"end": 1794336242.453741, "start": 1794336242.453741},
+      "id": "transcript_received-1",
+      "root_span_id": "root"
+    },
+    {
+      "span_id": "lookup_order-1",
+      "span_parents": ["agent_turn-2"],
+      "span_attributes": {"name": "lookup_order", "type": "tool"},
+      "input": {"order_id": "1042"},
+      "output": {"delivery": "Friday", "demo_data": true, "order_id": "1042", "status": "in_transit"},
+      "metadata": {"turn.id": "agent_turn-2"},
+      "metrics": {"end": 1794336242.470412, "start": 1794336242.347266},
+      "id": "lookup_order-1",
+      "root_span_id": "root"
+    },
+    {
+      "span_id": "llm_response-2",
+      "span_parents": ["agent_turn-2"],
+      "span_attributes": {"name": "llm_response", "type": "llm"},
+      "output": [{"content": null, "role": "assistant", "tool_calls": [{"function": {"arguments": "{  \n  \"order_id\": \"1042\" \n} \n", "name": "lookup_order"}, "id": "call_xn4hqU55Be3UJUEn", "type": "function"}]}],
+      "metadata": {"model": "gpt-realtime", "provider": "api.openai.com", "turn.id": "agent_turn-2"},
+      "metrics": {"cache_read_input_tokens": 0, "completion_audio_tokens": 0, "completion_tokens": 24, "end": 1794336242.34547, "prompt_audio_tokens": 91, "prompt_tokens": 190, "start": 1794336241.956324, "tokens": 214},
+      "id": "llm_response-2",
+      "root_span_id": "root"
+    },
+    {
+      "span_id": "agent_turn-2",
+      "span_parents": ["session-1"],
+      "span_attributes": {"name": "agent_turn", "type": "task"},
+      "metadata": {"turn.id": "agent_turn-2"},
+      "metrics": {"end": 1794336247.058021, "start": 1794336241.9567811},
+      "id": "agent_turn-2",
+      "root_span_id": "root"
+    },
+    {
+      "span_id": "user_speech-1",
+      "span_parents": ["user_turn-1"],
+      "span_attributes": {"name": "user_speech", "type": "task"},
+      "metadata": {"audio.participant_ids": ["participant-0"], "audio.selections": {"selection-0": {"end_offset_ms": 7579, "start_offset_ms": 3343}}, "audio.source_id": "session-input", "turn.id": "user_turn-1"},
+      "metrics": {"end": 1794336241.8229616, "start": 1794336237.5869617},
+      "id": "user_speech-1",
+      "root_span_id": "root"
+    },
+    {
+      "span_id": "user_turn-1",
+      "span_parents": ["session-1"],
+      "span_attributes": {"name": "user_turn", "type": "task"},
+      "input": [{"content": "Hi, where's my order demo1042?", "role": "user"}],
+      "metadata": {"audio.participant_ids": ["participant-0"], "audio.selections": {"selection-0": {"end_offset_ms": 7579, "start_offset_ms": 3343}}, "audio.source_id": "session-input", "turn.id": "user_turn-1"},
+      "metrics": {"end": 1794336241.8229616, "start": 1794336237.5869617},
+      "id": "user_turn-1",
+      "root_span_id": "root"
+    },
+    {
+      "span_id": "session-1",
+      "span_attributes": {"name": "session", "type": "task"},
+      "input": {"audio": {"part-0": {"content_type": "audio/ogg", "filename": "part-0.ogg", "key": "acb96eda-b63a-473b-a5df-2db49b80f77a", "type": "braintrust_attachment"}}},
+      "metadata": {"audio.participants": {"participant-0": {"type": "user"}, "participant-1": {"type": "agent"}}, "audio.schema.version": "3.0.0", "audio.segments": {"part-0": {"attachment": {"ref": "/input/audio/part-0"}, "attributes": {"opus.application": "audio", "opus.bitrate_bps": 64000, "opus.complexity": 10}, "channels": {"0": {"sources": ["session-input"]}, "1": {"sources": ["agent-output"]}}, "duration_ms": 18877, "encoding": "opus", "mime_type": "audio/ogg", "sample_rate_hz": 48000, "start_offset_ms": 0, "state": "ready"}}, "audio.sources": {"agent-output": {}, "session-input": {}}, "audio.timeline": {"origin_unix_ms": 1794336234243}},
+      "metrics": {"end": 1794336252.656272, "start": 1794336234.243548},
+      "id": "session-1",
+      "root_span_id": "root"
+    }
+  ],
+  "turns": []
+}

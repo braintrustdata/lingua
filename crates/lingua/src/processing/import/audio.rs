@@ -128,6 +128,9 @@ fn recording(
     segments: Option<json::Value>,
     errors: &mut Vec<String>,
 ) -> Option<Recording> {
+    if timeline.is_none() && sources.is_none() && segments.is_none() {
+        return None;
+    }
     let origin = metadata_field::<Timeline>(timeline, "audio.timeline", errors)
         .map(|timeline| timeline.origin_unix_ms)
         .filter(|ms| ms.is_finite())

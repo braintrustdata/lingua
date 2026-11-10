@@ -2822,3 +2822,65 @@ fn voice_payloads_must_match_their_root_headers() {
         "Trajectory structure changed for span stt"
     );
 }
+
+#[test]
+fn voice_realtime_keeps_generated_work_separate_from_played_speech() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-realtime.json")).unwrap();
+    let result = load_voice(&fixture.spans, &fixture.spans).unwrap();
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert_eq!(turns.len(), 2);
+    assert_eq!(turns[0]["voice"], "user");
+    assert_eq!(
+        turns[0]["request"][0]["content"],
+        "Hi, where's my order demo1042?"
+    );
+    assert_eq!(turns[0]["work"], json::json!([]));
+    assert_eq!(turns[1]["voice"], "agent");
+    assert_eq!(turns[1]["work"].as_array().unwrap().len(), 3);
+    assert_eq!(turns[1]["work"][0]["id"], "llm_response-2");
+    assert_eq!(turns[1]["response_id"], "agent_speech-2");
+    assert_eq!(result[0]["recordings"].as_array().unwrap().len(), 1);
+    assert!(result[0]["metadata"]["import_failures"].is_null());
+
+    let mut sources = fixture.spans;
+    for source in &mut sources {
+        source
+            .other
+            .get_mut("metadata")
+            .and_then(|value| value.as_object_mut())
+            .unwrap()
+            .remove("turn.id");
+    }
+    let structural = load_voice(&sources, &sources).unwrap();
+    assert_eq!(structural[0]["turns"], result[0]["turns"]);
+}
+
+#[test]
+fn voice_private_turns_survive_without_recordings_or_transcripts() {
+    let sources = vec![
+        voice_span(
+            "session",
+            "root",
+            "session",
+            0,
+            [
+                json!({"audio.schema.version": "3.0.0"}),
+                Value::Null,
+                Value::Null,
+            ],
+        ),
+        voice_span(
+            "user",
+            "session",
+            "user_turn",
+            1,
+            [Value::Null, Value::Null, Value::Null],
+        ),
+    ];
+    let result = load_voice(&sources, &sources).unwrap();
+    assert_eq!(result[0]["turns"][0]["voice"], "user");
+    assert_eq!(result[0]["turns"][0]["request"], json::json!([]));
+    assert!(result[0]["recordings"].is_null());
+    assert!(result[0]["metadata"]["import_failures"].is_null());
+}

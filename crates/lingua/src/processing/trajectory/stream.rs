@@ -1212,6 +1212,7 @@ impl TrajectoryStream {
                 scope: scope.clone(),
                 id: span.id.clone(),
                 turn: Box::new(Turn {
+                    voice: None,
                     request_id: span.id.clone(),
                     request: Some(if self.roles[index].can_request() {
                         self.request(span, request_filter, initial_request)
@@ -1337,19 +1338,12 @@ impl TrajectoryStream {
         let state = &mut self.voice_states[turn_index];
         state.remaining -= 1;
         if !state.started {
-            if index == voice_turn.request
-                && voice_turn.span_count == 1
-                && request.is_empty()
-                && opaque_request.is_empty()
-            {
-                self.spans[index].release_payload();
-                return Ok(());
-            }
             state.started = true;
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
                 id: id.clone(),
                 turn: Box::new(Turn {
+                    voice: Some(voice_turn.role),
                     request_id: id.clone(),
                     request: Some(request),
                     opaque_request,

@@ -181,9 +181,19 @@ pub enum EvidencePart {
     Arguments,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum VoiceTurnRole {
+    User,
+    Agent,
+}
+
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Turn {
+    #[ts(optional)]
+    pub voice: Option<VoiceTurnRole>,
     // Each of these is the id of the corresponding span
     pub request_id: String,
     #[ts(optional)]

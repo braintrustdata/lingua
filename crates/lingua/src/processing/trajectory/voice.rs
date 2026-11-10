@@ -4,7 +4,7 @@
 
 use super::stream::Role;
 use super::*;
-use crate::universal::{UserContent, UserContentPart};
+use crate::universal::{trajectory::VoiceTurnRole, UserContent, UserContentPart};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum VoiceRole {
@@ -16,6 +16,7 @@ pub(super) enum VoiceRole {
 
 pub(super) struct VoiceTurn {
     pub(super) request: usize,
+    pub(super) role: VoiceTurnRole,
     pub(super) span_count: usize,
     pub(super) response: Option<usize>,
     pub(super) start_time: DateTime<Utc>,
@@ -243,8 +244,20 @@ pub(super) fn plan(
         let turn = match &owners[&index].voice_turn {
             _ if is_turn(index) => Ok(index),
             None => {
-                plan.ignored.insert(index);
-                continue;
+                let mut parent = parents[index];
+                let mut turn = None;
+                while let Some(at) = parent {
+                    if is_turn(at) {
+                        turn = Some(at);
+                        break;
+                    }
+                    parent = parents[at];
+                }
+                let Some(turn) = turn else {
+                    plan.ignored.insert(index);
+                    continue;
+                };
+                Ok(turn)
             }
             Some(turn_id) => match resolve(index, turn_id) {
                 Some(turn) if is_turn(turn) => Ok(turn),
@@ -329,6 +342,11 @@ pub(super) fn plan(
         }
         plan.turns.push(VoiceTurn {
             request,
+            role: if kinds[request] == Some(SpanKind::UserTurn) {
+                VoiceTurnRole::User
+            } else {
+                VoiceTurnRole::Agent
+            },
             span_count,
             response,
             start_time,
