@@ -243,10 +243,6 @@ pub(super) fn plan(
         let turn = match &owners[&index].voice_turn {
             _ if is_turn(index) => Ok(index),
             None => {
-                plan.warnings.insert(
-                    index,
-                    "Voice span has no turn; omitted from conversation".to_string(),
-                );
                 plan.ignored.insert(index);
                 continue;
             }

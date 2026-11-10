@@ -64,6 +64,6 @@
   "requests": [[]],
   "end_times": ["1970-01-01T00:00:05Z"],
   "recordings": [{"id": "session", "origin": "1970-01-01T00:00:00Z", "sources": [], "segments": []}],
-  "import_warnings": [{"span_id": "unowned", "message": "Voice span has no turn; omitted from conversation"}],
+  "ignored_span_ids": ["unowned"],
   "import_failures": [{"span_id": "invalid", "message": "turn.id session is not a user or agent turn"}, {"span_id": "unresolved", "message": "Unresolved turn.id missing"}]
 }

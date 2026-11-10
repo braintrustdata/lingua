@@ -177,6 +177,8 @@ struct ImportFixture {
     turns: Vec<ExpectedTurn>,
     #[serde(default)]
     worker_responses: Vec<String>,
+    #[serde(default)]
+    ignored_span_ids: Vec<String>,
     start_times: Option<Vec<DateTime<Utc>>>,
     end_times: Option<Vec<Option<DateTime<Utc>>>>,
     compactions: Option<Vec<Value>>,
@@ -552,7 +554,9 @@ fn check_span_coverage(
                     .chain(&fixture.import_warnings)
                     .any(|diagnostic| diagnostic["span_id"].as_str() == Some(id.as_str()));
                 assert!(
-                    owners.contains_key(id.as_str()) || diagnosed,
+                    owners.contains_key(id.as_str())
+                        || diagnosed
+                        || fixture.ignored_span_ids.contains(id),
                     "Lost span {id}"
                 );
             }
@@ -935,6 +939,7 @@ fn generated_conversation(
         turns: expected,
         import_options: ImportOptions::default(),
         worker_responses,
+        ignored_span_ids: Vec::new(),
         import_failures: Vec::new(),
         import_warnings: Vec::new(),
         start_times: None,
