@@ -2706,7 +2706,14 @@ fn load_voice(headers: &[Span], payloads: &[Span]) -> Result<crate::serde_json::
 
 #[test]
 fn voice_turns_keep_inherited_steps_unsupported_input_and_silent_speech() {
-    let sources = voice_sources();
+    let mut sources = voice_sources();
+    sources.push(voice_span(
+        "heard",
+        "session",
+        "user_speech",
+        2,
+        [Value::Null, Value::Null, Value::Null],
+    ));
     let result = load_voice(&sources, &sources).unwrap();
     assert!(result[0]["metadata"]["import_failures"].is_null());
     let turns = result[0]["turns"].as_array().unwrap();
