@@ -61,6 +61,7 @@ pub(super) enum StepKind {
 enum SpanKind {
     UserTurn,
     AgentTurn,
+    UserSpeech,
     AgentSpeech,
     Work(StepKind),
 }
@@ -75,6 +76,7 @@ fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
     match span.source.name.as_deref()? {
         "user_turn" => Some(SpanKind::UserTurn),
         "agent_turn" => Some(SpanKind::AgentTurn),
+        "user_speech" => Some(SpanKind::UserSpeech),
         "agent_speech" => Some(SpanKind::AgentSpeech),
         "stt" => Some(SpanKind::Work(StepKind::Heard)),
         "tts" => Some(SpanKind::Work(StepKind::Spoken)),
@@ -231,6 +233,10 @@ pub(super) fn plan(
     };
     let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     for index in 0..spans.len() {
+        if kinds[index] == Some(SpanKind::UserSpeech) {
+            plan.ignored.insert(index);
+            continue;
+        }
         if kinds[index].is_none() {
             continue;
         }
@@ -310,7 +316,7 @@ pub(super) fn plan(
                     position,
                 },
                 Some(SpanKind::Work(kind)) => VoiceRole::Work { kind, position },
-                None => continue,
+                Some(SpanKind::UserSpeech) | None => continue,
             };
             if matches!(role, VoiceRole::Work { .. } | VoiceRole::Response { .. }) {
                 position += 1;
