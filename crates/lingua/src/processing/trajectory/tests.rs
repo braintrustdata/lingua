@@ -2833,6 +2833,18 @@ fn voice_realtime_keeps_generated_work_separate_from_played_speech() {
         serde_json::from_str(include_str!("fixtures/voice-realtime.json")).unwrap();
     check_fixture(&fixture);
     check_fixture_variants(&fixture);
+    let mut structural = fixture.clone();
+    for span in &mut structural.spans {
+        if let Some(metadata) = span
+            .other
+            .get_mut("metadata")
+            .and_then(|value| value.as_object_mut())
+        {
+            metadata.remove("turn.id");
+        }
+    }
+    check_fixture(&structural);
+    check_fixture_variants(&structural);
     let trajectories = run_fixture(&fixture, 1, false, &[]);
     for step in trajectories[0].turns.iter().flat_map(|turn| &turn.work) {
         if step.span_type == "llm" {

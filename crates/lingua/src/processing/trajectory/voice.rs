@@ -253,10 +253,17 @@ pub(super) fn plan(
         }
         let turn = match &owners[&index].voice_turn {
             _ if is_turn(index) || kinds[index] == Some(SpanKind::UserSpeech) => Ok(index),
-            None => {
-                plan.ignored.insert(index);
-                continue;
-            }
+            None => match std::iter::successors(parents[index], |at| parents[*at])
+                .take(spans.len())
+                .take_while(|at| session_of[*at] == session_of[index])
+                .find(|at| is_turn(*at))
+            {
+                Some(turn) => Ok(turn),
+                None => {
+                    plan.ignored.insert(index);
+                    continue;
+                }
+            },
             Some(turn_id) => match resolve(index, turn_id) {
                 Some(turn) if is_turn(turn) => Ok(turn),
                 Some(_) => Err(format!("turn.id {turn_id} is not a user or agent turn")),
