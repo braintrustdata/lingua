@@ -68,7 +68,11 @@ enum SpanKind {
 }
 
 fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
-    if matches!(role, Role::Conversation | Role::Analysis | Role::Tool) {
+    let role = match role {
+        Role::Conversation => Role::Analysis,
+        role => role,
+    };
+    if matches!(role, Role::Analysis | Role::Tool) {
         return Some(SpanKind::Work(StepKind::Chat(role)));
     }
     if span.kind() != "task" {
@@ -314,9 +318,7 @@ pub(super) fn plan(
             .and_then(|ends| ends.into_iter().max());
         let model = group
             .iter()
-            .find(|index| {
-                kinds[**index] == Some(SpanKind::Work(StepKind::Chat(Role::Conversation)))
-            })
+            .find(|index| kinds[**index] == Some(SpanKind::Work(StepKind::Chat(Role::Analysis))))
             .and_then(|index| spans[*index].source.model.clone());
         // The exchange starts when its opener does; earlier STT streams are only work.
         let start_time = spans[request].start;
