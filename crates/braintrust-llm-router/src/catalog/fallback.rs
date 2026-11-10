@@ -85,6 +85,13 @@ impl OverlayModelCatalog {
 
         let mut names = vec![name.to_string()];
         visited.remove(name);
+        if let Some(configured_fallbacks) = self.custom.fallback_models.get(name) {
+            for fallback in configured_fallbacks {
+                if visited.remove(fallback) {
+                    names.push(fallback.clone());
+                }
+            }
+        }
         let mut equivalent_names: Vec<String> = visited.into_iter().collect();
         equivalent_names.sort();
         names.extend(equivalent_names);
