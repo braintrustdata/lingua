@@ -178,5 +178,11 @@
       "root_span_id": "root"
     }
   ],
-  "turns": []
+  "turns": [
+    {"request_id": "agent_turn-1", "response_id": "agent_speech-1", "response_text": "Hi there! How can I help you today?", "work_ids": ["llm_response-1"], "user_texts": []},
+    {"request_id": "user_turn-1", "response_id": null, "response_text": "", "work_ids": [], "user_texts": ["Hi, I'm looking for my order 1042. Can you tell me where it is?"]},
+    {"request_id": "agent_turn-2", "response_id": "agent_speech-2", "response_text": "Your order 1042 is in transit and will be delivered on Friday.", "work_ids": ["llm_response-2", "lookup_order-1", "llm_response-3"], "user_texts": []},
+    {"request_id": "user_turn-2", "response_id": null, "response_text": "", "work_ids": [], "user_texts": ["All right, thank you."]},
+    {"request_id": "agent_turn-3", "response_id": "agent_speech-3", "response_text": "You're welcome! Let me know if you need anything else.", "work_ids": ["llm_response-4"], "user_texts": []}
+  ]
 }
