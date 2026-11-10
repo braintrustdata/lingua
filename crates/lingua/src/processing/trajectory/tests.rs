@@ -2826,3 +2826,46 @@ fn voice_payloads_must_match_their_root_headers() {
         "Trajectory structure changed for span stt"
     );
 }
+
+#[test]
+fn voice_realtime_keeps_generated_work_separate_from_played_speech() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-realtime.json")).unwrap();
+    let result = load_voice(&fixture.spans, &fixture.spans).unwrap();
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert_eq!(turns.len(), 5);
+    assert_eq!(
+        turns[1]["request"][0]["content"],
+        "Hi, I'm looking for my order 1042. Can you tell me where it is?"
+    );
+    assert_eq!(turns[1]["work"], json::json!([]));
+    assert_eq!(turns[2]["work"].as_array().unwrap().len(), 3);
+    assert_eq!(turns[2]["work"][0]["id"], "llm_response-2");
+    assert_eq!(turns[2]["work"][0]["work"]["type"], "llm_analysis");
+    assert_eq!(turns[2]["work"][2]["work"]["type"], "llm_analysis");
+    assert_eq!(
+        turns[2]["work"][2]["work"]["work"][0]["content"],
+        "Your order 1042 is in transit and will be delivered on Friday."
+    );
+    assert_eq!(turns[2]["work"][2]["work"]["model"], "gpt-realtime");
+    assert_eq!(turns[2]["model"], "gpt-realtime");
+    assert_eq!(turns[2]["work"][2]["work"]["usage"]["total_tokens"], 307);
+    assert_eq!(turns[2]["work"][1]["work"]["type"], "tool_result");
+    assert_eq!(turns[2]["work"][1]["work"]["input"]["order_id"], "1042");
+    assert_eq!(
+        turns[2]["work"][1]["work"]["output"]["status"],
+        "in_transit"
+    );
+    assert_eq!(
+        turns[2]["work"][0]["work"]["work"][0]["content"][0]["tool_call_id"],
+        "call_QoHy5Zh7T40Q0G9V"
+    );
+    assert_eq!(turns[2]["response_id"], "agent_speech-2");
+    for (turn, speech) in [(0, "agent_speech-1"), (4, "agent_speech-3")] {
+        assert_eq!(turns[turn]["response_id"], speech);
+        assert_eq!(turns[turn]["work"][0]["work"]["type"], "llm_analysis");
+        assert_eq!(turns[turn]["work"].as_array().unwrap().len(), 1);
+    }
+    assert_eq!(result[0]["recordings"].as_array().unwrap().len(), 1);
+    assert!(result[0]["metadata"]["import_failures"].is_null());
+}
