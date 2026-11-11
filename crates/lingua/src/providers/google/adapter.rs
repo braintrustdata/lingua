@@ -1259,6 +1259,9 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::{
+        AudioTranscriptionConfigMode, MediaProcessing, ToolType,
+    };
     use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
@@ -2391,6 +2394,24 @@ mod tests {
         assert!(reason.contains(field), "{reason}");
     }
 
+    /// Parses a native Google request with the generated types so a test can
+    /// assert that newly specified wire fields survive the typed boundary.
+    fn parse_native_google_request(request: &Value) -> GenerateContentRequest {
+        serde_json::from_value(request.clone())
+            .expect("native Google request should deserialize into the generated types")
+    }
+
+    /// Returns the parts of the content at `index` of a parsed native request.
+    fn native_content_parts(
+        request: &GenerateContentRequest,
+        index: usize,
+    ) -> &[crate::providers::google::generated::Part] {
+        request.contents.as_ref().expect("contents")[index]
+            .parts
+            .as_ref()
+            .expect("parts")
+    }
+
     /// Asserts that native Google payloads pass through byte-for-byte while the
     /// adapter refuses to convert them to universal form.
     fn assert_google_provider_only_passthrough(
@@ -2529,6 +2550,77 @@ mod tests {
     }
 
     #[test]
+    fn test_google_function_response_part_media_processing_native_passthrough() {
+        let part = json!({
+            "functionResponse": {
+                "name": "fetch_clip",
+                "response": {"status": "ok"},
+                "parts": [{
+                    "fileData": {"fileUri": "gs://b/clip.mp4", "mimeType": "video/mp4"},
+                    "mediaProcessing": "AGENTIC"
+                }]
+            }
+        });
+        let request = json!({
+            "contents": [{"role": "user", "parts": [part.clone()]}]
+        });
+
+        let typed = parse_native_google_request(&request);
+        let nested = &native_content_parts(&typed, 0)[0]
+            .function_response
+            .as_ref()
+            .expect("functionResponse survives the typed parse")
+            .parts
+            .as_ref()
+            .expect("functionResponse.parts survives the typed parse")[0];
+        assert_eq!(nested.media_processing, Some(MediaProcessing::Agentic));
+        assert_eq!(
+            nested
+                .file_data
+                .as_ref()
+                .and_then(|file| file.file_uri.as_deref()),
+            Some("gs://b/clip.mp4")
+        );
+
+        assert_google_provider_only_passthrough(
+            Some(request),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "mediaProcessing",
+        );
+    }
+
+    #[test]
+    fn test_google_audio_transcription_source_text_native_passthrough() {
+        let request = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Make it shorter."}]}],
+            "generationConfig": {
+                "audioTranscriptionConfig": {
+                    "mode": "SMART",
+                    "sourceText": "The original draft text."
+                }
+            }
+        });
+        let typed = parse_native_google_request(&request);
+        let config = typed
+            .generation_config
+            .as_ref()
+            .and_then(|config| config.audio_transcription_config.as_ref())
+            .expect("audioTranscriptionConfig survives the typed parse");
+        assert_eq!(config.mode, Some(AudioTranscriptionConfigMode::Smart));
+        assert_eq!(
+            config.source_text.as_deref(),
+            Some("The original draft text.")
+        );
+
+        assert_google_provider_only_passthrough(Some(request), None, "audioTranscriptionConfig");
+    }
+
+    #[test]
     fn test_google_speech_metadata_native_passthrough() {
         assert_google_provider_only_passthrough(
             Some(json!({
@@ -2584,6 +2676,40 @@ mod tests {
                 }]
             })),
             "toolCall",
+        );
+    }
+
+    #[test]
+    fn test_google_media_processing_tool_response_native_passthrough() {
+        let part = json!({
+            "toolResponse": {
+                "id": "srv_1",
+                "toolType": "MEDIA_PROCESSING",
+                "response": {"summary": "a cat chasing a laser pointer"}
+            }
+        });
+        let request = json!({
+            "contents": [
+                {"role": "user", "parts": [{"text": "Describe the clip."}]},
+                {"role": "user", "parts": [part.clone()]}
+            ]
+        });
+        let typed = parse_native_google_request(&request);
+        let tool_response = native_content_parts(&typed, 1)[0]
+            .tool_response
+            .as_ref()
+            .expect("toolResponse survives the typed parse");
+        assert_eq!(tool_response.tool_type, Some(ToolType::MediaProcessing));
+
+        assert_google_provider_only_passthrough(
+            Some(request),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "toolResponse",
         );
     }
 }

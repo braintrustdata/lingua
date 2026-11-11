@@ -55,6 +55,16 @@ struct GoogleAssistantPartProviderOptions {
 // Google Content -> Universal Message
 // ============================================================================
 
+/// Reports whether a functionResponse carries the provider-hosted media
+/// processing hint on one of its nested media parts, where the part-level
+/// check cannot see it.
+fn has_function_response_media_processing(part: &GooglePart) -> bool {
+    part.function_response
+        .iter()
+        .flat_map(|response| response.parts.iter().flatten())
+        .any(|nested| nested.media_processing.is_some())
+}
+
 /// Rejects Google part fields whose semantics depend on provider-owned
 /// execution or resources and therefore have no universal representation.
 pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
@@ -66,6 +76,10 @@ pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), 
         "speechMetadata"
     } else if part.tool_call.is_some() {
         "toolCall"
+    } else if part.tool_response.is_some() {
+        "toolResponse"
+    } else if has_function_response_media_processing(part) {
+        "functionResponse.parts mediaProcessing"
     } else {
         return Ok(());
     };
