@@ -1219,12 +1219,10 @@ import_fixture!(
     "fixtures/voice-interruption-during-playback.json"
 );
 
-#[test]
-fn pipecat_interruption_during_playback() {
-    let fixture = include_str!("fixtures/voice-interruption-during-playback.json")
-        .replace("contrib.livekit.interrupted", "contrib.pipecat.interrupted");
-    check_import_fixture(&fixture);
-}
+import_fixture!(
+    pipecat_interruption_during_playback,
+    "fixtures/pipecat-interruption-during-playback.json"
+);
 import_fixture!(
     voice_unowned_user_speech,
     "fixtures/voice-unowned-user-speech.json"
