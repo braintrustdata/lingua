@@ -71,7 +71,10 @@ struct Metadata {
     sources: Option<json::Value>,
     #[serde(rename = "audio.segments")]
     segments: Option<json::Value>,
-    #[serde(rename = "contrib.livekit.interrupted")]
+    #[serde(
+        rename = "contrib.livekit.interrupted",
+        alias = "contrib.pipecat.interrupted"
+    )]
     interrupted: Option<json::Value>,
 }
 

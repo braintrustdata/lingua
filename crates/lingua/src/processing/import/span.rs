@@ -24,6 +24,7 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "turn.id",
     "turn.reply_to",
     "contrib.livekit.interrupted",
+    "contrib.pipecat.interrupted",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
