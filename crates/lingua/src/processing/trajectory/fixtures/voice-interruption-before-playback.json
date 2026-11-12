@@ -1,0 +1,5055 @@
+{
+  "spans": [
+    {
+      "id": "70f7c6a137dca1db",
+      "span_id": "6fbfe217fea0a6b5",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "created": "2026-11-03T21:12:29.390Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "session",
+        "exec_counter": 0
+      },
+      "metrics": {
+        "duration": 40.478999853134155,
+        "end": 1793740389.866,
+        "start": 1793740349.387
+      },
+      "input": {
+        "audio": {
+          "part-0": {
+            "content_type": "audio/ogg",
+            "filename": "part-0.ogg",
+            "key": "00000000-0000-4000-8000-000000000001",
+            "type": "braintrust_attachment"
+          }
+        }
+      },
+      "metadata": {
+        "audio.participants": {
+          "participant-1": {
+            "attributes": {
+              "contrib.livekit.participant_id": "PA_anon1",
+              "contrib.livekit.participant_kind": "STANDARD"
+            },
+            "type": "user"
+          },
+          "participant-2": {
+            "attributes": {
+              "contrib.livekit.participant_id": "PA_anon2",
+              "contrib.livekit.participant_kind": "AGENT"
+            },
+            "type": "agent"
+          }
+        },
+        "audio.schema.version": "3.0.0",
+        "audio.segments": {
+          "part-0": {
+            "attachment": {
+              "ref": "/input/audio/part-0"
+            },
+            "attributes": {
+              "opus.application": "audio",
+              "opus.bitrate_bps": 64000,
+              "opus.complexity": 5
+            },
+            "channels": {
+              "0": {
+                "sources": [
+                  "session-input"
+                ]
+              },
+              "1": {
+                "sources": [
+                  "agent-output"
+                ]
+              }
+            },
+            "duration_ms": 39939,
+            "encoding": "opus",
+            "mime_type": "audio/ogg",
+            "sample_rate_hz": 48000,
+            "start_offset_ms": 0,
+            "state": "ready"
+          }
+        },
+        "audio.sources": {
+          "agent-output": {
+            "label": "Agent audio"
+          },
+          "session-input": {
+            "label": "Agent input audio"
+          }
+        },
+        "audio.timeline": {
+          "origin_unix_ms": 1793740349392
+        },
+        "contrib.livekit.agent_label": "default_agent",
+        "contrib.livekit.agent_name": "lk-ts",
+        "contrib.livekit.audio.input_formats": [
+          {
+            "channel_count": 1,
+            "sample_rate_hz": 24000
+          }
+        ],
+        "contrib.livekit.audio.output_formats": [
+          {
+            "channel_count": 1,
+            "sample_rate_hz": 24000
+          }
+        ],
+        "contrib.livekit.dispatch_id": "AD_anon1",
+        "contrib.livekit.events": [
+          {
+            "attributes": {
+              "contrib.livekit.connection_state": "CONN_CONNECTED"
+            },
+            "name": "connection_state_changed",
+            "time_unix_ms": 1793740349404
+          },
+          {
+            "attributes": {
+              "contrib.livekit.participant_id": "PA_anon1",
+              "contrib.livekit.participant_kind": "STANDARD"
+            },
+            "name": "participant_linked",
+            "time_unix_ms": 1793740349415
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "initializing"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740349447
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740358135.5962
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740359603.7354
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "thinking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740360813
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "thinking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740361066
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740365021
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740369046.6655
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740371922.1902
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "thinking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740372274
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740372305.708
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740373492.784
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "thinking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740374400
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740377015.762
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740377553.7732
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740378028
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "thinking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740378759
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "thinking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740379118
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740381166
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740384725.499
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740385872.321
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "thinking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740386265
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "listening"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740386354.657
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "speaking",
+              "contrib.livekit.old_state": "thinking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740386855
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "user_state_changed",
+            "time_unix_ms": 1793740386832.0872
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "thinking",
+              "contrib.livekit.old_state": "speaking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740388995
+          },
+          {
+            "attributes": {
+              "contrib.livekit.new_state": "listening",
+              "contrib.livekit.old_state": "thinking"
+            },
+            "name": "agent_state_changed",
+            "time_unix_ms": 1793740389341
+          }
+        ],
+        "contrib.livekit.job.agent_id": "CA_anon1",
+        "contrib.livekit.job.worker_id": "CAW_anon1",
+        "contrib.livekit.job_id": "AJ_anon1",
+        "contrib.livekit.room_sid": "RM_anon1",
+        "gen_ai.operation.name": "invoke_workflow",
+        "gen_ai.workflow.name": "agent_session"
+      }
+    },
+    {
+      "id": "02514863b0296a14",
+      "span_id": "276bc830aa6ed4d4",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:29.399Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.session_start",
+        "exec_counter": 1
+      },
+      "metrics": {
+        "duration": 0.04999995231628418,
+        "end": 1793740349.449,
+        "start": 1793740349.399
+      },
+      "metadata": {}
+    },
+    {
+      "id": "d050e01125c189d3",
+      "span_id": "c25500cc54e591f5",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "276bc830aa6ed4d4"
+      ],
+      "created": "2026-11-03T21:12:29.415Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.wait_for_participant",
+        "exec_counter": 2
+      },
+      "metrics": {
+        "duration": 0.006999969482421875,
+        "end": 1793740349.422,
+        "start": 1793740349.415
+      },
+      "metadata": {
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "contrib.livekit.room_io.participant_filter": false
+      }
+    },
+    {
+      "id": "ab0e9b1b2a1048fb",
+      "span_id": "3686a682f2b4040a",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "276bc830aa6ed4d4"
+      ],
+      "created": "2026-11-03T21:12:29.416Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.start_agent_activity",
+        "exec_counter": 3
+      },
+      "metrics": {
+        "duration": 0.018000125885009766,
+        "end": 1793740349.434,
+        "start": 1793740349.416
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent",
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "create_agent",
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit"
+      }
+    },
+    {
+      "id": "7e81c3dbeab66ed4",
+      "span_id": "198c5285f71748fd",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3686a682f2b4040a"
+      ],
+      "created": "2026-11-03T21:12:29.417Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.setup_toolsets",
+        "exec_counter": 4
+      },
+      "metrics": {
+        "duration": 0.003999948501586914,
+        "end": 1793740349.421,
+        "start": 1793740349.417
+      },
+      "metadata": {}
+    },
+    {
+      "id": "32b9410f1ab0caa4",
+      "span_id": "69858b13fee2e609",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "276bc830aa6ed4d4"
+      ],
+      "created": "2026-11-03T21:12:29.430Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.wait_for_audio_track",
+        "exec_counter": 5
+      },
+      "metrics": {
+        "duration": 0.12899994850158691,
+        "end": 1793740349.559,
+        "start": 1793740349.43
+      },
+      "metadata": {
+        "contrib.livekit.events": [
+          {
+            "attributes": {
+              "contrib.livekit.track_sid": "TR_anon1",
+              "contrib.livekit.track_source": "SOURCE_MICROPHONE"
+            },
+            "name": "track_subscribed",
+            "time_unix_ms": 1793740349552
+          },
+          {
+            "attributes": {},
+            "name": "first_frame",
+            "time_unix_ms": 1793740349559
+          }
+        ],
+        "contrib.livekit.first_frame_delay": 0.129
+      }
+    },
+    {
+      "id": "2afb3a0cea414589",
+      "span_id": "68a44d0b101aedce",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "276bc830aa6ed4d4"
+      ],
+      "created": "2026-11-03T21:12:29.431Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.publish_audio_output",
+        "exec_counter": 6
+      },
+      "metrics": {
+        "duration": 0.19099998474121097,
+        "end": 1793740349.622,
+        "start": 1793740349.431
+      },
+      "metadata": {
+        "contrib.livekit.track_sid": "TR_anon2"
+      }
+    },
+    {
+      "id": "b1520357484706bb",
+      "span_id": "32c42672fcbe5040",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3686a682f2b4040a"
+      ],
+      "created": "2026-11-03T21:12:29.433Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.on_enter",
+        "exec_counter": 7
+      },
+      "metrics": {
+        "duration": 0.010999917984008787,
+        "end": 1793740349.444,
+        "start": 1793740349.433
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent"
+      }
+    },
+    {
+      "id": "23533564d2e0d6da",
+      "span_id": "b9c502ccc7fa36d6",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "de3276c36e84ffc4"
+      ],
+      "created": "2026-11-03T21:12:39.932Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt",
+        "exec_counter": 10
+      },
+      "metrics": {
+        "duration": 5.266999959945679,
+        "end": 1793740359.931,
+        "start": 1793740354.664
+      },
+      "output": [
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.source_id": "session-input",
+        "contrib.livekit.language": "en",
+        "contrib.livekit.provider_request_id": "provider-request-1",
+        "contrib.livekit.transcript_confidence": 0.9765625,
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "ee306bb67e4bf061",
+      "span_id": "de3276c36e84ffc4",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:38.199Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn",
+        "exec_counter": 8
+      },
+      "metrics": {
+        "duration": 2.6764039993286133,
+        "end": 1793740360.811,
+        "start": 1793740358.134596
+      },
+      "input": [
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 10214,
+            "start_offset_ms": 8743
+          }
+        },
+        "contrib.livekit.end_of_turn_delay": 1.2002646484375,
+        "contrib.livekit.message_id": "item_a69ef8b1-6b5",
+        "contrib.livekit.on_user_turn_completed_delay": 0.002,
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-1"
+        ],
+        "contrib.livekit.started_speaking_at": 1793740358.134596,
+        "contrib.livekit.stopped_speaking_at": 1793740359.6057353,
+        "contrib.livekit.stt.events": "[{\"received_at\":1793740354667,\"type\":\"final_transcript\",\"transcript_length\":0},{\"received_at\":1793740358267,\"type\":\"final_transcript\",\"transcript_length\":0},{\"received_at\":1793740359275,\"type\":\"interim_transcript\",\"transcript_length\":18},{\"received_at\":1793740359931,\"type\":\"final_transcript\",\"transcript_length\":29}]",
+        "contrib.livekit.transcript_confidence": 0.9765625,
+        "contrib.livekit.transcription_delay": 0.3262646484375,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "deepgram/nova-3",
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "fbc8c95cd50b4ad2",
+      "span_id": "a2fd5f44dc433c71",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "de3276c36e84ffc4"
+      ],
+      "created": "2026-11-03T21:12:38.200Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 9
+      },
+      "metrics": {
+        "duration": 1.4681389331817627,
+        "end": 1793740359.6037354,
+        "start": 1793740358.1355965
+      },
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 10212,
+            "start_offset_ms": 8744
+          }
+        },
+        "audio.source_id": "session-input",
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "turn.id": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "7f5d59cebe3ace7d",
+      "span_id": "b609a745a1f0d498",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "de3276c36e84ffc4"
+      ],
+      "created": "2026-11-03T21:12:39.942Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_wait",
+        "exec_counter": 13
+      },
+      "metrics": {
+        "duration": 1.2022647857666016,
+        "end": 1793740360.808,
+        "start": 1793740359.6057353
+      },
+      "metadata": {
+        "contrib.livekit.eou.endpointing_delay": 1.2,
+        "contrib.livekit.eou.not_committed_count": 0,
+        "contrib.livekit.eou.outcome": "committed",
+        "contrib.livekit.eou.rearm_count": 0,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.wait_duration": 1.2022646484375,
+        "turn.id": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "4f31b627645ff8d3",
+      "span_id": "10147f7aa26354e4",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:39.934Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn",
+        "exec_counter": 11
+      },
+      "metrics": {
+        "duration": 5.08899998664856,
+        "end": 1793740365.023,
+        "start": 1793740359.934
+      },
+      "input": [
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.e2e_latency": 1.4592647552490234,
+        "contrib.livekit.end_of_turn_delay": 1.2002646484375,
+        "contrib.livekit.events": [
+          {
+            "attributes": {
+              "contrib.livekit.generation_id": "speech_56cf75f2-ec7_1"
+            },
+            "name": "generation",
+            "time_unix_ms": 1793740359935
+          }
+        ],
+        "contrib.livekit.generation_count": 1,
+        "contrib.livekit.generation_id": "speech_56cf75f2-ec7_1",
+        "contrib.livekit.interrupted": false,
+        "contrib.livekit.on_user_turn_completed_delay": 0.002,
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "contrib.livekit.playback_events": [
+          {
+            "attributes": {
+              "interrupted": false,
+              "playbackPosition": 3.947375000000001,
+              "synchronizedTranscript": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?"
+            },
+            "name": "playbackFinished",
+            "time_unix_ms": 1793740365013
+          }
+        ],
+        "contrib.livekit.speech.queue_wait": 0.001057353001087904,
+        "contrib.livekit.speech_id": "speech_56cf75f2-ec7",
+        "contrib.livekit.transcription_delay": 0.3262646484375,
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "invoke_agent",
+        "turn.id": "10147f7aa26354e4",
+        "turn.reply_to": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "1d64d5e287e51a28",
+      "span_id": "c722fc5134db7c08",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "10147f7aa26354e4"
+      ],
+      "created": "2026-11-03T21:12:39.938Z",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 12
+      },
+      "metrics": {
+        "completion_tokens": 21,
+        "duration": 0.47500014305114746,
+        "end": 1793740360.413,
+        "prompt_tokens": 551,
+        "start": 1793740359.938,
+        "time_to_first_token": 0.38882699900023,
+        "tokens": 572
+      },
+      "input": [
+        {
+          "content": "You are Pip, who answers the phone at Mortimer's Magical Emporium, a mail-order shop for potions, wands, and enchanted goods. Talk like a friendly, capable person on a phone call.\n\n- Help the caller check on or change an order.\n- Ask for the order ID if you don't have it. Order IDs are four-digit numbers.\n- Use what the caller has already told you. Don't ask again for anything they've said.\n- Use lookup_order before answering questions about an order, and update_order to change it.\n- When you look up an order, tell the caller the item, its status, and when it should arrive.\n- Say order IDs digit by digit, like \"one zero one four\".\n- Confirm the change with the caller before calling update_order, then tell them it's done.\n- Never make up order details. If a tool returns an error, say so and ask how to proceed.\n- When the customer is done, say one short goodbye and call end_call.\n- Keep each reply to one short sentence, two at most, and answer what they asked first.\n- Speak plainly, the way people do on the phone, with no flourishes, lists, or formatting.\n",
+          "role": "system"
+        },
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.function_tools": "[\"end_call\",\"lookup_order\",\"update_order\"]",
+        "contrib.livekit.response.ttft": 0.38882699900023,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b9c502ccc7fa36d6",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up an order by its four-digit order ID.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Set one field of an order to a new value. Returns the updated order.",
+              "name": "update_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "order_id": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id",
+                  "field",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "\nEnds the current call and disconnects immediately.\n\nCall when:\n- The user clearly indicates they are done (e.g., \"that's all, bye\").\n\nDo not call when:\n- The user asks to pause, hold, or transfer.\n- Intent is unclear.\n\nThis is the final action the agent can take.\nOnce called, no further interaction is possible with the user.\nDon't generate any other text or response when the tool is called.\n\n",
+              "name": "end_call",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {},
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ],
+        "turn.id": "10147f7aa26354e4",
+        "turn.reply_to": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "5899ff89630bf229",
+      "span_id": "01d9519f85178816",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "b609a745a1f0d498"
+      ],
+      "created": "2026-11-03T21:12:39.942Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_detection",
+        "exec_counter": 14
+      },
+      "metrics": {
+        "duration": 0.012000083923339844,
+        "end": 1793740359.954,
+        "start": 1793740359.942
+      },
+      "metadata": {
+        "contrib.livekit.eou.detection_delay": 0.085,
+        "contrib.livekit.eou.endpointing_delay": 1.2,
+        "contrib.livekit.eou.from_cache": false,
+        "contrib.livekit.eou.language": "en",
+        "contrib.livekit.eou.probability": 0.22493496537208557,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.unlikely_threshold": 0.3857,
+        "turn.id": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "4994d5584fc4d57d",
+      "span_id": "f8ab68c2df523fab",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "c722fc5134db7c08"
+      ],
+      "created": "2026-11-03T21:12:39.944Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run",
+        "exec_counter": 15
+      },
+      "metrics": {
+        "duration": 0.4660000801086426,
+        "end": 1793740360.41,
+        "start": 1793740359.944
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-2"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "10147f7aa26354e4",
+        "turn.reply_to": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "c508431357784793",
+      "span_id": "b2d8eede87f9cc92",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "de3276c36e84ffc4"
+      ],
+      "created": "2026-11-03T21:12:40.808Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.on_user_turn_completed",
+        "exec_counter": 16
+      },
+      "metrics": {
+        "duration": 0.0009999275207519531,
+        "end": 1793740360.809,
+        "start": 1793740360.808
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent",
+        "turn.id": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "43c41d2764334cd3",
+      "span_id": "abb295f4eafb2747",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "10147f7aa26354e4"
+      ],
+      "created": "2026-11-03T21:12:40.814Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "tts",
+        "exec_counter": 17
+      },
+      "metrics": {
+        "duration": 0.9610002040863036,
+        "end": 1793740361.775,
+        "start": 1793740360.814
+      },
+      "metadata": {
+        "contrib.livekit.response.ttfb": 0.23660494399882737,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "cartesia/sonic-3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "c722fc5134db7c08",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "cartesia/sonic-3",
+        "provider": "livekit",
+        "turn.id": "10147f7aa26354e4",
+        "turn.reply_to": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "794596046a85789c",
+      "span_id": "388b7f35be5338eb",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "abb295f4eafb2747"
+      ],
+      "created": "2026-11-03T21:12:40.824Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request",
+        "exec_counter": 18
+      },
+      "metrics": {
+        "duration": 0.9510002136230468,
+        "end": 1793740361.775,
+        "start": 1793740360.824
+      },
+      "metadata": {
+        "contrib.livekit.tts.label": "inference.TTS",
+        "contrib.livekit.tts.streaming": true,
+        "contrib.livekit.tts_metrics": "{\"type\":\"tts_metrics\",\"timestamp\":1793740361773,\"requestId\":\"tts_request_ba8ba0da-518\",\"ttfbMs\":236,\"durationMs\":945,\"charactersCount\":81,\"audioDurationMs\":3947,\"cancelled\":false,\"label\":\"inference.TTS\",\"inputTokens\":0,\"outputTokens\":0,\"streamed\":true,\"metadata\":{\"modelProvider\":\"livekit\",\"modelName\":\"cartesia/sonic-3\"}}",
+        "turn.id": "10147f7aa26354e4",
+        "turn.reply_to": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "f94f8a8b9afc1e6d",
+      "span_id": "22188ffc1f8cac12",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "388b7f35be5338eb"
+      ],
+      "created": "2026-11-03T21:12:40.825Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request_run",
+        "exec_counter": 19
+      },
+      "metrics": {
+        "duration": 0.9489998817443848,
+        "end": 1793740361.774,
+        "start": 1793740360.825
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-3"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "10147f7aa26354e4",
+        "turn.reply_to": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "d809ea0bda0c4744",
+      "span_id": "647415f8de9ba4ac",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "10147f7aa26354e4"
+      ],
+      "created": "2026-11-03T21:12:41.066Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech",
+        "exec_counter": 20
+      },
+      "metrics": {
+        "duration": 3.955999851226806,
+        "end": 1793740365.021,
+        "start": 1793740361.065
+      },
+      "output": [
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-2"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 15619,
+            "start_offset_ms": 11672
+          }
+        },
+        "audio.source_id": "agent-output",
+        "contrib.livekit.message_ids": [
+          "item_b908b56f-714"
+        ],
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "abb295f4eafb2747",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "turn.id": "10147f7aa26354e4",
+        "turn.reply_to": "de3276c36e84ffc4"
+      }
+    },
+    {
+      "id": "6316842f04703dbb",
+      "span_id": "d787a9a6b9538e3e",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6ab51f4dca1ce100"
+      ],
+      "created": "2026-11-03T21:12:52.184Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt",
+        "exec_counter": 23
+      },
+      "metrics": {
+        "duration": 7.265000104904175,
+        "end": 1793740372.184,
+        "start": 1793740364.919
+      },
+      "output": [
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.source_id": "session-input",
+        "contrib.livekit.language": "en",
+        "contrib.livekit.provider_request_id": "provider-request-1",
+        "contrib.livekit.transcript_confidence": 0.9980469,
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "2449d031672d090d",
+      "span_id": "6ab51f4dca1ce100",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:49.110Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn",
+        "exec_counter": 21
+      },
+      "metrics": {
+        "duration": 3.226334571838379,
+        "end": 1793740372.272,
+        "start": 1793740369.0456655
+      },
+      "input": [
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 22531,
+            "start_offset_ms": 19654
+          }
+        },
+        "contrib.livekit.end_of_turn_delay": 0.346809814453125,
+        "contrib.livekit.message_id": "item_7e58c124-54a",
+        "contrib.livekit.on_user_turn_completed_delay": 0.001,
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-1"
+        ],
+        "contrib.livekit.started_speaking_at": 1793740369.0456655,
+        "contrib.livekit.stopped_speaking_at": 1793740371.92319,
+        "contrib.livekit.stt.events": "[{\"received_at\":1793740364920,\"type\":\"final_transcript\",\"transcript_length\":0},{\"received_at\":1793740368267,\"type\":\"final_transcript\",\"transcript_length\":0},{\"received_at\":1793740369311,\"type\":\"interim_transcript\",\"transcript_length\":3},{\"received_at\":1793740370298,\"type\":\"interim_transcript\",\"transcript_length\":27},{\"received_at\":1793740371324,\"type\":\"interim_transcript\",\"transcript_length\":42},{\"received_at\":1793740372184,\"type\":\"final_transcript\",\"transcript_length\":52}]",
+        "contrib.livekit.transcript_confidence": 0.9980469,
+        "contrib.livekit.transcription_delay": 0.260809814453125,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "deepgram/nova-3",
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "a5d17926ca7f6a33",
+      "span_id": "e6a3613616de3e4c",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6ab51f4dca1ce100"
+      ],
+      "created": "2026-11-03T21:12:49.111Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 22
+      },
+      "metrics": {
+        "duration": 2.8755247592926025,
+        "end": 1793740371.9221902,
+        "start": 1793740369.0466654
+      },
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 22530,
+            "start_offset_ms": 19655
+          }
+        },
+        "audio.source_id": "session-input",
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "turn.id": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "2d6e4092a689230b",
+      "span_id": "5fc528f94a14fc03",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6ab51f4dca1ce100"
+      ],
+      "created": "2026-11-03T21:12:52.188Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_wait",
+        "exec_counter": 26
+      },
+      "metrics": {
+        "duration": 0.34680986404418945,
+        "end": 1793740372.27,
+        "start": 1793740371.92319
+      },
+      "metadata": {
+        "contrib.livekit.eou.endpointing_delay": 0.3,
+        "contrib.livekit.eou.not_committed_count": 0,
+        "contrib.livekit.eou.outcome": "committed",
+        "contrib.livekit.eou.rearm_count": 0,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.wait_duration": 0.346809814453125,
+        "turn.id": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "2174b42e56508b6d",
+      "span_id": "3fbea1d575927c5b",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:52.185Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn",
+        "exec_counter": 24
+      },
+      "metrics": {
+        "duration": 1.624000072479248,
+        "end": 1793740373.809,
+        "start": 1793740372.185
+      },
+      "input": [
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.e2e_latency": 1.8668098449707031,
+        "contrib.livekit.end_of_turn_delay": 0.346809814453125,
+        "contrib.livekit.events": [
+          {
+            "attributes": {
+              "contrib.livekit.generation_id": "speech_07d42a81-f06_1"
+            },
+            "name": "generation",
+            "time_unix_ms": 1793740372185
+          },
+          {
+            "attributes": {
+              "contrib.livekit.generation_id": "speech_07d42a81-f06_2",
+              "contrib.livekit.parent_generation_id": "speech_07d42a81-f06_1"
+            },
+            "name": "generation",
+            "time_unix_ms": 1793740372797
+          }
+        ],
+        "contrib.livekit.generation_count": 2,
+        "contrib.livekit.generation_id": "speech_07d42a81-f06_2",
+        "contrib.livekit.interrupted": true,
+        "contrib.livekit.interruption.source": "user_turn",
+        "contrib.livekit.on_user_turn_completed_delay": 0.001,
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "contrib.livekit.playback_events": [
+          {
+            "attributes": {
+              "interrupted": true,
+              "playbackPosition": 0.0050000000000000044,
+              "synchronizedTranscript": ""
+            },
+            "name": "playbackFinished",
+            "time_unix_ms": 1793740373796
+          }
+        ],
+        "contrib.livekit.playout.position": 0.0050000000000000044,
+        "contrib.livekit.speech.queue_wait": 0.0011605599988251925,
+        "contrib.livekit.speech_id": "speech_07d42a81-f06",
+        "contrib.livekit.transcription_delay": 0.260809814453125,
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "invoke_agent",
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "1ec54ba06bb327b5",
+      "span_id": "d37a124b414da984",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3fbea1d575927c5b"
+      ],
+      "created": "2026-11-03T21:12:52.186Z",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 25
+      },
+      "metrics": {
+        "cache_read_input_tokens": 512,
+        "completion_tokens": 20,
+        "duration": 0.6089999675750732,
+        "end": 1793740372.795,
+        "prompt_tokens": 597,
+        "start": 1793740372.186,
+        "time_to_first_token": 0.6022780729999795,
+        "tokens": 617
+      },
+      "input": [
+        {
+          "content": "You are Pip, who answers the phone at Mortimer's Magical Emporium, a mail-order shop for potions, wands, and enchanted goods. Talk like a friendly, capable person on a phone call.\n\n- Help the caller check on or change an order.\n- Ask for the order ID if you don't have it. Order IDs are four-digit numbers.\n- Use what the caller has already told you. Don't ask again for anything they've said.\n- Use lookup_order before answering questions about an order, and update_order to change it.\n- When you look up an order, tell the caller the item, its status, and when it should arrive.\n- Say order IDs digit by digit, like \"one zero one four\".\n- Confirm the change with the caller before calling update_order, then tell them it's done.\n- Never make up order details. If a tool returns an error, say so and ask how to proceed.\n- When the customer is done, say one short goodbye and call end_call.\n- Keep each reply to one short sentence, two at most, and answer what they asked first.\n- Speak plainly, the way people do on the phone, with no flourishes, lists, or formatting.\n",
+          "role": "system"
+        },
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        },
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1019\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_95ce3e11ed1d4367a0f05a18",
+              "type": "function"
+            }
+          ]
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.function_tools": "[\"end_call\",\"lookup_order\",\"update_order\"]",
+        "contrib.livekit.response.ttft": 0.6022780729999795,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b9c502ccc7fa36d6",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "647415f8de9ba4ac",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "d787a9a6b9538e3e",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up an order by its four-digit order ID.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Set one field of an order to a new value. Returns the updated order.",
+              "name": "update_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "order_id": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id",
+                  "field",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "\nEnds the current call and disconnects immediately.\n\nCall when:\n- The user clearly indicates they are done (e.g., \"that's all, bye\").\n\nDo not call when:\n- The user asks to pause, hold, or transfer.\n- Intent is unclear.\n\nThis is the final action the agent can take.\nOnce called, no further interaction is possible with the user.\nDon't generate any other text or response when the tool is called.\n\n",
+              "name": "end_call",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {},
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ],
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "69a04010aa9c8752",
+      "span_id": "96dc4d5f05fe4ded",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "5fc528f94a14fc03"
+      ],
+      "created": "2026-11-03T21:12:52.188Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_detection",
+        "exec_counter": 27
+      },
+      "metrics": {
+        "duration": 0.0820000171661377,
+        "end": 1793740372.27,
+        "start": 1793740372.188
+      },
+      "metadata": {
+        "contrib.livekit.eou.detection_delay": 0.07,
+        "contrib.livekit.eou.endpointing_delay": 0.3,
+        "contrib.livekit.eou.from_cache": false,
+        "contrib.livekit.eou.language": "en",
+        "contrib.livekit.eou.probability": 0.4798620343208313,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.unlikely_threshold": 0.3857,
+        "turn.id": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "2dcb7b002865326c",
+      "span_id": "dffe3be6bdb2bda9",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "d37a124b414da984"
+      ],
+      "created": "2026-11-03T21:12:52.189Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run",
+        "exec_counter": 28
+      },
+      "metrics": {
+        "duration": 0.6040000915527344,
+        "end": 1793740372.793,
+        "start": 1793740372.189
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-4"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "3423adc77b6d886f",
+      "span_id": "6008f5374fa212f9",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6ab51f4dca1ce100"
+      ],
+      "created": "2026-11-03T21:12:52.271Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.on_user_turn_completed",
+        "exec_counter": 29
+      },
+      "metrics": {
+        "duration": 0,
+        "end": 1793740372.271,
+        "start": 1793740372.271
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent",
+        "turn.id": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "2cf505268339c45b",
+      "span_id": "7b4e6be15d958c01",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "55bcbd1ccdd78b26"
+      ],
+      "created": "2026-11-03T21:12:52.371Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 31
+      },
+      "metrics": {
+        "duration": 1.1870760917663574,
+        "end": 1793740373.492784,
+        "start": 1793740372.305708
+      },
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 24101,
+            "start_offset_ms": 22914
+          }
+        },
+        "audio.source_id": "session-input",
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "turn.id": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "6817974e1e291344",
+      "span_id": "55bcbd1ccdd78b26",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:52.370Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn",
+        "exec_counter": 30
+      },
+      "metrics": {
+        "duration": 1.4952921867370603,
+        "end": 1793740373.801,
+        "start": 1793740372.305708
+      },
+      "input": [
+        {
+          "content": "Could you tell me its status?",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 24102,
+            "start_offset_ms": 22914
+          }
+        },
+        "contrib.livekit.end_of_turn_delay": 0.306216064453125,
+        "contrib.livekit.message_id": "item_476f23b0-7f9",
+        "contrib.livekit.on_user_turn_completed_delay": 0.001,
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-1"
+        ],
+        "contrib.livekit.started_speaking_at": 1793740372.305708,
+        "contrib.livekit.stopped_speaking_at": 1793740373.493784,
+        "contrib.livekit.stt.events": "[{\"received_at\":1793740373140,\"type\":\"interim_transcript\",\"transcript_length\":22},{\"received_at\":1793740373785,\"type\":\"final_transcript\",\"transcript_length\":29}]",
+        "contrib.livekit.transcript_confidence": 1,
+        "contrib.livekit.transcription_delay": 0.293216064453125,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "deepgram/nova-3",
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "a782fb5d38c8956d",
+      "span_id": "5d9b13791896f65f",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3fbea1d575927c5b"
+      ],
+      "created": "2026-11-03T21:12:52.790Z",
+      "span_attributes": {
+        "type": "tool",
+        "name": "lookup_order",
+        "exec_counter": 32
+      },
+      "metrics": {
+        "duration": 0.003000020980834961,
+        "end": 1793740372.793,
+        "start": 1793740372.79
+      },
+      "input": {
+        "order_id": "1019"
+      },
+      "output": {
+        "customer": "Wren Hollowell",
+        "delivery_address": "The Wanderers Guild",
+        "enchantment": "friendly voice",
+        "estimated_delivery": "2026-10-21",
+        "item": "Talking Map",
+        "order_id": "1019",
+        "quantity": "1",
+        "status": "delivered"
+      },
+      "metadata": {
+        "contrib.livekit.function_tool.is_error": false,
+        "contrib.livekit.function_tool.name": "lookup_order",
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.call.id": "call_95ce3e11ed1d4367a0f05a18",
+        "gen_ai.tool.name": "lookup_order",
+        "gen_ai.tool.type": "function",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "requested_by"
+            },
+            "context": {
+              "spanId": "d37a124b414da984",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "9c1aa6a2a7a9b4be",
+      "span_id": "2b8c8ed4b8c80dc8",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3fbea1d575927c5b"
+      ],
+      "created": "2026-11-03T21:12:52.798Z",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 33
+      },
+      "metrics": {
+        "cache_read_input_tokens": 576,
+        "completion_tokens": 31,
+        "duration": 0.3259999752044678,
+        "end": 1793740373.123,
+        "prompt_tokens": 685,
+        "start": 1793740372.797,
+        "time_to_first_token": 0.15355510200060962,
+        "tokens": 716
+      },
+      "input": [
+        {
+          "content": "You are Pip, who answers the phone at Mortimer's Magical Emporium, a mail-order shop for potions, wands, and enchanted goods. Talk like a friendly, capable person on a phone call.\n\n- Help the caller check on or change an order.\n- Ask for the order ID if you don't have it. Order IDs are four-digit numbers.\n- Use what the caller has already told you. Don't ask again for anything they've said.\n- Use lookup_order before answering questions about an order, and update_order to change it.\n- When you look up an order, tell the caller the item, its status, and when it should arrive.\n- Say order IDs digit by digit, like \"one zero one four\".\n- Confirm the change with the caller before calling update_order, then tell them it's done.\n- Never make up order details. If a tool returns an error, say so and ask how to proceed.\n- When the customer is done, say one short goodbye and call end_call.\n- Keep each reply to one short sentence, two at most, and answer what they asked first.\n- Speak plainly, the way people do on the phone, with no flourishes, lists, or formatting.\n",
+          "role": "system"
+        },
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        },
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1019\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_95ce3e11ed1d4367a0f05a18",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1019\",\"customer\":\"Wren Hollowell\",\"item\":\"Talking Map\",\"quantity\":\"1\",\"status\":\"delivered\",\"delivery_address\":\"The Wanderers Guild\",\"enchantment\":\"friendly voice\",\"estimated_delivery\":\"2026-10-21\"}",
+          "role": "tool",
+          "tool_call_id": "call_95ce3e11ed1d4367a0f05a18"
+        }
+      ],
+      "output": [
+        {
+          "content": "Your Talking Map has been delivered to The Wanderers Guild. It should have arrived on October twenty-first, twenty twenty-six.",
+          "role": "assistant"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.function_tools": "[\"end_call\",\"lookup_order\",\"update_order\"]",
+        "contrib.livekit.response.ttft": 0.15355510200060962,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b9c502ccc7fa36d6",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "647415f8de9ba4ac",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "d787a9a6b9538e3e",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "5d9b13791896f65f",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit",
+        "tool_choice": "auto",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up an order by its four-digit order ID.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Set one field of an order to a new value. Returns the updated order.",
+              "name": "update_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "order_id": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id",
+                  "field",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "\nEnds the current call and disconnects immediately.\n\nCall when:\n- The user clearly indicates they are done (e.g., \"that's all, bye\").\n\nDo not call when:\n- The user asks to pause, hold, or transfer.\n- Intent is unclear.\n\nThis is the final action the agent can take.\nOnce called, no further interaction is possible with the user.\nDon't generate any other text or response when the tool is called.\n\n",
+              "name": "end_call",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {},
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ],
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "2ce53efa42237892",
+      "span_id": "25034512195bbeb4",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "2b8c8ed4b8c80dc8"
+      ],
+      "created": "2026-11-03T21:12:52.802Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run",
+        "exec_counter": 34
+      },
+      "metrics": {
+        "duration": 0.31999993324279785,
+        "end": 1793740373.122,
+        "start": 1793740372.802
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-5"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "d601b6966e5efad6",
+      "span_id": "3e8aa0291a5f6244",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3fbea1d575927c5b"
+      ],
+      "created": "2026-11-03T21:12:52.952Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "tts",
+        "exec_counter": 35
+      },
+      "metrics": {
+        "duration": 0.8560001850128174,
+        "end": 1793740373.808,
+        "start": 1793740372.952
+      },
+      "metadata": {
+        "contrib.livekit.response.ttfb": 0.1832902810001542,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "cartesia/sonic-3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "2b8c8ed4b8c80dc8",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "cartesia/sonic-3",
+        "provider": "livekit",
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "4faf6acb7f676a6e",
+      "span_id": "6e2b371b990e5aa6",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3e8aa0291a5f6244"
+      ],
+      "created": "2026-11-03T21:12:52.954Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request",
+        "exec_counter": 36
+      },
+      "metrics": {
+        "duration": 0.8550000190734863,
+        "end": 1793740373.809,
+        "start": 1793740372.954
+      },
+      "metadata": {
+        "contrib.livekit.tts.label": "inference.TTS",
+        "contrib.livekit.tts.streaming": true,
+        "contrib.livekit.tts_metrics": "{\"type\":\"tts_metrics\",\"timestamp\":1793740373809,\"requestId\":\"tts_request_25e6cd2a-731\",\"ttfbMs\":183,\"durationMs\":747,\"charactersCount\":126,\"audioDurationMs\":3400,\"cancelled\":true,\"label\":\"inference.TTS\",\"inputTokens\":0,\"outputTokens\":0,\"streamed\":true,\"metadata\":{\"modelProvider\":\"livekit\",\"modelName\":\"cartesia/sonic-3\"}}",
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "893a4d3fc8aeb6ac",
+      "span_id": "d83be9f2cb959947",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6e2b371b990e5aa6"
+      ],
+      "created": "2026-11-03T21:12:52.954Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request_run",
+        "exec_counter": 37
+      },
+      "metrics": {
+        "duration": 0.8540000915527344,
+        "end": 1793740373.808,
+        "start": 1793740372.954
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-3"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "3fbea1d575927c5b",
+        "turn.reply_to": "6ab51f4dca1ce100"
+      }
+    },
+    {
+      "id": "c1c0317fc991737c",
+      "span_id": "acb72f96882f9720",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "55bcbd1ccdd78b26"
+      ],
+      "created": "2026-11-03T21:12:53.786Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt",
+        "exec_counter": 38
+      },
+      "metrics": {
+        "duration": 0.6449999809265137,
+        "end": 1793740373.785,
+        "start": 1793740373.14
+      },
+      "output": [
+        {
+          "content": "Could you tell me its status?",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.source_id": "session-input",
+        "contrib.livekit.language": "en",
+        "contrib.livekit.provider_request_id": "provider-request-1",
+        "contrib.livekit.transcript_confidence": 1,
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "60ec1e58bf3487d5",
+      "span_id": "3b7367271feda9f8",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "55bcbd1ccdd78b26"
+      ],
+      "created": "2026-11-03T21:12:53.789Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_wait",
+        "exec_counter": 41
+      },
+      "metrics": {
+        "duration": 0.3062160015106201,
+        "end": 1793740373.8,
+        "start": 1793740373.493784
+      },
+      "metadata": {
+        "contrib.livekit.eou.endpointing_delay": 0.3,
+        "contrib.livekit.eou.not_committed_count": 0,
+        "contrib.livekit.eou.outcome": "committed",
+        "contrib.livekit.eou.rearm_count": 0,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.wait_duration": 0.306216064453125,
+        "turn.id": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "150a5efda95594b8",
+      "span_id": "f15e5e3eaded9a7b",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:53.788Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn",
+        "exec_counter": 39
+      },
+      "metrics": {
+        "duration": 4.245000123977661,
+        "end": 1793740378.032,
+        "start": 1793740373.787
+      },
+      "input": [
+        {
+          "content": "Could you tell me its status?",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.e2e_latency": 0.9052159786224364,
+        "contrib.livekit.end_of_turn_delay": 0.306216064453125,
+        "contrib.livekit.events": [
+          {
+            "attributes": {
+              "contrib.livekit.generation_id": "speech_cb62e522-5e0_1"
+            },
+            "name": "generation",
+            "time_unix_ms": 1793740373788
+          }
+        ],
+        "contrib.livekit.generation_count": 1,
+        "contrib.livekit.generation_id": "speech_cb62e522-5e0_1",
+        "contrib.livekit.interrupted": false,
+        "contrib.livekit.on_user_turn_completed_delay": 0.001,
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "contrib.livekit.playback_events": [
+          {
+            "attributes": {
+              "interrupted": false,
+              "playbackPosition": 3.6223333333333345,
+              "synchronizedTranscript": "Your Talking Map was delivered on October twenty-first, twenty-twenty-six."
+            },
+            "name": "playbackFinished",
+            "time_unix_ms": 1793740378023
+          }
+        ],
+        "contrib.livekit.speech.queue_wait": 0.007566932000219822,
+        "contrib.livekit.speech_id": "speech_cb62e522-5e0",
+        "contrib.livekit.transcription_delay": 0.293216064453125,
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "invoke_agent",
+        "turn.id": "f15e5e3eaded9a7b",
+        "turn.reply_to": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "f71f3cf6dba257ff",
+      "span_id": "3e20cb12de6b9daa",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "f15e5e3eaded9a7b"
+      ],
+      "created": "2026-11-03T21:12:53.788Z",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 40
+      },
+      "metrics": {
+        "cache_read_input_tokens": 640,
+        "completion_tokens": 18,
+        "duration": 0.23599982261657715,
+        "end": 1793740374.024,
+        "prompt_tokens": 704,
+        "start": 1793740373.788,
+        "time_to_first_token": 0.16562358000010136,
+        "tokens": 722
+      },
+      "input": [
+        {
+          "content": "You are Pip, who answers the phone at Mortimer's Magical Emporium, a mail-order shop for potions, wands, and enchanted goods. Talk like a friendly, capable person on a phone call.\n\n- Help the caller check on or change an order.\n- Ask for the order ID if you don't have it. Order IDs are four-digit numbers.\n- Use what the caller has already told you. Don't ask again for anything they've said.\n- Use lookup_order before answering questions about an order, and update_order to change it.\n- When you look up an order, tell the caller the item, its status, and when it should arrive.\n- Say order IDs digit by digit, like \"one zero one four\".\n- Confirm the change with the caller before calling update_order, then tell them it's done.\n- Never make up order details. If a tool returns an error, say so and ask how to proceed.\n- When the customer is done, say one short goodbye and call end_call.\n- Keep each reply to one short sentence, two at most, and answer what they asked first.\n- Speak plainly, the way people do on the phone, with no flourishes, lists, or formatting.\n",
+          "role": "system"
+        },
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        },
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1019\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_95ce3e11ed1d4367a0f05a18",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1019\",\"customer\":\"Wren Hollowell\",\"item\":\"Talking Map\",\"quantity\":\"1\",\"status\":\"delivered\",\"delivery_address\":\"The Wanderers Guild\",\"enchantment\":\"friendly voice\",\"estimated_delivery\":\"2026-10-21\"}",
+          "role": "tool",
+          "tool_call_id": "call_95ce3e11ed1d4367a0f05a18"
+        },
+        {
+          "content": "Could you tell me its status?",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": "Your Talking Map was delivered on October twenty-first, twenty-twenty-six.",
+          "role": "assistant"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.function_tools": "[\"end_call\",\"lookup_order\",\"update_order\"]",
+        "contrib.livekit.response.ttft": 0.16562358000010136,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b9c502ccc7fa36d6",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "647415f8de9ba4ac",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "d787a9a6b9538e3e",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "5d9b13791896f65f",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "acb72f96882f9720",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up an order by its four-digit order ID.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Set one field of an order to a new value. Returns the updated order.",
+              "name": "update_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "order_id": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id",
+                  "field",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "\nEnds the current call and disconnects immediately.\n\nCall when:\n- The user clearly indicates they are done (e.g., \"that's all, bye\").\n\nDo not call when:\n- The user asks to pause, hold, or transfer.\n- Intent is unclear.\n\nThis is the final action the agent can take.\nOnce called, no further interaction is possible with the user.\nDon't generate any other text or response when the tool is called.\n\n",
+              "name": "end_call",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {},
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ],
+        "turn.id": "f15e5e3eaded9a7b",
+        "turn.reply_to": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "bd6c603bcb6c8d52",
+      "span_id": "f5f0fb91317d1fd2",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3b7367271feda9f8"
+      ],
+      "created": "2026-11-03T21:12:53.790Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_detection",
+        "exec_counter": 42
+      },
+      "metrics": {
+        "duration": 0.009000062942504883,
+        "end": 1793740373.799,
+        "start": 1793740373.79
+      },
+      "metadata": {
+        "contrib.livekit.eou.detection_delay": 0.04,
+        "contrib.livekit.eou.endpointing_delay": 0.3,
+        "contrib.livekit.eou.from_cache": false,
+        "contrib.livekit.eou.language": "en",
+        "contrib.livekit.eou.probability": 0.9848170280456544,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.unlikely_threshold": 0.3857,
+        "turn.id": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "36db5a030a9beb52",
+      "span_id": "48e75320e2a7527d",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3e20cb12de6b9daa"
+      ],
+      "created": "2026-11-03T21:12:53.791Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run",
+        "exec_counter": 43
+      },
+      "metrics": {
+        "duration": 0.23200011253356936,
+        "end": 1793740374.023,
+        "start": 1793740373.791
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-6"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "f15e5e3eaded9a7b",
+        "turn.reply_to": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "31a4d234955690e2",
+      "span_id": "098ce5f489e8bc90",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "55bcbd1ccdd78b26"
+      ],
+      "created": "2026-11-03T21:12:53.800Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.on_user_turn_completed",
+        "exec_counter": 44
+      },
+      "metrics": {
+        "duration": 0.001000165939331055,
+        "end": 1793740373.801,
+        "start": 1793740373.8
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent",
+        "turn.id": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "bc70cc561e54bfed",
+      "span_id": "ea0e9ba2e6685fac",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "f15e5e3eaded9a7b"
+      ],
+      "created": "2026-11-03T21:12:53.954Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "tts",
+        "exec_counter": 45
+      },
+      "metrics": {
+        "duration": 0.9869999885559082,
+        "end": 1793740374.941,
+        "start": 1793740373.954
+      },
+      "metadata": {
+        "contrib.livekit.response.ttfb": 0.3737490139992587,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "cartesia/sonic-3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "3e20cb12de6b9daa",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "cartesia/sonic-3",
+        "provider": "livekit",
+        "turn.id": "f15e5e3eaded9a7b",
+        "turn.reply_to": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "4c3176aabcbf21b0",
+      "span_id": "e41960478c820d81",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "4951a196cf156b1d"
+      ],
+      "created": "2026-11-03T21:12:53.957Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request_run",
+        "exec_counter": 47
+      },
+      "metrics": {
+        "duration": 0.9839999675750732,
+        "end": 1793740374.941,
+        "start": 1793740373.957
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-7"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "f15e5e3eaded9a7b",
+        "turn.reply_to": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "abf6e687430c441e",
+      "span_id": "4951a196cf156b1d",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "ea0e9ba2e6685fac"
+      ],
+      "created": "2026-11-03T21:12:53.957Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request",
+        "exec_counter": 46
+      },
+      "metrics": {
+        "duration": 0.9839999675750732,
+        "end": 1793740374.941,
+        "start": 1793740373.957
+      },
+      "metadata": {
+        "contrib.livekit.tts.label": "inference.TTS",
+        "contrib.livekit.tts.streaming": true,
+        "contrib.livekit.tts_metrics": "{\"type\":\"tts_metrics\",\"timestamp\":1793740374940,\"requestId\":\"tts_request_8dadc85c-7e3\",\"ttfbMs\":373,\"durationMs\":914,\"charactersCount\":74,\"audioDurationMs\":3622,\"cancelled\":false,\"label\":\"inference.TTS\",\"inputTokens\":0,\"outputTokens\":0,\"streamed\":true,\"metadata\":{\"modelProvider\":\"livekit\",\"modelName\":\"cartesia/sonic-3\"}}",
+        "turn.id": "f15e5e3eaded9a7b",
+        "turn.reply_to": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "7c5195ca183559ad",
+      "span_id": "7837ed63b8109c76",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "f15e5e3eaded9a7b"
+      ],
+      "created": "2026-11-03T21:12:54.400Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech",
+        "exec_counter": 48
+      },
+      "metrics": {
+        "duration": 3.628000020980835,
+        "end": 1793740378.027,
+        "start": 1793740374.399
+      },
+      "output": [
+        {
+          "content": "Your Talking Map was delivered on October twenty-first, twenty-twenty-six.",
+          "role": "assistant"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-2"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 28629,
+            "start_offset_ms": 25007
+          }
+        },
+        "audio.source_id": "agent-output",
+        "contrib.livekit.message_ids": [
+          "item_0cfd30ba-b63"
+        ],
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "ea0e9ba2e6685fac",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "turn.id": "f15e5e3eaded9a7b",
+        "turn.reply_to": "55bcbd1ccdd78b26"
+      }
+    },
+    {
+      "id": "18335b732c31e8b8",
+      "span_id": "e320fb9b4cf67dd6",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:57.079Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn",
+        "exec_counter": 49
+      },
+      "metrics": {
+        "duration": 1.7432379722595217,
+        "end": 1793740378.758,
+        "start": 1793740377.014762
+      },
+      "input": [
+        {
+          "content": "Mhmm.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 28163,
+            "start_offset_ms": 27623
+          }
+        },
+        "contrib.livekit.end_of_turn_delay": 1.200226806640625,
+        "contrib.livekit.message_id": "item_99dc085c-231",
+        "contrib.livekit.on_user_turn_completed_delay": 0,
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-1"
+        ],
+        "contrib.livekit.started_speaking_at": 1793740377.014762,
+        "contrib.livekit.stopped_speaking_at": 1793740377.554773,
+        "contrib.livekit.stt.events": "[{\"received_at\":1793740377765,\"type\":\"interim_transcript\",\"transcript_length\":5},{\"received_at\":1793740377829,\"type\":\"final_transcript\",\"transcript_length\":5}]",
+        "contrib.livekit.transcript_confidence": 0.95581055,
+        "contrib.livekit.transcription_delay": 0.474226806640625,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "deepgram/nova-3",
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "a1cf2213ba2c1a58",
+      "span_id": "a66e494bb286f469",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "e320fb9b4cf67dd6"
+      ],
+      "created": "2026-11-03T21:12:57.080Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 50
+      },
+      "metrics": {
+        "duration": 0.5380113124847412,
+        "end": 1793740377.5537732,
+        "start": 1793740377.015762
+      },
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 28162,
+            "start_offset_ms": 27624
+          }
+        },
+        "audio.source_id": "session-input",
+        "contrib.livekit.is_interruption": "false",
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "turn.id": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "10db31b5845d727e",
+      "span_id": "3ac0763276d23f31",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "e320fb9b4cf67dd6"
+      ],
+      "created": "2026-11-03T21:12:58.030Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_wait",
+        "exec_counter": 52
+      },
+      "metrics": {
+        "duration": 1.2002270221710205,
+        "end": 1793740378.755,
+        "start": 1793740377.554773
+      },
+      "metadata": {
+        "contrib.livekit.eou.endpointing_delay": 1.2,
+        "contrib.livekit.eou.not_committed_count": 0,
+        "contrib.livekit.eou.outcome": "committed",
+        "contrib.livekit.eou.rearm_count": 0,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.wait_duration": 1.200226806640625,
+        "turn.id": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "5345410f8d80fc5b",
+      "span_id": "1afe8ef5878ca52d",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "e320fb9b4cf67dd6"
+      ],
+      "created": "2026-11-03T21:12:58.029Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt",
+        "exec_counter": 51
+      },
+      "metrics": {
+        "duration": 0.06399989128112793,
+        "end": 1793740377.829,
+        "start": 1793740377.765
+      },
+      "output": [
+        {
+          "content": "Mhmm.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.source_id": "session-input",
+        "contrib.livekit.language": "en",
+        "contrib.livekit.provider_request_id": "provider-request-1",
+        "contrib.livekit.transcript_confidence": 0.95581055,
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "db9b87394c0db7e7",
+      "span_id": "9a55d9149a5779fb",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3ac0763276d23f31"
+      ],
+      "created": "2026-11-03T21:12:58.030Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_detection",
+        "exec_counter": 53
+      },
+      "metrics": {
+        "duration": 0.0009999275207519531,
+        "end": 1793740378.031,
+        "start": 1793740378.03
+      },
+      "metadata": {
+        "contrib.livekit.eou.detection_delay": 0.056,
+        "contrib.livekit.eou.endpointing_delay": 1.2,
+        "contrib.livekit.eou.from_cache": true,
+        "contrib.livekit.eou.language": "en",
+        "contrib.livekit.eou.probability": 0.07185932993888855,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.unlikely_threshold": 0.3857,
+        "turn.id": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "43d6beac4d907d42",
+      "span_id": "d855c6a21873bb39",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "e320fb9b4cf67dd6"
+      ],
+      "created": "2026-11-03T21:12:58.756Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.on_user_turn_completed",
+        "exec_counter": 54
+      },
+      "metrics": {
+        "duration": 0,
+        "end": 1793740378.756,
+        "start": 1793740378.756
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent",
+        "turn.id": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "26fecda1f1fe93e9",
+      "span_id": "ec1c3c6e5d4f45c0",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:12:58.757Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn",
+        "exec_counter": 55
+      },
+      "metrics": {
+        "duration": 2.4100000858306885,
+        "end": 1793740381.167,
+        "start": 1793740378.757
+      },
+      "input": [
+        {
+          "content": "Mhmm.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.e2e_latency": 1.5632269382476809,
+        "contrib.livekit.end_of_turn_delay": 1.200226806640625,
+        "contrib.livekit.events": [
+          {
+            "attributes": {
+              "contrib.livekit.generation_id": "speech_45177ce7-87b_1"
+            },
+            "name": "generation",
+            "time_unix_ms": 1793740378757
+          }
+        ],
+        "contrib.livekit.generation_count": 1,
+        "contrib.livekit.generation_id": "speech_45177ce7-87b_1",
+        "contrib.livekit.interrupted": false,
+        "contrib.livekit.on_user_turn_completed_delay": 0,
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "contrib.livekit.playback_events": [
+          {
+            "attributes": {
+              "interrupted": false,
+              "playbackPosition": 2.0433750000000006,
+              "synchronizedTranscript": "Is there anything else I can help you with today?"
+            },
+            "name": "playbackFinished",
+            "time_unix_ms": 1793740381162
+          }
+        ],
+        "contrib.livekit.speech.queue_wait": 0.0006114869993180036,
+        "contrib.livekit.speech_id": "speech_45177ce7-87b",
+        "contrib.livekit.transcription_delay": 0.474226806640625,
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "invoke_agent",
+        "turn.id": "ec1c3c6e5d4f45c0",
+        "turn.reply_to": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "cc7af2ac7cc79e12",
+      "span_id": "6131bdb918cc83cb",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "ec1c3c6e5d4f45c0"
+      ],
+      "created": "2026-11-03T21:12:58.757Z",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 56
+      },
+      "metrics": {
+        "cache_read_input_tokens": 640,
+        "completion_tokens": 12,
+        "duration": 0.16900014877319336,
+        "end": 1793740378.926,
+        "prompt_tokens": 734,
+        "start": 1793740378.757,
+        "time_to_first_token": 0.12873593699805497,
+        "tokens": 746
+      },
+      "input": [
+        {
+          "content": "You are Pip, who answers the phone at Mortimer's Magical Emporium, a mail-order shop for potions, wands, and enchanted goods. Talk like a friendly, capable person on a phone call.\n\n- Help the caller check on or change an order.\n- Ask for the order ID if you don't have it. Order IDs are four-digit numbers.\n- Use what the caller has already told you. Don't ask again for anything they've said.\n- Use lookup_order before answering questions about an order, and update_order to change it.\n- When you look up an order, tell the caller the item, its status, and when it should arrive.\n- Say order IDs digit by digit, like \"one zero one four\".\n- Confirm the change with the caller before calling update_order, then tell them it's done.\n- Never make up order details. If a tool returns an error, say so and ask how to proceed.\n- When the customer is done, say one short goodbye and call end_call.\n- Keep each reply to one short sentence, two at most, and answer what they asked first.\n- Speak plainly, the way people do on the phone, with no flourishes, lists, or formatting.\n",
+          "role": "system"
+        },
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        },
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1019\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_95ce3e11ed1d4367a0f05a18",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1019\",\"customer\":\"Wren Hollowell\",\"item\":\"Talking Map\",\"quantity\":\"1\",\"status\":\"delivered\",\"delivery_address\":\"The Wanderers Guild\",\"enchantment\":\"friendly voice\",\"estimated_delivery\":\"2026-10-21\"}",
+          "role": "tool",
+          "tool_call_id": "call_95ce3e11ed1d4367a0f05a18"
+        },
+        {
+          "content": "Could you tell me its status?",
+          "role": "user"
+        },
+        {
+          "content": "Your Talking Map was delivered on October twenty-first, twenty-twenty-six.",
+          "role": "assistant"
+        },
+        {
+          "content": "Mhmm.",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": "Is there anything else I can help you with today?",
+          "role": "assistant"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.function_tools": "[\"end_call\",\"lookup_order\",\"update_order\"]",
+        "contrib.livekit.response.ttft": 0.12873593699805497,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b9c502ccc7fa36d6",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "647415f8de9ba4ac",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "d787a9a6b9538e3e",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "5d9b13791896f65f",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "acb72f96882f9720",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "7837ed63b8109c76",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "1afe8ef5878ca52d",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up an order by its four-digit order ID.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Set one field of an order to a new value. Returns the updated order.",
+              "name": "update_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "order_id": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id",
+                  "field",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "\nEnds the current call and disconnects immediately.\n\nCall when:\n- The user clearly indicates they are done (e.g., \"that's all, bye\").\n\nDo not call when:\n- The user asks to pause, hold, or transfer.\n- Intent is unclear.\n\nThis is the final action the agent can take.\nOnce called, no further interaction is possible with the user.\nDon't generate any other text or response when the tool is called.\n\n",
+              "name": "end_call",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {},
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ],
+        "turn.id": "ec1c3c6e5d4f45c0",
+        "turn.reply_to": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "ea648f952f52d9c7",
+      "span_id": "bf2475bef42d4eca",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6131bdb918cc83cb"
+      ],
+      "created": "2026-11-03T21:12:58.761Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run",
+        "exec_counter": 57
+      },
+      "metrics": {
+        "duration": 0.16300010681152344,
+        "end": 1793740378.924,
+        "start": 1793740378.761
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-8"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "ec1c3c6e5d4f45c0",
+        "turn.reply_to": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "633868876c9693f9",
+      "span_id": "c3d0d51ad2f4770f",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "ec1c3c6e5d4f45c0"
+      ],
+      "created": "2026-11-03T21:12:58.887Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "tts",
+        "exec_counter": 58
+      },
+      "metrics": {
+        "duration": 0.4869999885559082,
+        "end": 1793740379.374,
+        "start": 1793740378.887
+      },
+      "metadata": {
+        "contrib.livekit.response.ttfb": 0.19091561300047033,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "cartesia/sonic-3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "6131bdb918cc83cb",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "cartesia/sonic-3",
+        "provider": "livekit",
+        "turn.id": "ec1c3c6e5d4f45c0",
+        "turn.reply_to": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "ae1ffed4a6220f9d",
+      "span_id": "6c4742b168936155",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "c3d0d51ad2f4770f"
+      ],
+      "created": "2026-11-03T21:12:58.889Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request",
+        "exec_counter": 59
+      },
+      "metrics": {
+        "duration": 0.4839999675750733,
+        "end": 1793740379.373,
+        "start": 1793740378.889
+      },
+      "metadata": {
+        "contrib.livekit.tts.label": "inference.TTS",
+        "contrib.livekit.tts.streaming": true,
+        "contrib.livekit.tts_metrics": "{\"type\":\"tts_metrics\",\"timestamp\":1793740379372,\"requestId\":\"tts_request_3d8a203b-b8c\",\"ttfbMs\":190,\"durationMs\":446,\"charactersCount\":49,\"audioDurationMs\":2043,\"cancelled\":false,\"label\":\"inference.TTS\",\"inputTokens\":0,\"outputTokens\":0,\"streamed\":true,\"metadata\":{\"modelProvider\":\"livekit\",\"modelName\":\"cartesia/sonic-3\"}}",
+        "turn.id": "ec1c3c6e5d4f45c0",
+        "turn.reply_to": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "c152092ac2a0016d",
+      "span_id": "6998ec26490da44b",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6c4742b168936155"
+      ],
+      "created": "2026-11-03T21:12:58.890Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request_run",
+        "exec_counter": 60
+      },
+      "metrics": {
+        "duration": 0.4839999675750733,
+        "end": 1793740379.373,
+        "start": 1793740378.889
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-7"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "ec1c3c6e5d4f45c0",
+        "turn.reply_to": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "6d86eaf77ff78d7d",
+      "span_id": "a7aeb4bfeed7c7ae",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "ec1c3c6e5d4f45c0"
+      ],
+      "created": "2026-11-03T21:12:59.118Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech",
+        "exec_counter": 61
+      },
+      "metrics": {
+        "duration": 2.047999858856201,
+        "end": 1793740381.166,
+        "start": 1793740379.118
+      },
+      "output": [
+        {
+          "content": "Is there anything else I can help you with today?",
+          "role": "assistant"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-2"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 31769,
+            "start_offset_ms": 29726
+          }
+        },
+        "audio.source_id": "agent-output",
+        "contrib.livekit.message_ids": [
+          "item_cc44d7fa-18b"
+        ],
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "c3d0d51ad2f4770f",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "turn.id": "ec1c3c6e5d4f45c0",
+        "turn.reply_to": "e320fb9b4cf67dd6"
+      }
+    },
+    {
+      "id": "da4b36e849d5eb3c",
+      "span_id": "05356e8bfc0bb3c1",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "b2bacc5928699e4e"
+      ],
+      "created": "2026-11-03T21:13:06.258Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt",
+        "exec_counter": 64
+      },
+      "metrics": {
+        "duration": 3.4519999027252197,
+        "end": 1793740386.258,
+        "start": 1793740382.806
+      },
+      "output": [
+        {
+          "content": "No. That's all I needed.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.source_id": "session-input",
+        "contrib.livekit.language": "en",
+        "contrib.livekit.provider_request_id": "provider-request-1",
+        "contrib.livekit.transcript_confidence": 0.99902344,
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "7d9068b69082003b",
+      "span_id": "b2bacc5928699e4e",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:13:04.789Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn",
+        "exec_counter": 62
+      },
+      "metrics": {
+        "duration": 1.5395009517669678,
+        "end": 1793740386.264,
+        "start": 1793740384.724499
+      },
+      "input": [
+        {
+          "content": "No. That's all I needed.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 36481,
+            "start_offset_ms": 35332
+          }
+        },
+        "contrib.livekit.end_of_turn_delay": 0.389678955078125,
+        "contrib.livekit.message_id": "item_614643e0-0fa",
+        "contrib.livekit.on_user_turn_completed_delay": 0.001,
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-1"
+        ],
+        "contrib.livekit.started_speaking_at": 1793740384.724499,
+        "contrib.livekit.stopped_speaking_at": 1793740385.873321,
+        "contrib.livekit.stt.events": "[{\"received_at\":1793740382806,\"type\":\"final_transcript\",\"transcript_length\":0},{\"received_at\":1793740385328,\"type\":\"interim_transcript\",\"transcript_length\":8},{\"received_at\":1793740386258,\"type\":\"final_transcript\",\"transcript_length\":24}]",
+        "contrib.livekit.transcript_confidence": 0.99902344,
+        "contrib.livekit.transcription_delay": 0.385678955078125,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "deepgram/nova-3",
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "4980d510eea56f35",
+      "span_id": "e76aeb8254d5db5f",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "b2bacc5928699e4e"
+      ],
+      "created": "2026-11-03T21:13:04.790Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 63
+      },
+      "metrics": {
+        "duration": 1.146822214126587,
+        "end": 1793740385.8723211,
+        "start": 1793740384.725499
+      },
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 36480,
+            "start_offset_ms": 35333
+          }
+        },
+        "audio.source_id": "session-input",
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "turn.id": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "1075e9ad69a16f26",
+      "span_id": "25035780d73751ba",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "b2bacc5928699e4e"
+      ],
+      "created": "2026-11-03T21:13:06.261Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_wait",
+        "exec_counter": 67
+      },
+      "metrics": {
+        "duration": 0.389678955078125,
+        "end": 1793740386.263,
+        "start": 1793740385.873321
+      },
+      "metadata": {
+        "contrib.livekit.eou.endpointing_delay": 0.3,
+        "contrib.livekit.eou.not_committed_count": 0,
+        "contrib.livekit.eou.outcome": "committed",
+        "contrib.livekit.eou.rearm_count": 0,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.wait_duration": 0.389678955078125,
+        "turn.id": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "4299b510184d6a5c",
+      "span_id": "6175362d09baa24a",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:13:06.259Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_turn",
+        "exec_counter": 65
+      },
+      "metrics": {
+        "duration": 3.0829999446868896,
+        "end": 1793740389.342,
+        "start": 1793740386.259
+      },
+      "input": [
+        {
+          "content": "No. That's all I needed.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.e2e_latency": 0.9816789627075196,
+        "contrib.livekit.end_of_turn_delay": 0.389678955078125,
+        "contrib.livekit.events": [
+          {
+            "attributes": {
+              "contrib.livekit.generation_id": "speech_84bd2d1e-95e_1"
+            },
+            "name": "generation",
+            "time_unix_ms": 1793740386259
+          },
+          {
+            "attributes": {
+              "contrib.livekit.generation_id": "speech_84bd2d1e-95e_2",
+              "contrib.livekit.parent_generation_id": "speech_84bd2d1e-95e_1"
+            },
+            "name": "generation",
+            "time_unix_ms": 1793740388996
+          },
+          {
+            "attributes": {
+              "contrib.livekit.generation_id": "speech_84bd2d1e-95e_3",
+              "contrib.livekit.parent_generation_id": "speech_84bd2d1e-95e_2"
+            },
+            "name": "generation",
+            "time_unix_ms": 1793740389196
+          }
+        ],
+        "contrib.livekit.generation_count": 3,
+        "contrib.livekit.generation_id": "speech_84bd2d1e-95e_3",
+        "contrib.livekit.interrupted": false,
+        "contrib.livekit.on_user_turn_completed_delay": 0.001,
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "contrib.livekit.playback_events": [
+          {
+            "attributes": {
+              "interrupted": false,
+              "playbackPosition": 2.1362500000000004,
+              "synchronizedTranscript": "Thanks for calling! Have a great day.\n\n"
+            },
+            "name": "playbackFinished",
+            "time_unix_ms": 1793740388991
+          }
+        ],
+        "contrib.livekit.speech.queue_wait": 0.0006015519984066487,
+        "contrib.livekit.speech_id": "speech_84bd2d1e-95e",
+        "contrib.livekit.transcription_delay": 0.385678955078125,
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "invoke_agent",
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "93df90b5a0830a96",
+      "span_id": "b675dfe9561a4a75",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6175362d09baa24a"
+      ],
+      "created": "2026-11-03T21:13:06.260Z",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 66
+      },
+      "metrics": {
+        "cache_read_input_tokens": 704,
+        "completion_tokens": 19,
+        "duration": 0.2799999713897705,
+        "end": 1793740386.54,
+        "prompt_tokens": 764,
+        "start": 1793740386.26,
+        "time_to_first_token": 0.19018126999981175,
+        "tokens": 783
+      },
+      "input": [
+        {
+          "content": "You are Pip, who answers the phone at Mortimer's Magical Emporium, a mail-order shop for potions, wands, and enchanted goods. Talk like a friendly, capable person on a phone call.\n\n- Help the caller check on or change an order.\n- Ask for the order ID if you don't have it. Order IDs are four-digit numbers.\n- Use what the caller has already told you. Don't ask again for anything they've said.\n- Use lookup_order before answering questions about an order, and update_order to change it.\n- When you look up an order, tell the caller the item, its status, and when it should arrive.\n- Say order IDs digit by digit, like \"one zero one four\".\n- Confirm the change with the caller before calling update_order, then tell them it's done.\n- Never make up order details. If a tool returns an error, say so and ask how to proceed.\n- When the customer is done, say one short goodbye and call end_call.\n- Keep each reply to one short sentence, two at most, and answer what they asked first.\n- Speak plainly, the way people do on the phone, with no flourishes, lists, or formatting.\n",
+          "role": "system"
+        },
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        },
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1019\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_95ce3e11ed1d4367a0f05a18",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1019\",\"customer\":\"Wren Hollowell\",\"item\":\"Talking Map\",\"quantity\":\"1\",\"status\":\"delivered\",\"delivery_address\":\"The Wanderers Guild\",\"enchantment\":\"friendly voice\",\"estimated_delivery\":\"2026-10-21\"}",
+          "role": "tool",
+          "tool_call_id": "call_95ce3e11ed1d4367a0f05a18"
+        },
+        {
+          "content": "Could you tell me its status?",
+          "role": "user"
+        },
+        {
+          "content": "Your Talking Map was delivered on October twenty-first, twenty-twenty-six.",
+          "role": "assistant"
+        },
+        {
+          "content": "Mhmm.",
+          "role": "user"
+        },
+        {
+          "content": "Is there anything else I can help you with today?",
+          "role": "assistant"
+        },
+        {
+          "content": "No. That's all I needed.",
+          "role": "user"
+        }
+      ],
+      "output": [
+        {
+          "content": "Thanks for calling! Have a great day.\n\n",
+          "role": "assistant"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{}",
+                "name": "end_call"
+              },
+              "id": "call_0142e191b83a458fb17db8f1",
+              "type": "function"
+            }
+          ]
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.function_tools": "[\"end_call\",\"lookup_order\",\"update_order\"]",
+        "contrib.livekit.response.ttft": 0.19018126999981175,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b9c502ccc7fa36d6",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "647415f8de9ba4ac",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "d787a9a6b9538e3e",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "5d9b13791896f65f",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "acb72f96882f9720",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "7837ed63b8109c76",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "1afe8ef5878ca52d",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "a7aeb4bfeed7c7ae",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "05356e8bfc0bb3c1",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up an order by its four-digit order ID.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Set one field of an order to a new value. Returns the updated order.",
+              "name": "update_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "order_id": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id",
+                  "field",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "\nEnds the current call and disconnects immediately.\n\nCall when:\n- The user clearly indicates they are done (e.g., \"that's all, bye\").\n\nDo not call when:\n- The user asks to pause, hold, or transfer.\n- Intent is unclear.\n\nThis is the final action the agent can take.\nOnce called, no further interaction is possible with the user.\nDon't generate any other text or response when the tool is called.\n\n",
+              "name": "end_call",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {},
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ],
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "9ad363ac8cdb573e",
+      "span_id": "062f1316ca05cd6b",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "25035780d73751ba"
+      ],
+      "created": "2026-11-03T21:13:06.261Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_detection",
+        "exec_counter": 68
+      },
+      "metrics": {
+        "duration": 0.001000165939331055,
+        "end": 1793740386.262,
+        "start": 1793740386.261
+      },
+      "metadata": {
+        "contrib.livekit.eou.detection_delay": 0.067,
+        "contrib.livekit.eou.endpointing_delay": 0.3,
+        "contrib.livekit.eou.from_cache": true,
+        "contrib.livekit.eou.language": "en",
+        "contrib.livekit.eou.probability": 0.943202257156372,
+        "contrib.livekit.eou.source": "stt",
+        "contrib.livekit.eou.unlikely_threshold": 0.3857,
+        "turn.id": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "d5bbb6cfa2b4726b",
+      "span_id": "1e48dce1d6c790ef",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "b2bacc5928699e4e"
+      ],
+      "created": "2026-11-03T21:13:06.263Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.on_user_turn_completed",
+        "exec_counter": 69
+      },
+      "metrics": {
+        "duration": 0.0009999275207519531,
+        "end": 1793740386.264,
+        "start": 1793740386.263
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent",
+        "turn.id": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "28c25d24fca4f02b",
+      "span_id": "14dea993c1367d15",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "b675dfe9561a4a75"
+      ],
+      "created": "2026-11-03T21:13:06.266Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run",
+        "exec_counter": 70
+      },
+      "metrics": {
+        "duration": 0.27300000190734863,
+        "end": 1793740386.539,
+        "start": 1793740386.266
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-9"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "81a3b9a3560a9468",
+      "span_id": "e1bdb85cc6733a97",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "16500a1582de9d21"
+      ],
+      "created": "2026-11-03T21:13:06.419Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_speech",
+        "exec_counter": 72
+      },
+      "metrics": {
+        "duration": 0.4774301052093506,
+        "end": 1793740386.832087,
+        "start": 1793740386.354657
+      },
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 37440,
+            "start_offset_ms": 36963
+          }
+        },
+        "audio.source_id": "session-input",
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "turn.id": "16500a1582de9d21"
+      }
+    },
+    {
+      "id": "8b5d7ab9f4180600",
+      "span_id": "16500a1582de9d21",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:13:06.419Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "user_turn",
+        "exec_counter": 71
+      },
+      "metrics": {
+        "duration": 0.7793431282043457,
+        "end": 1793740387.134,
+        "start": 1793740386.354657
+      },
+      "input": [
+        {
+          "content": "Goodbye.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 37441,
+            "start_offset_ms": 36963
+          }
+        },
+        "contrib.livekit.end_of_turn_delay": 0.299912841796875,
+        "contrib.livekit.participant_id": "PA_anon1",
+        "contrib.livekit.participant_kind": "STANDARD",
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-1"
+        ],
+        "contrib.livekit.stt.events": "[{\"received_at\":1793740386853,\"type\":\"final_transcript\",\"transcript_length\":8}]",
+        "contrib.livekit.transcript_confidence": 0.8305664,
+        "contrib.livekit.transcription_delay": 0.020912841796875,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "deepgram/nova-3",
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "16500a1582de9d21"
+      }
+    },
+    {
+      "id": "31d40b7f39788cb3",
+      "span_id": "a45ee153e02817bc",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6175362d09baa24a"
+      ],
+      "created": "2026-11-03T21:13:06.451Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "tts",
+        "exec_counter": 73
+      },
+      "metrics": {
+        "duration": 0.5429999828338623,
+        "end": 1793740386.994,
+        "start": 1793740386.451
+      },
+      "metadata": {
+        "contrib.livekit.response.ttfb": 0.18726813200009929,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "cartesia/sonic-3",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "b675dfe9561a4a75",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "cartesia/sonic-3",
+        "provider": "livekit",
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "699104c1df939c5d",
+      "span_id": "cfc211ac16c60ca7",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "a45ee153e02817bc"
+      ],
+      "created": "2026-11-03T21:13:06.453Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request",
+        "exec_counter": 74
+      },
+      "metrics": {
+        "duration": 0.5399999618530273,
+        "end": 1793740386.993,
+        "start": 1793740386.453
+      },
+      "metadata": {
+        "contrib.livekit.tts.label": "inference.TTS",
+        "contrib.livekit.tts.streaming": true,
+        "contrib.livekit.tts_metrics": "{\"type\":\"tts_metrics\",\"timestamp\":1793740386992,\"requestId\":\"tts_request_dceec11b-a62\",\"ttfbMs\":187,\"durationMs\":452,\"charactersCount\":39,\"audioDurationMs\":2136,\"cancelled\":false,\"label\":\"inference.TTS\",\"inputTokens\":0,\"outputTokens\":0,\"streamed\":true,\"metadata\":{\"modelProvider\":\"livekit\",\"modelName\":\"cartesia/sonic-3\"}}",
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "c3d563c94ce97a29",
+      "span_id": "a798c5a47c4a89ad",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "cfc211ac16c60ca7"
+      ],
+      "created": "2026-11-03T21:13:06.453Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.tts_request_run",
+        "exec_counter": 75
+      },
+      "metrics": {
+        "duration": 0.5399999618530273,
+        "end": 1793740386.993,
+        "start": 1793740386.453
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-7"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "4ef327a70babbbd0",
+      "span_id": "c60f9129c9a3a379",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6175362d09baa24a"
+      ],
+      "created": "2026-11-03T21:13:06.537Z",
+      "span_attributes": {
+        "type": "tool",
+        "name": "end_call",
+        "exec_counter": 76
+      },
+      "metrics": {
+        "duration": 0.001000165939331055,
+        "end": 1793740386.538,
+        "start": 1793740386.537
+      },
+      "input": {},
+      "output": "say goodbye to the user",
+      "metadata": {
+        "contrib.livekit.function_tool.is_error": false,
+        "contrib.livekit.function_tool.name": "end_call",
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.call.id": "call_0142e191b83a458fb17db8f1",
+        "gen_ai.tool.name": "end_call",
+        "gen_ai.tool.type": "function",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "requested_by"
+            },
+            "context": {
+              "spanId": "b675dfe9561a4a75",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "b7f01feef85ee76a",
+      "span_id": "3398e2eb689d5241",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "16500a1582de9d21"
+      ],
+      "created": "2026-11-03T21:13:07.090Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_wait",
+        "exec_counter": 79
+      },
+      "metrics": {
+        "duration": 0.299912691116333,
+        "end": 1793740387.133,
+        "start": 1793740386.8330872
+      },
+      "metadata": {
+        "contrib.livekit.eou.endpointing_delay": 0.3,
+        "contrib.livekit.eou.not_committed_count": 0,
+        "contrib.livekit.eou.outcome": "committed",
+        "contrib.livekit.eou.rearm_count": 0,
+        "contrib.livekit.eou.source": "vad",
+        "contrib.livekit.eou.wait_duration": 0.299912841796875,
+        "turn.id": "16500a1582de9d21"
+      }
+    },
+    {
+      "id": "7abcd3f779113cbf",
+      "span_id": "7c2447580744c23d",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "16500a1582de9d21"
+      ],
+      "created": "2026-11-03T21:13:06.854Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "stt",
+        "exec_counter": 77
+      },
+      "metrics": {
+        "duration": 0,
+        "end": 1793740386.853,
+        "start": 1793740386.853
+      },
+      "output": [
+        {
+          "content": "Goodbye.",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-1"
+        ],
+        "audio.source_id": "session-input",
+        "contrib.livekit.language": "en",
+        "contrib.livekit.provider_request_id": "provider-request-1",
+        "contrib.livekit.transcript_confidence": 0.8305664,
+        "model": "deepgram/nova-3",
+        "provider": "livekit",
+        "turn.id": "16500a1582de9d21"
+      }
+    },
+    {
+      "id": "e09dd6f59c150305",
+      "span_id": "b114ec709df921c4",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6175362d09baa24a"
+      ],
+      "created": "2026-11-03T21:13:06.855Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "agent_speech",
+        "exec_counter": 78
+      },
+      "metrics": {
+        "duration": 2.1399998664855957,
+        "end": 1793740388.995,
+        "start": 1793740386.855
+      },
+      "output": [
+        {
+          "content": "Thanks for calling! Have a great day.\n\n",
+          "role": "assistant"
+        }
+      ],
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-2"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 39598,
+            "start_offset_ms": 37462
+          }
+        },
+        "audio.source_id": "agent-output",
+        "contrib.livekit.message_ids": [
+          "item_cd62e716-e0f"
+        ],
+        "contrib.livekit.participant_id": "PA_anon2",
+        "contrib.livekit.participant_kind": "AGENT",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "generated_by"
+            },
+            "context": {
+              "spanId": "a45ee153e02817bc",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "dbfe729657563904",
+      "span_id": "bcbf9f9b6d6042a9",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "3398e2eb689d5241"
+      ],
+      "created": "2026-11-03T21:13:07.091Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.eou_detection",
+        "exec_counter": 80
+      },
+      "metrics": {
+        "duration": 0.029999971389770508,
+        "end": 1793740387.121,
+        "start": 1793740387.091
+      },
+      "metadata": {
+        "contrib.livekit.eou.detection_delay": 0.024,
+        "contrib.livekit.eou.endpointing_delay": 0.3,
+        "contrib.livekit.eou.from_cache": false,
+        "contrib.livekit.eou.language": "en",
+        "contrib.livekit.eou.probability": 0.9587627649307252,
+        "contrib.livekit.eou.source": "vad",
+        "contrib.livekit.eou.unlikely_threshold": 0.3857,
+        "turn.id": "16500a1582de9d21"
+      }
+    },
+    {
+      "id": "789634dd600ced54",
+      "span_id": "908d741db90f6a94",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6175362d09baa24a"
+      ],
+      "created": "2026-11-03T21:13:08.996Z",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 81
+      },
+      "metrics": {
+        "cache_read_input_tokens": 704,
+        "completion_tokens": 13,
+        "duration": 0.1979999542236328,
+        "end": 1793740389.194,
+        "prompt_tokens": 799,
+        "start": 1793740388.996,
+        "time_to_first_token": 0.1943110410011286,
+        "tokens": 812
+      },
+      "input": [
+        {
+          "content": "You are Pip, who answers the phone at Mortimer's Magical Emporium, a mail-order shop for potions, wands, and enchanted goods. Talk like a friendly, capable person on a phone call.\n\n- Help the caller check on or change an order.\n- Ask for the order ID if you don't have it. Order IDs are four-digit numbers.\n- Use what the caller has already told you. Don't ask again for anything they've said.\n- Use lookup_order before answering questions about an order, and update_order to change it.\n- When you look up an order, tell the caller the item, its status, and when it should arrive.\n- Say order IDs digit by digit, like \"one zero one four\".\n- Confirm the change with the caller before calling update_order, then tell them it's done.\n- Never make up order details. If a tool returns an error, say so and ask how to proceed.\n- When the customer is done, say one short goodbye and call end_call.\n- Keep each reply to one short sentence, two at most, and answer what they asked first.\n- Speak plainly, the way people do on the phone, with no flourishes, lists, or formatting.\n",
+          "role": "system"
+        },
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        },
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1019\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_95ce3e11ed1d4367a0f05a18",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1019\",\"customer\":\"Wren Hollowell\",\"item\":\"Talking Map\",\"quantity\":\"1\",\"status\":\"delivered\",\"delivery_address\":\"The Wanderers Guild\",\"enchantment\":\"friendly voice\",\"estimated_delivery\":\"2026-10-21\"}",
+          "role": "tool",
+          "tool_call_id": "call_95ce3e11ed1d4367a0f05a18"
+        },
+        {
+          "content": "Could you tell me its status?",
+          "role": "user"
+        },
+        {
+          "content": "Your Talking Map was delivered on October twenty-first, twenty-twenty-six.",
+          "role": "assistant"
+        },
+        {
+          "content": "Mhmm.",
+          "role": "user"
+        },
+        {
+          "content": "Is there anything else I can help you with today?",
+          "role": "assistant"
+        },
+        {
+          "content": "No. That's all I needed.",
+          "role": "user"
+        },
+        {
+          "content": "Thanks for calling! Have a great day.\n\n",
+          "role": "assistant"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{}",
+                "name": "end_call"
+              },
+              "id": "call_0142e191b83a458fb17db8f1",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "\"say goodbye to the user\"",
+          "role": "tool",
+          "tool_call_id": "call_0142e191b83a458fb17db8f1"
+        }
+      ],
+      "output": [
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{}",
+                "name": "end_call"
+              },
+              "id": "call_64c49cd44be34c9fb2f3566c",
+              "type": "function"
+            }
+          ]
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.function_tools": "[\"end_call\",\"lookup_order\",\"update_order\"]",
+        "contrib.livekit.response.ttft": 0.1943110410011286,
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b9c502ccc7fa36d6",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "647415f8de9ba4ac",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "d787a9a6b9538e3e",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "5d9b13791896f65f",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "acb72f96882f9720",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "7837ed63b8109c76",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "1afe8ef5878ca52d",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "a7aeb4bfeed7c7ae",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "05356e8bfc0bb3c1",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b114ec709df921c4",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "c60f9129c9a3a379",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit",
+        "tool_choice": "auto",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up an order by its four-digit order ID.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Set one field of an order to a new value. Returns the updated order.",
+              "name": "update_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "order_id": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id",
+                  "field",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "\nEnds the current call and disconnects immediately.\n\nCall when:\n- The user clearly indicates they are done (e.g., \"that's all, bye\").\n\nDo not call when:\n- The user asks to pause, hold, or transfer.\n- Intent is unclear.\n\nThis is the final action the agent can take.\nOnce called, no further interaction is possible with the user.\nDon't generate any other text or response when the tool is called.\n\n",
+              "name": "end_call",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {},
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ],
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "b952e061aad8df14",
+      "span_id": "aa566a984d181499",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "908d741db90f6a94"
+      ],
+      "created": "2026-11-03T21:13:09.001Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run",
+        "exec_counter": 82
+      },
+      "metrics": {
+        "duration": 0.192000150680542,
+        "end": 1793740389.193,
+        "start": 1793740389.001
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-10"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "f8b6c5edd8bc2754",
+      "span_id": "91d60f94ea6f5f2c",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6175362d09baa24a"
+      ],
+      "created": "2026-11-03T21:13:09.192Z",
+      "span_attributes": {
+        "type": "tool",
+        "name": "end_call",
+        "exec_counter": 83
+      },
+      "metrics": {
+        "duration": 0.001000165939331055,
+        "end": 1793740389.193,
+        "start": 1793740389.192
+      },
+      "input": {},
+      "output": "say goodbye to the user",
+      "metadata": {
+        "contrib.livekit.function_tool.is_error": false,
+        "contrib.livekit.function_tool.name": "end_call",
+        "gen_ai.agent.name": "default_agent",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.call.id": "call_64c49cd44be34c9fb2f3566c",
+        "gen_ai.tool.name": "end_call",
+        "gen_ai.tool.type": "function",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "requested_by"
+            },
+            "context": {
+              "spanId": "908d741db90f6a94",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "8b65b61f10b87f05",
+      "span_id": "b8eb2cf54e406f65",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6175362d09baa24a"
+      ],
+      "created": "2026-11-03T21:13:09.196Z",
+      "span_attributes": {
+        "type": "llm",
+        "name": "llm_response",
+        "exec_counter": 84
+      },
+      "metrics": {
+        "cache_read_input_tokens": 768,
+        "completion_tokens": 1,
+        "duration": 0.14399981498718262,
+        "end": 1793740389.34,
+        "prompt_tokens": 827,
+        "start": 1793740389.196,
+        "tokens": 828
+      },
+      "input": [
+        {
+          "content": "You are Pip, who answers the phone at Mortimer's Magical Emporium, a mail-order shop for potions, wands, and enchanted goods. Talk like a friendly, capable person on a phone call.\n\n- Help the caller check on or change an order.\n- Ask for the order ID if you don't have it. Order IDs are four-digit numbers.\n- Use what the caller has already told you. Don't ask again for anything they've said.\n- Use lookup_order before answering questions about an order, and update_order to change it.\n- When you look up an order, tell the caller the item, its status, and when it should arrive.\n- Say order IDs digit by digit, like \"one zero one four\".\n- Confirm the change with the caller before calling update_order, then tell them it's done.\n- Never make up order details. If a tool returns an error, say so and ask how to proceed.\n- When the customer is done, say one short goodbye and call end_call.\n- Keep each reply to one short sentence, two at most, and answer what they asked first.\n- Speak plainly, the way people do on the phone, with no flourishes, lists, or formatting.\n",
+          "role": "system"
+        },
+        {
+          "content": "Hello. This is Ren Hollowell.",
+          "role": "user"
+        },
+        {
+          "content": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+          "role": "assistant"
+        },
+        {
+          "content": "Hi, Pip. I'm checking on my order one zero one nine.",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"order_id\":\"1019\"}",
+                "name": "lookup_order"
+              },
+              "id": "call_95ce3e11ed1d4367a0f05a18",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "{\"order_id\":\"1019\",\"customer\":\"Wren Hollowell\",\"item\":\"Talking Map\",\"quantity\":\"1\",\"status\":\"delivered\",\"delivery_address\":\"The Wanderers Guild\",\"enchantment\":\"friendly voice\",\"estimated_delivery\":\"2026-10-21\"}",
+          "role": "tool",
+          "tool_call_id": "call_95ce3e11ed1d4367a0f05a18"
+        },
+        {
+          "content": "Could you tell me its status?",
+          "role": "user"
+        },
+        {
+          "content": "Your Talking Map was delivered on October twenty-first, twenty-twenty-six.",
+          "role": "assistant"
+        },
+        {
+          "content": "Mhmm.",
+          "role": "user"
+        },
+        {
+          "content": "Is there anything else I can help you with today?",
+          "role": "assistant"
+        },
+        {
+          "content": "No. That's all I needed.",
+          "role": "user"
+        },
+        {
+          "content": "Thanks for calling! Have a great day.\n\n",
+          "role": "assistant"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{}",
+                "name": "end_call"
+              },
+              "id": "call_0142e191b83a458fb17db8f1",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "\"say goodbye to the user\"",
+          "role": "tool",
+          "tool_call_id": "call_0142e191b83a458fb17db8f1"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{}",
+                "name": "end_call"
+              },
+              "id": "call_64c49cd44be34c9fb2f3566c",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "\"say goodbye to the user\"",
+          "role": "tool",
+          "tool_call_id": "call_64c49cd44be34c9fb2f3566c"
+        }
+      ],
+      "metadata": {
+        "contrib.livekit.function_tools": "[\"end_call\",\"lookup_order\",\"update_order\"]",
+        "gen_ai.provider.name": "livekit",
+        "gen_ai.request.model": "google/gemini-2.5-flash",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b9c502ccc7fa36d6",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "647415f8de9ba4ac",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "d787a9a6b9538e3e",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "5d9b13791896f65f",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "acb72f96882f9720",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "7837ed63b8109c76",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "1afe8ef5878ca52d",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "a7aeb4bfeed7c7ae",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "05356e8bfc0bb3c1",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "uses_context"
+            },
+            "context": {
+              "spanId": "b114ec709df921c4",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "c60f9129c9a3a379",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          },
+          {
+            "attributes": {
+              "braintrust.relationship.type": "consumes_tool_result"
+            },
+            "context": {
+              "spanId": "91d60f94ea6f5f2c",
+              "traceFlags": 1,
+              "traceId": "4a8936b2440b728c42caa597b9a39c4e"
+            }
+          }
+        ],
+        "model": "google/gemini-2.5-flash",
+        "provider": "livekit",
+        "tool_choice": "auto",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up an order by its four-digit order ID.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Set one field of an order to a new value. Returns the updated order.",
+              "name": "update_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "order_id": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id",
+                  "field",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "\nEnds the current call and disconnects immediately.\n\nCall when:\n- The user clearly indicates they are done (e.g., \"that's all, bye\").\n\nDo not call when:\n- The user asks to pause, hold, or transfer.\n- Intent is unclear.\n\nThis is the final action the agent can take.\nOnce called, no further interaction is possible with the user.\nDon't generate any other text or response when the tool is called.\n\n",
+              "name": "end_call",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {},
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ],
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "50415f7ecb121b3a",
+      "span_id": "225cc715395a630f",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "b8eb2cf54e406f65"
+      ],
+      "created": "2026-11-03T21:13:09.199Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.llm_request_run",
+        "exec_counter": 85
+      },
+      "metrics": {
+        "duration": 0.14100003242492676,
+        "end": 1793740389.339,
+        "start": 1793740389.198
+      },
+      "metadata": {
+        "contrib.livekit.provider_request_ids": [
+          "provider-request-11"
+        ],
+        "contrib.livekit.retry_count": 0,
+        "turn.id": "6175362d09baa24a",
+        "turn.reply_to": "b2bacc5928699e4e"
+      }
+    },
+    {
+      "id": "09e39431ee172782",
+      "span_id": "2500db3105a54167",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "175f7f3621ce8325"
+      ],
+      "created": "2026-11-03T21:13:09.343Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.drain_agent_activity",
+        "exec_counter": 87
+      },
+      "metrics": {
+        "duration": 0.001000165939331055,
+        "end": 1793740389.344,
+        "start": 1793740389.343
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent"
+      }
+    },
+    {
+      "id": "59e78cc0a95fac3a",
+      "span_id": "175f7f3621ce8325",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "6fbfe217fea0a6b5"
+      ],
+      "created": "2026-11-03T21:13:09.343Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.session_close",
+        "exec_counter": 86
+      },
+      "metrics": {
+        "duration": 0.5230000019073486,
+        "end": 1793740389.866,
+        "start": 1793740389.343
+      },
+      "metadata": {
+        "contrib.livekit.close.drain": true,
+        "contrib.livekit.close_reason": "user_initiated"
+      }
+    },
+    {
+      "id": "b8bb3e0bbda95ea9",
+      "span_id": "6cf2ade2b29befb3",
+      "root_span_id": "4a8936b2440b728c42caa597b9a39c4e",
+      "span_parents": [
+        "2500db3105a54167"
+      ],
+      "created": "2026-11-03T21:13:09.344Z",
+      "span_attributes": {
+        "type": "task",
+        "name": "livekit.on_exit",
+        "exec_counter": 88
+      },
+      "metrics": {
+        "duration": 0,
+        "end": 1793740389.344,
+        "start": 1793740389.344
+      },
+      "metadata": {
+        "contrib.livekit.agent_label": "default_agent"
+      }
+    }
+  ],
+  "turns": [
+    {
+      "request_id": "ee306bb67e4bf061",
+      "response_id": "d809ea0bda0c4744",
+      "response_text": "Hi Ren, thanks for calling Mortimer's Magical Emporium. How can I help you today?",
+      "work_ids": [
+        "23533564d2e0d6da",
+        "1d64d5e287e51a28",
+        "43c41d2764334cd3"
+      ],
+      "user_texts": [
+        "Hello. This is Ren Hollowell."
+      ],
+      "interrupted": null
+    },
+    {
+      "request_id": "2449d031672d090d",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "6316842f04703dbb",
+        "1ec54ba06bb327b5",
+        "a782fb5d38c8956d",
+        "9c1aa6a2a7a9b4be",
+        "d601b6966e5efad6"
+      ],
+      "user_texts": [
+        "Hi, Pip. I'm checking on my order one zero one nine."
+      ],
+      "interrupted": true
+    },
+    {
+      "request_id": "6817974e1e291344",
+      "response_id": "7c5195ca183559ad",
+      "response_text": "Your Talking Map was delivered on October twenty-first, twenty-twenty-six.",
+      "work_ids": [
+        "c1c0317fc991737c",
+        "f71f3cf6dba257ff",
+        "bc70cc561e54bfed"
+      ],
+      "user_texts": [
+        "Could you tell me its status?"
+      ],
+      "interrupted": null
+    },
+    {
+      "request_id": "18335b732c31e8b8",
+      "response_id": "6d86eaf77ff78d7d",
+      "response_text": "Is there anything else I can help you with today?",
+      "work_ids": [
+        "5345410f8d80fc5b",
+        "cc7af2ac7cc79e12",
+        "633868876c9693f9"
+      ],
+      "user_texts": [
+        "Mhmm."
+      ],
+      "interrupted": null
+    },
+    {
+      "request_id": "7d9068b69082003b",
+      "response_id": "e09dd6f59c150305",
+      "response_text": "Thanks for calling! Have a great day.\n\n",
+      "work_ids": [
+        "da4b36e849d5eb3c",
+        "93df90b5a0830a96",
+        "31d40b7f39788cb3",
+        "4ef327a70babbbd0",
+        "789634dd600ced54",
+        "f8b6c5edd8bc2754",
+        "8b65b61f10b87f05"
+      ],
+      "user_texts": [
+        "No. That's all I needed."
+      ],
+      "interrupted": null
+    },
+    {
+      "request_id": "8b5d7ab9f4180600",
+      "response_id": null,
+      "response_text": "",
+      "work_ids": [
+        "7abcd3f779113cbf"
+      ],
+      "user_texts": [
+        "Goodbye."
+      ],
+      "interrupted": null
+    }
+  ],
+  "recordings": [
+    {
+      "id": "70f7c6a137dca1db",
+      "origin": "2026-11-03T21:12:29.392Z",
+      "segments": [
+        {
+          "attachment_ref": "/input/audio/part-0",
+          "channels": [
+            {
+              "index": 0,
+              "sources": [
+                "session-input"
+              ]
+            },
+            {
+              "index": 1,
+              "sources": [
+                "agent-output"
+              ]
+            }
+          ],
+          "duration_ms": 39939,
+          "id": "part-0",
+          "mime_type": "audio/ogg",
+          "start_offset_ms": 0,
+          "state": "ready"
+        }
+      ],
+      "sources": [
+        {
+          "id": "agent-output",
+          "label": "Agent audio"
+        },
+        {
+          "id": "session-input",
+          "label": "Agent input audio"
+        }
+      ]
+    }
+  ]
+}

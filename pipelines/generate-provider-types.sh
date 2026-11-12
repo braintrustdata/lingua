@@ -3,7 +3,7 @@
 # Provider type generation script
 # 
 # This script follows the pipeline documented in generate-provider-types.md
-# Currently supports: OpenAI, Anthropic, Google
+# Currently supports: OpenAI, OpenAI Decisions, Anthropic, Google
 #
 # Usage: ./generate-provider-types.sh [provider] [--headless]
 # Default provider: openai
@@ -16,6 +16,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Parse arguments
 PROVIDER=""
 HEADLESS=false
+GENERATE_TYPES_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -54,26 +55,24 @@ download_provider_spec() {
             SPEC_URL="https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
             SPEC_FILE="$PROJECT_ROOT/specs/openai/openapi.yml"
             ;;
+        "openai-decisions")
+            # The full spec is only an input; generate-types keeps the Decisions
+            # excerpt in specs/openai/decisions.yml.
+            echo "Downloading OpenAI OpenAPI spec for the Decisions API..."
+            SPEC_URL="https://raw.githubusercontent.com/openai/openai-openapi/main/openapi.yaml"
+            SPEC_FILE="$(mktemp -t openai-openapi.XXXXXX)"
+            GENERATE_TYPES_ARGS=("$SPEC_FILE")
+            ;;
         "anthropic")
-            echo "Fetching official Anthropic OpenAPI spec URL from .stats.yml..."
-            STATS_URL="https://raw.githubusercontent.com/anthropics/anthropic-sdk-typescript/main/.stats.yml"
-            STATS_FILE="$PROJECT_ROOT/specs/anthropic/.stats.yml"
-            
-            # Download .stats.yml file
-            if ! curl -L -o "$STATS_FILE" "$STATS_URL"; then
-                echo "❌ Failed to download Anthropic .stats.yml"
-                exit 1
-            fi
-            
-            # Extract the official OpenAPI spec URL from .stats.yml
-            SPEC_URL=$(grep "openapi_spec_url:" "$STATS_FILE" | sed 's/openapi_spec_url: *//')
-            if [ -z "$SPEC_URL" ]; then
-                echo "❌ Failed to extract OpenAPI spec URL from .stats.yml"
-                exit 1
-            fi
-            
-            echo "Official spec URL: $SPEC_URL"
+            echo "Downloading Anthropic OpenAPI spec from the official SDK..."
+            # The SDK's scripts/mock uses this bundled spec; .stats.yml no longer publishes its URL.
+            SPEC_URL="https://raw.githubusercontent.com/anthropics/anthropic-sdk-typescript/main/scripts/mock-spec.json.gz"
             SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.yml"
+            ;;
+        "typesafe")
+            echo "Downloading TypeSafe OpenAPI spec..."
+            SPEC_URL="https://api.typesafe.ai/openapi.json"
+            SPEC_FILE="$PROJECT_ROOT/specs/typesafe/openapi.json"
             ;;
         "google")
             echo "Downloading Google Discovery spec..."
@@ -88,19 +87,37 @@ download_provider_spec() {
     
     # Create specs directory if it doesn't exist
     mkdir -p "$(dirname "$SPEC_FILE")"
+
+    # Stage downloads so failed transfers or decompression preserve the existing spec.
+    SPEC_DOWNLOAD_DIR="$(mktemp -d)"
+    trap 'rm -rf "$SPEC_DOWNLOAD_DIR"' EXIT
     
     # Download the spec
     if command -v curl >/dev/null 2>&1; then
-        curl -fL -s "$SPEC_URL" -o "$SPEC_FILE"
+        curl -fL -s "$SPEC_URL" -o "$SPEC_DOWNLOAD_DIR/spec"
     elif command -v wget >/dev/null 2>&1; then
-        wget -q "$SPEC_URL" -O "$SPEC_FILE"
+        wget -q "$SPEC_URL" -O "$SPEC_DOWNLOAD_DIR/spec"
     else
         echo "❌ Neither curl nor wget is available"
         exit 1
     fi
+
+    if [ "$PROVIDER" = "anthropic" ]; then
+        gzip -dc "$SPEC_DOWNLOAD_DIR/spec" > "$SPEC_DOWNLOAD_DIR/spec.json"
+        mv "$SPEC_DOWNLOAD_DIR/spec.json" "$SPEC_DOWNLOAD_DIR/spec"
+    fi
+
+    if [ ! -s "$SPEC_DOWNLOAD_DIR/spec" ]; then
+        echo "❌ Downloaded provider spec is empty"
+        exit 1
+    fi
+
+    mv "$SPEC_DOWNLOAD_DIR/spec" "$SPEC_FILE"
+    rm -rf "$SPEC_DOWNLOAD_DIR"
+    trap - EXIT
     
     if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
-        if [ "$PROVIDER" = "google" ]; then
+        if [ "$PROVIDER" = "google" ] || [ "$PROVIDER" = "typesafe" ]; then
             cargo run --quiet --manifest-path "$PROJECT_ROOT/Cargo.toml" --bin canonicalize-json -- "$SPEC_FILE"
         fi
 
@@ -211,7 +228,7 @@ cd "$PROJECT_ROOT"
 
 # Run the dedicated type generation script
 echo "Running type generation script for $PROVIDER..."
-cargo run --bin generate-types -- "$PROVIDER"
+cargo run --bin generate-types -- "$PROVIDER" "${GENERATE_TYPES_ARGS[@]}"
 
 if [ $? -ne 0 ]; then
     echo "❌ Type generation failed"
@@ -238,7 +255,13 @@ echo "✅ Type generation and validation completed"
 echo "🎉 Provider type generation completed successfully for: $PROVIDER"
 echo ""
 echo "Generated files:"
-if [ "$PROVIDER" = "google" ]; then
+if [ "$PROVIDER" = "openai-decisions" ]; then
+    echo "- $PROJECT_ROOT/crates/lingua/src/providers/openai/decisions_generated.rs (types from OpenAPI spec)"
+    echo "- $PROJECT_ROOT/specs/openai/decisions.yml (local Decisions OpenAPI excerpt)"
+elif [ "$PROVIDER" = "typesafe" ]; then
+    echo "- $PROJECT_ROOT/crates/lingua/src/providers/typesafe/generated.rs (types from OpenAPI spec)"
+    echo "- $PROJECT_ROOT/specs/typesafe/openapi.json (local OpenAPI spec)"
+elif [ "$PROVIDER" = "google" ]; then
     echo "- $PROJECT_ROOT/crates/lingua/src/providers/$PROVIDER/generated.rs (types from Google Discovery spec)"
     echo "- $PROJECT_ROOT/specs/$PROVIDER/discovery.json (local Google Discovery spec)"
 else

@@ -132,6 +132,88 @@ type OpenAIResponseCreateParamsWithExtendedServiceTier<T> = T extends unknown
 export type OpenAIResponseCreateParams =
   OpenAIResponseCreateParamsWithExtendedServiceTier<OpenAI.Responses.ResponseCreateParams>;
 
+// OpenAI Decisions API (POST /v1/decisions) payloads, following
+// specs/openai/decisions.yml. The OpenAI SDK has no Decisions types yet.
+type DecisionsInputText = { type: "input_text"; text: string };
+type DecisionsOutputText = { type: "output_text"; text: string };
+type DecisionsInputImage = {
+  type: "input_image";
+  image_url: string;
+  detail?: "auto" | "low" | "high";
+};
+
+export type DecisionsInputItem =
+  | {
+      type?: "message";
+      role: "user" | "system" | "developer";
+      content: string | Array<DecisionsInputText | DecisionsInputImage>;
+    }
+  | {
+      type?: "message";
+      role: "assistant";
+      content: string | DecisionsOutputText[];
+    }
+  | { type: "function_call"; call_id: string; name: string; arguments: string }
+  | {
+      type: "function_call_output";
+      call_id: string;
+      output: string | DecisionsInputText[];
+    };
+
+type DecisionsInstructions = string | DecisionsInputText[];
+type DecisionsChoiceValue = string | boolean;
+
+export type DecisionsQuestion =
+  | { type: "predicate"; name?: string; instructions: DecisionsInstructions }
+  | {
+      type: "choice";
+      name?: string;
+      instructions: DecisionsInstructions;
+      choices: Array<{ value: DecisionsChoiceValue; description?: string }>;
+    }
+  | {
+      type: "score";
+      name?: string;
+      instructions: DecisionsInstructions;
+      levels: Array<{ label: string; description?: string }>;
+    };
+
+export interface DecisionsRequest {
+  model: string;
+  input: string | DecisionsInputItem[];
+  questions: DecisionsQuestion[];
+  prompt_cache_key?: string | null;
+  prompt_cache_options?: { mode?: "implicit" | "explicit"; ttl?: "30m" };
+  safety_identifier?: string;
+}
+
+// TypeSafe System One API (POST /v1/systemone) payloads, following
+// specs/typesafe/openapi.json. TypeSafe publishes no TypeScript SDK.
+type SystemOneEntry = string | Record<string, unknown> | unknown[];
+
+export type SystemOneQuestion =
+  | {
+      type: "noul";
+      instructions?: SystemOneEntry;
+      criteria?: { true?: SystemOneEntry; false?: SystemOneEntry };
+    }
+  | {
+      type: "choice";
+      instructions?: SystemOneEntry;
+      criteria: Record<string, SystemOneEntry | null>;
+    }
+  | {
+      type: "score";
+      instructions?: SystemOneEntry;
+      criteria: SystemOneEntry[];
+    };
+
+export interface SystemOneRequest {
+  model: string;
+  state: SystemOneEntry;
+  questions: Record<string, SystemOneQuestion>;
+}
+
 // Expectation-based validation for proxy compatibility tests
 // When present, capture.ts skips the case and validate.ts checks expectations
 export interface TestExpectation {
@@ -158,6 +240,9 @@ export interface TestCase {
   "vertex-google"?: GoogleGenerateContentRequest | null;
   // Baseten serves OSS models via an OpenAI-compatible chat-completions API.
   baseten?: ChatCompletionCreateParams | null;
+  // Decision models answer typed questions instead of generating text.
+  decisions?: DecisionsRequest | null;
+  typesafe?: SystemOneRequest | null;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
 }

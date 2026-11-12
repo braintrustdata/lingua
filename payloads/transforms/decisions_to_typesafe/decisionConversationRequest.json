@@ -1,0 +1,28 @@
+{
+  "model": "jev-1.14.0",
+  "answers": {
+    "resolved": {
+      "type": "noul",
+      "noul": 0.77
+    },
+    "tone": {
+      "type": "score",
+      "score": 2,
+      "confidence": 1,
+      "legend": {
+        "0": "rude",
+        "1": "neutral",
+        "2": "warm"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 1
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 403,
+    "output_tokens": 33
+  }
+}

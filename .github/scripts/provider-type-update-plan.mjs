@@ -3,7 +3,13 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
-const PROVIDERS = new Set(["openai", "anthropic", "google"]);
+const PROVIDERS = new Set([
+  "openai",
+  "anthropic",
+  "google",
+  "openai-decisions",
+  "typesafe",
+]);
 const CHANGE_KINDS = new Set(["added", "changed", "removed"]);
 const SURFACE_STATUSES = new Set([
   "affected",
@@ -109,7 +115,7 @@ export function validatePlan(plan, expectedProvider) {
     errors,
     PROVIDERS.has(plan.provider),
     "$.provider",
-    "must be openai, anthropic, or google"
+    `must be one of ${[...PROVIDERS].join(", ")}`
   );
   if (expectedProvider) {
     push(

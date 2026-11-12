@@ -10,6 +10,7 @@ pub mod capabilities;
 pub mod error;
 mod extraction;
 mod import_parse;
+mod import_value;
 pub mod processing;
 pub mod providers;
 pub mod universal;
@@ -35,12 +36,19 @@ pub use extraction::{extract_request_hints, RequestHints};
 pub use capabilities::ProviderFormat;
 
 // Re-export key processing functions (bytes-based API)
+#[cfg(feature = "openai")]
+pub use providers::openai::parse_decision_response;
+
 pub use processing::{
     extract_model, normalize_json_lone_surrogate_escapes, parse_json, parse_json_body,
     parse_json_value, parse_stream_event, request_to_universal, response_to_universal,
     sanitize_payload, transform_request, transform_response, transform_stream_chunk,
     ParsedJsonBody, ParsedStreamEvent, RequestTransformResult, ResponseTransformResult,
     StreamOutputChunk, StreamTransformSession, TransformError, TransformResult,
+};
+pub use processing::{
+    transform_decision_request, transform_decision_response, DecisionRequestTransform,
+    DecisionResponseContext,
 };
 
 // Re-export universal types

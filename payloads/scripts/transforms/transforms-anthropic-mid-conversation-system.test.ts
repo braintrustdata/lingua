@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { transform_request } from "@braintrust/lingua-wasm";
+import { transform_request } from "@braintrust/lingua-wasm/full";
 import {
   type MessageCreateParamsNonStreaming,
   type MessageParam,

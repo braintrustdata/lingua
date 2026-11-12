@@ -2,6 +2,7 @@ use crate::error::ConvertError;
 use crate::import_parse::{
     non_empty_messages, try_convert_non_empty, try_parse, try_parse_vec_or_single,
 };
+use crate::import_value::{ImportValue, InputKind};
 use crate::providers::openai::generated as openai;
 use crate::providers::openai::params::OpenAIResponsesExtrasView;
 use crate::providers::openai::tool_discovery;
@@ -398,7 +399,7 @@ fn chat_completion_prompt_cache_breakpoint_from_cache_control(
     )
 }
 
-fn validate_openai_prompt_cache_ttl(
+pub(crate) fn validate_openai_prompt_cache_ttl(
     cache_control: Option<&CacheControl>,
     target: &'static str,
 ) -> Result<(), ConvertError> {
@@ -626,7 +627,7 @@ fn parse_builtin_field<T: serde::de::DeserializeOwned>(
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 enum ResponsesImportKnownType {
     // Some SDK/frontend traces use compatibility shapes (`function_call_result`,
     // camelCase `callId`, JSON-valued `output`/`result`) that are not in the
@@ -647,15 +648,15 @@ enum ResponsesImportKnownType {
     ProgramOutput,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 enum ResponsesImportItemType {
     Known(ResponsesImportKnownType),
     Other(String),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct ResponsesImportCompatItem {
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+struct ResponsesImportCompatFields {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     item_type: Option<ResponsesImportItemType>,
     #[serde(default, alias = "callId", skip_serializing_if = "Option::is_none")]
@@ -676,6 +677,12 @@ struct ResponsesImportCompatItem {
     fingerprint: Option<String>,
     status: Option<String>,
     caller: Option<OpenAIProgramCaller>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ResponsesImportCompatItem {
+    #[serde(flatten)]
+    fields: ResponsesImportCompatFields,
     #[serde(flatten)]
     extra: serde_json::Map<String, serde_json::Value>,
 }
@@ -692,7 +699,16 @@ where
     }
 }
 
-fn normalize_responses_items_for_import(data: &serde_json::Value) -> Option<serde_json::Value> {
+fn normalize_responses_items_for_import(data: &impl ImportValue) -> Option<serde_json::Value> {
+    let fields = try_parse_vec_or_single::<ResponsesImportCompatFields>(data)?;
+    if fields
+        .iter()
+        .all(|fields| *fields == ResponsesImportCompatFields::default())
+    {
+        return None;
+    }
+    let value = data.to_value();
+    let data = value.as_ref();
     let wrapped;
     let candidate = if data.is_object() {
         wrapped = serde_json::Value::Array(vec![data.clone()]);
@@ -766,7 +782,7 @@ struct OpenAIToolCallProviderOptionsView {
     namespace: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 struct OpenAIProgramCaller {
     #[serde(rename = "type")]
@@ -774,7 +790,7 @@ struct OpenAIProgramCaller {
     caller_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 enum OpenAIProgramCallerType {
     Program,
@@ -1101,6 +1117,43 @@ fn openai_file_payload_from_data(
     )))
 }
 
+/// Universal image data and media type for an OpenAI image URL. A base64 data URL
+/// splits into its data and media type; any other URL is kept without one.
+pub(crate) fn universal_image_from_openai_url(image_url: String) -> (String, Option<String>) {
+    match parse_base64_data_url(&image_url) {
+        Some(block) => (block.data, Some(block.media_type)),
+        None => (image_url, None),
+    }
+}
+
+/// The OpenAI image URL for universal image data. URLs are kept as is; raw base64
+/// data becomes a data URL with `media_type`, or JPEG when it is unset.
+pub(crate) fn openai_image_url(image: String, media_type: Option<&str>) -> String {
+    if image.starts_with("data:") || image.starts_with("http://") || image.starts_with("https://") {
+        return image;
+    }
+    format!("data:{};base64,{image}", media_type.unwrap_or("image/jpeg"))
+}
+
+/// Provider options that keep an OpenAI image `detail` on a universal image.
+pub(crate) fn image_detail_options<T: Serialize>(
+    detail: Option<&T>,
+) -> Result<Option<ProviderOptions>, ConvertError> {
+    detail
+        .map(|detail| {
+            let detail = serde_json::to_value(detail).map_err(|error| {
+                ConvertError::JsonSerializationFailed {
+                    field: "detail".to_string(),
+                    error: error.to_string(),
+                }
+            })?;
+            let mut options = serde_json::Map::new();
+            options.insert("detail".to_string(), detail);
+            Ok(ProviderOptions { options })
+        })
+        .transpose()
+}
+
 fn universal_file_payload_from_openai(
     file_data: Option<String>,
     file_url: Option<String>,
@@ -1267,7 +1320,7 @@ fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Me
     merged
 }
 
-fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<Vec<Message>> {
+fn try_from_responses_items_candidate<V: ImportValue>(candidate: &V) -> Option<Vec<Message>> {
     if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate) {
         if let Some(messages) = try_convert_non_empty(provider_messages) {
             return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
@@ -1283,8 +1336,8 @@ fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<V
     None
 }
 
-pub(crate) fn try_parse_responses_items_for_import(
-    data: &serde_json::Value,
+pub(crate) fn try_parse_responses_items_for_import<V: ImportValue>(
+    data: &V,
 ) -> Option<Vec<Message>> {
     if let Some(messages) = try_from_responses_items_candidate(data) {
         return Some(messages);
@@ -1294,8 +1347,11 @@ pub(crate) fn try_parse_responses_items_for_import(
     try_from_responses_items_candidate(&normalized)
 }
 
-pub(crate) fn opaque_item_kind_for_import(data: &serde_json::Value) -> Option<OpaqueItemKind> {
-    let item = openai::InputItem::deserialize(data).ok()?;
+pub(crate) fn opaque_item_kind_for_import<V: ImportValue>(data: &V) -> Option<OpaqueItemKind> {
+    if data.kind() != InputKind::Object {
+        return None;
+    }
+    let item = try_parse::<openai::InputItem>(data)?;
     (item.input_item_type == Some(openai::InputItemType::Compaction)
         && item.id.is_some()
         && item.encrypted_content.is_some())
@@ -1310,10 +1366,10 @@ struct ResponsesItemWithOpaqueTools {
 }
 
 pub(crate) fn try_parse_responses_with_opaque_metadata_for_import(
-    data: &serde_json::Value,
+    data: &impl ImportValue,
 ) -> Option<(Vec<Message>, &'static str)> {
     let ResponsesItemWithOpaqueTools { tools, mut item } =
-        ResponsesItemWithOpaqueTools::deserialize(data).ok()?;
+        data.parse::<ResponsesItemWithOpaqueTools>()?;
     if item.input_item_type == Some(openai::InputItemType::AdditionalTools) {
         return (tools.is_some() && item.role == Some(openai::InputItemRole::Developer)).then(
             || {
@@ -1365,19 +1421,20 @@ fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<
     }
 }
 
-fn extract_instructions_from_openai_metadata_value(metadata: &serde_json::Value) -> Option<String> {
-    let typed = match metadata {
-        serde_json::Value::String(metadata_json) => {
-            let parsed = serde_json::from_str::<serde_json::Value>(metadata_json).ok()?;
+fn extract_instructions_from_openai_metadata_value(metadata: &impl ImportValue) -> Option<String> {
+    let typed = match metadata.kind() {
+        InputKind::String => {
+            let parsed =
+                serde_json::from_str::<serde_json::Value>(&metadata.parse::<String>()?).ok()?;
             serde_json::from_value::<OpenAIResponsesExtrasView>(parsed).ok()?
         }
-        _ => serde_json::from_value::<OpenAIResponsesExtrasView>(metadata.clone()).ok()?,
+        _ => metadata.parse::<OpenAIResponsesExtrasView>()?,
     };
     typed.instructions
 }
 
 pub(crate) fn try_system_message_from_openai_metadata(
-    metadata: &serde_json::Value,
+    metadata: &impl ImportValue,
 ) -> Option<Message> {
     let instructions = extract_instructions_from_openai_metadata_value(metadata)?;
     if instructions.is_empty() {
@@ -1388,7 +1445,7 @@ pub(crate) fn try_system_message_from_openai_metadata(
     })
 }
 
-pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
+pub(crate) fn try_parse_openai_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     // Prefer chat-completions request messages before Responses InputItem parsing.
     // Chat-completions arrays can deserialize as InputItems, but that path drops
     // assistant `tool_calls` arguments and is lossy for import.
@@ -1903,36 +1960,12 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                             field: "image_url".to_string(),
                         })?;
 
-                // Preserve detail in provider_options
-                let provider_options = if let Some(detail) = &value.detail {
-                    let mut options = serde_json::Map::new();
-                    options.insert(
-                        "detail".to_string(),
-                        serde_json::to_value(detail).map_err(|e| {
-                            ConvertError::JsonSerializationFailed {
-                                field: "detail".to_string(),
-                                error: e.to_string(),
-                            }
-                        })?,
-                    );
-                    Some(crate::universal::message::ProviderOptions { options })
-                } else {
-                    None
-                };
-
-                // Parse data URLs to extract raw base64, keep HTTP URLs as-is
-                let (image_data, media_type) =
-                    if let Some(block) = parse_base64_data_url(&image_url) {
-                        // Data URL: extract raw base64 and media type
-                        (block.data, Some(block.media_type))
-                    } else {
-                        // HTTP URL or other: keep as-is with default media type
-                        (image_url.clone(), Some("image/jpeg".to_string()))
-                    };
+                let provider_options = image_detail_options(value.detail.as_ref())?;
+                let (image_data, media_type) = universal_image_from_openai_url(image_url);
 
                 UserContentPart::Image {
                     image: serde_json::Value::String(image_data),
-                    media_type,
+                    media_type: media_type.or_else(|| Some("image/jpeg".to_string())),
                     provider_options,
                 }
             }
@@ -2057,17 +2090,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     }
                 };
 
-                // If we have raw base64 data (not a URL) and media_type, create a proper data URL
-                let image_url = if !image_str.starts_with("data:")
-                    && !image_str.starts_with("http://")
-                    && !image_str.starts_with("https://")
-                {
-                    // Assume raw base64 data - create data URL with media_type
-                    let mt = media_type.as_deref().unwrap_or("image/jpeg");
-                    format!("data:{};base64,{}", mt, image_str)
-                } else {
-                    image_str
-                };
+                let image_url = openai_image_url(image_str, media_type.as_deref());
 
                 // Extract detail from provider_options if present
                 let detail = provider_options
@@ -4962,15 +4985,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 }
 
                 if let Some(image_url) = part.image_url {
-                    // Parse data URLs to extract raw base64, keep HTTP URLs as-is
-                    let (image_data, media_type) =
-                        if let Some(block) = parse_base64_data_url(&image_url.url) {
-                            // Data URL: extract raw base64 and media type
-                            (block.data, Some(block.media_type))
-                        } else {
-                            // HTTP URL or other: keep as-is, no media type
-                            (image_url.url.clone(), None)
-                        };
+                    let (image_data, media_type) = universal_image_from_openai_url(image_url.url);
 
                     Ok(UserContentPart::Image {
                         image: serde_json::Value::String(image_data),
@@ -5066,12 +5081,7 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                 }
 
                 if let Some(image_url) = part.base.image_url {
-                    let (image_data, media_type) =
-                        if let Some(block) = parse_base64_data_url(&image_url.url) {
-                            (block.data, Some(block.media_type))
-                        } else {
-                            (image_url.url.clone(), None)
-                        };
+                    let (image_data, media_type) = universal_image_from_openai_url(image_url.url);
 
                     Ok(UserContentPart::Image {
                         image: serde_json::Value::String(image_data),
@@ -5420,17 +5430,7 @@ fn convert_user_content_part_to_chat_completion_part(
                 }
             };
 
-            // If we have raw base64 data (not a URL) and media_type, create a proper data URL
-            let url = if !image_str.starts_with("data:")
-                && !image_str.starts_with("http://")
-                && !image_str.starts_with("https://")
-            {
-                // Assume raw base64 data - create data URL with media_type
-                let mt = media_type.as_deref().unwrap_or("image/jpeg");
-                format!("data:{};base64,{}", mt, image_str)
-            } else {
-                image_str
-            };
+            let url = openai_image_url(image_str, media_type.as_deref());
 
             Ok(openai::ChatCompletionRequestMessageContentPart {
                 text: None,

@@ -1,13 +1,13 @@
-use crate::serde_json::Value;
+use crate::import_value::{ImportValue, InputKind};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::Message;
 use serde::de::DeserializeOwned;
 
-pub(crate) type MessageParser = fn(&Value) -> Option<Vec<Message>>;
+pub(crate) type MessageParser<V> = fn(&V) -> Option<Vec<Message>>;
 
-pub(crate) fn try_parsers_in_order(
-    data: &Value,
-    parsers: &[MessageParser],
+pub(crate) fn try_parsers_in_order<V: ImportValue>(
+    data: &V,
+    parsers: &[MessageParser<V>],
 ) -> Option<Vec<Message>> {
     for parser in parsers {
         if let Some(messages) = parser(data) {
@@ -27,11 +27,11 @@ pub(crate) fn non_empty_messages(messages: Vec<Message>) -> Option<Vec<Message>>
     }
 }
 
-pub(crate) fn try_parse<T>(data: &Value) -> Option<T>
+pub(crate) fn try_parse<T>(data: &impl ImportValue) -> Option<T>
 where
     T: DeserializeOwned,
 {
-    T::deserialize(data).ok()
+    data.parse()
 }
 
 pub(crate) fn try_convert_non_empty<T>(value: T) -> Option<Vec<Message>>
@@ -42,13 +42,13 @@ where
     non_empty_messages(messages)
 }
 
-pub(crate) fn try_parse_vec_or_single<T>(data: &Value) -> Option<Vec<T>>
+pub(crate) fn try_parse_vec_or_single<T>(data: &impl ImportValue) -> Option<Vec<T>>
 where
     T: DeserializeOwned,
 {
-    match data {
-        Value::Array(_) => try_parse::<Vec<T>>(data),
-        Value::Object(_) => try_parse::<T>(data).map(|item| vec![item]),
+    match data.kind() {
+        InputKind::Array => try_parse::<Vec<T>>(data),
+        InputKind::Object => try_parse::<T>(data).map(|item| vec![item]),
         _ => None,
     }
 }

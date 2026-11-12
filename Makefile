@@ -12,18 +12,20 @@ help: ## Show this help message
 generate-provider-types: ## Regenerate provider types from OpenAPI specs (usage: make generate-provider-types PROVIDER=openai)
 	@if [ -z "$(PROVIDER)" ]; then \
 		echo "Usage: make generate-provider-types PROVIDER=<provider>"; \
-		echo "Available providers: openai, anthropic, google, all"; \
+		echo "Available providers: openai, openai-decisions, anthropic, google, typesafe, all"; \
 		echo "Example: make generate-provider-types PROVIDER=openai"; \
 		exit 1; \
 	fi
 	@echo "Regenerating $(PROVIDER) types from OpenAPI spec..."
 	@cargo run --bin generate-types -- $(PROVIDER)
 
-generate-all-providers: ## Regenerate types for all providers (anthropic, openai, google)
+generate-all-providers: ## Regenerate types for all providers (anthropic, openai, openai-decisions, google, typesafe)
 	@echo "Regenerating all provider types..."
 	./pipelines/generate-provider-types.sh anthropic
 	./pipelines/generate-provider-types.sh openai
+	./pipelines/generate-provider-types.sh openai-decisions
 	./pipelines/generate-provider-types.sh google
+	./pipelines/generate-provider-types.sh typesafe
 
 generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."
@@ -118,7 +120,7 @@ test-python: python ## Run Python tests
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	cargo clean
-	rm -rf bindings/lingua-wasm/nodejs bindings/lingua-wasm/web
+	rm -rf bindings/lingua-wasm/nodejs bindings/lingua-wasm/web bindings/lingua-wasm/nodejs-full
 	rm -rf bindings/typescript/dist bindings/typescript/node_modules
 	rm -rf bindings/typescript/src/generated
 	rm -rf bindings/python/.venv bindings/python/target

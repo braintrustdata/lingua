@@ -9,6 +9,7 @@ use crate::capabilities::ProviderFormat;
 use crate::serde_json::{self, Value};
 use crate::universal::defaults::PLACEHOLDER_ID;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
+use crate::util::number::deserialize_optional_integer;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use ts_rs::TS;
@@ -148,30 +149,37 @@ pub struct OutputTokenDetails {
 pub struct UniversalUsage {
     /// Tokens in the prompt/input, including provider-generated tool prompts when reported.
     #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub prompt_tokens: Option<i64>,
 
     /// Tokens in the completion/output
     #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub completion_tokens: Option<i64>,
 
     /// Total tokens. Preserves a provider-reported value or falls back to prompt plus completion.
     #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub total_tokens: Option<i64>,
 
     /// Cached tokens in the prompt (from prompt caching)
     #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub prompt_cached_tokens: Option<i64>,
 
     /// Tokens written to cache during this request
     #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub prompt_cache_creation_tokens: Option<i64>,
 
     /// Tokens written to the 5-minute-TTL cache (Anthropic split cache writes)
     #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub prompt_cache_creation_5m_tokens: Option<i64>,
 
     /// Tokens written to the 1-hour-TTL cache (Anthropic split cache writes)
     #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub prompt_cache_creation_1h_tokens: Option<i64>,
 
     /// True when `prompt_tokens` excludes the cache read/creation buckets.
@@ -189,6 +197,7 @@ pub struct UniversalUsage {
     /// Reasoning/thinking tokens used in the completion.
     /// `Some(n)` only when `n > 0`; otherwise `None`.
     #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub completion_reasoning_tokens: Option<i64>,
 
     /// Detailed prompt/input token subsets and modality breakdowns.
@@ -387,13 +396,21 @@ impl FinishReason {
             (Self::Stop, ProviderFormat::Responses) => "completed",
             (
                 Self::Stop,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Decisions
+                | ProviderFormat::TypeSafe
+                | ProviderFormat::Unknown,
             ) => "stop",
 
             // Length variants
             (
                 Self::Length,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Decisions
+                | ProviderFormat::TypeSafe
+                | ProviderFormat::Unknown,
             ) => "length",
             (Self::Length, ProviderFormat::Responses) => "incomplete",
             (Self::Length, ProviderFormat::Google) => "MAX_TOKENS",
@@ -417,7 +434,11 @@ impl FinishReason {
             (Self::ToolCalls, ProviderFormat::Responses) => "completed", // Tool calls also complete
             (
                 Self::ToolCalls,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Decisions
+                | ProviderFormat::TypeSafe
+                | ProviderFormat::Unknown,
             ) => "tool_calls",
 
             // ContentFilter variants
@@ -432,7 +453,11 @@ impl FinishReason {
             (Self::ContentFilter, ProviderFormat::Responses) => "incomplete",
             (
                 Self::ContentFilter,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Decisions
+                | ProviderFormat::TypeSafe
+                | ProviderFormat::Unknown,
             ) => "content_filter",
 
             // Other - pass through as-is
@@ -506,9 +531,11 @@ impl UniversalResponse {
             ProviderFormat::Anthropic => "msg_",
             ProviderFormat::BedrockAnthropic => "msg_bdrk_",
             ProviderFormat::VertexAnthropic => "msg_vrtx_",
-            ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
-                "chatcmpl-"
-            }
+            ProviderFormat::ChatCompletions
+            | ProviderFormat::Mistral
+            | ProviderFormat::Decisions
+            | ProviderFormat::TypeSafe
+            | ProviderFormat::Unknown => "chatcmpl-",
             ProviderFormat::Responses => "resp_",
             ProviderFormat::Google => "resp_",
             ProviderFormat::Converse => "msg_",
@@ -808,7 +835,8 @@ impl UniversalUsage {
     ///
     /// Different providers use different field names:
     /// - OpenAI Chat: prompt_tokens, completion_tokens, prompt_tokens_details.cached_tokens
-    /// - OpenAI Responses: input_tokens, output_tokens, input_tokens_details.cached_tokens
+    /// - OpenAI Responses and Decisions: input_tokens, output_tokens, input_tokens_details.cached_tokens
+    /// - TypeSafe: input_tokens, output_tokens
     /// - Anthropic: input_tokens, output_tokens, cache_read_input_tokens
     /// - Bedrock: inputTokens, outputTokens, cacheReadInputTokens
     /// - Mistral: uses OpenAI format
@@ -866,7 +894,7 @@ impl UniversalUsage {
                     }),
                 }
             }
-            ProviderFormat::Responses => {
+            ProviderFormat::Responses | ProviderFormat::Decisions | ProviderFormat::TypeSafe => {
                 let usage = openai_responses_usage_view(usage);
                 let input_details = match usage.input_tokens_details {
                     Some(TypedUsageDetails::Valid(details)) => details,
@@ -1159,6 +1187,20 @@ impl UniversalUsage {
 
                 Value::Object(map)
             }
+            ProviderFormat::Decisions => serde_json::json!({
+                "input_tokens": prompt,
+                "input_tokens_details": {
+                    "cached_tokens": cached_tokens.unwrap_or(0),
+                    "cache_write_tokens": cache_creation_tokens.unwrap_or(0),
+                },
+                "output_tokens": completion,
+                "output_tokens_details": { "reasoning_tokens": reasoning_tokens.unwrap_or(0) },
+                "total_tokens": total,
+            }),
+            ProviderFormat::TypeSafe => serde_json::json!({
+                "input_tokens": prompt,
+                "output_tokens": completion,
+            }),
             ProviderFormat::Anthropic
             | ProviderFormat::BedrockAnthropic
             | ProviderFormat::VertexAnthropic => {

@@ -6,6 +6,8 @@ on:
     - cron: "0 17 * * 1"
     - cron: "0 17 * * 2"
     - cron: "0 17 * * 3"
+    - cron: "0 17 * * 4"
+    - cron: "0 17 * * 5"
   workflow_dispatch:
     inputs:
       provider:
@@ -16,6 +18,8 @@ on:
         options:
           - all
           - openai
+          - openai-decisions
+          - typesafe
           - anthropic
           - google
 
@@ -54,6 +58,12 @@ jobs:
               "0 17 * * 3")
                 provider="google"
                 ;;
+              "0 17 * * 4")
+                provider="openai-decisions"
+                ;;
+              "0 17 * * 5")
+                provider="typesafe"
+                ;;
               *)
                 echo "Unknown provider update schedule: $SCHEDULE" >&2
                 exit 1
@@ -65,9 +75,9 @@ jobs:
 
           case "$provider" in
             all)
-              providers='["openai","anthropic","google"]'
+              providers='["openai","anthropic","google","openai-decisions","typesafe"]'
               ;;
-            openai|anthropic|google)
+            openai|anthropic|google|openai-decisions|typesafe)
               providers="[\"$provider\"]"
               ;;
             *)
@@ -638,7 +648,9 @@ jobs:
         id: provider_tests
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
-        run: cargo test -p lingua "${{ matrix.provider }}"
+        env:
+          PROVIDER: ${{ matrix.provider }}
+        run: cargo test -p lingua --features typesafe "${PROVIDER/openai-decisions/decisions}"
 
       - name: Run generator tests
         id: generator_tests
@@ -839,7 +851,9 @@ jobs:
         id: post_repair_provider_tests
         if: always() && steps.mechanical_repair.outcome != 'skipped'
         continue-on-error: true
-        run: cargo test -p lingua "${{ matrix.provider }}"
+        env:
+          PROVIDER: ${{ matrix.provider }}
+        run: cargo test -p lingua --features typesafe "${PROVIDER/openai-decisions/decisions}"
 
       - name: Run generator tests after mechanical repair
         id: post_repair_generator_tests
@@ -943,6 +957,32 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.LINGUA_CAPTURE_OPENAI_API_KEY }}
         run: pnpm --dir payloads capture --force --snapshots-only --providers chat-completions,responses --cases "$CAPTURE_CASES"
 
+      - name: Live capture OpenAI Decisions cases
+        id: live_capture_decisions
+        if: >-
+          matrix.provider == 'openai-decisions' &&
+          steps.lingua_wasm.outcome == 'success' &&
+          steps.capture_cases.outcome == 'success' &&
+          steps.capture_cases.outputs.cases != ''
+        continue-on-error: true
+        env:
+          CAPTURE_CASES: ${{ steps.capture_cases.outputs.cases }}
+          OPENAI_API_KEY: ${{ secrets.LINGUA_CAPTURE_OPENAI_API_KEY }}
+        run: pnpm --dir payloads capture --force --snapshots-only --providers decisions --cases "$CAPTURE_CASES"
+
+      - name: Live capture TypeSafe cases
+        id: live_capture_typesafe
+        if: >-
+          matrix.provider == 'typesafe' &&
+          steps.lingua_wasm.outcome == 'success' &&
+          steps.capture_cases.outcome == 'success' &&
+          steps.capture_cases.outputs.cases != ''
+        continue-on-error: true
+        env:
+          CAPTURE_CASES: ${{ steps.capture_cases.outputs.cases }}
+          TYPESAFE_API_KEY: ${{ secrets.LINGUA_CAPTURE_TYPESAFE_API_KEY }}
+        run: pnpm --dir payloads capture --force --snapshots-only --providers typesafe --cases "$CAPTURE_CASES"
+
       - name: Live capture Anthropic cases
         id: live_capture_anthropic
         if: >-
@@ -978,7 +1018,9 @@ jobs:
           (
             (matrix.provider == 'openai' && steps.live_capture_openai.outcome == 'success') ||
             (matrix.provider == 'anthropic' && steps.live_capture_anthropic.outcome == 'success') ||
-            (matrix.provider == 'google' && steps.live_capture_google.outcome == 'success')
+            (matrix.provider == 'google' && steps.live_capture_google.outcome == 'success') ||
+            (matrix.provider == 'openai-decisions' && steps.live_capture_decisions.outcome == 'success') ||
+            (matrix.provider == 'typesafe' && steps.live_capture_typesafe.outcome == 'success')
           )
         continue-on-error: true
         env:
@@ -987,6 +1029,7 @@ jobs:
           CAPTURE_CASES: ${{ steps.capture_cases.outputs.cases }}
           GOOGLE_API_KEY: ${{ secrets.LINGUA_CAPTURE_GOOGLE_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.LINGUA_CAPTURE_OPENAI_API_KEY }}
+          TYPESAFE_API_KEY: ${{ secrets.LINGUA_CAPTURE_TYPESAFE_API_KEY }}
         run: |
           set -euo pipefail
           capture_providers=()
@@ -999,8 +1042,11 @@ jobs:
           if [ -n "${GOOGLE_API_KEY:-}" ]; then
             capture_providers+=(google)
           fi
+          if [ -n "${TYPESAFE_API_KEY:-}" ]; then
+            capture_providers+=(typesafe)
+          fi
           if [ -n "${OPENAI_API_KEY:-}" ]; then
-            capture_providers+=(chat-completions responses)
+            capture_providers+=(chat-completions responses decisions)
           fi
 
           if [ "${#capture_providers[@]}" -eq 0 ]; then
@@ -1251,6 +1297,12 @@ jobs:
             case "${{ matrix.provider }}" in
               openai)
                 require_ready "OpenAI live capture" "${{ steps.live_capture_openai.outcome }}"
+                ;;
+              openai-decisions)
+                require_ready "OpenAI Decisions live capture" "${{ steps.live_capture_decisions.outcome }}"
+                ;;
+              typesafe)
+                require_ready "TypeSafe live capture" "${{ steps.live_capture_typesafe.outcome }}"
                 ;;
               anthropic)
                 require_ready "Anthropic live capture" "${{ steps.live_capture_anthropic.outcome }}"

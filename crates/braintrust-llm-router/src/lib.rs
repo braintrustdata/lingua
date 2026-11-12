@@ -23,7 +23,7 @@ pub use auth::{
     google::{GoogleServiceAccountConfig, GoogleTokenManager, ServiceAccountKey},
     AuthConfig, AuthType,
 };
-pub use catalog::{ModelCatalog, ModelFlavor, ModelResolver, ModelSpec};
+pub use catalog::{ModelCatalog, ModelFlavor, ModelResolver, ModelSpec, PricingRate, TierPricing};
 pub use error::{Error, Result, UpstreamHttpError};
 pub use lingua::{providers::openai::capabilities::normalize_openai_model_name, ProviderFormat};
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};
@@ -31,14 +31,19 @@ pub use providers::{
     is_openai_compatible, openai_compatible_endpoint, AnthropicConfig, AnthropicProvider,
     AzureConfig, AzureProvider, BedrockConfig, BedrockProvider, ClientHeaders, DatabricksConfig,
     DatabricksProvider, GoogleConfig, GoogleProvider, MistralConfig, MistralProvider,
-    OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, Provider, VertexConfig, VertexProvider,
+    OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, Provider, TypeSafeConfig,
+    TypeSafeProvider, VertexConfig, VertexProvider,
 };
 pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{
-    create_provider, extract_request_hints, CompleteResponseWithRaw, PreparedRequest,
-    PreparedStreamRequest, ProviderRoute, RequestHints, Router, RouterBuilder, RouterMetadata,
+    create_provider, extract_request_hints, CompleteResponseWithRaw, PreparedDecisionRequest,
+    PreparedRequest, PreparedStreamRequest, ProviderRoute, RequestHints, Router, RouterBuilder,
+    RouterMetadata,
 };
-pub use streaming::{RawResponseStream, RawStreamChunkCapture, ResponseStream, StreamChunk};
+pub use streaming::{
+    sse_stream, transform_provider_stream, RawResponseStream, RawStreamChunkCapture,
+    ResponseStream, StreamChunk,
+};
 
 // Provider trait requirement (for custom provider implementations)
 pub use lingua::{UniversalResponse, UniversalUsage};

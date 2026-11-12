@@ -107,6 +107,8 @@ fn format_identifier(format: ProviderFormat) -> String {
         ProviderFormat::Mistral => "mistral",
         ProviderFormat::Converse => "bedrock",
         ProviderFormat::Responses => "openai", // Responses API uses OpenAI provider
+        ProviderFormat::Decisions => "openai",
+        ProviderFormat::TypeSafe => "typesafe",
         ProviderFormat::Unknown => "unknown",
     }
     .to_string()
@@ -131,6 +133,10 @@ mod tests {
             input_cost_per_mil_tokens: None,
             output_cost_per_mil_tokens: None,
             input_cache_read_cost_per_mil_tokens: None,
+            input_cache_write_cost_per_mil_tokens: None,
+            input_cache_write_5m_cost_per_mil_tokens: None,
+            input_cache_write_1h_cost_per_mil_tokens: None,
+            pricing: None,
             multimodal: None,
             reasoning: None,
             max_input_tokens: None,

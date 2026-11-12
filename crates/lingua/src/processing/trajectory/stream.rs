@@ -55,6 +55,10 @@ pub enum TrajectoryEvent {
         scope: TrajectoryScope,
         id: String,
     },
+    Recording {
+        scope: TrajectoryScope,
+        recording: Recording,
+    },
     Failure {
         root_span_id: String,
         span_id: String,
@@ -66,6 +70,12 @@ pub enum TrajectoryEvent {
         message: String,
     },
     Done,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct VoiceTurnState {
+    started: bool,
+    remaining: usize,
 }
 
 #[derive(Default)]
@@ -168,20 +178,21 @@ struct ScopeKey {
 impl ScopeKey {
     fn new(span: &PreparedSpan, owner: &Ownership) -> Self {
         Self {
-            root_span_id: span.root_span_id.clone(),
+            root_span_id: span.trajectory_root_span_id().to_owned(),
             tool: owner.tool,
             compaction: owner.compaction,
         }
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Role {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum Role {
     Ignored,
     Conversation,
     Analysis,
     Tool,
     Task { fallback: bool },
+    Voice,
 }
 
 impl Role {
@@ -400,6 +411,7 @@ fn decide_response(
 
 pub struct TrajectoryStream {
     spans: Vec<PreparedSpan>,
+    grouped_trace_ids: Vec<String>,
     ready: Vec<bool>,
     by_id: HashMap<String, usize>,
     owners: HashMap<usize, Ownership>,
@@ -418,6 +430,9 @@ pub struct TrajectoryStream {
     exclude_system: bool,
     finished: bool,
     failures: Vec<ImportFailure>,
+    voice: voice::VoicePlan,
+    voice_states: Vec<VoiceTurnState>,
+    voice_failed: HashSet<usize>,
 }
 
 impl TrajectoryStream {
@@ -429,6 +444,23 @@ impl TrajectoryStream {
         headers: Vec<ImportedSpan>,
         failures: Vec<ImportFailure>,
         exclude_system: bool,
+    ) -> Result<Self> {
+        Self::build(headers, failures, exclude_system, false)
+    }
+
+    pub fn with_grouped_traces(
+        headers: Vec<ImportedSpan>,
+        failures: Vec<ImportFailure>,
+        exclude_system: bool,
+    ) -> Result<Self> {
+        Self::build(headers, failures, exclude_system, true)
+    }
+
+    fn build(
+        headers: Vec<ImportedSpan>,
+        failures: Vec<ImportFailure>,
+        exclude_system: bool,
+        group_traces: bool,
     ) -> Result<Self> {
         let mut failures = failures;
         let mut spans = Vec::with_capacity(headers.len());
@@ -460,6 +492,18 @@ impl TrajectoryStream {
                 })
             })
             .collect();
+        let grouped_trace_ids: Vec<String> = if group_traces {
+            spans
+                .iter()
+                .map(|span| span.root_span_id.as_str())
+                .chain(failures.iter().map(|failure| failure.root_span_id.as_str()))
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .map(str::to_owned)
+                .collect()
+        } else {
+            Vec::new()
+        };
         let mut owners = HashMap::new();
         for index in 0..spans.len() {
             let mut visiting = HashSet::new();
@@ -480,7 +524,22 @@ impl TrajectoryStream {
                 }
             }
         }
-        let roles = classify_headers(&spans, &owners);
+        let mut roles = classify_headers(&spans, &owners);
+        let mut voice = voice::plan(&spans, &by_span_id, &parents, &owners, &roles);
+        for (index, role) in roles.iter_mut().enumerate() {
+            if voice.is_voice(index) {
+                *role = Role::Voice;
+            } else if voice.ignored.contains(&index) {
+                *role = Role::Ignored;
+            }
+        }
+        failures.append(&mut voice.failures);
+        if let Some(root_span_id) = grouped_trace_ids.first() {
+            let group_root_span_id: Arc<str> = root_span_id.as_str().into();
+            for span in &mut spans {
+                span.group_root_span_id = Some(Arc::clone(&group_root_span_id));
+            }
+        }
         let ready = roles.iter().map(|role| *role == Role::Ignored).collect();
         let mut task_children = vec![Vec::new(); spans.len()];
         let task_resolved = roles
@@ -519,6 +578,7 @@ impl TrajectoryStream {
             });
         }
         let mut stream = Self {
+            grouped_trace_ids,
             ready,
             spans,
             by_id,
@@ -538,6 +598,16 @@ impl TrajectoryStream {
             cursor: 0,
             exclude_system,
             finished: false,
+            voice_states: voice
+                .turns
+                .iter()
+                .map(|turn| VoiceTurnState {
+                    started: false,
+                    remaining: turn.span_count,
+                })
+                .collect(),
+            voice,
+            voice_failed: HashSet::new(),
         };
         let mut events = Vec::new();
         stream.initialize(&mut events)?;
@@ -609,8 +679,10 @@ impl TrajectoryStream {
         self.push_prepared(PreparedSpan::new(span)?)
     }
 
-    pub fn push_prepared(&mut self, span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
+    pub fn push_prepared(&mut self, mut span: PreparedSpan) -> Result<Vec<TrajectoryEvent>> {
         let index = self.pending_index(&span)?;
+        span.group_root_span_id
+            .clone_from(&self.spans[index].group_root_span_id);
         self.spans[index] = span;
         self.ready[index] = true;
         if !self.task_resolved[index] {
@@ -682,7 +754,12 @@ impl TrajectoryStream {
             span_id: id.to_string(),
             message,
         });
-        self.roles[index] = Role::Ignored;
+        if self.roles[index] == Role::Voice {
+            // Keep the span's place so its voice turn still opens and closes.
+            self.voice_failed.insert(index);
+        } else {
+            self.roles[index] = Role::Ignored;
+        }
         self.task_resolved[index] = true;
         self.ready[index] = true;
         self.spans[index].release_payload();
@@ -718,6 +795,7 @@ impl TrajectoryStream {
             turn,
             analysis,
             compaction,
+            voice,
         } = &span.source;
         if span.id != header.id
             || span.root_span_id != header.root_span_id
@@ -730,6 +808,9 @@ impl TrajectoryStream {
             || end != &header.source.end
             || turn != &header.source.turn
             || analysis != &header.source.analysis
+            // A trace planned without voice fields builds as chat, which the payload can't
+            // contradict; in a voice trace, the payload's voice fields must match.
+            || (self.voice.roots.contains(&header.root_span_id) && voice != &header.source.voice)
             || compaction.as_ref().map(|value| &value.id)
                 != header.source.compaction.as_ref().map(|value| &value.id)
         {
@@ -805,7 +886,7 @@ impl TrajectoryStream {
         for span in &self.spans {
             scopes.insert(
                 TrajectoryScope {
-                    root_span_id: span.root_span_id.clone(),
+                    root_span_id: span.trajectory_root_span_id().to_owned(),
                     owner_span_id: None,
                 },
                 None,
@@ -814,7 +895,11 @@ impl TrajectoryStream {
         for failure in &self.failures {
             scopes.insert(
                 TrajectoryScope {
-                    root_span_id: failure.root_span_id.clone(),
+                    root_span_id: self
+                        .grouped_trace_ids
+                        .first()
+                        .unwrap_or(&failure.root_span_id)
+                        .clone(),
                     owner_span_id: None,
                 },
                 None,
@@ -831,12 +916,19 @@ impl TrajectoryStream {
             events.push(TrajectoryEvent::Start {
                 trajectory: Trajectory {
                     version: Some("1".to_string()),
-                    scope: vec![scope.owner_span_id.as_ref().map_or_else(
-                        || Scope::Trace {
+                    scope: match &scope.owner_span_id {
+                        Some(id) => vec![Scope::Span { id: id.clone() }],
+                        None if !self.grouped_trace_ids.is_empty() => self
+                            .grouped_trace_ids
+                            .iter()
+                            .map(|trace_id| Scope::Trace {
+                                trace_id: trace_id.clone(),
+                            })
+                            .collect(),
+                        None => vec![Scope::Trace {
                             trace_id: scope.root_span_id.clone(),
-                        },
-                        |id| Scope::Span { id: id.clone() },
-                    )],
+                        }],
+                    },
                     agent: Agent {
                         name,
                         version: None,
@@ -844,6 +936,7 @@ impl TrajectoryStream {
                         instructions: None,
                     },
                     turns: Vec::new(),
+                    recordings: None,
                     sections: None,
                     findings: None,
                     metadata: Default::default(),
@@ -874,8 +967,10 @@ impl TrajectoryStream {
             {
                 break;
             }
-            if self.roles[index] != Role::Ignored {
-                self.advance(index, &mut events)?;
+            match self.roles[index] {
+                Role::Ignored => {}
+                Role::Voice => self.advance_voice(index, &mut events)?,
+                _ => self.advance(index, &mut events)?,
             }
             let remaining = self
                 .remaining
@@ -890,7 +985,7 @@ impl TrajectoryStream {
                     if let Some((candidate, _)) = state.candidate {
                         self.spans[candidate].release_payload();
                     }
-                } else if self.roles[index] != Role::Ignored {
+                } else if !matches!(self.roles[index], Role::Ignored | Role::Voice) {
                     return Err(format!(
                         "Missing turn state for span {}",
                         self.spans[index].id
@@ -934,19 +1029,17 @@ impl TrajectoryStream {
         id: &str,
         index: usize,
         position: usize,
+        role: Role,
     ) -> Result<Option<TrajectoryEvent>> {
         let span = &self.spans[index];
-        if matches!(
-            self.roles[index],
-            Role::Ignored | Role::Task { fallback: false }
-        ) {
+        if matches!(role, Role::Ignored | Role::Task { fallback: false }) {
             return Ok(None);
         }
-        let work = if self.roles[index] == Role::Tool {
+        let work = if role == Role::Tool {
             Work::ToolResult(Box::new(span.tool_result.clone().ok_or_else(|| {
                 format!("Missing imported tool result for {}", span.id)
             })?))
-        } else if self.roles[index] == Role::Analysis {
+        } else if role == Role::Analysis {
             Work::LLMAnalysis(Box::new(LLMAnalysis {
                 work: Some(
                     span.input
@@ -1002,7 +1095,7 @@ impl TrajectoryStream {
             .map(|(index, _)| index);
         if response.is_none() {
             if let Some((index, position)) = state.candidate {
-                events.extend(self.work(&scope, id, index, position)?);
+                events.extend(self.work(&scope, id, index, position, self.roles[index])?);
             }
         }
         let completed = CompletedTurn {
@@ -1043,7 +1136,13 @@ impl TrajectoryStream {
         let previous_candidate = state.candidate.map(|(index, _)| index);
         if self.resumed.contains(&index) {
             if let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start) {
-                events.extend(self.work(&scope, &target.id, index, target.position)?);
+                events.extend(self.work(
+                    &scope,
+                    &target.id,
+                    index,
+                    target.position,
+                    self.roles[index],
+                )?);
                 target.position += 1;
                 target.end_time = target.end_time.max(span.source.end);
                 target.unfinished |= span.source.end.is_none();
@@ -1161,7 +1260,7 @@ impl TrajectoryStream {
         let id = state.id.as_deref().unwrap();
         if response_rule == ResponseRule::ContinuedConversation {
             if let Some((previous, position)) = state.candidate.take() {
-                events.extend(self.work(&scope, id, previous, position)?);
+                events.extend(self.work(&scope, id, previous, position, self.roles[previous])?);
             }
             if state.candidate_model.is_none() {
                 state.candidate_model = span.source.model.clone();
@@ -1169,10 +1268,10 @@ impl TrajectoryStream {
             if key.compaction.is_none() && self.can_finish_turn(index) {
                 state.candidate = Some((index, state.position));
             } else {
-                events.extend(self.work(&scope, id, index, state.position)?);
+                events.extend(self.work(&scope, id, index, state.position, self.roles[index])?);
             }
         } else {
-            events.extend(self.work(&scope, id, index, state.position)?);
+            events.extend(self.work(&scope, id, index, state.position, self.roles[index])?);
         }
         state.position += 1;
         state.unfinished =
@@ -1203,6 +1302,137 @@ impl TrajectoryStream {
         Ok(())
     }
 
+    fn advance_voice(&mut self, index: usize, events: &mut Vec<TrajectoryEvent>) -> Result<()> {
+        let key = ScopeKey::new(&self.spans[index], &self.owners[&index]);
+        let scope = self.scope(&key);
+        let loaded = !self.voice_failed.contains(&index);
+        if let Some(warning) = self.voice.warnings.remove(&index) {
+            self.spans[index].warnings.push(warning);
+        }
+        let span = &self.spans[index];
+        if loaded && !span.voice.errors.is_empty() {
+            self.failures
+                .push(voice::failure(span, span.voice.errors.join("; ")));
+        }
+        if self.voice.sessions.contains(&index) {
+            if loaded {
+                if let Some(recording) = self.spans[index].voice.recording.take() {
+                    events.push(TrajectoryEvent::Recording { scope, recording });
+                }
+            }
+            self.spans[index].release_payload();
+            return Ok(());
+        }
+        let voice::VoiceOwnership {
+            turn: turn_index,
+            role,
+        } = self.voice.owners[&index];
+        let voice_turn = &self.voice.turns[turn_index];
+        let id = self.spans[voice_turn.request].id.clone();
+        let (request, opaque_request) = if index == voice_turn.request && loaded {
+            (self.request(span, None, true), span.opaque_input.clone())
+        } else {
+            (Vec::new(), Vec::new())
+        };
+        let state = &mut self.voice_states[turn_index];
+        state.remaining -= 1;
+        if !state.started {
+            if index == voice_turn.request
+                && voice_turn.span_count == 1
+                && span.source.name.as_deref() != Some("user_speech")
+                && request.is_empty()
+                && opaque_request.is_empty()
+            {
+                self.spans[index].release_payload();
+                return Ok(());
+            }
+            state.started = true;
+            events.push(TrajectoryEvent::Turn {
+                scope: scope.clone(),
+                id: id.clone(),
+                turn: Box::new(Turn {
+                    request_id: id.clone(),
+                    request: Some(request),
+                    opaque_request,
+                    response_id: None,
+                    response: None,
+                    work: Vec::new(),
+                    model: voice_turn.model.clone(),
+                    params: None,
+                    start_time: voice_turn.start_time,
+                    end_time: None,
+                    interrupted: None,
+                    compaction: None,
+                }),
+            });
+        } else if index == voice_turn.request && loaded {
+            events.push(TrajectoryEvent::Request {
+                scope: scope.clone(),
+                id: id.clone(),
+                request_id: id.clone(),
+                request,
+                opaque_request,
+            });
+        }
+        if self.voice.interrupted.contains(&index) {
+            events.push(TrajectoryEvent::Interrupted {
+                scope: scope.clone(),
+                id: id.clone(),
+            });
+        }
+        match role {
+            voice::VoiceRole::Request | voice::VoiceRole::Reply => {}
+            voice::VoiceRole::Work {
+                kind: voice::StepKind::Chat(role),
+                position,
+            } if loaded => match self.work(&scope, &id, index, position, role) {
+                Ok(event) => events.extend(event),
+                Err(message) => self.failures.push(voice::failure(span, message)),
+            },
+            voice::VoiceRole::Work { kind, position } if loaded => {
+                events.push(TrajectoryEvent::Work {
+                    scope: scope.clone(),
+                    id: id.clone(),
+                    position,
+                    step: voice::speech_step(span, kind),
+                })
+            }
+            voice::VoiceRole::Work { .. } => {}
+            voice::VoiceRole::Response { position } => {
+                let failed = loaded && span.source.error.is_some();
+                if failed {
+                    // As in chat, a failed final candidate is work, which keeps its error.
+                    events.extend(self.work(&scope, &id, index, position, Role::Conversation)?);
+                }
+                let response = if loaded && !failed {
+                    voice::response(span)
+                } else {
+                    None
+                };
+                events.push(TrajectoryEvent::Response {
+                    scope: scope.clone(),
+                    id: id.clone(),
+                    response_id: response.as_ref().map(|_| span.id.clone()),
+                    response: response.map(Box::new),
+                    end_time: voice_turn.end_time,
+                    model: voice_turn.model.clone(),
+                })
+            }
+        }
+        if self.voice_states[turn_index].remaining == 0 && voice_turn.response.is_none() {
+            events.push(TrajectoryEvent::Response {
+                scope,
+                id,
+                response_id: None,
+                response: None,
+                end_time: voice_turn.end_time,
+                model: voice_turn.model.clone(),
+            });
+        }
+        self.spans[index].release_payload();
+        Ok(())
+    }
+
     pub fn finish(&mut self) -> Result<Vec<TrajectoryEvent>> {
         if self.finished {
             return Err("Trajectory stream has finished".to_string());
@@ -1223,15 +1453,17 @@ impl TrajectoryStream {
         failures.dedup_by(|a, b| {
             a.root_span_id == b.root_span_id && a.span_id == b.span_id && a.message == b.message
         });
-        events.extend(
-            failures
-                .into_iter()
-                .map(|failure| TrajectoryEvent::Failure {
-                    root_span_id: failure.root_span_id,
-                    span_id: failure.span_id,
-                    message: failure.message,
-                }),
-        );
+        events.extend(failures.into_iter().map(|failure| {
+            TrajectoryEvent::Failure {
+                root_span_id: self
+                    .grouped_trace_ids
+                    .first()
+                    .cloned()
+                    .unwrap_or(failure.root_span_id),
+                span_id: failure.span_id,
+                message: failure.message,
+            }
+        }));
         let mut warnings: Vec<_> = self
             .spans
             .iter()
@@ -1242,7 +1474,7 @@ impl TrajectoryStream {
         warnings.sort_by(|a, b| a.id.cmp(&b.id));
         for span in warnings {
             events.push(TrajectoryEvent::Warning {
-                root_span_id: span.root_span_id.clone(),
+                root_span_id: span.trajectory_root_span_id().to_owned(),
                 span_id: span.id.clone(),
                 message: span.warnings.join("; "),
             });
@@ -1406,6 +1638,14 @@ impl TrajectoryCollector {
             TrajectoryEvent::Interrupted { scope, id } => {
                 self.turn(&scope, &id)?.turn.interrupted = Some(true)
             }
+            TrajectoryEvent::Recording { scope, recording } => self
+                .scopes
+                .get_mut(&scope)
+                .ok_or("Unknown trajectory scope")?
+                .header
+                .recordings
+                .get_or_insert_with(Vec::new)
+                .push(recording),
             TrajectoryEvent::Failure {
                 root_span_id,
                 span_id,

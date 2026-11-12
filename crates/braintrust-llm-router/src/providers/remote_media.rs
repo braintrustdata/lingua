@@ -43,7 +43,7 @@ fn remote_media_limits(
         .is_some_and(|mime| {
             matches!(
                 normalized_media_type(mime).as_str(),
-                "audio/wav" | "audio/mpeg"
+                "audio/wav" | "audio/mpeg" | "audio/ogg"
             )
         })
     {
@@ -54,6 +54,7 @@ fn remote_media_limits(
                 "video/audio/wav",
                 "audio/mpeg",
                 "audio/mp3",
+                "audio/ogg",
             ]),
             MAX_REMOTE_AUDIO_BYTES,
         );
@@ -104,7 +105,10 @@ impl RemoteMediaPolicy {
             ProviderFormat::Anthropic
             | ProviderFormat::VertexAnthropic
             | ProviderFormat::Responses => Some(Self::NONE),
-            ProviderFormat::Mistral | ProviderFormat::Unknown => None,
+            ProviderFormat::Mistral
+            | ProviderFormat::Decisions
+            | ProviderFormat::TypeSafe
+            | ProviderFormat::Unknown => None,
         }
     }
 }
@@ -616,6 +620,10 @@ mod tests {
             input_cost_per_mil_tokens: None,
             output_cost_per_mil_tokens: None,
             input_cache_read_cost_per_mil_tokens: None,
+            input_cache_write_cost_per_mil_tokens: None,
+            input_cache_write_5m_cost_per_mil_tokens: None,
+            input_cache_write_1h_cost_per_mil_tokens: None,
+            pricing: None,
             multimodal: None,
             reasoning: None,
             max_input_tokens: None,
@@ -645,6 +653,14 @@ mod tests {
             let (allowed, limit) = remote_media_limits(url, None);
             assert!(allowed.unwrap().contains(&"audio/wav"));
             assert!(limit >= 120 * 24_000 * 2 * 2 + 44);
+            assert_eq!(limit, 20 * 1024 * 1024);
+        }
+        for url in [
+            "https://example.com/conversation.ogg",
+            "https://example.com/opaque-key?X-Amz-Expires=3600&response-content-type=audio%2Fogg",
+        ] {
+            let (allowed, limit) = remote_media_limits(url, None);
+            assert!(allowed.unwrap().contains(&"audio/ogg"));
             assert_eq!(limit, 20 * 1024 * 1024);
         }
         for url in [
@@ -809,6 +825,13 @@ mod tests {
             (
                 "/file.pdf",
                 "application/pdf",
+                MAX_REMOTE_MEDIA_BYTES + 1,
+                None,
+                None,
+            ),
+            (
+                "/call.ogg",
+                "audio/ogg",
                 MAX_REMOTE_MEDIA_BYTES + 1,
                 None,
                 None,

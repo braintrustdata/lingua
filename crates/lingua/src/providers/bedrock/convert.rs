@@ -9,6 +9,7 @@ use crate::error::ConvertError;
 use crate::import_parse::{
     try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
+use crate::import_value::ImportValue;
 use crate::providers::bedrock::request::{
     BedrockContentBlock, BedrockConversationRole, BedrockImageBlock, BedrockImageFormat,
     BedrockImageSource, BedrockMessage, BedrockReasoningContentBlock, BedrockReasoningTextBlock,
@@ -498,17 +499,17 @@ fn try_messages_from_bedrock_output_messages(
     try_convert_non_empty(output_messages)
 }
 
-fn try_parse_bedrock_message_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_bedrock_message_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let messages = try_parse_vec_or_single::<BedrockMessage>(data)?;
     try_messages_from_bedrock_messages(messages)
 }
 
-fn try_parse_bedrock_request_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_bedrock_request_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let request = try_parse::<ConverseRequest>(data)?;
     try_messages_from_bedrock_messages(request.messages)
 }
 
-fn try_parse_bedrock_output_message_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_bedrock_output_message_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let output_messages = try_parse_vec_or_single::<BedrockOutputMessage>(data)?;
     if output_messages.len() == 1 {
         return try_message_from_bedrock_output_message(output_messages.into_iter().next()?);
@@ -516,19 +517,19 @@ fn try_parse_bedrock_output_message_for_import(data: &Value) -> Option<Vec<Messa
     try_messages_from_bedrock_output_messages(output_messages)
 }
 
-fn try_parse_bedrock_response_for_import(data: &Value) -> Option<Vec<Message>> {
+fn try_parse_bedrock_response_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let response = try_parse::<ConverseResponse>(data)?;
     try_message_from_bedrock_output_message(response.output.message)
 }
 
-pub(crate) fn try_parse_bedrock_for_import(data: &Value) -> Option<Vec<Message>> {
-    const PARSERS: &[MessageParser] = &[
+pub(crate) fn try_parse_bedrock_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
+    let parsers: &[MessageParser<V>] = &[
         try_parse_bedrock_message_for_import,
         try_parse_bedrock_request_for_import,
         try_parse_bedrock_output_message_for_import,
         try_parse_bedrock_response_for_import,
     ];
-    try_parsers_in_order(data, PARSERS)
+    try_parsers_in_order(data, parsers)
 }
 
 // ============================================================================

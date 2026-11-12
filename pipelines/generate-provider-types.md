@@ -5,7 +5,7 @@ Lingua generates provider wire types from checked-in API specifications. Generat
 ## Supported providers
 
 - OpenAI: Stainless OpenAPI specification
-- Anthropic: hosted community OpenAPI specification
+- Anthropic: compressed OpenAPI JSON bundled in the [official TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript/blob/main/scripts/mock-spec.json.gz)
 
 ## Run the pipeline
 
@@ -37,7 +37,7 @@ Generation errors return a non-zero exit code and leave the existing generated R
 - `crates/lingua/src/providers/openai/generated.rs`
 - `crates/lingua/src/providers/anthropic/generated.rs`
 - `specs/openai/openapi.yml`
-- `specs/anthropic/openapi.json`
+- `specs/anthropic/openapi.yml` (JSON, matching the SDK's bundled specification)
 
 Do not edit `generated.rs` files directly. Change `crates/generate-types/src/main.rs`, regenerate, and commit the resulting specification and generated output together.
 

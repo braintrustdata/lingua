@@ -92,6 +92,30 @@ To build the full TypeScript bindings (WASM):
 make typescript
 ```
 
+### WASM API scope
+
+The standard Node and browser WASM builds include message conversion for all
+providers, message imports and deduplication, span imports, and trajectory
+streaming and collection. These cover Braintrust's JavaScript uses. Native
+Rust request, response, and stream APIs are unchanged.
+
+Request/response validators and request/response/stream transforms are omitted
+from the default WASM exports. Lingua's payload capture and transform tests use
+an explicit full Node build at `@braintrust/lingua-wasm/full`.
+
+`make lingua-wasm` builds and packages the standard artifacts and the full
+artifact with the release profile (`opt-level = 3`). To build just the browser
+artifact:
+
+```bash
+pnpm --dir bindings/lingua-wasm run build:web
+```
+
+Direct Rust builds opt into the full WASM exports with
+`--features bedrock,wasm-full`. The standard browser import and WASM asset paths
+stay `@braintrust/lingua/browser` and
+`@braintrust/lingua-wasm/browser/lingua_bg.wasm`.
+
 ## Provider type generation
 
 Generate provider-specific types from OpenAPI specs:

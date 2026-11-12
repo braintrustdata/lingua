@@ -35,6 +35,140 @@ fn collect(collector: &mut TrajectoryCollector, events: Vec<TrajectoryEvent>) {
     }
 }
 
+#[test]
+fn grouped_traces_share_conversation_history() {
+    let request = json!({"role": "user", "content": "Question"});
+    let call = json!({"role": "assistant", "tool_calls": [{
+        "id": "call", "type": "function",
+        "function": {"name": "lookup", "arguments": "{}"}
+    }]});
+    let result = json!({"role": "tool", "tool_call_id": "call", "content": "Found"});
+    let answer = json!({"role": "assistant", "content": "Answer"});
+    let mut sources = vec![
+        span("first", 1, json!([request]), json!([call])),
+        span(
+            "continuation",
+            3,
+            json!([request, call, result]),
+            json!([answer]),
+        ),
+        span(
+            "next",
+            5,
+            json!([request, call, result, answer,
+            {"role": "user", "content": "Next question"}]),
+            json!([{"role": "assistant", "content": "Next answer"}]),
+        ),
+    ];
+    for (index, source) in sources.iter_mut().enumerate() {
+        source
+            .other
+            .insert("root_span_id".into(), format!("trace-{index}").into());
+    }
+    let imported: Vec<_> = sources
+        .into_iter()
+        .map(|source| import_span(source).unwrap())
+        .collect();
+    let mut stream = TrajectoryStream::with_grouped_traces(
+        imported.iter().map(ImportedSpan::header_only).collect(),
+        vec![ImportFailure {
+            root_span_id: "trace-2".into(),
+            span_id: "broken".into(),
+            message: "Invalid input".into(),
+        }],
+        false,
+    )
+    .unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first() {
+        let source = imported
+            .iter()
+            .find(|span| span.header.id.as_ref() == Some(id))
+            .unwrap();
+        collect(&mut collector, stream.push(source.clone()).unwrap());
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    let trajectories = collector.snapshot().unwrap();
+    assert_eq!(trajectories.len(), 1);
+    assert_eq!(trajectories[0].turns.len(), 2);
+    assert_eq!(trajectories[0].turns[0].request_id, "first");
+    assert_eq!(
+        trajectories[0].turns[0].response_id.as_deref(),
+        Some("continuation")
+    );
+    assert_eq!(trajectories[0].turns[1].request_id, "next");
+    assert_eq!(trajectories[0].scope.len(), 3);
+    assert_eq!(
+        trajectories[0].metadata["import_failures"],
+        json::json!([{
+            "span_id": "broken", "message": "Invalid input"
+        }])
+    );
+}
+
+#[test]
+fn grouped_traces_preserve_task_only_turns() {
+    let imported: Vec<_> = [
+        json!({
+            "id": "wrapper", "span_id": "root", "root_span_id": "llm-trace",
+            "span_attributes": {"type": "task"}, "metrics": {"start": 0, "end": 3},
+            "input": [{"role": "user", "content": "Wrapper request"}],
+            "output": [{"role": "assistant", "content": "Wrapper response"}]
+        }),
+        json!({
+            "id": "llm", "span_id": "llm", "root_span_id": "llm-trace",
+            "span_parents": ["root"], "span_attributes": {"type": "llm"},
+            "metrics": {"start": 1, "end": 2},
+            "input": [{"role": "user", "content": "LLM request"}],
+            "output": [{"role": "assistant", "content": "LLM response"}]
+        }),
+        json!({
+            "id": "task", "span_id": "root", "root_span_id": "task-trace",
+            "span_attributes": {"type": "task"}, "metrics": {"start": 4, "end": 5},
+            "input": [{"role": "user", "content": "Task request"}],
+            "output": [{"role": "assistant", "content": "Task response"}]
+        }),
+    ]
+    .into_iter()
+    .map(|row| import_span(Span::deserialize(row).unwrap()).unwrap())
+    .collect();
+    for (batch_size, reverse) in [(1, false), (16, true)] {
+        let mut headers: Vec<_> = imported.iter().map(ImportedSpan::header_only).collect();
+        if reverse {
+            headers.reverse();
+        }
+        let mut stream = TrajectoryStream::with_grouped_traces(headers, Vec::new(), false).unwrap();
+        let mut collector = TrajectoryCollector::default();
+        loop {
+            let pending = stream.pending_ids(batch_size);
+            if pending.is_empty() {
+                break;
+            }
+            for id in pending {
+                let source = imported
+                    .iter()
+                    .find(|span| span.header.id.as_ref() == Some(&id))
+                    .unwrap();
+                collect(&mut collector, stream.push(source.clone()).unwrap());
+            }
+        }
+        collect(&mut collector, stream.finish().unwrap());
+        let trajectories = collector.snapshot().unwrap();
+        assert_eq!(trajectories.len(), 1);
+        assert_eq!(trajectories[0].scope.len(), 2);
+        assert_eq!(trajectories[0].turns.len(), 2);
+        for (turn, source) in trajectories[0].turns.iter().zip(&imported[1..]) {
+            assert_eq!(Some(&turn.request_id), source.header.id.as_ref());
+            assert_eq!(turn.response_id, source.header.id);
+            assert_eq!(
+                serde_json::to_value(&turn.request).unwrap(),
+                serde_json::to_value(&source.input).unwrap()
+            );
+            assert!(turn.response.is_some());
+        }
+    }
+}
+
 #[derive(Clone, Deserialize)]
 struct ImportFixture {
     #[serde(default)]
@@ -52,6 +186,7 @@ struct ImportFixture {
     import_failures: Vec<crate::serde_json::Value>,
     #[serde(default)]
     import_warnings: Vec<crate::serde_json::Value>,
+    recordings: Option<crate::serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -125,6 +260,12 @@ fn check_fixture(fixture: &ImportFixture) {
                 .unwrap_or(crate::serde_json::json!([])),
             crate::serde_json::json!(fixture.import_warnings),
         );
+        if let Some(recordings) = &fixture.recordings {
+            assert_eq!(
+                &crate::serde_json::to_value(&trajectories[0].recordings).unwrap(),
+                recordings,
+            );
+        }
         if let Some(compactions) = &fixture.compactions {
             assert_eq!(
                 trajectories[0]
@@ -414,7 +555,11 @@ fn check_span_coverage(
             };
             let imported =
                 import_span_with_options(source.clone(), fixture.import_options).unwrap();
-            if imported.header.analysis || !matches!(imported.header.kind.as_str(), "llm" | "task")
+            // Voice requests come from turn spans. An LLM call started before the caller
+            // finished speaking holds only part of the transcript.
+            if imported.header.analysis
+                || (imported.header.kind == "llm" && imported.header.voice.turn_id.is_some())
+                || !matches!(imported.header.kind.as_str(), "llm" | "task")
             {
                 continue;
             }
@@ -789,6 +934,7 @@ fn generated_conversation(
         compactions: None,
         request_tools: None,
         requests: None,
+        recordings: None,
     }
 }
 
@@ -1064,6 +1210,22 @@ import_fixture!(
     "fixtures/nested-compaction-payload.json"
 );
 import_fixture!(replayed_abort_marker, "fixtures/replayed-abort-marker.json");
+import_fixture!(
+    voice_interruption_before_playback,
+    "fixtures/voice-interruption-before-playback.json"
+);
+import_fixture!(
+    voice_interruption_during_playback,
+    "fixtures/voice-interruption-during-playback.json"
+);
+import_fixture!(
+    voice_unowned_user_speech,
+    "fixtures/voice-unowned-user-speech.json"
+);
+import_fixture!(
+    voice_user_turn_with_unowned_speech,
+    "fixtures/voice-user-turn-with-unowned-speech.json"
+);
 import_fixture!(invalid_turn_ids, "fixtures/invalid-turn-ids.json");
 import_fixture!(header_import_errors, "fixtures/header-import-errors.json");
 import_fixture!(
@@ -2399,4 +2561,311 @@ fn trajectory_keeps_retries_and_tool_continuations_in_one_turn() {
     assert_eq!(result[0]["turns"].as_array().unwrap().len(), 1);
     assert_eq!(result[0]["turns"][0]["work"].as_array().unwrap().len(), 2);
     assert_eq!(result[0]["turns"][0]["response_id"], "done");
+}
+
+fn load_in_order(headers: Vec<ImportedSpan>, payloads: &[Span]) -> crate::serde_json::Value {
+    let mut stream = TrajectoryStream::new(headers, false).unwrap();
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first().cloned() {
+        let source = payloads
+            .iter()
+            .find(|source| source.other["id"].as_str() == Some(id.as_str()))
+            .unwrap();
+        collect(
+            &mut collector,
+            stream.push(import_span(source.clone()).unwrap()).unwrap(),
+        );
+    }
+    collect(&mut collector, stream.finish().unwrap());
+    crate::serde_json::to_value(collector.snapshot().unwrap()).unwrap()
+}
+
+fn without_voice_metadata(mut source: Span) -> Span {
+    if let Some(json::Value::Object(metadata)) = source.other.get_mut("metadata") {
+        metadata.retain(|key, _| {
+            !key.starts_with("audio.") && !key.starts_with("turn.") && !key.starts_with("contrib.")
+        });
+    }
+    source
+}
+
+#[test]
+fn voice_headers_missing_from_projection_build_as_chat() {
+    let fixture: ImportFixture = serde_json::from_str(include_str!(
+        "fixtures/voice-interruption-before-playback.json"
+    ))
+    .unwrap();
+    let headers = |spans: &[Span]| -> Vec<ImportedSpan> {
+        spans
+            .iter()
+            .map(|source| {
+                let mut source = without_voice_metadata(source.clone());
+                source.input = None;
+                source.output = None;
+                import_span(source).unwrap()
+            })
+            .collect()
+    };
+    let chat: Vec<_> = fixture
+        .spans
+        .iter()
+        .cloned()
+        .map(without_voice_metadata)
+        .collect();
+    assert_eq!(
+        load_in_order(headers(&fixture.spans), &fixture.spans),
+        load_in_order(headers(&chat), &chat),
+    );
+}
+
+fn voice_span(id: &str, parent: &str, name: &str, start: i64, fields: [Value; 3]) -> Span {
+    let [metadata, input, output] = fields;
+    Span::deserialize(json!({
+        "id": id, "span_id": id, "root_span_id": "root", "span_parents": [parent],
+        "span_attributes": { "type": "task", "name": name },
+        "metrics": { "start": start, "end": start + 1 },
+        "metadata": metadata, "input": input, "output": output,
+    }))
+    .unwrap()
+}
+
+fn voice_sources() -> Vec<Span> {
+    let hello = json!([{ "role": "user", "content": "Hello" }]);
+    vec![
+        Span::deserialize(json!({
+            "id": "session", "span_id": "session", "root_span_id": "root",
+            "span_attributes": { "type": "task", "name": "session" },
+            "metrics": { "start": 0, "end": 20 },
+            "metadata": {
+                "audio.schema.version": "3.0.0",
+                "audio.timeline": { "origin_unix_ms": 0 },
+                "audio.sources": {}, "audio.segments": {},
+            },
+        }))
+        .unwrap(),
+        voice_span(
+            "user",
+            "session",
+            "user_turn",
+            1,
+            [json!({ "turn.id": "user" }), hello.clone(), Value::Null],
+        ),
+        voice_span("stt", "user", "stt", 0, [Value::Null, Value::Null, hello]),
+        voice_span(
+            "agent",
+            "session",
+            "agent_turn",
+            3,
+            [
+                json!({ "turn.id": "agent", "turn.reply_to": "user" }),
+                Value::Null,
+                Value::Null,
+            ],
+        ),
+        voice_span(
+            "speech",
+            "agent",
+            "agent_speech",
+            4,
+            [json!({ "turn.id": "agent" }), Value::Null, Value::Null],
+        ),
+        voice_span(
+            "trailing",
+            "session",
+            "user_turn",
+            6,
+            [
+                json!({ "turn.id": "trailing" }),
+                json!({ "dtmf": "1" }),
+                Value::Null,
+            ],
+        ),
+    ]
+}
+
+fn load_voice(headers: &[Span], payloads: &[Span]) -> Result<crate::serde_json::Value> {
+    let options = ImportOptions {
+        preserve_unsupported: true,
+    };
+    let headers = headers
+        .iter()
+        .map(|source| {
+            let mut source = source.clone();
+            source.input = None;
+            source.output = None;
+            import_span_with_options(source, options)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let mut stream = TrajectoryStream::new(headers, false)?;
+    let mut collector = TrajectoryCollector::default();
+    while let Some(id) = stream.pending_ids(1).first().cloned() {
+        let source = payloads
+            .iter()
+            .find(|source| source.other["id"].as_str() == Some(id.as_str()))
+            .unwrap();
+        collect(
+            &mut collector,
+            stream.push(import_span_with_options(source.clone(), options)?)?,
+        );
+    }
+    collect(&mut collector, stream.finish()?);
+    Ok(crate::serde_json::to_value(collector.snapshot()?).unwrap())
+}
+
+#[test]
+fn voice_unowned_tools() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-unowned-tools.json")).unwrap();
+    let result = load_voice(&fixture.spans, &fixture.spans).unwrap();
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert_eq!(turns.len(), 1);
+    assert_eq!(turns[0]["response"]["response"][0]["text"], "Hello");
+    assert_eq!(turns[0]["work"], json::json!([]));
+    assert!(result[0]["metadata"]["import_warnings"].is_null());
+    assert_eq!(
+        result[0]["metadata"]["import_failures"],
+        json::json!(fixture.import_failures)
+    );
+}
+
+#[test]
+fn voice_turns_keep_inherited_steps_unsupported_input_and_silent_speech() {
+    let sources = voice_sources();
+    let result = load_voice(&sources, &sources).unwrap();
+    assert!(result[0]["metadata"]["import_failures"].is_null());
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert_eq!(turns.len(), 2);
+    assert_eq!(turns[0]["work"][0]["id"], "stt");
+    assert_eq!(turns[0]["work"][0]["work"]["output"], "Hello");
+    assert!(turns[0]["work"][0]["start_time"].as_str() < turns[0]["start_time"].as_str());
+    assert!(turns[0]["response"].is_null());
+    assert!(turns[0]["response_id"].is_null());
+    assert_eq!(turns[1]["request_id"], "trailing");
+    assert_eq!(
+        turns[1]["opaque_request"][0]["value"],
+        json::json!({ "dtmf": "1" })
+    );
+}
+
+#[test]
+fn voice_failed_final_speech_is_work() {
+    let mut sources = voice_sources();
+    sources[4]
+        .other
+        .insert("error".to_string(), json::json!("TTS failed"));
+    sources[4].output = Some(json::json!([{ "role": "assistant", "content": "Sorry" }]));
+    let result = load_voice(&sources, &sources).unwrap();
+    let turn = &result[0]["turns"][0];
+    assert!(turn["response"].is_null());
+    assert_eq!(turn["work"][1]["id"], "speech");
+    assert_eq!(turn["work"][1]["error"], "TTS failed");
+}
+
+#[test]
+fn voice_recordings_keep_and_report_unknown_segment_states() {
+    let mut sources = voice_sources();
+    sources[0].other["metadata"]["audio.segments"] =
+        json::json!({ "part-0": { "state": "failed", "start_offset_ms": 0 } });
+    let result = load_voice(&sources, &sources).unwrap();
+    assert_eq!(result[0]["recordings"][0]["segments"][0]["state"], "failed");
+    assert!(result[0]["metadata"]["import_failures"][0]["message"]
+        .as_str()
+        .unwrap()
+        .contains("Audio segment part-0 has an unknown state"));
+}
+
+#[test]
+fn voice_planning_stays_inside_the_session() {
+    let mut sources = voice_sources();
+    sources[0]
+        .other
+        .insert("span_parents".to_string(), json::json!(["job"]));
+    sources.push(voice_span(
+        "job",
+        "",
+        "job",
+        0,
+        [Value::Null, Value::Null, Value::Null],
+    ));
+    sources.last_mut().unwrap().other["span_parents"] = json::json!([]);
+    let mut llm = span(
+        "llm",
+        30,
+        json!([{ "role": "user", "content": "Summarize the call" }]),
+        json!([{ "role": "assistant", "content": "Done" }]),
+    );
+    llm.other["span_parents"] = json::json!(["job"]);
+    sources.push(llm);
+    let result = load_voice(&sources, &sources).unwrap();
+    assert!(result[0]["metadata"]["import_failures"].is_null());
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert!(turns.iter().any(|turn| turn["request_id"] == "user"));
+    assert!(turns.iter().any(|turn| turn["response_id"] == "llm"));
+
+    sources[0].other["metadata"]["audio.schema.version"] = json::json!("4.0.0");
+    let result = load_voice(&sources, &sources).unwrap();
+    let turns = result[0]["turns"].as_array().unwrap();
+    assert!(turns.iter().all(|turn| turn["request_id"] != "user"));
+    assert!(turns.iter().any(|turn| turn["response_id"] == "llm"));
+}
+
+#[test]
+fn voice_payloads_must_match_their_root_headers() {
+    let mut sources = voice_sources();
+    sources[0].other["metadata"]["audio.schema.version"] = json::json!(3);
+    let result = load_voice(&sources, &sources).unwrap();
+    assert!(result[0]["metadata"]["import_failures"][0]["message"]
+        .as_str()
+        .unwrap()
+        .starts_with("Invalid metadata.audio.schema.version"));
+
+    let mut payloads = voice_sources();
+    payloads[2].other["metadata"] = json::json!({ "turn.id": "agent" });
+    assert_eq!(
+        load_voice(&voice_sources(), &payloads).unwrap_err(),
+        "Trajectory structure changed for span stt"
+    );
+}
+
+#[test]
+fn voice_realtime_keeps_generated_work_separate_from_played_speech() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/voice-realtime.json")).unwrap();
+    check_fixture(&fixture);
+    check_fixture_variants(&fixture);
+    let mut structural = fixture.clone();
+    for span in &mut structural.spans {
+        if let Some(metadata) = span
+            .other
+            .get_mut("metadata")
+            .and_then(|value| value.as_object_mut())
+        {
+            metadata.remove("turn.id");
+        }
+    }
+    check_fixture(&structural);
+    check_fixture_variants(&structural);
+    let trajectories = run_fixture(&fixture, 1, false, &[]);
+    for step in trajectories[0].turns.iter().flat_map(|turn| &turn.work) {
+        if step.span_type == "llm" {
+            assert!(matches!(step.work, Work::LLMAnalysis(_)));
+        }
+    }
+    let result = crate::serde_json::to_value(&trajectories).unwrap();
+    let work = &result[0]["turns"][2]["work"];
+    assert_eq!(
+        work[2]["work"]["work"][0]["content"],
+        "Your order 1042 is in transit and will be delivered on Friday."
+    );
+    assert_eq!(work[2]["work"]["model"], "gpt-realtime");
+    assert_eq!(result[0]["turns"][2]["model"], "gpt-realtime");
+    assert_eq!(work[2]["work"]["usage"]["total_tokens"], 307);
+    assert_eq!(work[1]["work"]["type"], "tool_result");
+    assert_eq!(work[1]["work"]["input"]["order_id"], "1042");
+    assert_eq!(work[1]["work"]["output"]["status"], "in_transit");
+    assert_eq!(
+        work[0]["work"]["work"][0]["content"][0]["tool_call_id"],
+        "call_QoHy5Zh7T40Q0G9V"
+    );
+    assert_eq!(result[0]["recordings"].as_array().unwrap().len(), 1);
 }

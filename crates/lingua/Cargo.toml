@@ -11,7 +11,7 @@ categories = ["api-bindings", "development-tools"]
 
 [package.metadata.braintrust.build-variants.all-providers]
 default-features = true
-features = ["bedrock"]
+features = ["bedrock", "typesafe"]
 
 [package.metadata.ts-rs]
 optional_option_fields = true
@@ -22,10 +22,12 @@ wasm-opt = false
 [features]
 default = ["openai", "anthropic", "google"]
 openai = []
+typesafe = []
 anthropic = []
 google = []
 bedrock = ["dep:aws-sdk-bedrockruntime"]
 python = ["dep:pyo3"]
+wasm-full = []
 
 [dependencies]
 serde.workspace = true
@@ -34,6 +36,7 @@ serde_json.workspace = true
 bytes.workspace = true
 yaml_serde.workspace = true
 serde_with.workspace = true
+indexmap.workspace = true
 chrono.workspace = true
 ts-rs = { workspace = true, features = ["chrono-impl"] }
 thiserror.workspace = true

@@ -1,0 +1,53 @@
+{
+  "model": "gpt-6-luna",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Question: What is 15% of 80?\nAnswer: 15% of 80 is 12."
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "type": "predicate",
+      "instructions": "Is the answer correct?"
+    },
+    {
+      "type": "choice",
+      "name": "shows_work",
+      "instructions": "Does the answer show how it was computed?",
+      "choices": [
+        {
+          "value": true
+        },
+        {
+          "value": false
+        }
+      ]
+    },
+    {
+      "type": "score",
+      "instructions": [
+        {
+          "type": "input_text",
+          "text": "Rate how concise the answer is."
+        }
+      ],
+      "levels": [
+        {
+          "label": "verbose"
+        },
+        {
+          "label": "ok"
+        },
+        {
+          "label": "concise"
+        }
+      ]
+    }
+  ]
+}

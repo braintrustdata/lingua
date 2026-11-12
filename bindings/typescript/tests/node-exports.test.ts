@@ -24,13 +24,13 @@ describe("Node.js exports", () => {
     expect(typeof exports.linguaToAnthropicMessages).toBe("function");
   });
 
-  test("should export validation functions", async () => {
+  test("omits unused validation and transformation APIs", async () => {
     const exports = await import("../src/index");
 
-    expect(typeof exports.validateChatCompletionsRequest).toBe("function");
-    expect(typeof exports.validateChatCompletionsResponse).toBe("function");
-    expect(typeof exports.validateAnthropicRequest).toBe("function");
-    expect(typeof exports.validateAnthropicResponse).toBe("function");
+    expect("validateChatCompletionsRequest" in exports).toBe(false);
+    expect("validateChatCompletionsResponse" in exports).toBe(false);
+    expect("validateAnthropicRequest" in exports).toBe(false);
+    expect("validateAnthropicResponse" in exports).toBe(false);
   });
 
   test("should export error classes", async () => {
@@ -123,7 +123,6 @@ describe("Node.js exports", () => {
     expect(messages).toEqual([
       {
         role: "assistant",
-        id: null,
         content: [
           {
             type: "tool_call",
@@ -195,7 +194,7 @@ describe("Node.js exports", () => {
 
     expect(messages).toEqual([
       { role: "user", content: "what is 2+2?" },
-      { role: "assistant", id: null, content: "4" },
+      { role: "assistant", content: "4" },
       { role: "user", content: "and 3+3?" },
     ]);
   });

@@ -20,7 +20,7 @@ import {
   validate_google_response,
   validate_responses_request,
   validate_responses_response,
-} from "@braintrust/lingua-wasm";
+} from "@braintrust/lingua-wasm/full";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 import {
   ANTHROPIC_MODEL,
