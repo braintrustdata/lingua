@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok.",
+            "thoughtSignature": "EsEBCr4BAWkUfRM1/XTcY7WZgDywyMA6VExGfJ22gOdQe3Pca7/7nqDrIzIo5pbVm0ZJadiOBoLH3bPHi6PwYcmKBTfoFKe/h8KQ8lZK0yKResSGx090waxow0UoVUsNGh7OqLSkWSwVJa+7M7bDH7Ol4WgeplR0zD2mipepKb84E8UmQQh31liRE2EwGoK6Nld0a0j0qiOsHpMj+WkQFR9rQpoqEOZsrSiIl+F0Qg93SYoHM0WwmeShsgzhdi/XrVlJYA=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 4,
+    "candidatesTokenCount": 2,
+    "totalTokenCount": 31,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 4
+      }
+    ],
+    "thoughtsTokenCount": 25,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3-flash-preview",
+  "responseId": "BMXMapevO8i11MkP-_7A8Q8"
+}

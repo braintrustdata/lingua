@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That depends on what you’re in the mood for! Here are a few options:\n\n1.  **Be Productive:** Tell me one thing you’ve been procrastinating on, and I’ll help you break it down into tiny, easy steps.\n2.  **Learn Something:** Ask me about a random topic (like deep-sea creatures, black holes, or how coffee is made).\n3.  **Get Creative:** Give me three random words, and I’ll write a tiny story or poem using them.\n4.  **Relax:** Close your eyes and take three deep breaths.\n5.  **Test Me:** Give me a difficult logic puzzle or a math problem to solve.\n\n**What’s your current vibe?**",
+            "thoughtSignature": "EtgJCtUJAWkUfRPvFbWtdjDZGL6DjMFSId9jmIydMgWqlcKascJfaTa1GW0dvoo7njIrVPPF+7pDdhqSHsuOaudQ1dqeNwTSGsdzsGnjsbXNiZ071/OwjU/aNf5KPwJ5o01wexDlANRZn4OFGzgExmBnhVvJteX0nVb+RXXTlCONxLnWmS9jbvYmvK3P7GtFDlZsWwIXXkTtCmAWwfWtjSTFZfRm0vYs9MIqBSF6Ji+L9FJM/ZQ4XLFmYxw6Z3/HhGTtUXRseeWFsg8jDp4JWLKdvTs9730L5t1AN1G/0JYmnpO/s+kdWCVueytLN7nGYvi6+peJwGRPtzdSx8Ul9V56ENZRfKkJ6eHVPmV9bD7ajBFFIAlWqcCbY0779uz7ryi/9wPXSlZBBXCs7tdgRIqhm3LP0UIxlIQQaxejqFOloI0XsCf4Njw1R31GKSTMweJwcZMV3YR+GP/3Wh6p6HZbT7CEyAM20N2IvOrIIB4Z6XngRRg9VNtS4jpWaok0Yish+ARuYKNACGX/sGlOd0H1ZIvaPlz7+OE9MnqewungKcX7wLAL8NzMcaUMl/vfRrhSQmbnYN8w3IxYikhs0dl7cyHT+NdS5IbKQnBuH+25r4YI1bLmubufAyB/BcLRtbzVEOP0nksxT9dlbbnCps61cGUejXdzbIGOlYE3QjTBMSD8QXnfT/oTMHi2BpxpNehjCqKUGBbhAgYwS/1ATo72vF7mihSnUKBgOJGe7Wc384+4D5Qjz0ECs9WVuyjZku6FpX+niTQ9qo0lrw29P1aqPtncT0uD36/fg27eAJ40BdqDQe5GtqIqCGsIXfaTGcoQiNDyUEuCDUWSp7zvixT8TOi0JOtN1nXXcc9uxRl7WBNraA+HkfqJzZE0NjLAxI3E48YUh8WLa8fR+eTyEHQjnfAJt/R36pIDUZE1V+mwraL7NvOJGm6wDpHiMbhJjwEuGAWJUaNz8AskFjcHy7GIT37sVCfnv3jAidK88Br97xPN0Ac0lj+PHEILDNUj7hi7UvNrNAra7q4BxCpTFQoJt8MGRP7rvBzQooTmt4x22M47lkOwhRUWfyf0OdvoO4+5/6+gbrd+7Z0pXTaDmwTysB9iH3f6xSyBW0C16uLdz5tsU+wCcp6VfuXB0IuODM1eAcC7MffDnsb154AVrCLhoAsD3UjD0LMqDkdnIDEkDJYZlSMPziVC2W4W7HrA0uqifNCEnWMsRp8OpwBxKDagGKNSHvMSTSPS7arYfR9y5eJlAz9aLXYtBihM/cQs0SrD4jCd7XVTh1PZct1GetwjpA/sdxOb8I07cKk6FNE38B30bSBI/Uaa4XRVfESSvjZSBIGxv4UWpnnFuP5NLzXsyV9ma3BcDZ5Qtjiqu9ExhVbYSbcSZiMonXBBAV5kWK5+B801FYX+FoWDFGA8gCmplXIQdytUuRujnJjInxj3e5wPe1BrlBl7kw/EyDbg4AGdzTFV+aS5OZYdrXKwnqGPBxupqK4R2W+7qRJ9tb7jxxMxVqoz5GNVo28JjU60+PZy7JFtPjnFpzpNSsWlPkRoK0++bsZbHb0aS/NwsMWyVF/hQuxhQa3ng9ngm6oxeWLXWeAPjJe6JGkRu5XfGOicPUKHngDQsGiJg7S1gXeP2ifK9ppr2QcPDA=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 14,
+    "candidatesTokenCount": 158,
+    "totalTokenCount": 473,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 14
+      }
+    ],
+    "thoughtsTokenCount": 301,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3-flash-preview",
+  "responseId": "BcXMatGzL9-U1MkP1KK3GA"
+}

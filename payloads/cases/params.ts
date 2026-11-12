@@ -3362,6 +3362,70 @@ export const paramsCases: TestCaseCollection = {
 
   // === Google-Specific Parameters ===
 
+  thinkingLevelLowercaseLowParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_3_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: "low",
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  thinkingLevelLowercaseMediumParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_3_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: "medium",
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  thinkingLevelLowercaseHighParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_3_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: "high",
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  thinkingLevelLowercaseMinimalParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_3_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: "minimal",
+        },
+      },
+    },
+    bedrock: null,
+  },
+
   thinkingLevelParam: {
     "chat-completions": null,
     responses: null,

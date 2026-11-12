@@ -1,0 +1,265 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 15,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " depends on your mood! Here are a few options based on what you might need"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 17,
+      "totalTokenCount": 31,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " right now:\n\n1.  **If you're feeling productive:** Pick one small task you’ve been putting"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 41,
+      "totalTokenCount": 55,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " off (like answering an email or tidying a desk) and finish it in the next 10 minutes.\n2."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 67,
+      "totalTokenCount": 81,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "  **If you're feeling bored:** Tell me a topic you're interested in, and I'll give you a mind"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 94,
+      "totalTokenCount": 108,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "-blowing fact about it.\n3.  **If you're feeling stressed:** Step away from the screen,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 118,
+      "totalTokenCount": 132,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " take ten deep breaths, and drink a glass of water.\n4.  **If you want a challenge:** Ask me for a"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 145,
+      "totalTokenCount": 159,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " riddle or a logic puzzle.\n\n**What’s your current vibe?**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 161,
+      "totalTokenCount": 175,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EmUKYwFpFH0TEQqLsVLKp8GOjdvHynUHDIrI26cYuiqHUnS8ouspIteDu57Vyjg6XmvrOxdPK0jBBy7nUOVK0iym+Gwxj/sm0uTxGYpQUVN775hQMQAAtCFnlMxUvsv39IFGUGe2Eg=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 161,
+      "totalTokenCount": 175,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "BcXMaq_SKKKYjMcPtorboQ0"
+  }
+]
