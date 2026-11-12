@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { transform_request } from "@braintrust/lingua-wasm";
-import { paramsCases } from "../../cases/params";
+import { transform_request } from "@braintrust/lingua-wasm/full";
+import { paramsCases } from "../../cases";
 
 const cases = [
   ["thinkingLevelLowercaseLowParam", "low"],
