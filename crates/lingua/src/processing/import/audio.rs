@@ -71,7 +71,10 @@ struct Metadata {
     sources: Option<json::Value>,
     #[serde(rename = "audio.segments")]
     segments: Option<json::Value>,
-    #[serde(rename = "contrib.livekit.interrupted")]
+    #[serde(
+        alias = "contrib.livekit.interrupted",
+        alias = "contrib.pipecat.interrupted"
+    )]
     interrupted: Option<json::Value>,
 }
 
@@ -100,11 +103,7 @@ pub(super) fn parse(
         }),
         turn_id: metadata_field(metadata.turn_id, "turn.id", &mut header_errors),
         reply_to: metadata_field(metadata.reply_to, "turn.reply_to", &mut header_errors),
-        interrupted: metadata_field(
-            metadata.interrupted,
-            "contrib.livekit.interrupted",
-            &mut header_errors,
-        ),
+        interrupted: metadata_field(metadata.interrupted, "interrupted", &mut header_errors),
         errors: header_errors,
     };
     let recording = match (span_id, &header.schema_version) {

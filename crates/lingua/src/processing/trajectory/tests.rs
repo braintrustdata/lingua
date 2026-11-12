@@ -1218,6 +1218,11 @@ import_fixture!(
     voice_interruption_during_playback,
     "fixtures/voice-interruption-during-playback.json"
 );
+
+import_fixture!(
+    pipecat_interruption_during_playback,
+    "fixtures/pipecat-interruption-during-playback.json"
+);
 import_fixture!(
     voice_unowned_user_speech,
     "fixtures/voice-unowned-user-speech.json"
