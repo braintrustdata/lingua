@@ -492,10 +492,15 @@ impl ProviderAdapter for GoogleAdapter {
                     if r.enabled == Some(false)
                         && caps.thinking_style == GoogleThinkingStyle::ThinkingLevelBased
                     {
+                        let level = if caps.supports_minimal_thinking_level {
+                            ThinkingLevel::Minimal
+                        } else {
+                            ThinkingLevel::Low
+                        };
                         return Some(ThinkingConfig {
                             include_thoughts: None,
                             thinking_budget: None,
-                            thinking_level: Some(ThinkingLevel::Low),
+                            thinking_level: Some(level),
                         });
                     }
                     return None;
@@ -1636,11 +1641,28 @@ mod tests {
     }
 
     #[test]
-    fn test_google_gemini_3_plus_reasoning_off_emits_low_thinking_level() {
-        for chat_request in [
-            json!({"model": "gemini-4-argon", "reasoning_enabled": false}),
-            json!({"model": "publishers/google/models/gemini-4-argon", "reasoning_budget": 0}),
-            json!({"model": "gemini-3.8-flash", "reasoning_enabled": false}),
+    fn test_google_gemini_3_plus_reasoning_off_emits_lowest_thinking_level() {
+        for (chat_request, expected_level) in [
+            (
+                json!({"model": "gemini-4-argon", "reasoning_enabled": false}),
+                ThinkingLevel::Low,
+            ),
+            (
+                json!({"model": "publishers/google/models/gemini-4-argon", "reasoning_budget": 0}),
+                ThinkingLevel::Low,
+            ),
+            (
+                json!({"model": "gemini-3.8-flash", "reasoning_enabled": false}),
+                ThinkingLevel::Low,
+            ),
+            (
+                json!({"model": "gemini-3.5-flash-lite", "reasoning_enabled": false}),
+                ThinkingLevel::Minimal,
+            ),
+            (
+                json!({"model": "publishers/google/models/gemini-3.1-flash-lite", "reasoning_budget": 0}),
+                ThinkingLevel::Minimal,
+            ),
         ] {
             let thinking_config = chat_completions_to_google_thinking_config(chat_request.clone())
                 .unwrap_or_else(|| panic!("thinkingConfig missing for {chat_request}"));
@@ -1649,7 +1671,7 @@ mod tests {
                 ThinkingConfig {
                     include_thoughts: None,
                     thinking_budget: None,
-                    thinking_level: Some(ThinkingLevel::Low),
+                    thinking_level: Some(expected_level),
                 },
                 "{chat_request}"
             );
