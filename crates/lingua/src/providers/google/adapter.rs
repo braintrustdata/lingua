@@ -536,12 +536,7 @@ impl ProviderAdapter for GoogleAdapter {
                             }
                             _ => r
                                 .effort
-                                .map(|effort| {
-                                    effort_to_thinking_level(
-                                        effort,
-                                        caps.supports_minimal_thinking_level,
-                                    )
-                                })
+                                .map(|effort| effort_to_thinking_level(effort, &caps))
                                 .unwrap_or(ThinkingLevel::High),
                         };
                         Some(ThinkingConfig {
@@ -1559,6 +1554,18 @@ mod tests {
                 Some(ThinkingLevel::High),
             ),
             (
+                json!({"model": "gemini-4-argon", "reasoning_effort": "xhigh"}),
+                Some(ThinkingLevel::High),
+            ),
+            (
+                json!({"model": "gemini-4-hydrogen", "reasoning_effort": "xhigh"}),
+                Some(ThinkingLevel::Xhigh),
+            ),
+            (
+                json!({"model": "publishers/google/models/gemini-4-hydrogen", "reasoning_effort": "high"}),
+                Some(ThinkingLevel::High),
+            ),
+            (
                 json!({"model": "gemini-4-argon", "reasoning_effort": "medium"}),
                 Some(ThinkingLevel::Medium),
             ),
@@ -1627,6 +1634,30 @@ mod tests {
                     "model": model,
                     "contents": [{"role": "user", "parts": [{"text": "hi"}]}],
                     "generationConfig": {"thinkingConfig": {"thinkingLevel": "MINIMAL"}}
+                }))
+                .unwrap();
+            let payload = GoogleAdapter.request_from_universal(&universal).unwrap();
+            let typed: GenerateContentRequest =
+                serde_json::from_value(payload).expect("request should deserialize");
+            let level = typed
+                .generation_config
+                .and_then(|config| config.thinking_config)
+                .and_then(|config| config.thinking_level);
+            assert_eq!(level, Some(expected_level), "{model}");
+        }
+    }
+
+    #[test]
+    fn test_google_roundtrip_preserves_xhigh_only_where_supported() {
+        for (model, expected_level) in [
+            ("gemini-4-hydrogen", ThinkingLevel::Xhigh),
+            ("gemini-4-argon", ThinkingLevel::High),
+        ] {
+            let universal = GoogleAdapter
+                .request_to_universal(json!({
+                    "model": model,
+                    "contents": [{"role": "user", "parts": [{"text": "hi"}]}],
+                    "generationConfig": {"thinkingConfig": {"thinkingLevel": "XHIGH"}}
                 }))
                 .unwrap();
             let payload = GoogleAdapter.request_from_universal(&universal).unwrap();

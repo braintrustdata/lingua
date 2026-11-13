@@ -37,6 +37,9 @@ const MINIMAL_THINKING_LEVEL_PREFIXES: &[&str] = &[
     "gemini-3.6-flash",
 ];
 
+/// Gemini models that accept thinkingLevel XHIGH. Other models reject it.
+const XHIGH_THINKING_LEVEL_PREFIXES: &[&str] = &["gemini-4-hydrogen"];
+
 /// Model prefixes that use thinkingBudget (Gemini 2.5)
 const THINKING_BUDGET_PREFIXES: &[&str] = &["gemini-2.5", "gemini-2.0"];
 
@@ -45,17 +48,20 @@ pub struct GoogleCapabilities {
     pub thinking_style: GoogleThinkingStyle,
     pub requires_thought_signature_for_function_call_history: bool,
     pub supports_minimal_thinking_level: bool,
+    pub supports_xhigh_thinking_level: bool,
 }
 
 impl GoogleCapabilities {
     /// Detect capabilities from model name
     pub fn detect(model: Option<&str>) -> Self {
-        let supports_minimal_thinking_level = model.is_some_and(|m| {
-            let m_lower = normalize_google_model_id(m).to_ascii_lowercase();
-            MINIMAL_THINKING_LEVEL_PREFIXES
-                .iter()
-                .any(|p| m_lower.starts_with(p))
-        });
+        let has_prefix = |prefixes: &[&str]| {
+            model.is_some_and(|m| {
+                let m_lower = normalize_google_model_id(m).to_ascii_lowercase();
+                prefixes.iter().any(|p| m_lower.starts_with(p))
+            })
+        };
+        let supports_minimal_thinking_level = has_prefix(MINIMAL_THINKING_LEVEL_PREFIXES);
+        let supports_xhigh_thinking_level = has_prefix(XHIGH_THINKING_LEVEL_PREFIXES);
         let thinking_style = model
             .map(|m| {
                 let m_lower = normalize_google_model_id(m).to_ascii_lowercase();
@@ -82,6 +88,7 @@ impl GoogleCapabilities {
             thinking_style,
             requires_thought_signature_for_function_call_history,
             supports_minimal_thinking_level,
+            supports_xhigh_thinking_level,
         }
     }
 }
@@ -138,6 +145,7 @@ pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
         ThinkingLevel::Low => ReasoningEffort::Low,
         ThinkingLevel::Medium => ReasoningEffort::Medium,
         ThinkingLevel::High => ReasoningEffort::High,
+        ThinkingLevel::Xhigh => ReasoningEffort::Xhigh,
         ThinkingLevel::ThinkingLevelUnspecified => ReasoningEffort::High, // Google's default
     }
 }
@@ -145,18 +153,21 @@ pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
 /// Convert ReasoningEffort to Google ThinkingLevel enum value.
 ///
 /// Gemini 3+ cannot turn thinking off, so none maps to LOW. Minimal maps to
-/// MINIMAL only on models that accept it.
+/// MINIMAL and xhigh/max map to XHIGH only on models that accept them.
 pub fn effort_to_thinking_level(
     effort: ReasoningEffort,
-    supports_minimal_thinking_level: bool,
+    caps: &GoogleCapabilities,
 ) -> ThinkingLevel {
     match effort {
-        ReasoningEffort::Minimal if supports_minimal_thinking_level => ThinkingLevel::Minimal,
+        ReasoningEffort::Minimal if caps.supports_minimal_thinking_level => ThinkingLevel::Minimal,
         ReasoningEffort::None | ReasoningEffort::Minimal | ReasoningEffort::Low => {
             ThinkingLevel::Low
         }
         ReasoningEffort::Medium => ThinkingLevel::Medium,
         ReasoningEffort::High => ThinkingLevel::High,
+        ReasoningEffort::Xhigh | ReasoningEffort::Max if caps.supports_xhigh_thinking_level => {
+            ThinkingLevel::Xhigh
+        }
         ReasoningEffort::Xhigh | ReasoningEffort::Max => ThinkingLevel::High,
     }
 }
@@ -333,36 +344,55 @@ mod tests {
 
     #[test]
     fn test_effort_to_thinking_level() {
-        for supports_minimal in [false, true] {
+        for model in ["gemini-4-argon", "gemini-3.5-flash", "gemini-4-hydrogen"] {
+            let caps = GoogleCapabilities::detect(Some(model));
             assert_eq!(
-                effort_to_thinking_level(ReasoningEffort::Low, supports_minimal),
+                effort_to_thinking_level(ReasoningEffort::Low, &caps),
                 ThinkingLevel::Low
             );
             assert_eq!(
-                effort_to_thinking_level(ReasoningEffort::Medium, supports_minimal),
+                effort_to_thinking_level(ReasoningEffort::Medium, &caps),
                 ThinkingLevel::Medium
             );
             assert_eq!(
-                effort_to_thinking_level(ReasoningEffort::High, supports_minimal),
+                effort_to_thinking_level(ReasoningEffort::High, &caps),
                 ThinkingLevel::High
             );
             assert_eq!(
-                effort_to_thinking_level(ReasoningEffort::None, supports_minimal),
+                effort_to_thinking_level(ReasoningEffort::None, &caps),
                 ThinkingLevel::Low
             );
-            assert_eq!(
-                effort_to_thinking_level(ReasoningEffort::Xhigh, supports_minimal),
-                ThinkingLevel::High
-            );
         }
+        let argon = GoogleCapabilities::detect(Some("gemini-4-argon"));
+        let flash = GoogleCapabilities::detect(Some("gemini-3.5-flash"));
+        let hydrogen =
+            GoogleCapabilities::detect(Some("publishers/google/models/gemini-4-hydrogen"));
         assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::Minimal, false),
+            effort_to_thinking_level(ReasoningEffort::Minimal, &argon),
             ThinkingLevel::Low
         );
         assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::Minimal, true),
+            effort_to_thinking_level(ReasoningEffort::Minimal, &flash),
             ThinkingLevel::Minimal
         );
+        assert_eq!(
+            effort_to_thinking_level(ReasoningEffort::Minimal, &hydrogen),
+            ThinkingLevel::Low
+        );
+        for effort in [ReasoningEffort::Xhigh, ReasoningEffort::Max] {
+            assert_eq!(
+                effort_to_thinking_level(effort, &argon),
+                ThinkingLevel::High
+            );
+            assert_eq!(
+                effort_to_thinking_level(effort, &flash),
+                ThinkingLevel::High
+            );
+            assert_eq!(
+                effort_to_thinking_level(effort, &hydrogen),
+                ThinkingLevel::Xhigh
+            );
+        }
     }
 
     #[test]
@@ -398,13 +428,15 @@ mod tests {
 
     #[test]
     fn test_roundtrip_effort() {
+        let caps = GoogleCapabilities::detect(Some("gemini-4-hydrogen"));
         for level in [
             ThinkingLevel::Low,
             ThinkingLevel::Medium,
             ThinkingLevel::High,
+            ThinkingLevel::Xhigh,
         ] {
             let effort = thinking_level_to_effort(&level);
-            let back = effort_to_thinking_level(effort, true);
+            let back = effort_to_thinking_level(effort, &caps);
             assert_eq!(back, level);
         }
     }
