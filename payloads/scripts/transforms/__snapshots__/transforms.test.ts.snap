@@ -2773,7 +2773,7 @@ exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > 
     "maxOutputTokens": 4096,
     "responseSchema": null,
     "thinkingConfig": {
-      "thinkingLevel": "LOW",
+      "thinkingLevel": "MINIMAL",
     },
   },
   "model": "gemini-3.5-flash",
@@ -5466,7 +5466,7 @@ exports[`anthropic → google > thinkingDisabledParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
     "thinkingConfig": {
-      "thinkingLevel": "LOW",
+      "thinkingLevel": "MINIMAL",
     },
   },
   "model": "gemini-3.5-flash",
