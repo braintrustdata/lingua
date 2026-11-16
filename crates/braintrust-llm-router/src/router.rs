@@ -4575,6 +4575,71 @@ mod tests {
     }
 
     #[test]
+    fn overlay_catalog_failover_prefers_configured_bedrock_profile() {
+        let base = Arc::new(
+            ModelCatalog::from_json_str(
+                r#"{
+  "claude-opus-5-5": {
+    "format": "anthropic", "flavor": "chat",
+    "fallback_models": ["anthropic.claude-opus-5-5", "eu.anthropic.claude-opus-5-5"]
+  },
+  "anthropic.claude-opus-5-5": {
+    "format": "anthropic", "flavor": "chat", "available_providers": ["bedrock"]
+  },
+  "eu.anthropic.claude-opus-5-5": {
+    "format": "anthropic", "flavor": "chat", "available_providers": ["bedrock"]
+  }
+}"#,
+            )
+            .expect("base catalog parses"),
+        );
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec("failover-drill", ModelFlavor::Chat);
+        primary.available_providers = vec!["primary".to_string()];
+        custom.insert("failover-drill".into(), primary);
+        custom
+            .add_external_fallback_models(
+                "failover-drill".to_string(),
+                vec!["eu.anthropic.claude-opus-5-5".to_string()],
+            )
+            .expect("fallback is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(base, custom)
+            .add_provider(
+                "primary",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "bedrock",
+                FakeProvider {
+                    name: "bedrock",
+                    formats: vec![ProviderFormat::BedrockAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                "failover-drill",
+                ProviderFormat::ChatCompletions,
+                &["primary".to_string(), "bedrock".to_string()],
+            )
+            .expect("failover routes resolve");
+        assert_eq!(routes.len(), 2);
+        assert_eq!(routes[1].provider_alias(), "bedrock");
+        assert_eq!(routes[1].model(), "eu.anthropic.claude-opus-5-5");
+    }
+
+    #[test]
     fn resolved_aliases_returns_only_registered_available_providers() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
