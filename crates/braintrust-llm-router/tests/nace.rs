@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use braintrust_llm_router::{
     create_provider,
@@ -42,6 +43,10 @@ fn router(server: &MockServer) -> Router {
 }
 
 fn router_at(base_url: &str) -> Router {
+    router_with_retries(base_url, 0)
+}
+
+fn router_with_retries(base_url: &str, max_attempts: usize) -> Router {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(MODEL.into(), spec());
     let endpoint = Url::parse(&format!("{base_url}/v1/")).unwrap();
@@ -65,7 +70,8 @@ fn router_at(base_url: &str) -> Router {
     Router::builder()
         .with_catalog(Arc::new(catalog))
         .with_retry_policy(RetryPolicy {
-            max_attempts: 0,
+            max_attempts,
+            max_delay: Duration::ZERO,
             ..RetryPolicy::default()
         })
         .add_provider_arc("nace", provider, auth(), vec![])
@@ -230,7 +236,7 @@ async fn routes_typesafe_without_translation_and_requests_object_legends() {
 
 #[tokio::test]
 async fn preserves_validation_and_rate_limit_errors() {
-    for status in [422, 429] {
+    for status in [422, 429, 503] {
         let server = MockServer::start().await;
         let response = r#"{"error":{"type":"test_error","message":"Upstream error"}}"#;
         Mock::given(method("POST"))
@@ -252,6 +258,9 @@ async fn preserves_validation_and_rate_limit_errors() {
         )
         .await
         .unwrap_err();
+        let expected_delay = (status != 422).then(|| Duration::from_secs(7));
+        assert_eq!(error.retry_after(), expected_delay);
+        assert_eq!(error.is_retryable(), expected_delay.is_some());
         let Error::Provider { provider, http, .. } = error else {
             panic!("expected upstream provider error, got {error:?}");
         };
@@ -272,21 +281,28 @@ async fn preserves_nonstandard_529_capacity_errors() {
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let address = listener.local_addr().unwrap();
     let server = tokio::spawn(async move {
-        let (mut socket, _) = listener.accept().await.unwrap();
-        let mut buffer = [0; 4096];
-        let received = socket.read(&mut buffer).await.unwrap();
-        assert!(received > 0, "client closed before sending a request");
-        socket.write_all(b"HTTP/1.1 529 Overloaded\r\ncontent-type: application/json\r\ncontent-length: 22\r\nretry-after: 7\r\nconnection: close\r\n\r\n{\"error\":\"overloaded\"}").await.unwrap();
+        for _ in 0..3 {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut buffer = [0; 4096];
+            let received = socket.read(&mut buffer).await.unwrap();
+            assert!(received > 0, "client closed before sending a request");
+            socket.write_all(b"HTTP/1.1 529 Overloaded\r\ncontent-type: application/json\r\ncontent-length: 22\r\nretry-after: 7\r\nconnection: close\r\n\r\n{\"error\":\"overloaded\"}").await.unwrap();
+        }
     });
     let error = request(
-        &router_at(&format!("http://{address}")),
+        &router_with_retries(&format!("http://{address}"), 2),
         body(&decision_request()),
         ProviderFormat::Decisions,
         &ClientHeaders::default(),
     )
     .await
     .unwrap_err();
-    server.await.unwrap();
+    assert_eq!(error.retry_after(), Some(Duration::from_secs(7)));
+    assert!(error.is_retryable());
+    tokio::time::timeout(Duration::from_secs(2), server)
+        .await
+        .expect("expected initial request and two retries")
+        .unwrap();
     let Error::Provider { provider, http, .. } = error else {
         panic!("expected upstream provider error, got {error:?}");
     };
@@ -295,6 +311,110 @@ async fn preserves_nonstandard_529_capacity_errors() {
     assert_eq!(http.status, 529);
     assert_eq!(http.body, r#"{"error":"overloaded"}"#);
     assert!(http.headers.contains(&("retry-after".into(), "7".into())));
+}
+
+#[tokio::test]
+async fn retries_overload_responses_then_returns_success() {
+    for status in [429, 503] {
+        let server = MockServer::start().await;
+        let payload = body(&decision_request());
+        let response = body(&decision_response());
+        Mock::given(method("POST"))
+            .and(path("/v1/decisions"))
+            .and(body_bytes(payload.to_vec()))
+            .respond_with(ResponseTemplate::new(status).insert_header("retry-after", "7"))
+            .up_to_n_times(1)
+            .with_priority(1)
+            .expect(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path("/v1/decisions"))
+            .and(body_bytes(payload.to_vec()))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_raw(response.to_vec(), "application/json"),
+            )
+            .with_priority(2)
+            .expect(1)
+            .mount(&server)
+            .await;
+        let actual = request(
+            &router_with_retries(&server.uri(), 1),
+            payload,
+            ProviderFormat::Decisions,
+            &ClientHeaders::default(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(actual, response);
+    }
+}
+
+#[tokio::test]
+async fn preserves_overload_error_when_retry_budget_is_exhausted() {
+    let server = MockServer::start().await;
+    let response = r#"{"error":"overloaded"}"#;
+    Mock::given(method("POST"))
+        .and(path("/v1/decisions"))
+        .respond_with(
+            ResponseTemplate::new(429)
+                .insert_header("retry-after", "7")
+                .set_body_raw(response, "application/json"),
+        )
+        .expect(3)
+        .mount(&server)
+        .await;
+    let error = request(
+        &router_with_retries(&server.uri(), 2),
+        body(&decision_request()),
+        ProviderFormat::Decisions,
+        &ClientHeaders::default(),
+    )
+    .await
+    .unwrap_err();
+    assert_eq!(error.retry_after(), Some(Duration::from_secs(7)));
+    let Error::Provider {
+        http: Some(http), ..
+    } = error
+    else {
+        panic!("expected upstream provider error, got {error:?}");
+    };
+    assert_eq!(http.status, 429);
+    assert_eq!(http.body, response);
+    assert!(http.headers.contains(&("retry-after".into(), "7".into())));
+}
+
+#[tokio::test]
+async fn does_not_retry_validation_errors_or_missing_or_invalid_retry_after() {
+    for (status, retry_after) in [
+        (422, Some("7")),
+        (401, Some("7")),
+        (429, None),
+        (429, Some("invalid")),
+        (503, Some("-1")),
+    ] {
+        let server = MockServer::start().await;
+        let mut response = ResponseTemplate::new(status);
+        if let Some(value) = retry_after {
+            response = response.insert_header("retry-after", value);
+        }
+        Mock::given(method("POST"))
+            .and(path("/v1/decisions"))
+            .respond_with(response)
+            .expect(1)
+            .mount(&server)
+            .await;
+        let error = request(
+            &router_with_retries(&server.uri(), 2),
+            body(&decision_request()),
+            ProviderFormat::Decisions,
+            &ClientHeaders::default(),
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(error.retry_after(), None);
+        assert!(!error.is_retryable());
+    }
 }
 
 #[tokio::test]
