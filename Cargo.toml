@@ -79,6 +79,7 @@ futures = "0.3"
 
 # HTTP
 http = "1.1"
+httpdate = "1.0"
 hyper = { version = "1.3" }
 
 # Utilities

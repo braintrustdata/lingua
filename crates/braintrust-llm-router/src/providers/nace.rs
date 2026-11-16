@@ -1,10 +1,10 @@
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::ProviderFormat;
-use reqwest::header::HeaderValue;
-use reqwest::Url;
+use reqwest::header::{HeaderValue, RETRY_AFTER};
+use reqwest::{StatusCode, Url};
 use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
@@ -16,6 +16,19 @@ use crate::streaming::RawResponseStream;
 
 const NACE_CLIENT: HeaderValue =
     HeaderValue::from_static(concat!("braintrust/", env!("CARGO_PKG_VERSION")));
+
+fn parse_retry_after(value: &str, now: SystemTime) -> Option<Duration> {
+    let value = value.trim();
+    if value.bytes().all(|byte| byte.is_ascii_digit()) {
+        return value.parse::<u64>().ok().map(Duration::from_secs);
+    }
+    let retry_at = httpdate::parse_http_date(value).ok()?;
+    Some(match retry_at.duration_since(now) {
+        Ok(delay) => delay,
+        // An elapsed HTTP date permits an immediate retry.
+        Err(_) => Duration::ZERO,
+    })
+}
 
 #[derive(Debug, Clone)]
 pub struct NaceConfig {
@@ -99,6 +112,14 @@ impl NaceProvider {
         }
         let status = response.status();
         let headers = response.headers().clone();
+        let retry_after = if status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error() {
+            headers
+                .get(RETRY_AFTER)
+                .and_then(|value| value.to_str().ok())
+                .and_then(|value| parse_retry_after(value, SystemTime::now()))
+        } else {
+            None
+        };
         let text = response
             .text()
             .await
@@ -106,8 +127,7 @@ impl NaceProvider {
         Err(Error::Provider {
             provider: "nace".to_string(),
             source: anyhow::anyhow!("HTTP {status}: {text}"),
-            // Preserve Retry-After in the HTTP details, like the other providers.
-            retry_after: None,
+            retry_after,
             http: Some(UpstreamHttpError::new(status.as_u16(), headers, text)),
         })
     }
@@ -189,6 +209,30 @@ impl crate::providers::Provider for NaceProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn retry_after_accepts_seconds_and_http_dates() {
+        let now = httpdate::parse_http_date("Sun, 15 Nov 2026 12:00:00 GMT").unwrap();
+        for (value, expected) in [
+            ("7", Some(Duration::from_secs(7))),
+            ("0", Some(Duration::ZERO)),
+            (" 7 ", Some(Duration::from_secs(7))),
+            (
+                "Sun, 15 Nov 2026 12:00:07 GMT",
+                Some(Duration::from_secs(7)),
+            ),
+            ("Sun, 15 Nov 2026 12:00:00 GMT", Some(Duration::ZERO)),
+            ("Sun, 15 Nov 2026 11:59:59 GMT", Some(Duration::ZERO)),
+            ("", None),
+            ("invalid", None),
+            ("-1", None),
+            ("+7", None),
+            ("1.5", None),
+            ("18446744073709551616", None),
+        ] {
+            assert_eq!(parse_retry_after(value, now), expected, "{value:?}");
+        }
+    }
 
     #[test]
     fn api_url_accepts_origin_and_versioned_proxy_endpoint() {
