@@ -7,6 +7,7 @@ mod databricks;
 mod google;
 mod json_selection;
 mod mistral;
+mod nace;
 mod openai;
 mod remote_media;
 mod typesafe;
@@ -20,6 +21,7 @@ pub(crate) use body_model::rewrite_body_model_if_required;
 pub use databricks::{DatabricksConfig, DatabricksProvider};
 pub use google::{GoogleConfig, GoogleProvider};
 pub use mistral::{MistralConfig, MistralProvider};
+pub use nace::{NaceConfig, NaceProvider};
 pub use openai::{
     is_openai_compatible, openai_compatible_endpoint, OpenAICompatibleEndpoint, OpenAIConfig,
     OpenAIProvider,

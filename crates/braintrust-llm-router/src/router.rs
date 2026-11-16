@@ -44,8 +44,8 @@ pub struct CompleteResponseWithRaw {
 
 use crate::providers::{
     is_openai_compatible, AnthropicProvider, AzureAiGatewayProvider, AzureProvider,
-    BedrockProvider, DatabricksProvider, GoogleProvider, MistralProvider, OpenAIProvider,
-    TypeSafeProvider, VertexProvider,
+    BedrockProvider, DatabricksProvider, GoogleProvider, MistralProvider, NaceProvider,
+    OpenAIProvider, TypeSafeProvider, VertexProvider,
 };
 
 /// Create a provider instance from configuration parameters.
@@ -132,6 +132,11 @@ pub fn create_provider(
             client_settings,
         )?)),
         "mistral" => Ok(Arc::new(MistralProvider::from_config(
+            endpoint,
+            timeout,
+            client_settings,
+        )?)),
+        "nace" => Ok(Arc::new(NaceProvider::from_config(
             endpoint,
             timeout,
             client_settings,
