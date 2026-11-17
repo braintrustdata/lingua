@@ -178,13 +178,7 @@ fn recording(
         }
         let attachment = entry
             .attachment
-            .and_then(|attachment| {
-                let pointer = attachment.reference.strip_prefix("/input");
-                if pointer.is_none() {
-                    errors.push(format!("Audio segment {id} attachment is outside /input"));
-                }
-                input?.pointer(pointer?)
-            })
+            .and_then(|attachment| input?.pointer(attachment.reference.strip_prefix("/input")?))
             .and_then(|target| AttachmentReference::deserialize(target).ok());
         segments.push(RecordingSegment {
             id,
