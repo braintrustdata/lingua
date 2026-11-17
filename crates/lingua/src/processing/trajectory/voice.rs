@@ -1,14 +1,22 @@
 //! Voice traces in audio trace schema v3: one `Turn` per exchange. A `user_turn` opens a
 //! turn, an `agent_turn` joins the one its `turn.reply_to` names, and other spans join their
 //! nearest `turn.id`. The last agent speech is the response; the rest is work.
+//!
+//! A duplex session has no `user_turn` or `agent_turn`, so nothing in it is joined. Each
+//! `transcript_received` is its own turn, and each operation under the session (such as an
+//! `llm_response`) is a turn holding only its descendants as work. Speech spans stay in the
+//! recording, and spans under `audio.scope: session` belong to no turn.
 
 use super::stream::Role;
 use super::*;
+use crate::processing::import::AudioScope;
 use crate::universal::{UserContent, UserContentPart};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum VoiceRole {
     Request,
+    Transcript,
+    Operation,
     Reply,
     Work { kind: StepKind, position: usize },
     Response { position: usize },
@@ -63,6 +71,7 @@ enum SpanKind {
     AgentTurn,
     UserSpeech,
     AgentSpeech,
+    Transcript,
     Work(StepKind),
 }
 
@@ -82,6 +91,7 @@ fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
         "agent_turn" => Some(SpanKind::AgentTurn),
         "user_speech" => Some(SpanKind::UserSpeech),
         "agent_speech" => Some(SpanKind::AgentSpeech),
+        "transcript_received" => Some(SpanKind::Transcript),
         "stt" => Some(SpanKind::Work(StepKind::Heard)),
         "tts" => Some(SpanKind::Work(StepKind::Spoken)),
         _ => None,
@@ -221,12 +231,40 @@ pub(super) fn plan(
             && owner.tool.is_none()
             && owner.compaction.is_none()
     };
+    let operation = |index: usize| {
+        let session = session_of[index];
+        std::iter::successors(Some(index), move |at| parents[*at])
+            .take(spans.len())
+            .take_while(move |at| Some(*at) != session)
+    };
+    let session_scoped = |index: usize| {
+        operation(index).any(|at| spans[at].source.voice.scope == Some(AudioScope::Session))
+    };
     let kinds: Vec<_> = (0..spans.len())
         .map(|index| {
-            (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
-                .then(|| kind(&spans[index], roles[index]))
-                .flatten()
+            (in_scope(index)
+                && !owners[&index].skipped
+                && !plan.sessions.contains(&index)
+                && !session_scoped(index))
+            .then(|| kind(&spans[index], roles[index]))
+            .flatten()
         })
+        .collect();
+    let turn_sessions: HashSet<_> = (0..spans.len())
+        .filter(|index| {
+            matches!(
+                kinds[*index],
+                Some(SpanKind::UserTurn | SpanKind::AgentTurn)
+            )
+        })
+        .filter_map(|index| session_of[index])
+        .collect();
+    let duplex =
+        |index: usize| session_of[index].is_some_and(|session| !turn_sessions.contains(&session));
+    let kinds: Vec<_> = kinds
+        .into_iter()
+        .enumerate()
+        .map(|(index, kind)| kind.filter(|kind| *kind != SpanKind::Transcript || duplex(index)))
         .collect();
     let is_turn =
         |index: usize| matches!(kinds[index], Some(SpanKind::UserTurn | SpanKind::AgentTurn));
@@ -241,14 +279,34 @@ pub(super) fn plan(
         .collect();
     let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     for index in 0..spans.len() {
-        if kinds[index] == Some(SpanKind::UserSpeech)
+        let Some(kind) = kinds[index] else {
+            continue;
+        };
+        if duplex(index) {
+            match kind {
+                SpanKind::Transcript => {
+                    groups.entry(index).or_insert_with(|| vec![index]);
+                }
+                SpanKind::Work(_) => match operation(index).last() {
+                    Some(root) if !matches!(kinds[root], Some(SpanKind::Work(_))) => {
+                        groups.entry(root).or_insert_with(|| vec![root]).push(index);
+                    }
+                    _ => plan.failures.push(failure(
+                        &spans[index],
+                        "Span has no operation under its duplex voice session; \
+                         mark session-wide spans with audio.scope \"session\""
+                            .to_string(),
+                    )),
+                },
+                _ => {}
+            }
+            continue;
+        }
+        if kind == SpanKind::UserSpeech
             && (owners[&index].voice_turn.is_some()
                 || session_of[index].is_some_and(|session| user_sessions.contains(&session)))
         {
             plan.ignored.insert(index);
-            continue;
-        }
-        if kinds[index].is_none() {
             continue;
         }
         let turn = match &owners[&index].voice_turn {
@@ -307,11 +365,15 @@ pub(super) fn plan(
                 .then(spans[*a].id.cmp(&spans[*b].id))
         });
         let turn = plan.turns.len();
-        let response = group
-            .iter()
-            .rev()
-            .copied()
-            .find(|index| kinds[*index] == Some(SpanKind::AgentSpeech));
+        let response = if kinds[request] == Some(SpanKind::Transcript) {
+            Some(request)
+        } else {
+            group
+                .iter()
+                .rev()
+                .copied()
+                .find(|index| kinds[*index] == Some(SpanKind::AgentSpeech))
+        };
         let end_time = group
             .iter()
             .map(|index| spans[*index].source.end)
@@ -327,6 +389,8 @@ pub(super) fn plan(
         let mut span_count = 0;
         for &index in &group {
             let role = match kinds[index] {
+                Some(SpanKind::Transcript) if index == request => VoiceRole::Transcript,
+                _ if index == request && duplex(index) => VoiceRole::Operation,
                 _ if index == request => VoiceRole::Request,
                 Some(SpanKind::UserTurn | SpanKind::AgentTurn) => VoiceRole::Reply,
                 _ if Some(index) == response => VoiceRole::Response { position },
@@ -335,7 +399,7 @@ pub(super) fn plan(
                     position,
                 },
                 Some(SpanKind::Work(kind)) => VoiceRole::Work { kind, position },
-                Some(SpanKind::UserSpeech) | None => continue,
+                Some(SpanKind::UserSpeech | SpanKind::Transcript) | None => continue,
             };
             if matches!(role, VoiceRole::Work { .. } | VoiceRole::Response { .. }) {
                 position += 1;

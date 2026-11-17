@@ -17,9 +17,17 @@ pub struct VoiceContext {
     pub schema_version: Option<Result<String, String>>,
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
+    pub scope: Option<AudioScope>,
     pub interrupted: Option<bool>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
+}
+
+/// `audio.scope`: a span that belongs to the whole session rather than to one exchange.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AudioScope {
+    Session,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -65,6 +73,8 @@ struct Metadata {
     turn_id: Option<json::Value>,
     #[serde(rename = "turn.reply_to")]
     reply_to: Option<json::Value>,
+    #[serde(rename = "audio.scope")]
+    scope: Option<json::Value>,
     #[serde(rename = "audio.timeline")]
     timeline: Option<json::Value>,
     #[serde(rename = "audio.sources")]
@@ -103,6 +113,7 @@ pub(super) fn parse(
         }),
         turn_id: metadata_field(metadata.turn_id, "turn.id", &mut header_errors),
         reply_to: metadata_field(metadata.reply_to, "turn.reply_to", &mut header_errors),
+        scope: metadata_field(metadata.scope, "audio.scope", &mut header_errors),
         interrupted: metadata_field(metadata.interrupted, "interrupted", &mut header_errors),
         errors: header_errors,
     };
