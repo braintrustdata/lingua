@@ -1,5 +1,5 @@
 use crate::import_parse::{non_empty_messages, try_parse_vec_or_single};
-use crate::import_value::ImportValue;
+use crate::import_value::{ImportValue, InputKind};
 use crate::providers::bedrock::request::{
     BedrockContentBlock, BedrockConversationRole, BedrockImageFormat, BedrockMessage,
     BedrockSystemContentBlock,
@@ -171,7 +171,10 @@ struct StrandsSystemMetadata {
 pub(super) fn try_system_message_from_strands_metadata(
     metadata: &impl ImportValue,
 ) -> Option<Message> {
-    let metadata = metadata.parse::<StrandsSystemMetadata>()?;
+    let metadata: StrandsSystemMetadata = match metadata.kind() {
+        InputKind::String => serde_json::from_str(&metadata.parse::<String>()?).ok()?,
+        _ => metadata.parse()?,
+    };
     let text = match metadata
         .system_prompt_content
         .filter(|parts| !parts.is_empty())

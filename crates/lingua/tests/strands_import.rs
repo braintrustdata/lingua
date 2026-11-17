@@ -99,6 +99,15 @@ fn strands_system_metadata() {
                     {"role": "user", "content": "Hello"}
                 ])
             );
+            assert_eq!(
+                serde_json::to_value(import_messages_from_values(
+                    &json!({"messages": input}),
+                    &Value::Null,
+                    Some(&json!(metadata.to_string())),
+                ))
+                .unwrap(),
+                messages,
+            );
         }
     }
 }
