@@ -175,13 +175,19 @@ fn recording(
         if let SegmentState::Unknown(value) = &state {
             errors.push(format!("Audio segment {id} has an unknown state: {value}"));
         }
+        if state == SegmentState::Ready && entry.attachment.is_none() {
+            errors.push(format!("Ready audio segment {id} has no attachment"));
+        }
         let attachment = entry
             .attachment
             .and_then(|attachment| row.pointer(&attachment.reference))
-            .and_then(|target| AttachmentReference::deserialize(target).ok());
-        if state == SegmentState::Ready && attachment.is_none() {
-            errors.push(format!("Ready audio segment {id} has no attachment"));
-        }
+            .and_then(|target| {
+                AttachmentReference::deserialize(target)
+                    .map_err(|error| {
+                        errors.push(format!("Invalid attachment in audio segment {id}: {error}"))
+                    })
+                    .ok()
+            });
         segments.push(RecordingSegment {
             id,
             state,
