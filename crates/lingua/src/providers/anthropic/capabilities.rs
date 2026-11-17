@@ -8,9 +8,9 @@ use std::sync::LazyLock;
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
 static UNSUPPORTED_FORCED_TOOL_CHOICE_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"(^|[./:@]|databricks-)claude-[a-z]+-(5[-.]([5-9]|[1-9]\d)|([6-9]|[1-9]\d)([-.]\d{1,2})?)($|[-./:@])",
+        r"(^|[./:@]|databricks-)claude-((opus|sonnet)-5[-.]5|(fable|mythos)-5[-.][12])($|[-./:@])",
     )
-    .expect("valid Claude 5.5+ model regex")
+    .expect("valid unsupported forced tool choice model regex")
 });
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
@@ -189,23 +189,36 @@ mod tests {
         for model in [
             "claude-sonnet-5-5",
             "claude-opus-5-5-20261101",
-            "CLAUDE-HAIKU-5.5",
+            "CLAUDE-OPUS-5.5",
             "@bedrock-key/us.anthropic.claude-sonnet-5-5",
             "global.anthropic.claude-opus-5-5-v1:0",
             "publishers/anthropic/models/claude-sonnet-5-5@20261101",
             "anthropic/claude-opus-5.5",
-            "databricks-claude-haiku-5-5",
-            "claude-sonnet-5-6",
-            "claude-sonnet-5-10",
-            "claude-opus-6",
-            "claude-future-10-1",
+            "databricks-claude-sonnet-5-5",
+            "claude-fable-5-1",
+            "claude-fable-5-2",
+            "claude-mythos-5-1",
+            "claude-mythos-5-2",
+            "us.anthropic.claude-fable-5-1-v1:0",
+            "anthropic/claude-mythos-5.2",
         ] {
             assert!(!supports_forced_tool_choice(model), "model: {model}");
         }
         for model in [
             "claude-sonnet-4-5-20250929",
             "claude-opus-4-6",
-            "claude-fable-5-1",
+            "claude-fable-5",
+            "claude-mythos-5",
+            "claude-opus-5",
+            "claude-sonnet-5",
+            "claude-haiku-5-5",
+            "CLAUDE-HAIKU-5.5",
+            "databricks-claude-haiku-5-5",
+            "global.anthropic.claude-haiku-5-5-v1:0",
+            "claude-sonnet-5-6",
+            "claude-sonnet-5-10",
+            "claude-opus-6",
+            "claude-future-10-1",
             "claude-sonnet-5-4",
             "claude-sonnet-5-20261101",
             "claude-3-5-sonnet-20241022",
