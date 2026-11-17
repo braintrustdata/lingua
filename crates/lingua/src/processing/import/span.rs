@@ -26,6 +26,8 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "interrupted",
     "contrib.livekit.interrupted",
     "contrib.pipecat.interrupted",
+    "audio.scope",
+    "contrib.pipecat.live.delegation_id",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

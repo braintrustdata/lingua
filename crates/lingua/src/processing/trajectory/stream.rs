@@ -1329,19 +1329,30 @@ impl TrajectoryStream {
         } = self.voice.owners[&index];
         let voice_turn = &self.voice.turns[turn_index];
         let id = self.spans[voice_turn.request].id.clone();
-        let (request, opaque_request) = if index == voice_turn.request && loaded {
-            (self.request(span, None, true), span.opaque_input.clone())
-        } else {
-            (Vec::new(), Vec::new())
-        };
+        let mut utterance_response = None;
+        let (request, opaque_request) =
+            if index == voice_turn.request && loaded && !voice_turn.work_only {
+                if role == voice::VoiceRole::Utterance {
+                    let (request, response) = voice::utterance(span);
+                    utterance_response = response;
+                    (request, Vec::new())
+                } else {
+                    (self.request(span, None, true), span.opaque_input.clone())
+                }
+            } else {
+                (Vec::new(), Vec::new())
+            };
         let state = &mut self.voice_states[turn_index];
         state.remaining -= 1;
         if !state.started {
             if index == voice_turn.request
+                && !voice_turn.work_only
                 && voice_turn.span_count == 1
-                && span.source.name.as_deref() != Some("user_speech")
+                && (span.source.name.as_deref() != Some("user_speech")
+                    || role == voice::VoiceRole::Utterance)
                 && request.is_empty()
                 && opaque_request.is_empty()
+                && utterance_response.is_none()
             {
                 self.spans[index].release_payload();
                 return Ok(());
@@ -1382,6 +1393,14 @@ impl TrajectoryStream {
         }
         match role {
             voice::VoiceRole::Request | voice::VoiceRole::Reply => {}
+            voice::VoiceRole::Utterance => events.push(TrajectoryEvent::Response {
+                scope: scope.clone(),
+                id: id.clone(),
+                response_id: utterance_response.as_ref().map(|_| span.id.clone()),
+                response: utterance_response.map(Box::new),
+                end_time: voice_turn.end_time,
+                model: voice_turn.model.clone(),
+            }),
             voice::VoiceRole::Work {
                 kind: voice::StepKind::Chat(role),
                 position,

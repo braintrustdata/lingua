@@ -18,6 +18,10 @@ pub struct VoiceContext {
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
     pub interrupted: Option<bool>,
+    /// `session` marks a span covering the whole call, like a duplex model's session.
+    pub scope: Option<String>,
+    /// Operations a framework ran for one delegated request share this id.
+    pub delegation_id: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
 }
@@ -76,6 +80,10 @@ struct Metadata {
     livekit_interrupted: Option<json::Value>,
     #[serde(rename = "contrib.pipecat.interrupted")]
     pipecat_interrupted: Option<json::Value>,
+    #[serde(rename = "audio.scope")]
+    scope: Option<json::Value>,
+    #[serde(rename = "contrib.pipecat.live.delegation_id")]
+    delegation_id: Option<json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -110,6 +118,12 @@ pub(super) fn parse(
                 .or(metadata.livekit_interrupted)
                 .or(metadata.pipecat_interrupted),
             "interrupted",
+            &mut header_errors,
+        ),
+        scope: metadata_field(metadata.scope, "audio.scope", &mut header_errors),
+        delegation_id: metadata_field(
+            metadata.delegation_id,
+            "contrib.pipecat.live.delegation_id",
             &mut header_errors,
         ),
         errors: header_errors,
