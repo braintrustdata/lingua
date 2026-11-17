@@ -1329,10 +1329,23 @@ impl TrajectoryStream {
         } = self.voice.owners[&index];
         let voice_turn = &self.voice.turns[turn_index];
         let id = self.spans[voice_turn.request].id.clone();
-        let (request, opaque_request) = if index == voice_turn.request && loaded {
-            (self.request(span, None, true), span.opaque_input.clone())
-        } else {
-            (Vec::new(), Vec::new())
+        let (request, opaque_request) = match role {
+            voice::VoiceRole::Request if loaded => {
+                (self.request(span, None, true), span.opaque_input.clone())
+            }
+            voice::VoiceRole::Transcript if loaded => (
+                span.output
+                    .iter()
+                    .filter(|message| matches!(message, Message::User { .. }))
+                    .cloned()
+                    .collect(),
+                Vec::new(),
+            ),
+            _ => (Vec::new(), Vec::new()),
+        };
+        let transcript = match role {
+            voice::VoiceRole::Transcript if loaded => voice::response(span),
+            _ => None,
         };
         let state = &mut self.voice_states[turn_index];
         state.remaining -= 1;
@@ -1342,6 +1355,7 @@ impl TrajectoryStream {
                 && span.source.name.as_deref() != Some("user_speech")
                 && request.is_empty()
                 && opaque_request.is_empty()
+                && transcript.is_none()
             {
                 self.spans[index].release_payload();
                 return Ok(());
@@ -1365,7 +1379,11 @@ impl TrajectoryStream {
                     compaction: None,
                 }),
             });
-        } else if index == voice_turn.request && loaded {
+        } else if matches!(
+            role,
+            voice::VoiceRole::Request | voice::VoiceRole::Transcript
+        ) && loaded
+        {
             events.push(TrajectoryEvent::Request {
                 scope: scope.clone(),
                 id: id.clone(),
@@ -1381,7 +1399,15 @@ impl TrajectoryStream {
             });
         }
         match role {
-            voice::VoiceRole::Request | voice::VoiceRole::Reply => {}
+            voice::VoiceRole::Request | voice::VoiceRole::Operation | voice::VoiceRole::Reply => {}
+            voice::VoiceRole::Transcript => events.push(TrajectoryEvent::Response {
+                scope: scope.clone(),
+                id: id.clone(),
+                response_id: transcript.as_ref().map(|_| span.id.clone()),
+                response: transcript.map(Box::new),
+                end_time: voice_turn.end_time,
+                model: voice_turn.model.clone(),
+            }),
             voice::VoiceRole::Work {
                 kind: voice::StepKind::Chat(role),
                 position,

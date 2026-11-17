@@ -1,5 +1,7 @@
 use super::*;
-use crate::processing::import::{import_span, import_span_with_options, ImportOptions, Span};
+use crate::processing::import::{
+    import_span, import_span_with_options, AudioScope, ImportOptions, Span,
+};
 use crate::universal::{UserContent, UserContentPart};
 use proptest::prelude::*;
 use serde_json::json;
@@ -531,7 +533,10 @@ fn check_span_coverage(
             let mut visited = HashSet::new();
             let mut excluded = false;
             while let Some(current) = ancestor {
-                if current.scorer || current.kind == "score" {
+                if current.scorer
+                    || current.kind == "score"
+                    || current.voice.scope == Some(AudioScope::Session)
+                {
                     excluded = true;
                     break;
                 }
@@ -1223,6 +1228,7 @@ import_fixture!(
     pipecat_interruption_during_playback,
     "fixtures/pipecat-interruption-during-playback.json"
 );
+import_fixture!(pipecat_live_duplex, "fixtures/pipecat-live-duplex.json");
 import_fixture!(
     voice_unowned_user_speech,
     "fixtures/voice-unowned-user-speech.json"
@@ -2873,4 +2879,61 @@ fn voice_realtime_keeps_generated_work_separate_from_played_speech() {
         "call_QoHy5Zh7T40Q0G9V"
     );
     assert_eq!(result[0]["recordings"].as_array().unwrap().len(), 1);
+}
+
+#[test]
+fn voice_duplex_operations_are_work_without_a_response() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/pipecat-live-duplex.json")).unwrap();
+    let trajectories = run_fixture(&fixture, 1, false, &[]);
+    let operations: Vec<_> = trajectories[0]
+        .turns
+        .iter()
+        .filter(|turn| !turn.work.is_empty())
+        .collect();
+    assert_eq!(operations.len(), 2);
+    for turn in operations {
+        assert!(turn.response.is_none());
+        assert_eq!(turn.request.as_deref().map(<[_]>::len), Some(0));
+        assert_eq!(turn.model.as_deref(), Some("gpt-5.4-mini-2026-03-17"));
+        for step in &turn.work {
+            match step.span_type.as_str() {
+                "llm" => assert!(matches!(step.work, Work::LLMAnalysis(_))),
+                "tool" => assert!(matches!(step.work, Work::ToolResult(_))),
+                other => panic!("Unexpected work span type {other}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn voice_duplex_session_llm_without_scope_is_reported_not_a_turn() {
+    let fixture: ImportFixture =
+        serde_json::from_str(include_str!("fixtures/pipecat-live-duplex.json")).unwrap();
+    let mut live = None;
+    let spans: Vec<_> = fixture
+        .spans
+        .iter()
+        .cloned()
+        .map(|mut source| {
+            if let Some(json::Value::Object(metadata)) = source.other.get_mut("metadata") {
+                if metadata.remove("audio.scope").is_some() {
+                    live = source.other["id"].as_str().map(str::to_string);
+                }
+            }
+            source
+        })
+        .collect();
+    let live = live.unwrap();
+    let result = load_voice(&spans, &spans).unwrap();
+    let expected = load_voice(&fixture.spans, &fixture.spans).unwrap();
+    assert_eq!(result[0]["turns"], expected[0]["turns"]);
+    assert_eq!(
+        result[0]["metadata"]["import_failures"],
+        json::json!([{
+            "span_id": live,
+            "message": "Span has no operation under its duplex voice session; \
+                        mark session-wide spans with audio.scope \"session\"",
+        }])
+    );
 }

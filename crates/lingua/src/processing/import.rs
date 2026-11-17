@@ -36,7 +36,7 @@ use crate::universal::{
     AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
-pub use audio::{VoiceContext, VoicePayload};
+pub use audio::{AudioScope, VoiceContext, VoicePayload};
 use serde::{Deserialize, Serialize};
 pub use span::{
     import_span, import_span_with_options, ImportedSpan, SpanContext, TRAJECTORY_METADATA_FIELDS,
