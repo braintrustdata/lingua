@@ -2,6 +2,8 @@
  * Re-export message conversion and import functions from converters module
  */
 
+export { supportsForcedToolChoice } from "./model-capabilities";
+
 export {
   // Error handling
   ConversionError,

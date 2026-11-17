@@ -6,6 +6,12 @@ use regex::Regex;
 use std::sync::LazyLock;
 
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
+static UNSUPPORTED_FORCED_TOOL_CHOICE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"(^|[./:@]|databricks-)claude-[a-z]+-(5[-.]([5-9]|[1-9]\d)|([6-9]|[1-9]\d)([-.]\d{1,2})?)($|[-./:@])",
+    )
+    .expect("valid Claude 5.5+ model regex")
+});
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)([-.]\d{1,2})?)|sonnet-([5-9]|[1-9]\d)([-.]\d{1,2})?|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
@@ -56,6 +62,10 @@ fn part_supports_output_config_effort(model_part: &str) -> bool {
 pub fn supports_adaptive_thinking(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
     is_opus_4_7_or_later(&lower)
+}
+
+pub fn supports_forced_tool_choice(model: &str) -> bool {
+    !UNSUPPORTED_FORCED_TOOL_CHOICE_RE.is_match(&model.to_ascii_lowercase())
 }
 
 /// Check if a model accepts `thinking: {type: "disabled"}`.
@@ -173,6 +183,39 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_supports_forced_tool_choice() {
+        for model in [
+            "claude-sonnet-5-5",
+            "claude-opus-5-5-20261101",
+            "CLAUDE-HAIKU-5.5",
+            "@bedrock-key/us.anthropic.claude-sonnet-5-5",
+            "global.anthropic.claude-opus-5-5-v1:0",
+            "publishers/anthropic/models/claude-sonnet-5-5@20261101",
+            "anthropic/claude-opus-5.5",
+            "databricks-claude-haiku-5-5",
+            "claude-sonnet-5-6",
+            "claude-sonnet-5-10",
+            "claude-opus-6",
+            "claude-future-10-1",
+        ] {
+            assert!(!supports_forced_tool_choice(model), "model: {model}");
+        }
+        for model in [
+            "claude-sonnet-4-5-20250929",
+            "claude-opus-4-6",
+            "claude-fable-5-1",
+            "claude-sonnet-5-4",
+            "claude-sonnet-5-20261101",
+            "claude-3-5-sonnet-20241022",
+            "gpt-5-mini",
+            "not-claude-sonnet-5-5",
+            "notclaude-sonnet-5-5",
+        ] {
+            assert!(supports_forced_tool_choice(model), "model: {model}");
+        }
+    }
 
     #[test]
     fn test_sampling_policy_defaults_to_strip_for_new_claude_models() {
