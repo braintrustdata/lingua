@@ -2874,3 +2874,29 @@ fn voice_realtime_keeps_generated_work_separate_from_played_speech() {
     );
     assert_eq!(result[0]["recordings"].as_array().unwrap().len(), 1);
 }
+
+#[test]
+fn voice_headers_accept_projected_null_metadata() {
+    let mut fixture: ImportFixture = serde_json::from_str(include_str!(
+        "fixtures/pipecat-interruption-during-playback.json"
+    ))
+    .unwrap();
+    let expected = serde_json::to_value(run_fixture(&fixture, 16, false, &[])).unwrap();
+    for span in &mut fixture.spans {
+        let metadata = span
+            .other
+            .entry("metadata")
+            .or_insert_with(|| crate::serde_json::json!({}));
+        for field in crate::processing::import::TRAJECTORY_METADATA_FIELDS {
+            metadata
+                .as_object_mut()
+                .unwrap()
+                .entry(*field)
+                .or_insert(crate::serde_json::Value::Null);
+        }
+    }
+    assert_eq!(
+        serde_json::to_value(run_fixture(&fixture, 16, false, &[])).unwrap(),
+        expected
+    );
+}
