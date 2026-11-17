@@ -91,58 +91,34 @@ struct StoredTierPricing {
 #[serde(untagged)]
 enum StoredTier {
     Rates(Vec<PricingRate>),
-    Alias(TierAlias),
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct TierAlias {
-    alias: PricingTierName,
-}
-
-#[derive(Debug, Clone, Copy, Deserialize)]
-#[serde(rename_all = "lowercase")]
-enum PricingTierName {
-    Flex,
-    Batch,
-    Priority,
-    Fast,
-    Ultrafast,
-}
-
-impl StoredTierPricing {
-    fn tier(&self, name: PricingTierName) -> Option<&StoredTier> {
-        match name {
-            PricingTierName::Flex => self.flex.as_ref(),
-            PricingTierName::Batch => self.batch.as_ref(),
-            PricingTierName::Priority => self.priority.as_ref(),
-            PricingTierName::Fast => self.fast.as_ref(),
-            PricingTierName::Ultrafast => self.ultrafast.as_ref(),
-        }
-    }
-
-    fn resolve(&self, entry: Option<&StoredTier>) -> Result<Option<Vec<PricingRate>>, String> {
-        match entry {
-            None => Ok(None),
-            Some(StoredTier::Rates(rates)) => Ok(Some(rates.clone())),
-            Some(StoredTier::Alias(TierAlias { alias })) => match self.tier(*alias) {
-                Some(StoredTier::Rates(rates)) => Ok(Some(rates.clone())),
-                _ => Err(format!(
-                    "pricing alias {alias:?} must reference a rate array in the same provider"
-                )),
-            },
-        }
-    }
+    Alias { alias: String },
 }
 
 impl TryFrom<StoredTierPricing> for TierPricing {
     type Error = String;
 
-    fn try_from(stored: StoredTierPricing) -> Result<Self, Self::Error> {
+    fn try_from(s: StoredTierPricing) -> Result<Self, Self::Error> {
+        let resolve = |tier: &Option<StoredTier>| match tier {
+            None => Ok(None),
+            Some(StoredTier::Rates(rates)) => Ok(Some(rates.clone())),
+            Some(StoredTier::Alias { alias }) => match match alias.as_str() {
+                "flex" => &s.flex,
+                "batch" => &s.batch,
+                "priority" => &s.priority,
+                "fast" => &s.fast,
+                "ultrafast" => &s.ultrafast,
+                _ => &None,
+            } {
+                Some(StoredTier::Rates(rates)) => Ok(Some(rates.clone())),
+                _ => Err(format!(
+                    "pricing alias {alias:?} must reference a rate array in the same provider"
+                )),
+            },
+        };
         Ok(Self {
-            flex: stored.resolve(stored.flex.as_ref())?,
-            batch: stored.resolve(stored.batch.as_ref())?,
-            priority: stored.resolve(stored.priority.as_ref())?,
+            flex: resolve(&s.flex)?,
+            batch: resolve(&s.batch)?,
+            priority: resolve(&s.priority)?,
         })
     }
 }
