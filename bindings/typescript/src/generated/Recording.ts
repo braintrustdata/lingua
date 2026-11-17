@@ -4,7 +4,7 @@ import type { RecordingSegment } from "./RecordingSegment";
 
 export type Recording = { 
 /**
- * The voice session span id; `attachment_ref`s point into its row.
+ * The voice session span id.
  */
 id: string, 
 /**

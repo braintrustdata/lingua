@@ -79,6 +79,7 @@ export type { OpaqueItem } from "./generated/OpaqueItem";
 export type { OpaqueItemKind } from "./generated/OpaqueItemKind";
 export type { Recording } from "./generated/Recording";
 export type { RecordingSegment } from "./generated/RecordingSegment";
+export type { AttachmentReference } from "./generated/AttachmentReference";
 export type { SegmentState } from "./generated/SegmentState";
 export type { AudioSource } from "./generated/AudioSource";
 export type { Channel } from "./generated/Channel";

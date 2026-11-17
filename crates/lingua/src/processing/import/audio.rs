@@ -5,7 +5,7 @@
 use super::span::metadata_field;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    AudioSource, Channel, Recording, RecordingSegment, SegmentState,
+    AttachmentReference, AudioSource, Channel, Recording, RecordingSegment, SegmentState,
 };
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};
@@ -85,10 +85,13 @@ struct Timeline {
 
 pub(super) fn parse(
     span_id: Option<&str>,
+    input: Option<&json::Value>,
+    output: Option<&json::Value>,
     metadata: Option<&json::Value>,
 ) -> (VoiceContext, VoicePayload) {
     let mut header_errors = Vec::new();
     let mut errors = Vec::new();
+    let raw_metadata = metadata;
     let metadata = match metadata.map(Metadata::deserialize).transpose() {
         Ok(metadata) => metadata.unwrap_or_default(),
         Err(error) => {
@@ -119,6 +122,7 @@ pub(super) fn parse(
             metadata.timeline,
             metadata.sources,
             metadata.segments,
+            &json::json!({"input": input, "output": output, "metadata": raw_metadata}),
             &mut errors,
         ),
         _ => None,
@@ -132,6 +136,7 @@ fn recording(
     timeline: Option<json::Value>,
     sources: Option<json::Value>,
     segments: Option<json::Value>,
+    row: &json::Value,
     errors: &mut Vec<String>,
 ) -> Option<Recording> {
     let origin = metadata_field::<Timeline>(timeline, "audio.timeline", errors)
@@ -170,7 +175,11 @@ fn recording(
         if let SegmentState::Unknown(value) = &state {
             errors.push(format!("Audio segment {id} has an unknown state: {value}"));
         }
-        if state == SegmentState::Ready && entry.attachment.is_none() {
+        let attachment = entry
+            .attachment
+            .and_then(|attachment| row.pointer(&attachment.reference))
+            .and_then(|target| AttachmentReference::deserialize(target).ok());
+        if state == SegmentState::Ready && attachment.is_none() {
             errors.push(format!("Ready audio segment {id} has no attachment"));
         }
         segments.push(RecordingSegment {
@@ -178,7 +187,7 @@ fn recording(
             state,
             start_offset_ms: entry.start_offset_ms,
             duration_ms: entry.duration_ms,
-            attachment_ref: entry.attachment.map(|attachment| attachment.reference),
+            attachment,
             mime_type: entry.mime_type,
             channels,
             reason: entry.reason,
