@@ -2,8 +2,8 @@ mod auth;
 mod catalog;
 mod client;
 pub use client::{
-    add_additional_ca_bundle, build_middleware_client, clear_override_client, set_override_client,
-    ClientSettings, DnsOverride, HttpRequestStats,
+    add_additional_ca_bundle, build_middleware_client, clear_override_client,
+    rustls_client_builder, set_override_client, ClientSettings, DnsOverride, HttpRequestStats,
 };
 pub use reqwest_middleware::ClientWithMiddleware;
 mod error;

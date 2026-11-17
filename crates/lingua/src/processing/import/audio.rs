@@ -71,8 +71,11 @@ struct Metadata {
     sources: Option<json::Value>,
     #[serde(rename = "audio.segments")]
     segments: Option<json::Value>,
-    #[serde(rename = "contrib.livekit.interrupted")]
     interrupted: Option<json::Value>,
+    #[serde(rename = "contrib.livekit.interrupted")]
+    livekit_interrupted: Option<json::Value>,
+    #[serde(rename = "contrib.pipecat.interrupted")]
+    pipecat_interrupted: Option<json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -101,8 +104,11 @@ pub(super) fn parse(
         turn_id: metadata_field(metadata.turn_id, "turn.id", &mut header_errors),
         reply_to: metadata_field(metadata.reply_to, "turn.reply_to", &mut header_errors),
         interrupted: metadata_field(
-            metadata.interrupted,
-            "contrib.livekit.interrupted",
+            metadata
+                .interrupted
+                .or(metadata.livekit_interrupted)
+                .or(metadata.pipecat_interrupted),
+            "interrupted",
             &mut header_errors,
         ),
         errors: header_errors,

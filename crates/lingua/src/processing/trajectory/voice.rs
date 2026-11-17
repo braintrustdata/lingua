@@ -67,7 +67,11 @@ enum SpanKind {
 }
 
 fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
-    if matches!(role, Role::Conversation | Role::Analysis | Role::Tool) {
+    let role = match role {
+        Role::Conversation => Role::Analysis,
+        role => role,
+    };
+    if matches!(role, Role::Analysis | Role::Tool) {
         return Some(SpanKind::Work(StepKind::Chat(role)));
     }
     if span.kind() != "task" {
@@ -231,14 +235,35 @@ pub(super) fn plan(
             .get(&(spans[index].root_span_id.as_str(), id))
             .copied()
     };
+    let user_sessions: HashSet<_> = (0..spans.len())
+        .filter(|index| kinds[*index] == Some(SpanKind::UserTurn))
+        .filter_map(|index| session_of[index])
+        .collect();
     let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     for index in 0..spans.len() {
+        if kinds[index] == Some(SpanKind::UserSpeech)
+            && (owners[&index].voice_turn.is_some()
+                || session_of[index].is_some_and(|session| user_sessions.contains(&session)))
+        {
+            plan.ignored.insert(index);
+            continue;
+        }
         if kinds[index].is_none() {
             continue;
         }
         let turn = match &owners[&index].voice_turn {
-            _ if is_turn(index) => Ok(index),
-            None => Err("Voice span has no turn".to_string()),
+            _ if is_turn(index) || kinds[index] == Some(SpanKind::UserSpeech) => Ok(index),
+            None => match std::iter::successors(parents[index], |at| parents[*at])
+                .take(spans.len())
+                .take_while(|at| session_of[*at] == session_of[index])
+                .find(|at| is_turn(*at))
+            {
+                Some(turn) => Ok(turn),
+                None => {
+                    plan.ignored.insert(index);
+                    continue;
+                }
+            },
             Some(turn_id) => match resolve(index, turn_id) {
                 Some(turn) if is_turn(turn) => Ok(turn),
                 Some(_) => Err(format!("turn.id {turn_id} is not a user or agent turn")),
@@ -294,9 +319,7 @@ pub(super) fn plan(
             .and_then(|ends| ends.into_iter().max());
         let model = group
             .iter()
-            .find(|index| {
-                kinds[**index] == Some(SpanKind::Work(StepKind::Chat(Role::Conversation)))
-            })
+            .find(|index| kinds[**index] == Some(SpanKind::Work(StepKind::Chat(Role::Analysis))))
             .and_then(|index| spans[*index].source.model.clone());
         // The exchange starts when its opener does; earlier STT streams are only work.
         let start_time = spans[request].start;
@@ -304,10 +327,6 @@ pub(super) fn plan(
         let mut span_count = 0;
         for &index in &group {
             let role = match kinds[index] {
-                Some(SpanKind::UserSpeech) => {
-                    plan.ignored.insert(index);
-                    continue;
-                }
                 _ if index == request => VoiceRole::Request,
                 Some(SpanKind::UserTurn | SpanKind::AgentTurn) => VoiceRole::Reply,
                 _ if Some(index) == response => VoiceRole::Response { position },
@@ -316,7 +335,7 @@ pub(super) fn plan(
                     position,
                 },
                 Some(SpanKind::Work(kind)) => VoiceRole::Work { kind, position },
-                None => continue,
+                Some(SpanKind::UserSpeech) | None => continue,
             };
             if matches!(role, VoiceRole::Work { .. } | VoiceRole::Response { .. }) {
                 position += 1;
