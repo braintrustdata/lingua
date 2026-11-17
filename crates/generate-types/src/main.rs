@@ -748,6 +748,10 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         }
     }
 
+    // Step 4: Collapse definitions that differ only by name so that quicktype never has to
+    // invent a shared identifier for them.
+    let separated_schemas = collapse_duplicate_anthropic_definitions(separated_schemas);
+
     // Step 5: Create root schema with separated types
     // Use a different approach: create separate top-level object types to avoid merging
     let root_schema = serde_json::json!({
@@ -773,6 +777,141 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
     });
 
     root_schema
+}
+
+/// Collapses Anthropic schema definitions that are identical apart from their own `title`
+/// onto a single canonical definition.
+///
+/// quicktype interns schema types by structure, so definitions that differ only by name end up
+/// as one Rust type carrying several candidate names. It then names that type from the longest
+/// affix those candidates share, which produces truncated identifiers with no upstream meaning:
+/// `BrowserDoubleClickConfig` and `ComputerDoubleClickConfig` collapse to `ErDoubleClickConfig`
+/// because `brows(er)` and `comput(er)` share a three-character suffix. Collapsing the duplicates
+/// here leaves exactly one upstream name per type, so every generated identifier stays an
+/// upstream schema name.
+///
+/// The canonical name is the lexicographically smallest name in the group, which keeps generation
+/// stable against reordering of `components/schemas`.
+///
+/// Collapsing is repeated until it reaches a fixed point, because redirecting `$ref`s can make a
+/// further pair of definitions identical: once every member config of `BrowserToolsetConfigs` and
+/// `ComputerToolsetConfigs` points at the same canonical config, the two toolset schemas themselves
+/// become duplicates. Stopping after one pass leaves that pair for quicktype to merge, which names
+/// the survivor `ErToolsetConfigs`.
+fn collapse_duplicate_anthropic_definitions(
+    mut definitions: serde_json::Map<String, serde_json::Value>,
+) -> serde_json::Map<String, serde_json::Value> {
+    let mut collapsed = 0;
+
+    // Each pass removes at least one definition, so the loop terminates.
+    loop {
+        let canonical_names = anthropic_canonical_definition_names(&definitions);
+        if canonical_names.is_empty() {
+            break;
+        }
+
+        collapsed += canonical_names.len();
+        definitions = definitions
+            .into_iter()
+            .filter(|(name, _)| !canonical_names.contains_key(name))
+            .map(|(name, schema)| {
+                let schema = redirect_anthropic_definition_refs(&schema, &canonical_names);
+                (name, schema)
+            })
+            .collect();
+    }
+
+    if collapsed > 0 {
+        println!(
+            "🔁 Collapsed {collapsed} duplicate Anthropic schema definitions onto their canonical names"
+        );
+    }
+
+    definitions
+}
+
+/// Maps every duplicate definition name onto the canonical definition it should resolve to.
+fn anthropic_canonical_definition_names(
+    definitions: &serde_json::Map<String, serde_json::Value>,
+) -> std::collections::BTreeMap<String, String> {
+    let mut names_by_identity: std::collections::BTreeMap<String, Vec<String>> =
+        std::collections::BTreeMap::new();
+
+    for (name, schema) in definitions {
+        let identity = anthropic_definition_identity(schema);
+        names_by_identity
+            .entry(identity)
+            .or_default()
+            .push(name.clone());
+    }
+
+    let mut canonical_names = std::collections::BTreeMap::new();
+    for names in names_by_identity.values() {
+        if names.len() < 2 {
+            continue;
+        }
+
+        let canonical = names
+            .iter()
+            .min()
+            .expect("group with at least two names has a minimum");
+        for name in names {
+            if name != canonical {
+                canonical_names.insert(name.clone(), canonical.clone());
+            }
+        }
+    }
+
+    canonical_names
+}
+
+/// Builds the structural identity quicktype uses when interning a schema.
+///
+/// `title` carries the schema's own name rather than any part of its shape, so it is the one key
+/// that must be ignored. Everything else, `description` included, stays in the identity because
+/// quicktype keeps descriptions distinct: `BrowserCloseTabConfig` and `ComputerCursorPositionConfig`
+/// have identical properties but different descriptions and remain separate types.
+fn anthropic_definition_identity(schema: &serde_json::Value) -> String {
+    let mut identity = schema.clone();
+    if let Some(object) = identity.as_object_mut() {
+        object.remove("title");
+    }
+
+    serde_json::to_string(&identity).unwrap_or_default()
+}
+
+fn redirect_anthropic_definition_refs(
+    schema: &serde_json::Value,
+    canonical_names: &std::collections::BTreeMap<String, String>,
+) -> serde_json::Value {
+    match schema {
+        serde_json::Value::Object(object) => {
+            let redirected = object
+                .iter()
+                .map(|(key, value)| {
+                    let redirected_value = match (key.as_str(), value.as_str()) {
+                        ("$ref", Some(reference)) => reference
+                            .strip_prefix("#/definitions/")
+                            .and_then(|name| canonical_names.get(name))
+                            .map(|canonical| {
+                                serde_json::Value::String(format!("#/definitions/{canonical}"))
+                            })
+                            .unwrap_or_else(|| value.clone()),
+                        _ => redirect_anthropic_definition_refs(value, canonical_names),
+                    };
+                    (key.clone(), redirected_value)
+                })
+                .collect();
+            serde_json::Value::Object(redirected)
+        }
+        serde_json::Value::Array(items) => serde_json::Value::Array(
+            items
+                .iter()
+                .map(|item| redirect_anthropic_definition_refs(item, canonical_names))
+                .collect(),
+        ),
+        other => other.clone(),
+    }
 }
 
 fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
@@ -2572,6 +2711,129 @@ pub struct Status {}
         assert!(!processed.contains("pub type InputItemContentListType ="));
         assert!(processed.contains("pub type InputContent = ContentOutputContentList;"));
         assert!(processed.contains("pub type FunctionCallItemStatus = Status;"));
+    }
+}
+
+#[cfg(test)]
+mod anthropic_definition_collapse_tests {
+    use super::{collapse_duplicate_anthropic_definitions, serde_json};
+
+    fn member_config(member: &str) -> serde_json::Value {
+        serde_json::json!({
+            "additionalProperties": false,
+            "description": format!("``{member}``'s config overrides."),
+            "properties": {
+                "enabled": {"anyOf": [{"type": "boolean"}, {"type": "null"}]}
+            },
+            "title": format!("{member} config"),
+            "type": "object"
+        })
+    }
+
+    fn definitions(
+        entries: &[(&str, serde_json::Value)],
+    ) -> serde_json::Map<String, serde_json::Value> {
+        entries
+            .iter()
+            .map(|(name, schema)| ((*name).to_string(), schema.clone()))
+            .collect()
+    }
+
+    #[test]
+    fn collapses_definitions_that_differ_only_by_title_onto_the_first_upstream_name() {
+        let collapsed = collapse_duplicate_anthropic_definitions(definitions(&[
+            ("BrowserDoubleClickConfig", member_config("double_click")),
+            ("ComputerDoubleClickConfig", member_config("double_click")),
+        ]));
+
+        // Both names describe the same wire shape, so exactly one upstream name survives and it
+        // is never a shared-affix invention such as `ErDoubleClickConfig`.
+        assert_eq!(
+            collapsed.keys().collect::<Vec<_>>(),
+            vec!["BrowserDoubleClickConfig"]
+        );
+    }
+
+    #[test]
+    fn repoints_references_to_the_collapsed_definition() {
+        let collapsed = collapse_duplicate_anthropic_definitions(definitions(&[
+            ("BrowserDoubleClickConfig", member_config("double_click")),
+            ("ComputerDoubleClickConfig", member_config("double_click")),
+            (
+                "ComputerToolsetConfigs",
+                serde_json::json!({
+                    "properties": {
+                        "double_click": {
+                            "anyOf": [
+                                {"$ref": "#/definitions/ComputerDoubleClickConfig"},
+                                {"type": "null"}
+                            ]
+                        }
+                    },
+                    "type": "object"
+                }),
+            ),
+        ]));
+
+        let double_click =
+            &collapsed["ComputerToolsetConfigs"]["properties"]["double_click"]["anyOf"][0]["$ref"];
+        assert_eq!(double_click, "#/definitions/BrowserDoubleClickConfig");
+        assert!(!collapsed.contains_key("ComputerDoubleClickConfig"));
+    }
+
+    #[test]
+    fn collapses_parents_that_only_become_duplicates_once_their_members_are_collapsed() {
+        fn toolset_configs(member_config: &str) -> serde_json::Value {
+            serde_json::json!({
+                "properties": {
+                    "double_click": {
+                        "anyOf": [
+                            {"$ref": format!("#/definitions/{member_config}")},
+                            {"type": "null"}
+                        ]
+                    }
+                },
+                "type": "object"
+            })
+        }
+
+        let collapsed = collapse_duplicate_anthropic_definitions(definitions(&[
+            ("BrowserDoubleClickConfig", member_config("double_click")),
+            ("ComputerDoubleClickConfig", member_config("double_click")),
+            (
+                "BrowserToolsetConfigs",
+                toolset_configs("BrowserDoubleClickConfig"),
+            ),
+            (
+                "ComputerToolsetConfigs",
+                toolset_configs("ComputerDoubleClickConfig"),
+            ),
+        ]));
+
+        // The two toolset schemas only match each other after their member configs collapse, so a
+        // single pass would leave quicktype to merge them under the shared affix `ErToolsetConfigs`.
+        assert_eq!(
+            collapsed.keys().collect::<Vec<_>>(),
+            vec!["BrowserDoubleClickConfig", "BrowserToolsetConfigs"]
+        );
+    }
+
+    #[test]
+    fn keeps_definitions_that_differ_beyond_their_title() {
+        // quicktype keeps descriptions in a type's identity, so `close_tab` and `cursor_position`
+        // stay separate types even though their properties match. Collapsing them here would
+        // silently drop an upstream name that still has a distinct type.
+        let collapsed = collapse_duplicate_anthropic_definitions(definitions(&[
+            ("BrowserCloseTabConfig", member_config("close_tab")),
+            (
+                "ComputerCursorPositionConfig",
+                member_config("cursor_position"),
+            ),
+        ]));
+
+        assert_eq!(collapsed.len(), 2);
+        assert!(collapsed.contains_key("BrowserCloseTabConfig"));
+        assert!(collapsed.contains_key("ComputerCursorPositionConfig"));
     }
 }
 
