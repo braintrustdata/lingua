@@ -18,6 +18,7 @@ pub struct VoiceContext {
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
     pub interrupted: Option<bool>,
+    pub source_id: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
 }
@@ -71,6 +72,8 @@ struct Metadata {
     sources: Option<json::Value>,
     #[serde(rename = "audio.segments")]
     segments: Option<json::Value>,
+    #[serde(rename = "audio.source_id")]
+    source_id: Option<json::Value>,
     interrupted: Option<json::Value>,
     #[serde(rename = "contrib.livekit.interrupted")]
     livekit_interrupted: Option<json::Value>,
@@ -112,6 +115,7 @@ pub(super) fn parse(
             "interrupted",
             &mut header_errors,
         ),
+        source_id: metadata_field(metadata.source_id, "audio.source_id", &mut header_errors),
         errors: header_errors,
     };
     let recording = match (span_id, &header.schema_version) {

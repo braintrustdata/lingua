@@ -72,10 +72,12 @@ pub enum TrajectoryEvent {
     Done,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 struct VoiceTurnState {
     started: bool,
     remaining: usize,
+    heard: Vec<Message>,
+    said: Option<AgentResponse>,
 }
 
 #[derive(Default)]
@@ -534,6 +536,11 @@ impl TrajectoryStream {
             }
         }
         failures.append(&mut voice.failures);
+        for index in &voice.ignored {
+            if let Some(warning) = voice.warnings.remove(index) {
+                spans[*index].warnings.push(warning);
+            }
+        }
         if let Some(root_span_id) = grouped_trace_ids.first() {
             let group_root_span_id: Arc<str> = root_span_id.as_str().into();
             for span in &mut spans {
@@ -604,6 +611,8 @@ impl TrajectoryStream {
                 .map(|turn| VoiceTurnState {
                     started: false,
                     remaining: turn.span_count,
+                    heard: Vec::new(),
+                    said: None,
                 })
                 .collect(),
             voice,
@@ -1329,7 +1338,7 @@ impl TrajectoryStream {
         } = self.voice.owners[&index];
         let voice_turn = &self.voice.turns[turn_index];
         let id = self.spans[voice_turn.request].id.clone();
-        let (request, opaque_request) = if index == voice_turn.request && loaded {
+        let (request, opaque_request) = if role == voice::VoiceRole::Request && loaded {
             (self.request(span, None, true), span.opaque_input.clone())
         } else {
             (Vec::new(), Vec::new())
@@ -1337,7 +1346,7 @@ impl TrajectoryStream {
         let state = &mut self.voice_states[turn_index];
         state.remaining -= 1;
         if !state.started {
-            if index == voice_turn.request
+            if role == voice::VoiceRole::Request
                 && voice_turn.span_count == 1
                 && span.source.name.as_deref() != Some("user_speech")
                 && request.is_empty()
@@ -1365,7 +1374,7 @@ impl TrajectoryStream {
                     compaction: None,
                 }),
             });
-        } else if index == voice_turn.request && loaded {
+        } else if role == voice::VoiceRole::Request && loaded {
             events.push(TrajectoryEvent::Request {
                 scope: scope.clone(),
                 id: id.clone(),
@@ -1382,6 +1391,30 @@ impl TrajectoryStream {
         }
         match role {
             voice::VoiceRole::Request | voice::VoiceRole::Reply => {}
+            voice::VoiceRole::Heard if loaded => {
+                let state = &mut self.voice_states[turn_index];
+                state.heard.extend(
+                    span.output
+                        .iter()
+                        .filter(|message| matches!(message, Message::User { .. }))
+                        .cloned(),
+                );
+                events.push(TrajectoryEvent::Request {
+                    scope: scope.clone(),
+                    id: id.clone(),
+                    request_id: id.clone(),
+                    request: state.heard.clone(),
+                    opaque_request: Vec::new(),
+                });
+            }
+            voice::VoiceRole::Said if loaded => {
+                let state = &mut self.voice_states[turn_index];
+                state.said = Some(match state.said.take() {
+                    Some(said) => voice::join(said, span.response()),
+                    None => span.response(),
+                });
+            }
+            voice::VoiceRole::Heard | voice::VoiceRole::Said => {}
             voice::VoiceRole::Work {
                 kind: voice::StepKind::Chat(role),
                 position,
@@ -1408,6 +1441,10 @@ impl TrajectoryStream {
                     voice::response(span)
                 } else {
                     None
+                };
+                let response = match (self.voice_states[turn_index].said.take(), response) {
+                    (Some(said), Some(last)) => Some(voice::join(said, last)),
+                    (said, last) => said.or(last),
                 };
                 events.push(TrajectoryEvent::Response {
                     scope: scope.clone(),

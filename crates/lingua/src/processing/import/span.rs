@@ -21,6 +21,7 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "request_kind",
     "compaction",
     "audio.schema.version",
+    "audio.source_id",
     "turn.id",
     "turn.reply_to",
     "interrupted",
