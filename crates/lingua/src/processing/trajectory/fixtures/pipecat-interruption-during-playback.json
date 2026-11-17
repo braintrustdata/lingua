@@ -2823,7 +2823,12 @@
           "state": "ready",
           "start_offset_ms": 0,
           "duration_ms": 43878,
-          "attachment_ref": "/input/audio/part-0",
+          "attachment": {
+            "type": "braintrust_attachment",
+            "filename": "part-0.ogg",
+            "content_type": "audio/ogg",
+            "key": "9fccb607-1d13-4232-9215-4e5508b0eab1"
+          },
           "mime_type": "audio/ogg",
           "channels": [
             {

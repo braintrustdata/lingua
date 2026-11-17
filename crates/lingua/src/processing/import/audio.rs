@@ -5,7 +5,7 @@
 use super::span::metadata_field;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    AudioSource, Channel, Recording, RecordingSegment, SegmentState,
+    AttachmentReference, AudioSource, Channel, Recording, RecordingSegment, SegmentState,
 };
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};
@@ -85,6 +85,7 @@ struct Timeline {
 
 pub(super) fn parse(
     span_id: Option<&str>,
+    input: Option<&json::Value>,
     metadata: Option<&json::Value>,
 ) -> (VoiceContext, VoicePayload) {
     let mut header_errors = Vec::new();
@@ -119,6 +120,7 @@ pub(super) fn parse(
             metadata.timeline,
             metadata.sources,
             metadata.segments,
+            input,
             &mut errors,
         ),
         _ => None,
@@ -132,6 +134,7 @@ fn recording(
     timeline: Option<json::Value>,
     sources: Option<json::Value>,
     segments: Option<json::Value>,
+    input: Option<&json::Value>,
     errors: &mut Vec<String>,
 ) -> Option<Recording> {
     let origin = metadata_field::<Timeline>(timeline, "audio.timeline", errors)
@@ -173,12 +176,16 @@ fn recording(
         if state == SegmentState::Ready && entry.attachment.is_none() {
             errors.push(format!("Ready audio segment {id} has no attachment"));
         }
+        let attachment = entry
+            .attachment
+            .and_then(|attachment| input?.pointer(attachment.reference.strip_prefix("/input")?))
+            .and_then(|target| AttachmentReference::deserialize(target).ok());
         segments.push(RecordingSegment {
             id,
             state,
             start_offset_ms: entry.start_offset_ms,
             duration_ms: entry.duration_ms,
-            attachment_ref: entry.attachment.map(|attachment| attachment.reference),
+            attachment,
             mime_type: entry.mime_type,
             channels,
             reason: entry.reason,

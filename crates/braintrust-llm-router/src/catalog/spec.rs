@@ -69,10 +69,58 @@ pub struct ModelSpec {
 /// not provider API parameter values. A missing tier has no verified support
 /// and does not fall back to standard prices.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "StoredTierPricing")]
 pub struct TierPricing {
     pub flex: Option<Vec<PricingRate>>,
     pub batch: Option<Vec<PricingRate>>,
     pub priority: Option<Vec<PricingRate>>,
+}
+
+/// Catalog tiers may reference another tier's rates within the same provider
+/// with `{"alias": "<tier>"}`. Aliases must point directly at a rate array.
+#[derive(Deserialize)]
+struct StoredTierPricing {
+    flex: Option<StoredTier>,
+    batch: Option<StoredTier>,
+    priority: Option<StoredTier>,
+    fast: Option<StoredTier>,
+    ultrafast: Option<StoredTier>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum StoredTier {
+    Rates(Vec<PricingRate>),
+    Alias { alias: String },
+}
+
+impl TryFrom<StoredTierPricing> for TierPricing {
+    type Error = String;
+
+    fn try_from(s: StoredTierPricing) -> Result<Self, Self::Error> {
+        let resolve = |tier: &Option<StoredTier>| match tier {
+            None => Ok(None),
+            Some(StoredTier::Rates(rates)) => Ok(Some(rates.clone())),
+            Some(StoredTier::Alias { alias }) => match match alias.as_str() {
+                "flex" => &s.flex,
+                "batch" => &s.batch,
+                "priority" => &s.priority,
+                "fast" => &s.fast,
+                "ultrafast" => &s.ultrafast,
+                _ => &None,
+            } {
+                Some(StoredTier::Rates(rates)) => Ok(Some(rates.clone())),
+                _ => Err(format!(
+                    "pricing alias {alias:?} must reference a rate array in the same provider"
+                )),
+            },
+        };
+        Ok(Self {
+            flex: resolve(&s.flex)?,
+            batch: resolve(&s.batch)?,
+            priority: resolve(&s.priority)?,
+        })
+    }
 }
 
 /// Rates that apply only to the listed endpoints, regions, deployment, model
@@ -220,6 +268,49 @@ mod tests {
                 },
             )]))
         );
+    }
+
+    #[test]
+    fn tier_pricing_resolves_aliases() {
+        let pricing: TierPricing = serde_json::from_str(
+            r#"{
+                "batch": [{"input_cost_per_mil_tokens": 1.0}],
+                "fast": [{"input_cost_per_mil_tokens": 4.0}],
+                "flex": {"alias": "batch"},
+                "priority": {"alias": "fast"}
+            }"#,
+        )
+        .unwrap();
+
+        let batch = vec![PricingRate {
+            input_cost_per_mil_tokens: Some(1.0),
+            ..PricingRate::default()
+        }];
+        assert_eq!(
+            pricing,
+            TierPricing {
+                flex: Some(batch.clone()),
+                batch: Some(batch),
+                priority: Some(vec![PricingRate {
+                    input_cost_per_mil_tokens: Some(4.0),
+                    ..PricingRate::default()
+                }]),
+            }
+        );
+    }
+
+    #[test]
+    fn tier_pricing_rejects_unresolved_aliases() {
+        for json in [
+            r#"{"priority": {"alias": "fast"}}"#,
+            r#"{"priority": {"alias": "flex"}, "flex": {"alias": "batch"}, "batch": []}"#,
+            r#"{"priority": {"alias": "priority"}}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<TierPricing>(json).is_err(),
+                "{json} should not parse"
+            );
+        }
     }
 
     #[test]
