@@ -5018,7 +5018,12 @@
       "origin": "2026-11-03T21:12:29.392Z",
       "segments": [
         {
-          "attachment_ref": "/input/audio/part-0",
+          "attachment": {
+            "content_type": "audio/ogg",
+            "filename": "part-0.ogg",
+            "key": "00000000-0000-4000-8000-000000000001",
+            "type": "braintrust_attachment"
+          },
           "channels": [
             {
               "index": 0,

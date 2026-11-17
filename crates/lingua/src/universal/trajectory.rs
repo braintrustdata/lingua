@@ -32,7 +32,7 @@ pub struct Trajectory {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct Recording {
-    /// The voice session span id; `attachment_ref`s point into its row.
+    /// The voice session span id.
     pub id: String,
     /// Time zero for segment offsets.
     pub origin: DateTime<Utc>,
@@ -58,15 +58,31 @@ pub struct RecordingSegment {
     pub start_offset_ms: u64,
     #[ts(optional, type = "number")]
     pub duration_ms: Option<u64>,
-    /// JSON pointer into the session row; set when ready.
+    /// Set when ready.
     #[ts(optional)]
-    pub attachment_ref: Option<String>,
+    pub attachment: Option<AttachmentReference>,
     #[ts(optional)]
     pub mime_type: Option<String>,
     pub channels: Vec<Channel>,
     /// Set when omitted.
     #[ts(optional)]
     pub reason: Option<String>,
+}
+
+/// Inline attachments are excluded because they can embed the file's bytes.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum AttachmentReference {
+    BraintrustAttachment {
+        filename: String,
+        content_type: String,
+        key: String,
+    },
+    ExternalAttachment {
+        filename: String,
+        content_type: String,
+        url: String,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]

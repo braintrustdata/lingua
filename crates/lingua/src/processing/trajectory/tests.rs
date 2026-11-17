@@ -2780,6 +2780,38 @@ fn voice_recordings_keep_and_report_unknown_segment_states() {
 }
 
 #[test]
+fn voice_recordings_resolve_segment_attachments() {
+    let external = json::json!({
+        "type": "external_attachment", "filename": "a.ogg",
+        "content_type": "audio/ogg", "url": "s3://bucket/a.ogg",
+    });
+    let input = json::json!({ "audio": {
+        "a/b": external,
+        "inline": { "type": "inline_attachment", "src": "data:audio/ogg;base64,AA==" },
+    }});
+    let ready = |pointer: &str| {
+        json::json!({ "state": "ready", "start_offset_ms": 0, "attachment": { "ref": pointer } })
+    };
+    let mut sources = voice_sources();
+    sources[0].input = Some(Value::String(input.to_string()));
+    sources[0].other["metadata"]["audio.segments"] = json::json!({
+        "part-0": ready("/input/audio/a~1b"),
+        "part-1": ready("/input/audio/inline"),
+        "part-2": ready("/input/audio/missing"),
+    });
+    let result = load_voice(&sources, &sources).unwrap();
+    let segments = &result[0]["recordings"][0]["segments"];
+    assert_eq!(segments[0]["attachment"], external);
+    assert!(segments[1]["attachment"].is_null());
+    assert!(segments[2]["attachment"].is_null());
+    let message = result[0]["metadata"]["import_failures"][0]["message"]
+        .as_str()
+        .unwrap();
+    assert!(message.contains("Ready audio segment part-1 has no attachment"));
+    assert!(message.contains("Ready audio segment part-2 has no attachment"));
+}
+
+#[test]
 fn voice_planning_stays_inside_the_session() {
     let mut sources = voice_sources();
     sources[0]

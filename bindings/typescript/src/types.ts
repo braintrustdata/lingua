@@ -77,6 +77,7 @@ export type { ToolResult } from "./generated/ToolResult";
 export type { LLMAnalysis } from "./generated/LLMAnalysis";
 export type { OpaqueItem } from "./generated/OpaqueItem";
 export type { OpaqueItemKind } from "./generated/OpaqueItemKind";
+export type { AttachmentReference } from "./generated/AttachmentReference";
 export type { Recording } from "./generated/Recording";
 export type { RecordingSegment } from "./generated/RecordingSegment";
 export type { SegmentState } from "./generated/SegmentState";

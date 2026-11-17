@@ -7211,7 +7211,12 @@
       "origin": "2026-11-03T21:01:53.895Z",
       "segments": [
         {
-          "attachment_ref": "/input/audio/part-0",
+          "attachment": {
+            "content_type": "audio/ogg",
+            "filename": "part-0.ogg",
+            "key": "00000000-0000-4000-8000-000000000001",
+            "type": "braintrust_attachment"
+          },
           "channels": [
             {
               "index": 0,
@@ -7233,7 +7238,12 @@
           "state": "ready"
         },
         {
-          "attachment_ref": "/input/audio/part-1",
+          "attachment": {
+            "content_type": "audio/ogg",
+            "filename": "part-1.ogg",
+            "key": "00000000-0000-4000-8000-000000000002",
+            "type": "braintrust_attachment"
+          },
           "channels": [
             {
               "index": 0,
