@@ -2789,9 +2789,7 @@ fn voice_recordings_resolve_segment_attachments() {
         "a/b": external,
         "inline": { "type": "inline_attachment", "src": "data:audio/ogg;base64,AA==" },
     }});
-    let ready = |pointer: &str| {
-        json::json!({ "state": "ready", "start_offset_ms": 0, "attachment": { "ref": pointer } })
-    };
+    let ready = |pointer: &str| json::json!({ "state": "ready", "start_offset_ms": 0, "attachment": { "ref": pointer } });
     let mut sources = voice_sources();
     sources[0].input = Some(Value::String(input.to_string()));
     sources[0].other["metadata"]["audio.segments"] = json::json!({

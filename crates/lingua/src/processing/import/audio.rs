@@ -9,6 +9,7 @@ use crate::universal::trajectory::{
 };
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -132,6 +133,16 @@ fn recording(
     row: [(&str, Option<&json::Value>); 3],
     errors: &mut Vec<String>,
 ) -> Option<Recording> {
+    // Like the app, parse a field stored as a JSON string; once, since every segment reads it.
+    let row = row.map(|(name, value)| {
+        let value = value.map(|value| match value {
+            json::Value::String(text) => {
+                json::from_str(text).map_or(Cow::Borrowed(value), Cow::Owned)
+            }
+            value => Cow::Borrowed(value),
+        });
+        (name, value)
+    });
     let origin = metadata_field::<Timeline>(timeline, "audio.timeline", errors)
         .map(|timeline| timeline.origin_unix_ms)
         .filter(|ms| ms.is_finite())
@@ -170,7 +181,7 @@ fn recording(
         }
         let attachment = entry
             .attachment
-            .and_then(|attachment| resolve_attachment(row, &attachment.reference));
+            .and_then(|attachment| resolve_attachment(&row, &attachment.reference));
         if state == SegmentState::Ready && attachment.is_none() {
             errors.push(format!("Ready audio segment {id} has no attachment"));
         }
@@ -204,21 +215,15 @@ fn recording(
     })
 }
 
-/// `pointer` points into the session row. Like the app, a field stored as a JSON string is parsed.
+/// `pointer` points into the session row.
 fn resolve_attachment(
-    row: [(&str, Option<&json::Value>); 3],
+    row: &[(&str, Option<Cow<json::Value>>); 3],
     pointer: &str,
 ) -> Option<AttachmentReference> {
     let pointer = pointer.strip_prefix('/')?;
-    let (field, rest) = pointer.find('/').map_or((pointer, ""), |at| pointer.split_at(at));
-    let value = row.into_iter().find(|(name, _)| *name == field)?.1?;
-    let parsed;
-    let value = match value {
-        json::Value::String(text) => {
-            parsed = json::from_str::<json::Value>(text).ok()?;
-            &parsed
-        }
-        value => value,
-    };
-    AttachmentReference::deserialize(value.pointer(rest)?).ok()
+    let (field, rest) = pointer
+        .find('/')
+        .map_or((pointer, ""), |at| pointer.split_at(at));
+    let (_, value) = row.iter().find(|(name, _)| *name == field)?;
+    AttachmentReference::deserialize(value.as_deref()?.pointer(rest)?).ok()
 }
