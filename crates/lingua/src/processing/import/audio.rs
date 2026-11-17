@@ -86,12 +86,10 @@ struct Timeline {
 pub(super) fn parse(
     span_id: Option<&str>,
     input: Option<&json::Value>,
-    output: Option<&json::Value>,
     metadata: Option<&json::Value>,
 ) -> (VoiceContext, VoicePayload) {
     let mut header_errors = Vec::new();
     let mut errors = Vec::new();
-    let raw_metadata = metadata;
     let metadata = match metadata.map(Metadata::deserialize).transpose() {
         Ok(metadata) => metadata.unwrap_or_default(),
         Err(error) => {
@@ -122,7 +120,7 @@ pub(super) fn parse(
             metadata.timeline,
             metadata.sources,
             metadata.segments,
-            &json::json!({"input": input, "output": output, "metadata": raw_metadata}),
+            input,
             &mut errors,
         ),
         _ => None,
@@ -136,7 +134,7 @@ fn recording(
     timeline: Option<json::Value>,
     sources: Option<json::Value>,
     segments: Option<json::Value>,
-    row: &json::Value,
+    input: Option<&json::Value>,
     errors: &mut Vec<String>,
 ) -> Option<Recording> {
     let origin = metadata_field::<Timeline>(timeline, "audio.timeline", errors)
@@ -180,7 +178,13 @@ fn recording(
         }
         let attachment = entry
             .attachment
-            .and_then(|attachment| row.pointer(&attachment.reference))
+            .and_then(|attachment| {
+                let pointer = attachment.reference.strip_prefix("/input");
+                if pointer.is_none() {
+                    errors.push(format!("Audio segment {id} attachment is outside /input"));
+                }
+                input?.pointer(pointer?)
+            })
             .and_then(|target| AttachmentReference::deserialize(target).ok());
         segments.push(RecordingSegment {
             id,
