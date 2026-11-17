@@ -45,6 +45,11 @@ use serde::{Deserialize, Serialize};
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
 
+#[derive(Deserialize)]
+struct ChatCompletionsLabelsView {
+    labels: Option<std::collections::BTreeMap<String, String>>,
+}
+
 fn validate_system_messages_have_no_audio(messages: &[Message]) -> Result<(), TransformError> {
     if messages.iter().any(|message| {
         matches!(
@@ -351,6 +356,24 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::ChatCompletions) {
+            let view: ChatCompletionsLabelsView =
+                serde_json::from_value(Value::Object(extras.clone())).map_err(|e| {
+                    TransformError::FromUniversalFailed(format!(
+                        "invalid Chat Completions extras: {e}"
+                    ))
+                })?;
+            if view.labels.is_some() {
+                return Err(TransformError::FromUniversalFailed(
+                    ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions labels".to_string(),
+                        to: "Google request without a defined billing-label mapping",
+                    }
+                    .to_string(),
+                ));
+            }
+        }
+
         // Extract system messages (Google requires them in systemInstruction, not contents)
         validate_system_messages_have_no_audio(&req.messages)?;
         let mut messages = req.messages.clone();
