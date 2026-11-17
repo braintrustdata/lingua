@@ -2876,7 +2876,7 @@ fn voice_realtime_keeps_generated_work_separate_from_played_speech() {
 }
 
 #[test]
-fn voice_headers_accept_projected_null_metadata() {
+fn voice_headers_accept_duplicate_interrupted_keys() {
     let mut fixture: ImportFixture = serde_json::from_str(include_str!(
         "fixtures/pipecat-interruption-during-playback.json"
     ))
@@ -2886,11 +2886,14 @@ fn voice_headers_accept_projected_null_metadata() {
         let metadata = span
             .other
             .entry("metadata")
-            .or_insert_with(|| crate::serde_json::json!({}));
+            .or_insert_with(|| crate::serde_json::json!({}))
+            .as_object_mut()
+            .unwrap();
+        if let Some(interrupted) = metadata.get("contrib.pipecat.interrupted").cloned() {
+            metadata.insert("interrupted".to_string(), interrupted);
+        }
         for field in crate::processing::import::TRAJECTORY_METADATA_FIELDS {
             metadata
-                .as_object_mut()
-                .unwrap()
                 .entry(*field)
                 .or_insert(crate::serde_json::Value::Null);
         }
