@@ -424,7 +424,13 @@ fn parse_message(message: AISDKMessageCompat) -> Option<Message> {
 /// empty or any item returns `None`; keeping only successful items would accept
 /// partial history that sequence import rejects.
 pub fn try_import_ai_sdk_prompt_message(value: &impl ImportValue) -> Option<Message> {
-    value.parse::<AISDKMessageCompat>().and_then(parse_message)
+    let message = value.parse::<AISDKMessageCompat>()?;
+    if let Value::Array(parts) = &message.content {
+        for part in parts {
+            AISDKContentPartCompat::deserialize(part).ok()?;
+        }
+    }
+    parse_message(message)
 }
 
 fn parse_message_sequence(value: &Value) -> Option<Vec<Message>> {
@@ -456,8 +462,8 @@ fn try_parse_ai_sdk_input(data: &impl ImportValue) -> Option<Vec<Message>> {
         });
     }
     if let Field::Present(value) = input.messages {
-        if let Some(parsed) = parse_message_sequence(&value) {
-            messages.extend(parsed);
+        if !matches!(&value, Value::Array(parts) if parts.is_empty()) {
+            messages.extend(parse_message_sequence(&value)?);
         }
     }
     if let Field::Present(prompt) = input.prompt {
@@ -690,6 +696,21 @@ pub(crate) fn try_parse_ai_sdk_for_import(data: &impl ImportValue) -> Option<Vec
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rejects_native_content_even_with_system() {
+        let input = crate::serde_json::json!({
+            "system": "Be brief",
+            "messages": [{"role": "user", "content": [{"text": "Hello"}]}]
+        });
+        assert!(try_parse_ai_sdk_for_import(&input).is_none());
+    }
+
+    #[test]
+    fn accepts_empty_history_with_system() {
+        let input = crate::serde_json::json!({"system": "Be brief", "messages": []});
+        assert!(try_parse_ai_sdk_for_import(&input).is_some());
+    }
 
     #[test]
     fn parses_prompt_and_steps_wrapper() {
