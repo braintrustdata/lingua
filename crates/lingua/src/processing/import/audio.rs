@@ -181,13 +181,7 @@ fn recording(
         let attachment = entry
             .attachment
             .and_then(|attachment| row.pointer(&attachment.reference))
-            .and_then(|target| {
-                AttachmentReference::deserialize(target)
-                    .map_err(|error| {
-                        errors.push(format!("Invalid attachment in audio segment {id}: {error}"))
-                    })
-                    .ok()
-            });
+            .and_then(|target| AttachmentReference::deserialize(target).ok());
         segments.push(RecordingSegment {
             id,
             state,
