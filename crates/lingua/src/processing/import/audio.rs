@@ -9,7 +9,6 @@ use crate::universal::trajectory::{
 };
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -133,16 +132,6 @@ fn recording(
     row: [(&str, Option<&json::Value>); 3],
     errors: &mut Vec<String>,
 ) -> Option<Recording> {
-    // Like the app, parse a field stored as a JSON string; once, since every segment reads it.
-    let row = row.map(|(name, value)| {
-        let value = value.map(|value| match value {
-            json::Value::String(text) => {
-                json::from_str(text).map_or(Cow::Borrowed(value), Cow::Owned)
-            }
-            value => Cow::Borrowed(value),
-        });
-        (name, value)
-    });
     let origin = metadata_field::<Timeline>(timeline, "audio.timeline", errors)
         .map(|timeline| timeline.origin_unix_ms)
         .filter(|ms| ms.is_finite())
@@ -217,7 +206,7 @@ fn recording(
 
 /// `pointer` points into the session row.
 fn resolve_attachment(
-    row: &[(&str, Option<Cow<json::Value>>); 3],
+    row: &[(&str, Option<&json::Value>); 3],
     pointer: &str,
 ) -> Option<AttachmentReference> {
     let pointer = pointer.strip_prefix('/')?;
@@ -225,5 +214,5 @@ fn resolve_attachment(
         .find('/')
         .map_or((pointer, ""), |at| pointer.split_at(at));
     let (_, value) = row.iter().find(|(name, _)| *name == field)?;
-    AttachmentReference::deserialize(value.as_deref()?.pointer(rest)?).ok()
+    AttachmentReference::deserialize((*value)?.pointer(rest)?).ok()
 }

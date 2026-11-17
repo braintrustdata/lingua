@@ -69,7 +69,7 @@ pub struct RecordingSegment {
     pub reason: Option<String>,
 }
 
-/// Inline attachments are excluded because they can embed the file's bytes.
+/// The only kind the SDKs write for recordings.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AttachmentReference {
@@ -77,11 +77,6 @@ pub enum AttachmentReference {
         filename: String,
         content_type: String,
         key: String,
-    },
-    ExternalAttachment {
-        filename: String,
-        content_type: String,
-        url: String,
     },
 }
 
