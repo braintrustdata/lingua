@@ -1342,7 +1342,7 @@ impl TrajectoryStream {
                 .filter(|message| matches!(message, Message::User { .. }))
                 .cloned()
                 .collect();
-            (said, Vec::new())
+            (said, span.opaque_output.clone())
         };
         let empty = request.is_empty() && opaque_request.is_empty();
         let own = index == voice_turn.request;
