@@ -6,7 +6,7 @@
 //! ## Thinking configuration
 //!
 //! Google has two different ways to configure thinking/reasoning:
-//! - **Gemini 3+**: Uses `thinkingLevel` (LOW/MEDIUM/HIGH/MINIMAL) - effort-based
+//! - **Gemini 3+**: Uses `thinkingLevel` (MINIMAL/LOW/MEDIUM/HIGH/XHIGH) - effort-based
 //! - **Gemini 2.5**: Uses `thinkingBudget` (integer token count) - budget-based
 //!
 //! Using `thinkingBudget` with Gemini 3 Pro may result in suboptimal performance.
@@ -102,6 +102,7 @@ pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
         ThinkingLevel::Low => ReasoningEffort::Low,
         ThinkingLevel::Medium => ReasoningEffort::Medium,
         ThinkingLevel::High => ReasoningEffort::High,
+        ThinkingLevel::Xhigh => ReasoningEffort::Xhigh,
         ThinkingLevel::ThinkingLevelUnspecified => ReasoningEffort::High, // Google's default
     }
 }
@@ -114,7 +115,10 @@ pub fn effort_to_thinking_level(effort: ReasoningEffort) -> ThinkingLevel {
         ReasoningEffort::Low => ThinkingLevel::Low,
         ReasoningEffort::Medium => ThinkingLevel::Medium,
         ReasoningEffort::High => ThinkingLevel::High,
-        ReasoningEffort::Xhigh | ReasoningEffort::Max => ThinkingLevel::High,
+        ReasoningEffort::Xhigh => ThinkingLevel::Xhigh,
+        // Google has no level above XHIGH, so `max` clamps to the highest level
+        // the Discovery spec exposes.
+        ReasoningEffort::Max => ThinkingLevel::Xhigh,
     }
 }
 
@@ -238,6 +242,10 @@ mod tests {
             ReasoningEffort::Minimal
         );
         assert_eq!(
+            thinking_level_to_effort(&ThinkingLevel::Xhigh),
+            ReasoningEffort::Xhigh
+        );
+        assert_eq!(
             thinking_level_to_effort(&ThinkingLevel::ThinkingLevelUnspecified),
             ReasoningEffort::High
         );
@@ -261,18 +269,27 @@ mod tests {
             effort_to_thinking_level(ReasoningEffort::Minimal),
             ThinkingLevel::Minimal
         );
+        // Discovery revision 20261118 added XHIGH to `ThinkingConfig.thinkingLevel`,
+        // so `xhigh` no longer has to be clamped down to HIGH.
         assert_eq!(
             effort_to_thinking_level(ReasoningEffort::Xhigh),
-            ThinkingLevel::High
+            ThinkingLevel::Xhigh
+        );
+        // Google exposes no level above XHIGH, so `max` clamps to it.
+        assert_eq!(
+            effort_to_thinking_level(ReasoningEffort::Max),
+            ThinkingLevel::Xhigh
         );
     }
 
     #[test]
     fn test_roundtrip_effort() {
         for level in [
+            ThinkingLevel::Minimal,
             ThinkingLevel::Low,
             ThinkingLevel::Medium,
             ThinkingLevel::High,
+            ThinkingLevel::Xhigh,
         ] {
             let effort = thinking_level_to_effort(&level);
             let back = effort_to_thinking_level(effort);

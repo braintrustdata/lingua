@@ -58,14 +58,41 @@ struct GoogleAssistantPartProviderOptions {
 /// Rejects Google part fields whose semantics depend on provider-owned
 /// execution or resources and therefore have no universal representation.
 pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
-    let field = if part.audio_transcription.is_some() {
+    let field = if part.audio_metadata.is_some() {
+        "audioMetadata"
+    } else if part.audio_transcription.is_some() {
         "audioTranscription"
+    } else if part.document_metadata.is_some() {
+        "documentMetadata"
+    } else if part
+        .function_response
+        .as_ref()
+        .and_then(|response| response.parts.as_ref())
+        .is_some_and(|parts| !parts.is_empty())
+    {
+        // Attached media is addressed from `response` by `{"$ref": "DISPLAY_NAME"}`,
+        // a binding Google resolves server-side against provider-scoped handles.
+        // Converting the tool result alone would leave the references dangling.
+        "functionResponse.parts"
     } else if part.media_processing.is_some() {
         "mediaProcessing"
     } else if part.speech_metadata.is_some() {
         "speechMetadata"
+    } else if part.spreadsheet_metadata.is_some() {
+        "spreadsheetMetadata"
     } else if part.tool_call.is_some() {
         "toolCall"
+    } else if part.tool_response.is_some() {
+        "toolResponse"
+    } else if part
+        .video_metadata
+        .as_ref()
+        .and_then(|video| video.content_layers.as_ref())
+        .is_some_and(|layers| !layers.is_empty())
+    {
+        // Clipping and frame rate stay convertible; only the extraction-pass
+        // selection names Google-internal preprocessing layers.
+        "videoMetadata.contentLayers"
     } else {
         return Ok(());
     };

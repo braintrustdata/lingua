@@ -56,14 +56,14 @@ pub struct GoogleSchemas {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct GenerateContentRequest {
-    /// Optional. The name of the content [cached](https://ai.google.dev/gemini-api/docs/caching)
-    /// to use as context to serve the prediction. Format: `cachedContents/{cachedContent}`
+    /// Optional. The name of the content [cached](https://aistudio.google.com/docs/caching) to
+    /// use as context to serve the prediction. Format: `cachedContents/{cachedContent}`
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cached_content: Option<String>,
     /// Required. The content of the current conversation with the model. For single-turn
     /// queries, this is a single instance. For multi-turn queries like
-    /// [chat](https://ai.google.dev/gemini-api/docs/text-generation#chat), this is a repeated
-    /// field that contains the conversation history and the latest request.
+    /// [chat](https://aistudio.google.com/docs/text-generation#multi-turn-conversations), this
+    /// is a repeated field that contains the conversation history and the latest request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contents: Option<Vec<Content>>,
     /// Optional. An opaque continuation token used to resume generation from a previous
@@ -98,10 +98,10 @@ pub struct GenerateContentRequest {
     /// for that category. Harm categories HARM_CATEGORY_HATE_SPEECH,
     /// HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_DANGEROUS_CONTENT,
     /// HARM_CATEGORY_HARASSMENT, HARM_CATEGORY_CIVIC_INTEGRITY, HARM_CATEGORY_JAILBREAK are
-    /// supported. Refer to the [guide](https://ai.google.dev/gemini-api/docs/safety-settings)
-    /// for detailed information on available safety settings. Also refer to the [Safety
-    /// guidance](https://ai.google.dev/gemini-api/docs/safety-guidance) to learn how to
-    /// incorporate safety considerations in your AI applications.
+    /// supported. Refer to the [guide](https://aistudio.google.com/docs/safety-settings) for
+    /// detailed information on available safety settings. Also refer to the [Safety
+    /// guidance](https://aistudio.google.com/docs/safety-guidance) to learn how to incorporate
+    /// safety considerations in your AI applications.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_settings: Option<Vec<SafetySetting>>,
     /// Optional. The service tier of the request.
@@ -112,22 +112,22 @@ pub struct GenerateContentRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub store: Option<bool>,
     /// Optional. Developer set [system
-    /// instruction(s)](https://ai.google.dev/gemini-api/docs/system-instructions). Currently,
-    /// text only.
+    /// instruction(s)](https://aistudio.google.com/docs/text-generation#system-instructions).
+    /// Currently, text only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system_instruction: Option<Content>,
     /// Optional. Tool configuration for any `Tool` specified in the request. Refer to the
     /// [Function calling
-    /// guide](https://ai.google.dev/gemini-api/docs/function-calling#function_calling_mode) for
-    /// a usage example.
+    /// guide](https://aistudio.google.com/docs/function-calling#function_calling_modes) for a
+    /// usage example.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_config: Option<ToolConfig>,
     /// Optional. A list of `Tools` the `Model` may use to generate the next response. A `Tool`
     /// is a piece of code that enables the system to interact with external systems to perform
     /// an action, or set of actions, outside of knowledge and scope of the `Model`. Supported
     /// `Tool`s are `Function` and `code_execution`. Refer to the [Function
-    /// calling](https://ai.google.dev/gemini-api/docs/function-calling) and the [Code
-    /// execution](https://ai.google.dev/gemini-api/docs/code-execution) guides to learn more.
+    /// calling](https://aistudio.google.com/docs/function-calling) and the [Code
+    /// execution](https://aistudio.google.com/docs/code-execution) guides to learn more.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
 }
@@ -137,8 +137,8 @@ pub struct GenerateContentRequest {
 /// containing multi-part data that contains the content of the message turn.
 ///
 /// Optional. Developer set [system
-/// instruction(s)](https://ai.google.dev/gemini-api/docs/system-instructions). Currently,
-/// text only.
+/// instruction(s)](https://aistudio.google.com/docs/text-generation#system-instructions).
+/// Currently, text only.
 ///
 /// Output only. Generated content returned from the model.
 ///
@@ -163,6 +163,10 @@ pub struct Content {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct Part {
+    /// Optional. Audio metadata. The metadata should only be specified while the audio data is
+    /// presented in inline_data or file_data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_metadata: Option<AudioMetadata>,
     /// Optional. Audio (input or output) transcription. This is only set when this Part contains
     /// audio data.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -170,6 +174,10 @@ pub struct Part {
     /// Result of executing the `ExecutableCode`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code_execution_result: Option<CodeExecutionResult>,
+    /// Optional. Document metadata. The metadata should only be specified while the document
+    /// data is presented in inline_data or file_data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub document_metadata: Option<DocumentMetadata>,
     /// Code generated by the model that is meant to be executed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub executable_code: Option<ExecutableCode>,
@@ -207,6 +215,10 @@ pub struct Part {
     /// synthesized, such as specifying speaker identity or speaking style.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub speech_metadata: Option<SpeechMetadata>,
+    /// Optional. Spreadsheet metadata. The metadata should only be specified while the
+    /// spreadsheet data is presented in inline_data or file_data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spreadsheet_metadata: Option<SpreadsheetMetadata>,
     /// Inline text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -229,6 +241,24 @@ pub struct Part {
     /// presented in inline_data or file_data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub video_metadata: Option<VideoMetadata>,
+}
+
+/// Optional. Audio metadata. The metadata should only be specified while the audio data is
+/// presented in inline_data or file_data.
+///
+/// Metadata describes the input audio content. Set this in `Part.audio_metadata` or
+/// `FunctionResponsePart.audio_metadata` when `inline_data` or `file_data` contains audio to
+/// configure static audio preprocessing.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct AudioMetadata {
+    /// Optional. The end offset of the audio, relative to the start of the audio stream.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_offset: Option<String>,
+    /// Optional. The start offset of the audio, relative to the start of the audio stream.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_offset: Option<String>,
 }
 
 /// Optional. Audio (input or output) transcription. This is only set when this Part contains
@@ -302,6 +332,41 @@ pub enum Outcome {
     OutcomeOk,
     #[serde(rename = "OUTCOME_UNSPECIFIED")]
     OutcomeUnspecified,
+}
+
+/// Optional. Document metadata. The metadata should only be specified while the document
+/// data is presented in inline_data or file_data.
+///
+/// Metadata describes the input document content. Set this in `Part.document_metadata` or
+/// `FunctionResponsePart.document_metadata` when `inline_data` or `file_data` contains a
+/// document to configure static document preprocessing.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct DocumentMetadata {
+    /// Optional. Content layers to return. If empty, defaults to [PAGE_IMAGE] when
+    /// DocumentMetadata is set. When DocumentMetadata is not set, default document processing is
+    /// used (for example, page images for PDFs).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_layers: Option<Vec<DocumentMetadataContentLayer>>,
+    /// Optional. 1-indexed inclusive end page.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_page: Option<i64>,
+    /// Optional. 1-indexed inclusive start page.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_page: Option<i64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum DocumentMetadataContentLayer {
+    #[serde(rename = "CONTENT_LAYER_UNSPECIFIED")]
+    ContentLayerUnspecified,
+    #[serde(rename = "PAGE_IMAGE")]
+    PageImage,
+    #[serde(rename = "PAGE_TEXT")]
+    PageText,
 }
 
 /// Code generated by the model that is meant to be executed.
@@ -400,8 +465,9 @@ pub struct FunctionResponse {
     /// "result", etc. In particular, if the function call failed to execute, the response can
     /// have an "error" key to return error details to the model. Multimedia can be included by
     /// using a subobject containing a single "$ref" key whose value is the
-    /// `inline_data.display_name` of a `FunctionResponsePart` holding the multimedia. See
-    /// https://ai.google.dev/gemini-api/docs/function-calling#multimodal.
+    /// `inline_data.display_name` or `file_data.display_name` of a `FunctionResponsePart`
+    /// holding the multimedia. See [Multimodal function
+    /// responses](https://aistudio.google.com/docs/function-calling#multimodal).
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response: Option<serde_json::Map<String, serde_json::Value>>,
@@ -423,16 +489,66 @@ pub struct FunctionResponse {
 /// A datatype containing media that is part of a `FunctionResponse` message. A
 /// `FunctionResponsePart` consists of data which has an associated datatype. A
 /// `FunctionResponsePart` can only contain one of the accepted types in
-/// `FunctionResponsePart.data`. A `FunctionResponsePart` must have a fixed IANA MIME type
-/// identifying the type and subtype of the media if the `inline_data` field is filled with
-/// raw bytes.
+/// `FunctionResponsePart.data`. Media can be passed as raw bytes (`inline_data`) or by URI
+/// (`file_data`) with an IANA MIME type identifying the type and subtype of the media.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct FunctionResponsePart {
+    /// Optional. Audio metadata. The metadata should only be specified while the audio data is
+    /// presented in inline_data or file_data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_metadata: Option<AudioMetadata>,
+    /// Optional. Document metadata. The metadata should only be specified while the document
+    /// data is presented in inline_data or file_data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub document_metadata: Option<DocumentMetadata>,
+    /// URI based data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_data: Option<FunctionResponseFileData>,
     /// Inline media bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inline_data: Option<FunctionResponseBlob>,
+    /// Optional. How the model processes this part's media for understanding. Only meaningful
+    /// for video parts (`inline_data` or `file_data` with video mime). Non-video parts ignore
+    /// this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_processing: Option<MediaProcessing>,
+    /// Optional. Media resolution for the input media.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_resolution: Option<MediaResolution>,
+    /// Optional. Spreadsheet metadata. The metadata should only be specified while the
+    /// spreadsheet data is presented in inline_data or file_data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spreadsheet_metadata: Option<SpreadsheetMetadata>,
+    /// Optional. Video metadata. The metadata should only be specified while the video data is
+    /// presented in inline_data or file_data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub video_metadata: Option<VideoMetadata>,
+}
+
+/// URI based data.
+///
+/// URI based data for function response.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct FunctionResponseFileData {
+    /// Optional. Display name of the file. Used to provide a label or filename to distinguish
+    /// file data, and to reference the file from `FunctionResponse.response` (for example, via
+    /// `{"$ref": "DISPLAY_NAME"}`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+    /// Required. URI.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_uri: Option<String>,
+    /// The IANA standard MIME type of the source data. If an unsupported MIME type is provided,
+    /// an error will be returned. For a complete list of supported types, see [Multimodal
+    /// function responses](https://aistudio.google.com/docs/function-calling#multimodal) and
+    /// [Supported file
+    /// formats](https://aistudio.google.com/docs/file-input-methods#supported-content-types).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<String>,
 }
 
 /// Inline media bytes.
@@ -446,53 +562,15 @@ pub struct FunctionResponseBlob {
     /// Raw bytes for media formats.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
+    /// Optional. Display name of the blob. Used to provide a label or filename to distinguish
+    /// blobs, and to reference the blob from `FunctionResponse.response` (for example, via
+    /// `{"$ref": "DISPLAY_NAME"}`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
     /// The IANA standard MIME type of the source data. Examples: - image/png - image/jpeg If an
     /// unsupported MIME type is provided, an error will be returned. For a complete list of
     /// supported types, see [Supported file
-    /// formats](https://ai.google.dev/gemini-api/docs/prompting_with_media#supported_file_formats).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mime_type: Option<String>,
-}
-
-/// Optional. Specifies how the response should be scheduled in the conversation. Only
-/// applicable to NON_BLOCKING function calls, is ignored otherwise. Defaults to WHEN_IDLE.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[ts(export_to = "google/")]
-pub enum Scheduling {
-    Interrupt,
-    #[serde(rename = "SCHEDULING_UNSPECIFIED")]
-    SchedulingUnspecified,
-    Silent,
-    #[serde(rename = "WHEN_IDLE")]
-    WhenIdle,
-}
-
-/// Inline media bytes.
-///
-/// Raw media bytes. Text should not be sent as raw bytes, use the 'text' field.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "camelCase")]
-#[ts(export_to = "google/")]
-pub struct Blob {
-    /// Raw bytes for media formats.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<String>,
-    /// Optional. Specifies the name used to refer to this blob to the model (e.g.
-    /// "my_blob.png"). Used as the blob reference identifier when `verbalization_mode` is set to
-    /// `REFERENCE_ONLY`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<String>,
-    /// The IANA standard MIME type of the source data. Examples of supported types: - Images:
-    /// image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/gif,
-    /// image/avif - Audio: audio/*, video/audio/s16le, video/audio/wav - Video: video/* - Text:
-    /// text/plain, text/html, text/css, text/javascript, text/x-typescript, text/csv,
-    /// text/markdown, text/x-python, text/xml, text/rtf, video/text/timestamp - Applications:
-    /// application/x-javascript, application/x-typescript, application/x-python-code,
-    /// application/json, application/x-ipynb+json, application/rtf, application/pdf For
-    /// additional context, see [Supported file
-    /// formats](https://ai.google.dev/gemini-api/docs/file-input-methods#supported-content-types).
-    /// //
+    /// formats](https://aistudio.google.com/docs/file-input-methods#supported-content-types).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mime_type: Option<String>,
 }
@@ -536,6 +614,120 @@ pub enum Level {
     MediaResolutionUltraHigh,
     #[serde(rename = "MEDIA_RESOLUTION_UNSPECIFIED")]
     MediaResolutionUnspecified,
+}
+
+/// Optional. Spreadsheet metadata. The metadata should only be specified while the
+/// spreadsheet data is presented in inline_data or file_data.
+///
+/// Metadata describes the input spreadsheet content. Set this in `Part.spreadsheet_metadata`
+/// or `FunctionResponsePart.spreadsheet_metadata` when `inline_data` or `file_data` contains
+/// a spreadsheet to configure static spreadsheet preprocessing.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct SpreadsheetMetadata {
+    /// Optional. Content layers to return. If empty, defaults to [DATA, FORMULAS] when
+    /// SpreadsheetMetadata is set.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_layers: Option<Vec<SpreadsheetMetadataContentLayer>>,
+    /// Optional. The 1-indexed index of the sheet to extract, in workbook order. If not set, all
+    /// sheets are extracted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sheet_index: Option<i64>,
+    /// Optional. The range of cells to extract, in A1 notation (e.g. "A1:D10"). If not set, the
+    /// full occupied area of the sheet is used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub visible_cells: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum SpreadsheetMetadataContentLayer {
+    #[serde(rename = "CONTENT_LAYER_UNSPECIFIED")]
+    ContentLayerUnspecified,
+    Data,
+    Formulas,
+    Visual,
+}
+
+/// Optional. Video metadata. The metadata should only be specified while the video data is
+/// presented in inline_data or file_data.
+///
+/// Metadata describes the input video content. Set this in `Part.video_metadata` or
+/// `FunctionResponsePart.video_metadata` when `inline_data` or `file_data` contains video to
+/// configure static video preprocessing (such as time clipping, frame rate, maximum frame
+/// count, or extracted content layers).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct VideoMetadata {
+    /// Optional. Content layers to return. If empty, defaults to [FRAMES, AUDIO].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_layers: Option<Vec<VideoMetadataContentLayer>>,
+    /// Optional. The end offset of the video.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_offset: Option<String>,
+    /// Optional. The frame rate of the video sent to the model. If not specified, the default
+    /// value will be 1.0. The fps range is (0.0, 24.0].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fps: Option<f64>,
+    /// Optional. The start offset of the video.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_offset: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum VideoMetadataContentLayer {
+    Audio,
+    #[serde(rename = "CONTENT_LAYER_UNSPECIFIED")]
+    ContentLayerUnspecified,
+    Frames,
+    Transcript,
+}
+
+/// Optional. Specifies how the response should be scheduled in the conversation. Only
+/// applicable to NON_BLOCKING function calls, is ignored otherwise. Defaults to WHEN_IDLE.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum Scheduling {
+    Interrupt,
+    #[serde(rename = "SCHEDULING_UNSPECIFIED")]
+    SchedulingUnspecified,
+    Silent,
+    #[serde(rename = "WHEN_IDLE")]
+    WhenIdle,
+}
+
+/// Inline media bytes.
+///
+/// Raw media bytes. Text should not be sent as raw bytes, use the 'text' field.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct Blob {
+    /// Raw bytes for media formats.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
+    /// Optional. Specifies the name used to refer to this blob to the model (e.g.
+    /// "my_blob.png"). Used as the blob reference identifier when `verbalization_mode` is set to
+    /// `REFERENCE_ONLY`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+    /// The IANA standard MIME type of the source data. Examples of supported types: - Images:
+    /// image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/gif,
+    /// image/avif - Audio: audio/*, video/audio/s16le, video/audio/wav - Video: video/* - Text:
+    /// text/plain, text/html, text/css, text/javascript, text/x-typescript, text/csv,
+    /// text/markdown, text/x-python, text/xml, text/rtf, video/text/timestamp - Applications:
+    /// application/x-javascript, application/x-typescript, application/x-python-code,
+    /// application/json, application/x-ipynb+json, application/rtf, application/pdf For
+    /// additional context, see [Supported file
+    /// formats](https://aistudio.google.com/docs/file-input-methods#supported-content-types).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<String>,
 }
 
 /// Optional. Metadata applied to text parts to customize how they should be spoken or
@@ -598,6 +790,8 @@ pub enum ToolType {
     GoogleSearchImage,
     #[serde(rename = "GOOGLE_SEARCH_WEB")]
     GoogleSearchWeb,
+    #[serde(rename = "MEDIA_PROCESSING")]
+    MediaProcessing,
     #[serde(rename = "TOOL_TYPE_UNSPECIFIED")]
     ToolTypeUnspecified,
     #[serde(rename = "URL_CONTEXT")]
@@ -626,29 +820,6 @@ pub struct ToolResponse {
     /// `ToolCall`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_type: Option<ToolType>,
-}
-
-/// Optional. Video metadata. The metadata should only be specified while the video data is
-/// presented in inline_data or file_data.
-///
-/// Metadata describes the input video content. Set this in `Part.video_metadata` or
-/// `FunctionResponsePart.video_metadata` when `inline_data` or `file_data` contains video to
-/// configure static video preprocessing (such as time clipping, frame rate, maximum frame
-/// count, or extracted content layers).
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "camelCase")]
-#[ts(export_to = "google/")]
-pub struct VideoMetadata {
-    /// Optional. The end offset of the video.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_offset: Option<String>,
-    /// Optional. The frame rate of the video sent to the model. If not specified, the default
-    /// value will be 1.0. The fps range is (0.0, 24.0].
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fps: Option<f64>,
-    /// Optional. The start offset of the video.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_offset: Option<String>,
 }
 
 /// Optional. Configuration options for model generation and outputs.
@@ -727,8 +898,8 @@ pub struct GenerationConfig {
     /// Optional. MIME type of the generated candidate text. Supported MIME types are:
     /// `text/plain`: (default) Text output. `application/json`: JSON response in the response
     /// candidates. `text/x.enum`: ENUM as a string response in the response candidates. Refer to
-    /// the [docs](https://ai.google.dev/gemini-api/docs/prompting_with_media#plain_text_formats)
-    /// for a list of all supported text MIME types.
+    /// the [docs](https://aistudio.google.com/docs/file-input-methods#text-file-types) for a
+    /// list of all supported text MIME types.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response_mime_type: Option<String>,
     /// Optional. The requested modalities of the response. Represents the set of modalities that
@@ -742,8 +913,8 @@ pub struct GenerationConfig {
     /// [OpenAPI schema](https://spec.openapis.org/oas/v3.0.3#schema) and can be objects,
     /// primitives or arrays. If set, a compatible `response_mime_type` must also be set.
     /// Compatible MIME types: `application/json`: Schema for JSON response. Refer to the [JSON
-    /// text generation guide](https://ai.google.dev/gemini-api/docs/json-mode) for more details.
-    /// Deprecated. Use `response_format` instead.
+    /// text generation guide](https://aistudio.google.com/docs/structured-output) for more
+    /// details. Deprecated. Use `response_format` instead.
     pub response_schema: Box<Option<Schema>>,
     /// Optional. Seed used in decoding. If not set, the request uses a randomly generated seed.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -829,6 +1000,11 @@ pub struct AudioTranscriptionConfig {
     /// incompatible with mode `SMART`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<AudioTranscriptionConfigMode>,
+    /// Optional. The source text to be edited or rewritten via voice instructions. When provided
+    /// in `SMART` mode, the model evaluates the audio input against this text and emits the
+    /// complete replacement text in the candidate response rather than appending to it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_text: Option<String>,
     /// Optional. Configures word-level timestamp generation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub word_timestamp: Option<bool>,
@@ -1101,8 +1277,8 @@ pub enum ResponseModality {
 /// [OpenAPI schema](https://spec.openapis.org/oas/v3.0.3#schema) and can be objects,
 /// primitives or arrays. If set, a compatible `response_mime_type` must also be set.
 /// Compatible MIME types: `application/json`: Schema for JSON response. Refer to the [JSON
-/// text generation guide](https://ai.google.dev/gemini-api/docs/json-mode) for more details.
-/// Deprecated. Use `response_format` instead.
+/// text generation guide](https://aistudio.google.com/docs/structured-output) for more
+/// details. Deprecated. Use `response_format` instead.
 ///
 /// The `Schema` object allows the definition of input and output data types. These types can
 /// be objects, but also primitives and arrays. Represents a select subset of an [OpenAPI 3.0
@@ -1325,7 +1501,7 @@ pub struct ThinkingConfig {
     pub thinking_budget: Option<i64>,
     /// Optional. Controls the maximum depth of the model's internal reasoning process before it
     /// produces a response. The default value is model-dependent. Refer to the [Thinking levels
-    /// guide](https://ai.google.dev/gemini-api/docs/thinking#thinking-levels) for more details.
+    /// guide](https://aistudio.google.com/docs/thinking#thinking-levels) for more details.
     /// Recommended for Gemini 3 or later models. Use with earlier models results in an error.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking_level: Option<ThinkingLevel>,
@@ -1333,7 +1509,7 @@ pub struct ThinkingConfig {
 
 /// Optional. Controls the maximum depth of the model's internal reasoning process before it
 /// produces a response. The default value is model-dependent. Refer to the [Thinking levels
-/// guide](https://ai.google.dev/gemini-api/docs/thinking#thinking-levels) for more details.
+/// guide](https://aistudio.google.com/docs/thinking#thinking-levels) for more details.
 /// Recommended for Gemini 3 or later models. Use with earlier models results in an error.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -1349,6 +1525,8 @@ pub enum ThinkingLevel {
     Minimal,
     #[serde(rename = "THINKING_LEVEL_UNSPECIFIED")]
     ThinkingLevelUnspecified,
+    #[serde(alias = "xhigh")]
+    Xhigh,
 }
 
 /// Optional. Config for translation.
@@ -1450,8 +1628,8 @@ pub enum ServiceTier {
 
 /// Optional. Tool configuration for any `Tool` specified in the request. Refer to the
 /// [Function calling
-/// guide](https://ai.google.dev/gemini-api/docs/function-calling#function_calling_mode) for
-/// a usage example.
+/// guide](https://aistudio.google.com/docs/function-calling#function_calling_modes) for a
+/// usage example.
 ///
 /// The Tool configuration containing parameters for specifying `Tool` use in the request.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
@@ -1539,7 +1717,7 @@ pub struct LatLng {
 
 /// Tool details that the model may use to generate response. A `Tool` is a piece of code
 /// that enables the system to interact with external systems to perform an action, or set of
-/// actions, outside of knowledge and scope of the model. Next ID: 17
+/// actions, outside of knowledge and scope of the model.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
@@ -1824,7 +2002,7 @@ pub enum DynamicRetrievalConfigMode {
 }
 
 /// A MCPServer is a server that can be called by the model to perform actions. It is a
-/// server that implements the MCP protocol. Next ID: 7
+/// server that implements the MCP protocol.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
@@ -1838,8 +2016,6 @@ pub struct McpServer {
 }
 
 /// A transport that can stream HTTP requests and responses.
-///
-/// A transport that can stream HTTP requests and responses. Next ID: 6
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
