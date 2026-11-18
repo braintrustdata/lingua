@@ -18,9 +18,6 @@ pub struct VoiceContext {
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
     pub interrupted: Option<bool>,
-    /// `session` marks a span that covers the whole call, such as a duplex live model.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub scope: Option<String>,
     /// Pipecat live delegation that a span's work, or an agent turn's speech, belongs to.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub delegation_id: Option<String>,
@@ -71,8 +68,6 @@ struct Metadata {
     turn_id: Option<json::Value>,
     #[serde(rename = "turn.reply_to")]
     reply_to: Option<json::Value>,
-    #[serde(rename = "audio.scope")]
-    scope: Option<json::Value>,
     #[serde(rename = "contrib.pipecat.live.delegation_id")]
     delegation_id: Option<json::Value>,
     #[serde(rename = "audio.timeline")]
@@ -122,7 +117,6 @@ pub(super) fn parse(
             "interrupted",
             &mut header_errors,
         ),
-        scope: metadata_field(metadata.scope, "audio.scope", &mut header_errors),
         delegation_id: metadata_field(
             metadata.delegation_id,
             "contrib.pipecat.live.delegation_id",

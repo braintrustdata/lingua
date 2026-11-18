@@ -2,11 +2,11 @@
 //! turn, an `agent_turn` joins the one its `turn.reply_to` names, and other spans join their
 //! nearest `turn.id`. The last agent speech is the response; the rest is work.
 //!
-//! A duplex session, marked by a span with `audio.scope: "session"`, has framework turns
-//! that hold `transcript_received` spans, with work and speech logged beside them. There each
-//! agent line is a turn's response: the first `agent_turn` after a `user_turn` answers it, and
-//! later ones open their own turns. Work joins the turn that speaks its delegation's result, or
-//! else the latest turn opened by its start.
+//! Duplex frameworks such as Pipecat live log `transcript_received` spans inside the turns and
+//! work and speech beside them. A transcript under a `user_turn` is its request, and one under
+//! an `agent_turn` is agent speech. Work without `turn.id` joins the agent turn that speaks its
+//! delegation's result. The `pipecat.live` model span covers the whole call, so it stays out of
+//! turns.
 
 use super::stream::Role;
 use super::*;
@@ -235,16 +235,11 @@ pub(super) fn plan(
                 .flatten()
         })
         .collect();
-    let duplex: HashSet<usize> = (0..spans.len())
-        .filter(|index| {
-            in_scope(*index) && spans[*index].source.voice.scope.as_deref() == Some("session")
-        })
-        .filter_map(|index| session_of[index])
-        .collect();
-    let in_duplex =
-        |index: usize| session_of[index].is_some_and(|session| duplex.contains(&session));
-    for index in (0..spans.len()).filter(|index| in_duplex(*index)) {
-        if spans[index].source.voice.scope.as_deref() == Some("session") {
+    let is_live = |index: usize| {
+        spans[index].kind() == "llm" && spans[index].source.name.as_deref() == Some("pipecat.live")
+    };
+    for index in (0..spans.len()).filter(|index| in_scope(*index)) {
+        if is_live(index) {
             kinds[index] = None;
         } else if spans[index].kind() == "task"
             && spans[index].source.name.as_deref() == Some("transcript_received")
@@ -259,37 +254,15 @@ pub(super) fn plan(
     let is_turn =
         |index: usize| matches!(kinds[index], Some(SpanKind::UserTurn | SpanKind::AgentTurn));
     let ordered = |index: &usize| (spans[*index].start, spans[*index].source.exec_counter);
-    let mut duplex_turns: Vec<usize> = (0..spans.len())
-        .filter(|index| in_duplex(*index) && is_turn(*index))
-        .collect();
-    duplex_turns.sort_by_key(|index| (session_of[*index], ordered(index)));
-    let duplex_openers: Vec<usize> = duplex_turns
-        .iter()
-        .enumerate()
-        .filter(|(at, turn)| {
-            let answers = at.checked_sub(1).is_some_and(|prev| {
-                let prev = duplex_turns[prev];
-                session_of[prev] == session_of[**turn] && kinds[prev] == Some(SpanKind::UserTurn)
-            });
-            kinds[**turn] == Some(SpanKind::UserTurn) || !answers
-        })
-        .map(|(_, turn)| *turn)
-        .collect();
-    // The latest opener in the span's duplex session that started by `at`.
-    let opener = |index: usize, at: DateTime<Utc>| {
-        duplex_openers
-            .iter()
-            .copied()
-            .filter(|turn| session_of[*turn] == session_of[index] && spans[*turn].start <= at)
-            .max_by_key(ordered)
-    };
+    let mut ordered_turns: Vec<usize> = (0..spans.len()).filter(|index| is_turn(*index)).collect();
+    ordered_turns.sort_by_key(|index| (session_of[*index], ordered(index)));
     let delegation = |index: usize| {
         std::iter::successors(Some(index), |at| parents[*at])
             .take(spans.len())
             .find_map(|at| spans[at].source.voice.delegation_id.as_deref())
     };
     let mut delegation_ends: HashMap<(Option<usize>, &str), DateTime<Utc>> = HashMap::new();
-    for index in (0..spans.len()).filter(|index| in_duplex(*index)) {
+    for index in 0..spans.len() {
         if let (Some(id), Some(end)) = (delegation(index), spans[index].source.end) {
             let latest = delegation_ends
                 .entry((session_of[index], id))
@@ -300,7 +273,7 @@ pub(super) fn plan(
     // The agent turn that speaks the result of the span's delegation.
     let delegated = |index: usize| {
         let id = delegation(index)?;
-        let mut agent_turns = duplex_turns.iter().copied().filter(|turn| {
+        let mut agent_turns = ordered_turns.iter().copied().filter(|turn| {
             session_of[*turn] == session_of[index] && kinds[*turn] == Some(SpanKind::AgentTurn)
         });
         agent_turns
@@ -341,8 +314,8 @@ pub(super) fn plan(
             {
                 Some(turn) => Ok(turn),
                 // Duplex work is logged beside the turns, so it joins the open exchange.
-                None => match (in_duplex(index) && matches!(kinds[index], Some(SpanKind::Work(_))))
-                    .then(|| delegated(index).or_else(|| opener(index, spans[index].start)))
+                None => match matches!(kinds[index], Some(SpanKind::Work(_)))
+                    .then(|| delegated(index))
                     .flatten()
                 {
                     Some(turn) => Ok(turn),
@@ -367,7 +340,6 @@ pub(super) fn plan(
             }
         };
         let request = match (kinds[turn], &spans[turn].source.voice.reply_to) {
-            _ if in_duplex(turn) => opener(turn, spans[turn].start).unwrap_or(turn),
             (Some(SpanKind::AgentTurn), Some(reply_to)) => match resolve(turn, reply_to) {
                 Some(user_turn) if kinds[user_turn] == Some(SpanKind::UserTurn) => user_turn,
                 _ => {
