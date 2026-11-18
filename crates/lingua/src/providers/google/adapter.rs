@@ -356,24 +356,6 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
-        if let Some(extras) = req.params.extras.get(&ProviderFormat::ChatCompletions) {
-            let view: ChatCompletionsLabelsView =
-                serde_json::from_value(Value::Object(extras.clone())).map_err(|e| {
-                    TransformError::FromUniversalFailed(format!(
-                        "invalid Chat Completions extras: {e}"
-                    ))
-                })?;
-            if view.labels.is_some() {
-                return Err(TransformError::FromUniversalFailed(
-                    ConvertError::UnsupportedMapping {
-                        from: "OpenAI Chat Completions labels".to_string(),
-                        to: "Google request without a defined billing-label mapping",
-                    }
-                    .to_string(),
-                ));
-            }
-        }
-
         // Extract system messages (Google requires them in systemInstruction, not contents)
         validate_system_messages_have_no_audio(&req.messages)?;
         let mut messages = req.messages.clone();
@@ -427,6 +409,22 @@ impl ProviderAdapter for GoogleAdapter {
             serde_json::to_value(google_contents)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
+
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::ChatCompletions) {
+            let view: ChatCompletionsLabelsView =
+                serde_json::from_value(Value::Object(extras.clone())).map_err(|e| {
+                    TransformError::FromUniversalFailed(format!(
+                        "invalid Chat Completions extras: {e}"
+                    ))
+                })?;
+            if let Some(labels) = view.labels {
+                obj.insert(
+                    "labels".into(),
+                    serde_json::to_value(labels)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
+        }
 
         let service_tier =
             req.params

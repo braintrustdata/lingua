@@ -22,19 +22,27 @@ fn chat_completions_request_with_labels() -> Bytes {
 }
 
 #[test]
-fn chat_completions_labels_to_google_are_rejected_instead_of_dropped() {
-    let error = lingua::transform_request(
+fn chat_completions_labels_reach_google_request() {
+    let result = lingua::transform_request(
         chat_completions_request_with_labels(),
         ProviderFormat::Google,
         None,
     )
-    .expect_err("provider billing labels must not be silently dropped");
+    .expect("Chat Completions billing labels should reach Google");
 
-    let TransformError::FromUniversalFailed(reason) = &error else {
-        panic!("expected an unsupported target conversion, got {error:?}");
+    let TransformResult::Transformed { bytes, .. } = result.result else {
+        panic!("expected a Google request transform");
     };
-    assert!(reason.contains("Unsupported mapping"), "{reason}");
-    assert!(reason.contains("labels"), "{reason}");
+    let actual: serde_json::Value =
+        serde_json::from_slice(&bytes).expect("Google request serializes");
+    assert_eq!(
+        actual,
+        json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "model": "gemini-2.5-flash",
+            "labels": {"bt_project": "openai-format", "team": "cx"}
+        })
+    );
 }
 
 #[test]
