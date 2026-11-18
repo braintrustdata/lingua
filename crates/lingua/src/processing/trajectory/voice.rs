@@ -3,9 +3,10 @@
 //! nearest `turn.id`. The last agent speech is the response; the rest is work.
 //!
 //! A duplex session, marked by a span with `audio.scope: "session"`, has framework turns
-//! that hold `transcript_received` spans, with work and speech logged beside them. There an
-//! exchange runs from one `user_turn` to the next, by start time, and the transcripts give
-//! the text.
+//! that hold `transcript_received` spans, with work and speech logged beside them. There each
+//! agent line is a turn's response: the first `agent_turn` after a `user_turn` answers it, and
+//! later ones open their own turns. Work joins the turn that speaks its delegation's result, or
+//! else the latest turn opened by its start.
 
 use super::stream::Role;
 use super::*;
@@ -255,19 +256,61 @@ pub(super) fn plan(
             };
         }
     }
-    let duplex_user_turns: Vec<usize> = (0..spans.len())
-        .filter(|index| in_duplex(*index) && kinds[*index] == Some(SpanKind::UserTurn))
+    let is_turn =
+        |index: usize| matches!(kinds[index], Some(SpanKind::UserTurn | SpanKind::AgentTurn));
+    let ordered = |index: &usize| (spans[*index].start, spans[*index].source.exec_counter);
+    let mut duplex_turns: Vec<usize> = (0..spans.len())
+        .filter(|index| in_duplex(*index) && is_turn(*index))
         .collect();
-    // The latest user turn in the span's duplex session that started by `at`.
+    duplex_turns.sort_by_key(|index| (session_of[*index], ordered(index)));
+    let duplex_openers: Vec<usize> = duplex_turns
+        .iter()
+        .enumerate()
+        .filter(|(at, turn)| {
+            let answers = at.checked_sub(1).is_some_and(|prev| {
+                let prev = duplex_turns[prev];
+                session_of[prev] == session_of[**turn] && kinds[prev] == Some(SpanKind::UserTurn)
+            });
+            kinds[**turn] == Some(SpanKind::UserTurn) || !answers
+        })
+        .map(|(_, turn)| *turn)
+        .collect();
+    // The latest opener in the span's duplex session that started by `at`.
     let opener = |index: usize, at: DateTime<Utc>| {
-        duplex_user_turns
+        duplex_openers
             .iter()
             .copied()
             .filter(|turn| session_of[*turn] == session_of[index] && spans[*turn].start <= at)
-            .max_by_key(|turn| (spans[*turn].start, spans[*turn].source.exec_counter))
+            .max_by_key(ordered)
     };
-    let is_turn =
-        |index: usize| matches!(kinds[index], Some(SpanKind::UserTurn | SpanKind::AgentTurn));
+    let delegation = |index: usize| {
+        std::iter::successors(Some(index), |at| parents[*at])
+            .take(spans.len())
+            .find_map(|at| spans[at].source.voice.delegation_id.as_deref())
+    };
+    let mut delegation_ends: HashMap<(Option<usize>, &str), DateTime<Utc>> = HashMap::new();
+    for index in (0..spans.len()).filter(|index| in_duplex(*index)) {
+        if let (Some(id), Some(end)) = (delegation(index), spans[index].source.end) {
+            let latest = delegation_ends
+                .entry((session_of[index], id))
+                .or_insert(end);
+            *latest = (*latest).max(end);
+        }
+    }
+    // The agent turn that speaks the result of the span's delegation.
+    let delegated = |index: usize| {
+        let id = delegation(index)?;
+        let mut agent_turns = duplex_turns.iter().copied().filter(|turn| {
+            session_of[*turn] == session_of[index] && kinds[*turn] == Some(SpanKind::AgentTurn)
+        });
+        agent_turns
+            .clone()
+            .find(|turn| spans[*turn].source.voice.delegation_id.as_deref() == Some(id))
+            .or_else(|| {
+                let end = delegation_ends.get(&(session_of[index], id))?;
+                agent_turns.find(|turn| spans[*turn].start >= *end)
+            })
+    };
     let resolve = |index: usize, id: &str| {
         by_span_id
             .get(&(spans[index].root_span_id.as_str(), id))
@@ -299,7 +342,7 @@ pub(super) fn plan(
                 Some(turn) => Ok(turn),
                 // Duplex work is logged beside the turns, so it joins the open exchange.
                 None => match (in_duplex(index) && matches!(kinds[index], Some(SpanKind::Work(_))))
-                    .then(|| opener(index, spans[index].start))
+                    .then(|| delegated(index).or_else(|| opener(index, spans[index].start)))
                     .flatten()
                 {
                     Some(turn) => Ok(turn),
