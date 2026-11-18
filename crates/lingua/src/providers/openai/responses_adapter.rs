@@ -2169,7 +2169,7 @@ mod tests {
                 "type": "function_call_output",
                 "call_id": "call_inventory_123",
                 "name": "get_inventory",
-                "output": "{\"available_units\":42,\"sku\":\"sku_123\"}",
+                "output": "{\"sku\":\"sku_123\",\"available_units\":42}",
                 "caller": {
                     "type": "program",
                     "caller_id": "call_prog_123"
