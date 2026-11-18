@@ -197,6 +197,14 @@
   ],
   "perTestCase": [
     {
+      "testCase": "chatCompletionsVertexLabelsParam",
+      "source": "ChatCompletions",
+      "target": "Google",
+      "errors": [
+        { "pattern": "cannot convert Google labels to Lingua universal request", "reason": "The forward Google request preserves billing labels; reverse conversion intentionally rejects Google-specific labels" }
+      ]
+    },
+    {
       "testCase": "chatCompletionsFileFilenameToGoogleDisplayNameParam",
       "source": "*",
       "target": "Anthropic",

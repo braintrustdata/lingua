@@ -16099,6 +16099,54 @@ exports[`chat-completions → google > chatCompletionsUrlBackedVideoFileParam > 
 }
 `;
 
+exports[`chat-completions → google > chatCompletionsVertexLabelsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Hello",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "labels": {
+    "bt_project": "openai-format",
+    "team": "cx",
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsVertexLabelsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 197,
+    "completion_tokens_details": {
+      "reasoning_tokens": 188,
+    },
+    "prompt_tokens": 2,
+    "total_tokens": 199,
+  },
+}
+`;
+
 exports[`chat-completions → google > complexReasoningRequest > request 1`] = `
 {
   "contents": [
