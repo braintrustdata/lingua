@@ -269,6 +269,17 @@ impl BedrockProvider {
             .ok_or_else(|| Error::InvalidRequest("Bedrock endpoint missing host".into()))?;
         builder = builder.header("host", host_header_value.as_str());
         header_pairs.push(("host".to_string(), host_header_value));
+        for (name, value) in client_headers.user_configured_headers() {
+            if matches!(
+                name.as_str(),
+                "content-type" | "host" | "authorization" | "x-amz-date"
+            ) || (name == "x-amz-security-token" && session_token.is_some())
+            {
+                continue;
+            }
+            builder = builder.header(name.as_str(), value.as_str());
+            header_pairs.push((name.clone(), value.clone()));
+        }
         let request = builder
             .body(body.to_vec())
             .map_err(|e| Error::InvalidRequest(format!("failed to build http request: {e}")))?;
@@ -541,6 +552,46 @@ mod tests {
             headers.get("x-api-key"),
             Some(&HeaderValue::from_static("test-api-key"))
         );
+    }
+
+    #[test]
+    fn build_headers_signs_configured_bedrock_request_metadata() {
+        let provider = provider();
+        let url = provider
+            .invoke_model_url("anthropic.claude-3-haiku-20240307-v1:0", false)
+            .unwrap();
+        let auth = AuthConfig::AwsSignatureV4 {
+            access_key: "test-access-key".into(),
+            secret_key: "test-secret-key".into(),
+            session_token: None,
+            region: "us-east-1".into(),
+            service: "bedrock".into(),
+        };
+        let metadata = r#"{"bt_project":"project-123","team":"cx"}"#;
+        let mut client_headers = ClientHeaders::new();
+        client_headers
+            .insert_user_configured("x-amzn-bedrock-request-metadata", metadata)
+            .unwrap();
+
+        let headers = provider
+            .build_headers(&url, b"{}", &auth, &client_headers)
+            .expect("signed headers");
+        assert_eq!(
+            headers.get("x-amzn-bedrock-request-metadata").unwrap(),
+            metadata
+        );
+
+        let authorization = headers.get("authorization").unwrap().to_str().unwrap();
+        let signed_headers = authorization
+            .split_once("SignedHeaders=")
+            .unwrap()
+            .1
+            .split(',')
+            .next()
+            .unwrap();
+        assert!(signed_headers
+            .split(';')
+            .any(|name| name == "x-amzn-bedrock-request-metadata"));
     }
 
     #[test]
