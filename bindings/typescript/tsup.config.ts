@@ -3,6 +3,7 @@ import { type Options } from "tsup";
 export default {
   entry: {
     index: "src/index.ts",
+    capabilities: "src/capabilities.ts",
     "index.browser": "src/index.browser.ts",
   },
   format: ["esm"],

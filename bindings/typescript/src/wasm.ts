@@ -2,11 +2,7 @@
  * Re-export message conversion and import functions from converters module
  */
 
-import { getWasm } from "./wasm-runtime";
-
-export function supportsForcedToolChoice(model: string): boolean {
-  return getWasm().supports_forced_tool_choice(model);
-}
+export { supportsForcedToolChoice } from "./capabilities";
 
 export {
   // Error handling

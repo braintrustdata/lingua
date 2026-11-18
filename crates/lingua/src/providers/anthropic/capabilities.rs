@@ -185,6 +185,33 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_typescript_capabilities_export() {
+        let expected = format!(
+            r#"const unsupportedForcedToolChoice = new RegExp(
+  {}
+);
+
+export function supportsForcedToolChoice(model: string): boolean {{
+  return !unsupportedForcedToolChoice.test(
+    model.replace(/[A-Z]/g, (character) => character.toLowerCase())
+  );
+}}
+"#,
+            serde_json::to_string(UNSUPPORTED_FORCED_TOOL_CHOICE_RE.as_str()).unwrap()
+        );
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../bindings/typescript/src/capabilities.ts");
+        if std::env::var_os("UPDATE_GENERATED").is_some() {
+            std::fs::write(&path, &expected).unwrap();
+        }
+        assert_eq!(
+            std::fs::read_to_string(path).unwrap(),
+            expected,
+            "Run UPDATE_GENERATED=1 cargo test -p lingua --lib test_typescript_capabilities_export"
+        );
+    }
+
+    #[test]
     fn test_supports_forced_tool_choice() {
         for model in [
             "claude-sonnet-5-5",

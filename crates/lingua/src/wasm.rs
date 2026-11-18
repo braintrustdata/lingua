@@ -124,11 +124,6 @@ fn stream_output_chunk_from_js(
 // provider
 // ============================================================================
 
-#[wasm_bindgen]
-pub fn supports_forced_tool_choice(model: &str) -> bool {
-    crate::providers::anthropic::capabilities::supports_forced_tool_choice(model)
-}
-
 /// Convert array of Chat Completions messages to Lingua Messages
 #[wasm_bindgen]
 pub fn chat_completions_messages_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {

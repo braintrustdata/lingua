@@ -33,6 +33,11 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     },
+    "./capabilities": {
+      "types": "./dist/capabilities.d.mts",
+      "import": "./dist/capabilities.mjs",
+      "default": "./dist/capabilities.mjs"
+    },
     "./node": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs",
