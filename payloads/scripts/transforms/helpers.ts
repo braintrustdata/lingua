@@ -368,6 +368,12 @@ function getTransformCandidateCases(
     if (filter && !caseName.includes(filter)) return false;
     const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
     const testCase = allTestCases[caseName];
+    if (
+      testCase?.transformTargets &&
+      !testCase.transformTargets.includes(pair.target)
+    ) {
+      return false;
+    }
     // An explicit null opts out of Vertex capture; absent entries use the default model.
     if (
       pair.target === "vertex-anthropic" &&

@@ -100,6 +100,21 @@ const openAIMultipleReasoningSignaturesReplayAssistantMessage: ChatCompletionAss
 // Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
+  chatCompletionsVertexLabelsParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Hello" }],
+      labels: { bt_project: "openai-format", team: "cx" },
+    } as OpenAI.Chat.Completions.ChatCompletionCreateParams & {
+      labels: Record<string, string>;
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+    transformTargets: ["google"],
+  },
+
   googleInlineAudioParam: {
     "chat-completions": null,
     responses: null,

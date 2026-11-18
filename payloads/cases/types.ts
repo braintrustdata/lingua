@@ -243,6 +243,16 @@ export interface TestCase {
   // Decision models answer typed questions instead of generating text.
   decisions?: DecisionsRequest | null;
   typesafe?: SystemOneRequest | null;
+  // Limit a provider-specific case to the transform targets it exercises.
+  transformTargets?: Array<
+    | "chat-completions"
+    | "responses"
+    | "anthropic"
+    | "google"
+    | "bedrock"
+    | "vertex-anthropic"
+    | "baseten"
+  >;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
 }
