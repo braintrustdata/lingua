@@ -2105,6 +2105,35 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  toolSchemaPropertyOrderParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Select Clear and explain why." }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "select_choice",
+            parameters: {
+              type: "object",
+              properties: {
+                reasons: { type: "string" },
+                choice: { type: "string", enum: ["Hold", "Clear"] },
+              },
+              required: ["reasons", "choice"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "select_choice" } },
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   toolChoiceRequiredParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

@@ -1,0 +1,45 @@
+{
+  "id": "chatcmpl-ElPKONtLOBgYWaQt2yqEKICBdn2ug",
+  "object": "chat.completion",
+  "created": 1794967484,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_ch5v10mPfcECntZlmBk1cAkR",
+            "type": "function",
+            "function": {
+              "name": "select_choice",
+              "arguments": "{\"reasons\":\"Clear is the most decisive option for progressing with no lingering ambiguity. It explicitly communicates a firm choice and reduces the risk of misinterpretation or delays, aligning with the user's instruction to select Clear and explain why.\",\"choice\":\"Clear\"}"
+            }
+          }
+        ],
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 208,
+    "completion_tokens": 644,
+    "total_tokens": 852,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 576,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

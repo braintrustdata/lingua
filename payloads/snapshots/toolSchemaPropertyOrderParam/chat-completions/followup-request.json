@@ -1,0 +1,64 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Select Clear and explain why."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_oqtdnEyeN3Mjyf4c9ZqvrWIV",
+          "type": "function",
+          "function": {
+            "name": "select_choice",
+            "arguments": "{\"reasons\":\"Clear is the most decisive option for progressing with no lingering ambiguity. It explicitly communicates a firm choice and reduces the risk of misinterpretation or delays, aligning with the user's instruction to select Clear and explain why.\",\"choice\":\"Clear\"}"
+          }
+        }
+      ],
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_oqtdnEyeN3Mjyf4c9ZqvrWIV",
+      "content": "71 degrees"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "select_choice",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "reasons": {
+              "type": "string"
+            },
+            "choice": {
+              "type": "string",
+              "enum": [
+                "Hold",
+                "Clear"
+              ]
+            }
+          },
+          "required": [
+            "reasons",
+            "choice"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "function",
+    "function": {
+      "name": "select_choice"
+    }
+  }
+}

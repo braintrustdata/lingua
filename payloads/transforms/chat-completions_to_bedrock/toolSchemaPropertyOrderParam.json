@@ -1,0 +1,37 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "tooluse_i9TrJX9jv62kGyMDD9slEk",
+            "name": "select_choice",
+            "input": {
+              "choice": "Clear",
+              "reasons": "Clear is selected to remove any existing content, settings, or data that may be obsolete, redundant, or no longer needed. This action helps maintain a clean slate, improves system performance by removing clutter, and allows for a fresh start. Clearing ensures that old or unnecessary information doesn't interfere with current operations or create confusion going forward."
+            },
+            "type": "tool_use"
+          }
+        }
+      ]
+    }
+  },
+  "stopReason": "tool_use",
+  "usage": {
+    "inputTokens": 581,
+    "outputTokens": 141,
+    "totalTokens": 722,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1067
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "18a24e63-4d42-41d0-9338-16805f4888ac",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
