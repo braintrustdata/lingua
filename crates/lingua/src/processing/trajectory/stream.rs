@@ -76,7 +76,7 @@ pub enum TrajectoryEvent {
 struct VoiceTurnState {
     started: bool,
     remaining: usize,
-    transcribed: bool,
+    requested: bool,
 }
 
 #[derive(Default)]
@@ -605,7 +605,7 @@ impl TrajectoryStream {
                 .map(|turn| VoiceTurnState {
                     started: false,
                     remaining: turn.span_count,
-                    transcribed: false,
+                    requested: false,
                 })
                 .collect(),
             voice,
@@ -1336,22 +1336,26 @@ impl TrajectoryStream {
         } else if index == voice_turn.request {
             (self.request(span, None, true), span.opaque_input.clone())
         } else {
-            let said = span.output.iter();
-            let said = said.filter(|message| matches!(message, Message::User { .. }));
-            (said.cloned().collect(), Vec::new())
+            let said = span
+                .output
+                .iter()
+                .filter(|message| matches!(message, Message::User { .. }))
+                .cloned()
+                .collect();
+            (said, Vec::new())
         };
         let empty = request.is_empty() && opaque_request.is_empty();
-        let transcript = role == voice::VoiceRole::Request && index != voice_turn.request;
+        let own = index == voice_turn.request;
         let state = &mut self.voice_states[turn_index];
         state.remaining -= 1;
-        let transcribed = state.transcribed;
-        state.transcribed |= transcript && !empty;
+        // A turn span's own input beats the transcripts under it.
+        let replaces = !empty && (own || !state.requested);
+        state.requested |= own && !empty;
         if !state.started {
-            if index == voice_turn.request
+            if own
                 && voice_turn.span_count == 1
                 && span.source.name.as_deref() != Some("user_speech")
-                && request.is_empty()
-                && opaque_request.is_empty()
+                && empty
             {
                 self.spans[index].release_payload();
                 return Ok(());
@@ -1375,9 +1379,7 @@ impl TrajectoryStream {
                     compaction: None,
                 }),
             });
-        } else if (index == voice_turn.request && loaded && !(transcribed && empty))
-            || (transcript && !empty)
-        {
+        } else if replaces {
             events.push(TrajectoryEvent::Request {
                 scope: scope.clone(),
                 id: id.clone(),

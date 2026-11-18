@@ -531,6 +531,7 @@ fn check_span_coverage(
             let mut visited = HashSet::new();
             let mut excluded = false;
             while let Some(current) = ancestor {
+                // Pipecat's live model span covers the whole call, so no turn owns it.
                 if current.scorer
                     || current.kind == "score"
                     || current.name.as_deref() == Some("pipecat.live")
@@ -1222,7 +1223,6 @@ import_fixture!(
     "fixtures/voice-interruption-during-playback.json"
 );
 
-import_fixture!(pipecat_live_baseline, "fixtures/pipecat-live-baseline.json");
 import_fixture!(
     pipecat_live_crosstalk,
     "fixtures/pipecat-live-crosstalk.json"
@@ -2727,6 +2727,31 @@ fn load_voice(headers: &[Span], payloads: &[Span]) -> Result<crate::serde_json::
     }
     collect(&mut collector, stream.finish()?);
     Ok(crate::serde_json::to_value(collector.snapshot()?).unwrap())
+}
+
+#[test]
+fn voice_turn_input_beats_its_transcripts() {
+    let mut sources = voice_sources();
+    for (id, start, text) in [("heard-1", 1, "Hel"), ("heard-2", 2, "lo")] {
+        sources.push(voice_span(
+            id,
+            "user",
+            "transcript_received",
+            start,
+            [
+                json!({ "turn.id": "user" }),
+                Value::Null,
+                json!([{ "role": "user", "content": text }]),
+            ],
+        ));
+    }
+    let result = load_voice(&sources, &sources).unwrap();
+    assert_eq!(result[0]["turns"][0]["request"][0]["content"], "Hello");
+
+    sources[1].input = None;
+    sources.pop();
+    let result = load_voice(&sources, &sources).unwrap();
+    assert_eq!(result[0]["turns"][0]["request"][0]["content"], "Hel");
 }
 
 #[test]

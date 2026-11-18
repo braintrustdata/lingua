@@ -3,10 +3,9 @@
 //! nearest `turn.id`. The last agent speech is the response; the rest is work.
 //!
 //! Duplex frameworks such as Pipecat live log `transcript_received` spans inside the turns and
-//! work and speech beside them. A transcript under a `user_turn` is its request, and one under
-//! an `agent_turn` is agent speech. Work without `turn.id` joins the agent turn that speaks its
-//! delegation's result. The `pipecat.live` model span covers the whole call, so it stays out of
-//! turns.
+//! work and speech beside them. A transcript under a `user_turn` supplies its request when the
+//! turn has no input, and one under an `agent_turn` is agent speech. Work without `turn.id`
+//! joins the first agent turn that starts after its delegation ends.
 
 use super::stream::Role;
 use super::*;
@@ -73,7 +72,7 @@ enum SpanKind {
     Work(StepKind),
 }
 
-fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
+fn kind(span: &PreparedSpan, parent: Option<&PreparedSpan>, role: Role) -> Option<SpanKind> {
     let role = match role {
         Role::Conversation => Role::Analysis,
         role => role,
@@ -89,6 +88,11 @@ fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
         "agent_turn" => Some(SpanKind::AgentTurn),
         "user_speech" => Some(SpanKind::UserSpeech),
         "agent_speech" => Some(SpanKind::AgentSpeech),
+        "transcript_received" => match parent?.source.name.as_deref()? {
+            "user_turn" => Some(SpanKind::UserTranscript),
+            "agent_turn" => Some(SpanKind::AgentSpeech),
+            _ => None,
+        },
         "stt" => Some(SpanKind::Work(StepKind::Heard)),
         "tts" => Some(SpanKind::Work(StepKind::Spoken)),
         _ => None,
@@ -228,37 +232,36 @@ pub(super) fn plan(
             && owner.tool.is_none()
             && owner.compaction.is_none()
     };
-    let mut kinds: Vec<_> = (0..spans.len())
+    let kinds: Vec<_> = (0..spans.len())
         .map(|index| {
+            let parent = parents[index].map(|parent| &spans[parent]);
             (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
-                .then(|| kind(&spans[index], roles[index]))
+                .then(|| kind(&spans[index], parent, roles[index]))
                 .flatten()
         })
         .collect();
-    let is_live = |index: usize| {
-        spans[index].kind() == "llm" && spans[index].source.name.as_deref() == Some("pipecat.live")
-    };
-    for index in (0..spans.len()).filter(|index| in_scope(*index)) {
-        if is_live(index) {
-            kinds[index] = None;
-        } else if spans[index].kind() == "task"
-            && spans[index].source.name.as_deref() == Some("transcript_received")
-        {
-            kinds[index] = match parents[index].and_then(|parent| kinds[parent]) {
-                Some(SpanKind::UserTurn) => Some(SpanKind::UserTranscript),
-                Some(SpanKind::AgentTurn) => Some(SpanKind::AgentSpeech),
-                _ => None,
-            };
-        }
-    }
     let is_turn =
         |index: usize| matches!(kinds[index], Some(SpanKind::UserTurn | SpanKind::AgentTurn));
-    let ordered = |index: &usize| (spans[*index].start, spans[*index].source.exec_counter);
-    let mut ordered_turns: Vec<usize> = (0..spans.len()).filter(|index| is_turn(*index)).collect();
-    ordered_turns.sort_by_key(|index| (session_of[*index], ordered(index)));
+    let by_start = |a: &usize, b: &usize| {
+        spans[*a]
+            .start
+            .cmp(&spans[*b].start)
+            .then(
+                spans[*a]
+                    .source
+                    .exec_counter
+                    .cmp(&spans[*b].source.exec_counter),
+            )
+            .then(spans[*a].id.cmp(&spans[*b].id))
+    };
+    let mut agent_turns: Vec<usize> = (0..spans.len())
+        .filter(|index| kinds[*index] == Some(SpanKind::AgentTurn))
+        .collect();
+    agent_turns.sort_by(by_start);
     let delegation = |index: usize| {
         std::iter::successors(Some(index), |at| parents[*at])
             .take(spans.len())
+            .take_while(|at| session_of[*at] == session_of[index])
             .find_map(|at| spans[at].source.voice.delegation_id.as_deref())
     };
     let mut delegation_ends: HashMap<(Option<usize>, &str), DateTime<Utc>> = HashMap::new();
@@ -271,17 +274,14 @@ pub(super) fn plan(
         }
     }
     let delegated = |index: usize| {
-        let id = delegation(index)?;
-        let mut agent_turns = ordered_turns.iter().copied().filter(|turn| {
-            session_of[*turn] == session_of[index] && kinds[*turn] == Some(SpanKind::AgentTurn)
-        });
+        if !matches!(kinds[index], Some(SpanKind::Work(_))) {
+            return None;
+        }
+        let end = delegation_ends.get(&(session_of[index], delegation(index)?))?;
         agent_turns
-            .clone()
-            .find(|turn| spans[*turn].source.voice.delegation_id.as_deref() == Some(id))
-            .or_else(|| {
-                let end = delegation_ends.get(&(session_of[index], id))?;
-                agent_turns.find(|turn| spans[*turn].start >= *end)
-            })
+            .iter()
+            .copied()
+            .find(|turn| session_of[*turn] == session_of[index] && spans[*turn].start >= *end)
     };
     let resolve = |index: usize, id: &str| {
         by_span_id
@@ -310,18 +310,13 @@ pub(super) fn plan(
                 .take(spans.len())
                 .take_while(|at| session_of[*at] == session_of[index])
                 .find(|at| is_turn(*at))
+                .or_else(|| delegated(index))
             {
                 Some(turn) => Ok(turn),
-                None => match matches!(kinds[index], Some(SpanKind::Work(_)))
-                    .then(|| delegated(index))
-                    .flatten()
-                {
-                    Some(turn) => Ok(turn),
-                    None => {
-                        plan.ignored.insert(index);
-                        continue;
-                    }
-                },
+                None => {
+                    plan.ignored.insert(index);
+                    continue;
+                }
             },
             Some(turn_id) => match resolve(index, turn_id) {
                 Some(turn) if is_turn(turn) => Ok(turn),
@@ -353,18 +348,7 @@ pub(super) fn plan(
         groups.entry(request).or_default().push(index);
     }
     for (request, mut group) in groups {
-        group.sort_by(|a, b| {
-            spans[*a]
-                .start
-                .cmp(&spans[*b].start)
-                .then(
-                    spans[*a]
-                        .source
-                        .exec_counter
-                        .cmp(&spans[*b].source.exec_counter),
-                )
-                .then(spans[*a].id.cmp(&spans[*b].id))
-        });
+        group.sort_by(by_start);
         let turn = plan.turns.len();
         let response = group
             .iter()
