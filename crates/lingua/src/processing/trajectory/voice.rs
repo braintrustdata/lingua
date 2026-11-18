@@ -1,6 +1,11 @@
 //! Voice traces in audio trace schema v3: one `Turn` per exchange. A `user_turn` opens a
 //! turn, an `agent_turn` joins the one its `turn.reply_to` names, and other spans join their
 //! nearest `turn.id`. The last agent speech is the response; the rest is work.
+//!
+//! A duplex session, marked by a span with `audio.scope: "session"`, has framework turns
+//! that hold `transcript_received` spans, with work and speech logged beside them. There an
+//! exchange runs from one `user_turn` to the next, by start time, and the transcripts give
+//! the text.
 
 use super::stream::Role;
 use super::*;
@@ -63,6 +68,7 @@ enum SpanKind {
     AgentTurn,
     UserSpeech,
     AgentSpeech,
+    UserTranscript,
     Work(StepKind),
 }
 
@@ -221,13 +227,45 @@ pub(super) fn plan(
             && owner.tool.is_none()
             && owner.compaction.is_none()
     };
-    let kinds: Vec<_> = (0..spans.len())
+    let mut kinds: Vec<_> = (0..spans.len())
         .map(|index| {
             (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
                 .then(|| kind(&spans[index], roles[index]))
                 .flatten()
         })
         .collect();
+    let duplex: HashSet<usize> = (0..spans.len())
+        .filter(|index| {
+            in_scope(*index) && spans[*index].source.voice.scope.as_deref() == Some("session")
+        })
+        .filter_map(|index| session_of[index])
+        .collect();
+    let in_duplex =
+        |index: usize| session_of[index].is_some_and(|session| duplex.contains(&session));
+    for index in (0..spans.len()).filter(|index| in_duplex(*index)) {
+        if spans[index].source.voice.scope.as_deref() == Some("session") {
+            kinds[index] = None;
+        } else if spans[index].kind() == "task"
+            && spans[index].source.name.as_deref() == Some("transcript_received")
+        {
+            kinds[index] = match parents[index].and_then(|parent| kinds[parent]) {
+                Some(SpanKind::UserTurn) => Some(SpanKind::UserTranscript),
+                Some(SpanKind::AgentTurn) => Some(SpanKind::AgentSpeech),
+                _ => None,
+            };
+        }
+    }
+    let duplex_user_turns: Vec<usize> = (0..spans.len())
+        .filter(|index| in_duplex(*index) && kinds[*index] == Some(SpanKind::UserTurn))
+        .collect();
+    // The latest user turn in the span's duplex session that started by `at`.
+    let opener = |index: usize, at: DateTime<Utc>| {
+        duplex_user_turns
+            .iter()
+            .copied()
+            .filter(|turn| session_of[*turn] == session_of[index] && spans[*turn].start <= at)
+            .max_by_key(|turn| (spans[*turn].start, spans[*turn].source.exec_counter))
+    };
     let is_turn =
         |index: usize| matches!(kinds[index], Some(SpanKind::UserTurn | SpanKind::AgentTurn));
     let resolve = |index: usize, id: &str| {
@@ -259,10 +297,17 @@ pub(super) fn plan(
                 .find(|at| is_turn(*at))
             {
                 Some(turn) => Ok(turn),
-                None => {
-                    plan.ignored.insert(index);
-                    continue;
-                }
+                // Duplex work is logged beside the turns, so it joins the open exchange.
+                None => match (in_duplex(index) && matches!(kinds[index], Some(SpanKind::Work(_))))
+                    .then(|| opener(index, spans[index].start))
+                    .flatten()
+                {
+                    Some(turn) => Ok(turn),
+                    None => {
+                        plan.ignored.insert(index);
+                        continue;
+                    }
+                },
             },
             Some(turn_id) => match resolve(index, turn_id) {
                 Some(turn) if is_turn(turn) => Ok(turn),
@@ -279,6 +324,7 @@ pub(super) fn plan(
             }
         };
         let request = match (kinds[turn], &spans[turn].source.voice.reply_to) {
+            _ if in_duplex(turn) => opener(turn, spans[turn].start).unwrap_or(turn),
             (Some(SpanKind::AgentTurn), Some(reply_to)) => match resolve(turn, reply_to) {
                 Some(user_turn) if kinds[user_turn] == Some(SpanKind::UserTurn) => user_turn,
                 _ => {
@@ -329,6 +375,7 @@ pub(super) fn plan(
             let role = match kinds[index] {
                 _ if index == request => VoiceRole::Request,
                 Some(SpanKind::UserTurn | SpanKind::AgentTurn) => VoiceRole::Reply,
+                Some(SpanKind::UserTranscript) => VoiceRole::Request,
                 _ if Some(index) == response => VoiceRole::Response { position },
                 Some(SpanKind::AgentSpeech) => VoiceRole::Work {
                     kind: StepKind::Chat(Role::Conversation),

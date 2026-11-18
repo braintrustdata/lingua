@@ -18,6 +18,9 @@ pub struct VoiceContext {
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
     pub interrupted: Option<bool>,
+    /// `session` marks a span that covers the whole call, such as a duplex live model.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scope: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
 }
@@ -65,6 +68,8 @@ struct Metadata {
     turn_id: Option<json::Value>,
     #[serde(rename = "turn.reply_to")]
     reply_to: Option<json::Value>,
+    #[serde(rename = "audio.scope")]
+    scope: Option<json::Value>,
     #[serde(rename = "audio.timeline")]
     timeline: Option<json::Value>,
     #[serde(rename = "audio.sources")]
@@ -112,6 +117,7 @@ pub(super) fn parse(
             "interrupted",
             &mut header_errors,
         ),
+        scope: metadata_field(metadata.scope, "audio.scope", &mut header_errors),
         errors: header_errors,
     };
     let recording = match (span_id, &header.schema_version) {

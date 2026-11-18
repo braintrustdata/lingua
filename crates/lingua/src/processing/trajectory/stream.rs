@@ -76,6 +76,9 @@ pub enum TrajectoryEvent {
 struct VoiceTurnState {
     started: bool,
     remaining: usize,
+    /// A duplex user transcript has set the request, so the turn span's empty one must not
+    /// replace it.
+    transcribed: bool,
 }
 
 #[derive(Default)]
@@ -604,6 +607,7 @@ impl TrajectoryStream {
                 .map(|turn| VoiceTurnState {
                     started: false,
                     remaining: turn.span_count,
+                    transcribed: false,
                 })
                 .collect(),
             voice,
@@ -1329,13 +1333,22 @@ impl TrajectoryStream {
         } = self.voice.owners[&index];
         let voice_turn = &self.voice.turns[turn_index];
         let id = self.spans[voice_turn.request].id.clone();
-        let (request, opaque_request) = if index == voice_turn.request && loaded {
+        let (request, opaque_request) = if !loaded || role != voice::VoiceRole::Request {
+            (Vec::new(), Vec::new())
+        } else if index == voice_turn.request {
             (self.request(span, None, true), span.opaque_input.clone())
         } else {
-            (Vec::new(), Vec::new())
+            // A duplex user transcript logs what the caller said as its output.
+            let said = span.output.iter();
+            let said = said.filter(|message| matches!(message, Message::User { .. }));
+            (said.cloned().collect(), Vec::new())
         };
+        let empty = request.is_empty() && opaque_request.is_empty();
+        let transcript = role == voice::VoiceRole::Request && index != voice_turn.request;
         let state = &mut self.voice_states[turn_index];
         state.remaining -= 1;
+        let transcribed = state.transcribed;
+        state.transcribed |= transcript && !empty;
         if !state.started {
             if index == voice_turn.request
                 && voice_turn.span_count == 1
@@ -1365,7 +1378,9 @@ impl TrajectoryStream {
                     compaction: None,
                 }),
             });
-        } else if index == voice_turn.request && loaded {
+        } else if (index == voice_turn.request && loaded && !(transcribed && empty))
+            || (transcript && !empty)
+        {
             events.push(TrajectoryEvent::Request {
                 scope: scope.clone(),
                 id: id.clone(),
