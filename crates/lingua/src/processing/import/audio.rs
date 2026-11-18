@@ -18,7 +18,6 @@ pub struct VoiceContext {
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
     pub interrupted: Option<bool>,
-    /// Pipecat live delegation that a span's work, or an agent turn's speech, belongs to.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub delegation_id: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

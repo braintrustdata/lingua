@@ -270,7 +270,6 @@ pub(super) fn plan(
             *latest = (*latest).max(end);
         }
     }
-    // The agent turn that speaks the result of the span's delegation.
     let delegated = |index: usize| {
         let id = delegation(index)?;
         let mut agent_turns = ordered_turns.iter().copied().filter(|turn| {
@@ -313,7 +312,6 @@ pub(super) fn plan(
                 .find(|at| is_turn(*at))
             {
                 Some(turn) => Ok(turn),
-                // Duplex work is logged beside the turns, so it joins the open exchange.
                 None => match matches!(kinds[index], Some(SpanKind::Work(_)))
                     .then(|| delegated(index))
                     .flatten()

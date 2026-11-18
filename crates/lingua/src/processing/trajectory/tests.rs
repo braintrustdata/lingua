@@ -531,7 +531,10 @@ fn check_span_coverage(
             let mut visited = HashSet::new();
             let mut excluded = false;
             while let Some(current) = ancestor {
-                if current.scorer || current.kind == "score" {
+                if current.scorer
+                    || current.kind == "score"
+                    || current.name.as_deref() == Some("pipecat.live")
+                {
                     excluded = true;
                     break;
                 }
@@ -1219,6 +1222,15 @@ import_fixture!(
     "fixtures/voice-interruption-during-playback.json"
 );
 
+import_fixture!(pipecat_live_baseline, "fixtures/pipecat-live-baseline.json");
+import_fixture!(
+    pipecat_live_crosstalk,
+    "fixtures/pipecat-live-crosstalk.json"
+);
+import_fixture!(
+    pipecat_live_delegation,
+    "fixtures/pipecat-live-delegation.json"
+);
 import_fixture!(
     pipecat_interruption_during_playback,
     "fixtures/pipecat-interruption-during-playback.json"

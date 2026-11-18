@@ -76,8 +76,6 @@ pub enum TrajectoryEvent {
 struct VoiceTurnState {
     started: bool,
     remaining: usize,
-    /// A duplex user transcript has set the request, so the turn span's empty one must not
-    /// replace it.
     transcribed: bool,
 }
 
@@ -1338,7 +1336,6 @@ impl TrajectoryStream {
         } else if index == voice_turn.request {
             (self.request(span, None, true), span.opaque_input.clone())
         } else {
-            // A duplex user transcript logs what the caller said as its output.
             let said = span.output.iter();
             let said = said.filter(|message| matches!(message, Message::User { .. }));
             (said.cloned().collect(), Vec::new())
