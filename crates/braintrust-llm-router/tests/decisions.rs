@@ -464,6 +464,81 @@ async fn rejects_decisions_for_openai_compatible_providers() {
 }
 
 #[tokio::test]
+async fn routes_typesafe_models_through_openrouter_system_one() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/api/v1/systemone"))
+        .and(header("authorization", "Bearer openrouter-key"))
+        .and(body_partial_json(json!({
+            "model": "typesafe/jev-1.14",
+            "questions": {"score": {"type": "choice", "criteria": {"A": null, "B": null}}}
+        })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "model": "typesafe/jev-1.14-20261014",
+            "answers": {"score": {"type": "choice", "choice": "B", "confidence": 0.5,
+                "probabilities": {"A": 0.25, "B": 0.75}}},
+            "usage": {
+                "input_tokens": 30,
+                "output_tokens": 1,
+                "cost": 0.00000126,
+                "is_byok": false,
+                "cost_details": {"upstream_inference_cost": 0.00000126}
+            },
+            "id": "gen-dec-1",
+            "provider": "TypeSafe"
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "typesafe/jev-1.14".into(),
+        spec(
+            "typesafe/jev-1.14",
+            ProviderFormat::TypeSafe,
+            ModelFlavor::Decisions,
+            "openrouter",
+        ),
+    );
+    let router = RouterBuilder::new()
+        .with_catalog(Arc::new(catalog))
+        .with_retry_policy(RetryPolicy {
+            max_attempts: 0,
+            ..RetryPolicy::default()
+        })
+        .add_provider(
+            "openrouter",
+            OpenAIProvider::new(OpenAIConfig {
+                endpoint: Url::parse(&server.uri()).unwrap().join("api/v1").unwrap(),
+                ..OpenAIConfig::default()
+            })
+            .unwrap()
+            .with_provider_alias("openrouter"),
+            auth("openrouter-key"),
+            vec![ProviderFormat::ChatCompletions],
+        )
+        .build()
+        .unwrap();
+    let routes = router
+        .resolve_provider_routes("typesafe/jev-1.14", ProviderFormat::Decisions, &[])
+        .unwrap();
+    assert_eq!(routes[0].provider_alias(), "openrouter");
+    assert_eq!(routes[0].format(), ProviderFormat::TypeSafe);
+
+    let response = decide(
+        &router,
+        "typesafe/jev-1.14",
+        scorer_request("typesafe/jev-1.14"),
+    )
+    .await
+    .unwrap();
+    assert_eq!(response["model"], json!("typesafe/jev-1.14-20261014"));
+    assert_eq!(response["answers"][0]["choice"], json!("B"));
+    assert_eq!(response["usage"]["input_tokens"], json!(30));
+}
+
+#[tokio::test]
 async fn rejects_decision_requests_the_route_cannot_serve() {
     let server = MockServer::start().await;
     let router = router(&server);

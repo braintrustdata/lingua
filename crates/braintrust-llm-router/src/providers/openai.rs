@@ -161,14 +161,14 @@ impl OpenAIProvider {
         Ok(url)
     }
 
-    fn decisions_url(&self, model: Option<&str>) -> Result<Url> {
+    fn decisions_url(&self, model: Option<&str>, path: &str) -> Result<Url> {
         let mut url = self.resolve_base(model)?;
         {
             let mut segments = url
                 .path_segments_mut()
                 .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
             segments.pop_if_empty();
-            segments.push("decisions");
+            segments.push(path);
         }
         if let Some(version) = &self.config.api_version {
             url.query_pairs_mut().append_pair("api-version", version);
@@ -210,8 +210,10 @@ impl crate::providers::Provider for OpenAIProvider {
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
         let mut formats = vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses];
-        if self.provider_alias == "openai" {
-            formats.push(ProviderFormat::Decisions);
+        match self.provider_alias.as_str() {
+            "openai" => formats.push(ProviderFormat::Decisions),
+            "openrouter" => formats.push(ProviderFormat::TypeSafe),
+            _ => {}
         }
         formats
     }
@@ -226,7 +228,8 @@ impl crate::providers::Provider for OpenAIProvider {
     ) -> Result<Bytes> {
         let url = match format {
             ProviderFormat::Responses => self.responses_url(Some(&spec.model))?,
-            ProviderFormat::Decisions => self.decisions_url(Some(&spec.model))?,
+            ProviderFormat::Decisions => self.decisions_url(Some(&spec.model), "decisions")?,
+            ProviderFormat::TypeSafe => self.decisions_url(Some(&spec.model), "systemone")?,
             _ => self.chat_url(Some(&spec.model))?,
         };
 
@@ -284,7 +287,7 @@ impl crate::providers::Provider for OpenAIProvider {
                 .await;
         }
 
-        if format == ProviderFormat::Decisions {
+        if format.is_decision() {
             return Err(Error::InvalidRequest(
                 "the decisions API does not support streaming".into(),
             ));
