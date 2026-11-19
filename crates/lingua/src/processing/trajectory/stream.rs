@@ -1,4 +1,5 @@
 use super::*;
+use crate::universal::UserContent;
 
 #[cfg(test)]
 mod tests;
@@ -72,11 +73,50 @@ pub enum TrajectoryEvent {
     Done,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 struct VoiceTurnState {
     started: bool,
     remaining: usize,
-    requested: bool,
+    fragments: Vec<VoiceFragment>,
+    /// The response so far, with the id of the last span that added to it.
+    response: Option<(String, AgentResponse)>,
+}
+
+/// What one user turn said, merged into a voice turn's request.
+#[derive(Debug, Clone)]
+struct VoiceFragment {
+    turn: usize,
+    own: bool,
+    request: Vec<Message>,
+    opaque_request: Vec<OpaqueItem>,
+}
+
+impl VoiceTurnState {
+    fn request(&self) -> (Vec<Message>, Vec<OpaqueItem>) {
+        if let [fragment] = self.fragments.as_slice() {
+            return (fragment.request.clone(), fragment.opaque_request.clone());
+        }
+        let parts: Vec<&str> = self
+            .fragments
+            .iter()
+            .flat_map(|fragment| &fragment.request)
+            .flat_map(voice::user_text)
+            .collect();
+        let text = voice::join_fragments(&parts);
+        let request = if text.is_empty() {
+            Vec::new()
+        } else {
+            vec![Message::User {
+                content: UserContent::String(text),
+            }]
+        };
+        let opaque_request = self
+            .fragments
+            .iter()
+            .flat_map(|fragment| fragment.opaque_request.clone())
+            .collect();
+        (request, opaque_request)
+    }
 }
 
 #[derive(Default)]
@@ -605,7 +645,8 @@ impl TrajectoryStream {
                 .map(|turn| VoiceTurnState {
                     started: false,
                     remaining: turn.span_count,
-                    requested: false,
+                    fragments: Vec::new(),
+                    response: None,
                 })
                 .collect(),
             voice,
@@ -1331,9 +1372,11 @@ impl TrajectoryStream {
         } = self.voice.owners[&index];
         let voice_turn = &self.voice.turns[turn_index];
         let id = self.spans[voice_turn.request].id.clone();
+        let own = role == voice::VoiceRole::Request
+            && (index == voice_turn.request || span.source.name.as_deref() == Some("user_turn"));
         let (request, opaque_request) = if !loaded || role != voice::VoiceRole::Request {
             (Vec::new(), Vec::new())
-        } else if index == voice_turn.request {
+        } else if own {
             (self.request(span, None, true), span.opaque_input.clone())
         } else {
             let said = span
@@ -1345,12 +1388,41 @@ impl TrajectoryStream {
             (said, span.opaque_output.clone())
         };
         let empty = request.is_empty() && opaque_request.is_empty();
-        let own = index == voice_turn.request;
+        let fragment = VoiceFragment {
+            turn: if own {
+                index
+            } else {
+                self.parents[index].unwrap_or(index)
+            },
+            own,
+            request,
+            opaque_request,
+        };
         let state = &mut self.voice_states[turn_index];
         state.remaining -= 1;
         // A turn span's own input beats the transcripts under it.
-        let replaces = !empty && (own || !state.requested);
-        state.requested |= own && !empty;
+        let mut replaces = false;
+        if !empty {
+            match state
+                .fragments
+                .iter_mut()
+                .find(|old| old.turn == fragment.turn)
+            {
+                Some(old) if old.own && !own => {}
+                Some(old) => {
+                    *old = fragment;
+                    replaces = true;
+                }
+                None => {
+                    state.fragments.push(fragment);
+                    state
+                        .fragments
+                        .sort_by_key(|fragment| self.spans[fragment.turn].start);
+                    replaces = true;
+                }
+            }
+        }
+        let (request, opaque_request) = state.request();
         if !state.started {
             if own
                 && voice_turn.span_count == 1
@@ -1418,19 +1490,30 @@ impl TrajectoryStream {
                     // As in chat, a failed final candidate is work, which keeps its error.
                     events.extend(self.work(&scope, &id, index, position, Role::Conversation)?);
                 }
-                let response = if loaded && !failed {
+                let next = if loaded && !failed {
                     voice::response(span)
                 } else {
                     None
                 };
-                events.push(TrajectoryEvent::Response {
-                    scope: scope.clone(),
-                    id: id.clone(),
-                    response_id: response.as_ref().map(|_| span.id.clone()),
-                    response: response.map(Box::new),
-                    end_time: voice_turn.end_time,
-                    model: voice_turn.model.clone(),
-                })
+                let state = &mut self.voice_states[turn_index];
+                state.response = match (state.response.take(), next) {
+                    (Some((_, response)), Some(next)) => {
+                        Some((span.id.clone(), voice::fold(response, next)))
+                    }
+                    (None, Some(next)) => Some((span.id.clone(), next)),
+                    (response, None) => response,
+                };
+                if Some(index) == voice_turn.response {
+                    let (response_id, response) = state.response.take().unzip();
+                    events.push(TrajectoryEvent::Response {
+                        scope: scope.clone(),
+                        id: id.clone(),
+                        response_id,
+                        response: response.map(Box::new),
+                        end_time: voice_turn.end_time,
+                        model: voice_turn.model.clone(),
+                    })
+                }
             }
         }
         if self.voice_states[turn_index].remaining == 0 && voice_turn.response.is_none() {

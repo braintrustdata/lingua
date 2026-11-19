@@ -926,19 +926,12 @@
     {
       "interrupted": null,
       "request_id": "ee4b718c-f8ee-42a5-8c22-c9d4a5042152",
-      "response_id": "53f5c187-69a5-4626-98ab-e4de8870ffed",
-      "response_text": " One moment.",
-      "user_texts": [],
-      "work_ids": []
-    },
-    {
-      "interrupted": null,
-      "request_id": "d82e7ee8-4b3a-41ac-93d1-e434ac5664ed",
       "response_id": "e02f4e0d-acee-4d4d-81ea-cce3ffa198ad",
       "response_text": " Order 1042 is in transit and due Friday.",
       "user_texts": [],
       "work_ids": [
         "f2f54a84-f961-476f-bd28-beef9a537d0b",
+        "53f5c187-69a5-4626-98ab-e4de8870ffed",
         "6db2a025-6ab8-4a82-b73c-c2963c55dafd",
         "365e27ec-3786-46b6-993b-e8f33e19d22c"
       ]

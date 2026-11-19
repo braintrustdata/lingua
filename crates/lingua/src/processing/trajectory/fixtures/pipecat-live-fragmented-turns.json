@@ -1,0 +1,1117 @@
+{
+  "spans": [
+    {
+      "created": "2026-11-19T17:11:10.700Z",
+      "id": "be9f2b3d-ecb2-4d21-a2bc-0bdea5d8bfca",
+      "metadata": {
+        "call_id": "90740cd0-07b1-43ce-825f-bb6c98daf55a",
+        "demo_id": "pipecat-py-demo",
+        "instrumentation": "setup",
+        "language": "python",
+        "models": {
+          "backend": "gpt-5.4-mini",
+          "live": "gpt-live-1",
+          "voice": "marin"
+        },
+        "pipeline": "duplex",
+        "sdk": {
+          "commit": "f408dae6",
+          "dirty": true,
+          "path": "/Users/david/orca/workspaces/braintrust-sdk-python/python-eou-wait-pr/py/src/braintrust",
+          "ref": "delner/audio-eou-wait",
+          "traceTarget": {
+            "apiUrl": null,
+            "appUrl": null,
+            "org": "Braintrust SDKs",
+            "project": "voice-sdk-instrumentation-pipecat"
+          },
+          "version": "0.51.0"
+        }
+      },
+      "metrics": {
+        "duration": 20.890549898147583,
+        "end": 1795108291.590733,
+        "start": 1795108270.7001832
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 1,
+        "name": "voice_call",
+        "type": "task"
+      },
+      "span_id": "cc097012679a7416"
+    },
+    {
+      "created": "2026-11-19T17:11:11.095Z",
+      "id": "e3e5b8ef-7a28-4aed-925e-8ebc335f4b7b",
+      "input": {
+        "audio": {
+          "part-0": {
+            "content_type": "audio/ogg",
+            "filename": "part-0.ogg",
+            "key": "1d32d002-0762-483d-a8fa-ba3243fb6c08",
+            "type": "braintrust_attachment"
+          }
+        }
+      },
+      "metadata": {
+        "audio.participants": {
+          "participant-0": {
+            "label": "Agent connection",
+            "type": "agent"
+          }
+        },
+        "audio.schema.version": "3.1.0",
+        "audio.segments": {
+          "part-0": {
+            "attachment": {
+              "ref": "/input/audio/part-0"
+            },
+            "attributes": {
+              "opus.application": "audio",
+              "opus.bitrate_bps": 64000,
+              "opus.complexity": 10
+            },
+            "channels": {
+              "0": {
+                "sources": [
+                  "session-input"
+                ]
+              },
+              "1": {
+                "sources": [
+                  "agent-output"
+                ]
+              }
+            },
+            "duration_ms": 16705,
+            "encoding": "opus",
+            "mime_type": "audio/ogg",
+            "sample_rate_hz": 48000,
+            "start_offset_ms": 0,
+            "state": "ready"
+          }
+        },
+        "audio.sources": {
+          "agent-output": {},
+          "session-input": {}
+        },
+        "audio.timeline": {
+          "origin_unix_ms": 1795108271096
+        },
+        "contrib.pipecat.live.session_id": "live_u0_Elzx9p3oMvQia6N4v2Q6K4UjTjeADP4g",
+        "contrib.pipecat.mode": "live",
+        "contrib.pipecat.reason": null,
+        "contrib.pipecat.start_metadata": {},
+        "contrib.pipecat.terminal_frame": "EndFrame",
+        "framework": "pipecat",
+        "model": "gpt-live-1",
+        "provider": "openai"
+      },
+      "metrics": {
+        "duration": 19.166329860687256,
+        "end": 1795108290.2621768,
+        "start": 1795108271.095847
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 2,
+        "name": "session",
+        "type": "task"
+      },
+      "span_id": "5a7791b28c328eaf",
+      "span_parents": [
+        "cc097012679a7416"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:11.794Z",
+      "id": "17427bef-2ef2-40f7-9a51-45adc23d06b1",
+      "input": [
+        {
+          "content": "Speak English. You help with fictional demo orders. Always use lookup_order for order status. Reply in one short sentence.",
+          "role": "system"
+        },
+        {
+          "content": "Greet the caller briefly in English and ask how you can help.",
+          "role": "developer"
+        },
+        {
+          "content": " Where is my order",
+          "role": "user"
+        },
+        {
+          "content": " DMO",
+          "role": "user"
+        },
+        {
+          "content": "1042",
+          "role": "user"
+        }
+      ],
+      "metadata": {
+        "audio.scope": "session",
+        "contrib.pipecat.live.close_reason": "close_requested",
+        "contrib.pipecat.live.finalization_confirmed": true,
+        "contrib.pipecat.live.input_partial": true,
+        "contrib.pipecat.live.pricing": {
+          "as_of": "2026-11-16",
+          "source": "https://developers.openai.com/api/docs/models/gpt-live-1",
+          "usd_per_minute": 0.05
+        },
+        "contrib.pipecat.live.session_id": "live_u0_Elzx9p3oMvQia6N4v2Q6K4UjTjeADP4g",
+        "contrib.pipecat.live.transcript_grouping": "pipecat_transcript_gap",
+        "contrib.pipecat.live.usage_seconds": 15,
+        "model": "gpt-live-1",
+        "provider": "openai"
+      },
+      "metrics": {
+        "duration": 16.52458882331848,
+        "end": 1795108288.3189318,
+        "estimated_cost": 0.0125,
+        "start": 1795108271.794343,
+        "time_to_first_token": 0.08163483299999996
+      },
+      "output": [
+        {
+          "content": " Hi, how can I help?",
+          "role": "assistant"
+        },
+        {
+          "content": " Let me just check that.",
+          "role": "assistant"
+        },
+        {
+          "content": " Your order DMO1042",
+          "role": "assistant"
+        },
+        {
+          "content": " is in transit and should arrive on Friday.",
+          "role": "assistant"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 3,
+        "name": "pipecat.live",
+        "type": "llm"
+      },
+      "span_id": "db64a2013141855a",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:12.495Z",
+      "id": "593f2a7b-6539-4e6a-ad43-8c5bd89261ac",
+      "metadata": {
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "a633011ee61e486a"
+      },
+      "metrics": {
+        "duration": 1.4192936420440674,
+        "end": 1795108273.9147213,
+        "start": 1795108272.4954276
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 4,
+        "name": "agent_turn",
+        "type": "task"
+      },
+      "span_id": "a633011ee61e486a",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:12.495Z",
+      "id": "30313c3d-1005-4011-9ed1-a00946f4c8da",
+      "metadata": {
+        "audio.source_id": "agent-output",
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "a633011ee61e486a"
+      },
+      "metrics": {
+        "duration": 1.4192123413085938,
+        "end": 1795108273.9147213,
+        "start": 1795108272.495509
+      },
+      "output": [
+        {
+          "content": " Hi, how can I help?",
+          "role": "assistant"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 5,
+        "name": "transcript_received",
+        "type": "task"
+      },
+      "span_id": "0b4a686c031e7922",
+      "span_parents": [
+        "a633011ee61e486a"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:12.631Z",
+      "id": "1a55a6f3-4d48-4474-b103-bab142574b7d",
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-0"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 3065,
+            "start_offset_ms": 1535
+          }
+        },
+        "audio.source_id": "agent-output"
+      },
+      "metrics": {
+        "duration": 1.5306034088134766,
+        "end": 1795108274.1612718,
+        "start": 1795108272.6306684
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 6,
+        "name": "agent_speech",
+        "type": "task"
+      },
+      "span_id": "06ea4f1e913242c2",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:18.924Z",
+      "id": "a75eae21-f9b9-4501-9c1c-78408ea690bd",
+      "metadata": {
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 7628,
+            "start_offset_ms": 4447
+          }
+        },
+        "audio.source_id": "session-input"
+      },
+      "metrics": {
+        "duration": 3.181668996810913,
+        "end": 1795108278.724269,
+        "start": 1795108275.5426
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 11,
+        "name": "user_speech",
+        "type": "task"
+      },
+      "span_id": "b10cb30636f5334f",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:16.599Z",
+      "id": "d738e9b7-4bef-4943-8fe5-58b594502698",
+      "metadata": {
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "7d749568bbc8a593"
+      },
+      "metrics": {
+        "duration": 1.5259687900543213,
+        "end": 1795108278.1253693,
+        "start": 1795108276.5994005
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 7,
+        "name": "user_turn",
+        "type": "task"
+      },
+      "span_id": "7d749568bbc8a593",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:16.600Z",
+      "id": "ee05fad5-4bac-4405-a4a1-e7885b4cb653",
+      "metadata": {
+        "audio.source_id": "session-input",
+        "contrib.pipecat.live.end_ms": 5200,
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "contrib.pipecat.live.start_ms": 4200,
+        "turn.id": "7d749568bbc8a593"
+      },
+      "metrics": {
+        "duration": 1.5258862972259521,
+        "end": 1795108278.1253693,
+        "start": 1795108276.599483
+      },
+      "output": [
+        {
+          "content": " Where is my order",
+          "role": "user"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 8,
+        "name": "transcript_received",
+        "type": "task"
+      },
+      "span_id": "7df4ee3a534ed21a",
+      "span_parents": [
+        "7d749568bbc8a593"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:18.147Z",
+      "id": "2b212c1d-d179-4647-b667-931213014476",
+      "metadata": {
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "1ce8bd380c31c9b8"
+      },
+      "metrics": {
+        "duration": 0.8018302917480469,
+        "end": 1795108278.949137,
+        "start": 1795108278.1473067
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 9,
+        "name": "user_turn",
+        "type": "task"
+      },
+      "span_id": "1ce8bd380c31c9b8",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:18.147Z",
+      "id": "a661d554-ee76-42e1-958d-6c18f23abe0f",
+      "metadata": {
+        "audio.source_id": "session-input",
+        "contrib.pipecat.live.end_ms": 6000,
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "contrib.pipecat.live.start_ms": 5800,
+        "turn.id": "1ce8bd380c31c9b8"
+      },
+      "metrics": {
+        "duration": 0.8017807006835938,
+        "end": 1795108278.949137,
+        "start": 1795108278.1473563
+      },
+      "output": [
+        {
+          "content": " DMO",
+          "role": "user"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 10,
+        "name": "transcript_received",
+        "type": "task"
+      },
+      "span_id": "5146af569b250cea",
+      "span_parents": [
+        "1ce8bd380c31c9b8"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:19.081Z",
+      "id": "09c90201-15d8-430b-9f78-3736f66a927d",
+      "metadata": {
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "7e4afd175e6136f5"
+      },
+      "metrics": {
+        "duration": 1.2699015140533447,
+        "end": 1795108280.351715,
+        "start": 1795108279.0818136
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 12,
+        "name": "user_turn",
+        "type": "task"
+      },
+      "span_id": "7e4afd175e6136f5",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:19.082Z",
+      "id": "d7563e7e-1bce-4ae0-964f-7fcb82b47df8",
+      "metadata": {
+        "audio.source_id": "session-input",
+        "contrib.pipecat.live.end_ms": 7400,
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "contrib.pipecat.live.start_ms": 6800,
+        "turn.id": "7e4afd175e6136f5"
+      },
+      "metrics": {
+        "duration": 1.2698495388031006,
+        "end": 1795108280.351715,
+        "start": 1795108279.0818655
+      },
+      "output": [
+        {
+          "content": "1042",
+          "role": "user"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 13,
+        "name": "transcript_received",
+        "type": "task"
+      },
+      "span_id": "ea67b5cd2213d054",
+      "span_parents": [
+        "7e4afd175e6136f5"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:20.084Z",
+      "id": "1cdb3a96-8532-4a5b-a9e6-ec0d27da4701",
+      "metadata": {
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "d8af6c25fadefa4a"
+      },
+      "metrics": {
+        "duration": 1.5208499431610107,
+        "end": 1795108281.6055715,
+        "start": 1795108280.0847216
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 14,
+        "name": "agent_turn",
+        "type": "task"
+      },
+      "span_id": "d8af6c25fadefa4a",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:20.085Z",
+      "id": "b4f7f3a6-74bf-4a15-ac9a-2716413cb151",
+      "metadata": {
+        "audio.source_id": "agent-output",
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "d8af6c25fadefa4a"
+      },
+      "metrics": {
+        "duration": 1.5208139419555664,
+        "end": 1795108281.6055715,
+        "start": 1795108280.0847576
+      },
+      "output": [
+        {
+          "content": " Let me just check that.",
+          "role": "assistant"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 15,
+        "name": "transcript_received",
+        "type": "task"
+      },
+      "span_id": "4877f853cb8baf54",
+      "span_parents": [
+        "d8af6c25fadefa4a"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:20.144Z",
+      "id": "20261b01-ee58-40c4-9c51-8f6393223dec",
+      "input": [
+        {
+          "content": "Speak English. You help with fictional demo orders. Always use lookup_order for order status. Reply in one short sentence.",
+          "role": "system"
+        }
+      ],
+      "metadata": {
+        "contrib.pipecat.live.delegation_id": "item_ElzxH1j3nVMNv74HnEL87",
+        "contrib.pipecat.live.delegation_offset_ms": 7400,
+        "contrib.pipecat.live.input_partial": true,
+        "contrib.pipecat.live.previous_response_id": "resp_0217f120898fcdd3016aff2daffd8c87d18553549ab31401fd",
+        "contrib.pipecat.live.response_id": "resp_0217f120898fcdd3016aff2db7d86887d1af23411a7eb96600",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "provider": "openai",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up a fictional demo order",
+              "name": "lookup_order",
+              "parameters": {
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ]
+      },
+      "metrics": {
+        "duration": 0.5679812431335449,
+        "end": 1795108280.7126405,
+        "start": 1795108280.1446593
+      },
+      "output": [
+        {
+          "arguments": "{\"order_id\":\"DMO1042\"}",
+          "call_id": "call_0e31c0f9adf741e2a7f056174c1c95d7",
+          "id": "fc_0217f120898fcdd3016aff2db86b4487d1a2e137a8fff03f8f",
+          "name": "lookup_order",
+          "status": "completed",
+          "type": "function_call"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 16,
+        "name": "llm_response",
+        "type": "task"
+      },
+      "span_id": "955768b7a59bdc55",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:20.144Z",
+      "id": "cd803ad5-ecd0-4364-a42a-2efacc692246",
+      "input": [
+        {
+          "content": "Speak English. You help with fictional demo orders. Always use lookup_order for order status. Reply in one short sentence.",
+          "role": "system"
+        }
+      ],
+      "metadata": {
+        "contrib.pipecat.live.delegation_id": "item_ElzxH1j3nVMNv74HnEL87",
+        "contrib.pipecat.live.delegation_offset_ms": 7400,
+        "contrib.pipecat.live.input_partial": true,
+        "contrib.pipecat.live.previous_response_id": "resp_0217f120898fcdd3016aff2daffd8c87d18553549ab31401fd",
+        "contrib.pipecat.live.response_id": "resp_0217f120898fcdd3016aff2db7d86887d1af23411a7eb96600",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "provider": "openai",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up a fictional demo order",
+              "name": "lookup_order",
+              "parameters": {
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ]
+      },
+      "metrics": {
+        "completion_reasoning_tokens": 0,
+        "completion_tokens": 22,
+        "duration": 0.45437169075012207,
+        "end": 1795108280.5992188,
+        "estimated_cost": 0.00072075,
+        "prompt_cache_creation_tokens": 0,
+        "prompt_cached_tokens": 0,
+        "prompt_tokens": 829,
+        "start": 1795108280.1448472,
+        "time_to_first_token": 0.31983499999999915,
+        "tokens": 851
+      },
+      "output": [
+        {
+          "arguments": "{\"order_id\":\"DMO1042\"}",
+          "call_id": "call_0e31c0f9adf741e2a7f056174c1c95d7",
+          "id": "fc_0217f120898fcdd3016aff2db86b4487d1a2e137a8fff03f8f",
+          "name": "lookup_order",
+          "status": "completed",
+          "type": "function_call"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 17,
+        "name": "pipecat.live.backend_response",
+        "type": "llm"
+      },
+      "span_id": "891d475c55ee026e",
+      "span_parents": [
+        "955768b7a59bdc55"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:20.322Z",
+      "id": "d7d090b9-d6fe-495c-b890-4751bb51d709",
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-0"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 10905,
+            "start_offset_ms": 9225
+          }
+        },
+        "audio.source_id": "agent-output"
+      },
+      "metrics": {
+        "duration": 1.680265188217163,
+        "end": 1795108282.0011103,
+        "start": 1795108280.3208451
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 18,
+        "name": "agent_speech",
+        "type": "task"
+      },
+      "span_id": "5744a198d654e8d8",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:20.591Z",
+      "id": "090eadd8-240c-4f2b-b8e4-f4f4c7b78c08",
+      "input": {
+        "order_id": "DMO1042"
+      },
+      "metadata": {
+        "gen_ai.tool.call.id": "call_0e31c0f9adf741e2a7f056174c1c95d7",
+        "links": [
+          {
+            "attributes": {
+              "braintrust.relationship.type": "requested_by"
+            },
+            "context": {
+              "spanId": "955768b7a59bdc55",
+              "traceFlags": 1,
+              "traceId": "3fe6e7ac5a844bb2641a5ee2f4f04db5"
+            }
+          }
+        ]
+      },
+      "metrics": {
+        "duration": 0.12067842483520508,
+        "end": 1795108280.7125826,
+        "start": 1795108280.5919042
+      },
+      "output": {
+        "delivery": "Friday",
+        "demo_data": true,
+        "order_id": "DMO1042",
+        "status": "in_transit"
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 19,
+        "name": "lookup_order",
+        "type": "tool"
+      },
+      "span_id": "597b693166e94d5a",
+      "span_parents": [
+        "955768b7a59bdc55"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:20.886Z",
+      "id": "752cdaad-5fc7-4060-8740-764e0cff1a23",
+      "input": [
+        {
+          "content": "Speak English. You help with fictional demo orders. Always use lookup_order for order status. Reply in one short sentence.",
+          "role": "system"
+        }
+      ],
+      "metadata": {
+        "contrib.pipecat.live.delegation_id": "item_ElzxH1j3nVMNv74HnEL87",
+        "contrib.pipecat.live.delegation_offset_ms": 7400,
+        "contrib.pipecat.live.input_partial": true,
+        "contrib.pipecat.live.previous_response_id": "resp_0217f120898fcdd3016aff2db7d86887d1af23411a7eb96600",
+        "contrib.pipecat.live.response_id": "resp_0217f120898fcdd3016aff2db8cbcc87d1a0f9e7495b13d138",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "provider": "openai",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up a fictional demo order",
+              "name": "lookup_order",
+              "parameters": {
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ]
+      },
+      "metrics": {
+        "duration": 0.4391303062438965,
+        "end": 1795108281.3255749,
+        "start": 1795108280.8864446
+      },
+      "output": [
+        {
+          "content": [
+            {
+              "annotations": [],
+              "logprobs": [],
+              "text": "Your order DMO1042 is in transit and expected on Friday.",
+              "type": "output_text"
+            }
+          ],
+          "id": "msg_0217f120898fcdd3016aff2db926c887d1ab52a17a3d90dad4",
+          "phase": "final_answer",
+          "role": "assistant",
+          "status": "completed",
+          "type": "message"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 20,
+        "name": "llm_response",
+        "type": "task"
+      },
+      "span_id": "1bb1df3d2963badd",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:20.886Z",
+      "id": "4c7c6860-22fe-4fc7-930e-db2ff75412bf",
+      "input": [
+        {
+          "content": "Speak English. You help with fictional demo orders. Always use lookup_order for order status. Reply in one short sentence.",
+          "role": "system"
+        }
+      ],
+      "metadata": {
+        "contrib.pipecat.live.delegation_id": "item_ElzxH1j3nVMNv74HnEL87",
+        "contrib.pipecat.live.delegation_offset_ms": 7400,
+        "contrib.pipecat.live.input_partial": true,
+        "contrib.pipecat.live.previous_response_id": "resp_0217f120898fcdd3016aff2db7d86887d1af23411a7eb96600",
+        "contrib.pipecat.live.response_id": "resp_0217f120898fcdd3016aff2db8cbcc87d1a0f9e7495b13d138",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "provider": "openai",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up a fictional demo order",
+              "name": "lookup_order",
+              "parameters": {
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ]
+      },
+      "metrics": {
+        "completion_reasoning_tokens": 0,
+        "completion_tokens": 18,
+        "duration": 0.4388127326965332,
+        "end": 1795108281.3253963,
+        "estimated_cost": 0.00075,
+        "prompt_cache_creation_tokens": 0,
+        "prompt_cached_tokens": 0,
+        "prompt_tokens": 892,
+        "start": 1795108280.8865836,
+        "time_to_first_token": 0.30040458299999956,
+        "tokens": 910
+      },
+      "output": [
+        {
+          "content": [
+            {
+              "annotations": [],
+              "logprobs": [],
+              "text": "Your order DMO1042 is in transit and expected on Friday.",
+              "type": "output_text"
+            }
+          ],
+          "id": "msg_0217f120898fcdd3016aff2db926c887d1ab52a17a3d90dad4",
+          "phase": "final_answer",
+          "role": "assistant",
+          "status": "completed",
+          "type": "message"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 21,
+        "name": "pipecat.live.backend_response",
+        "type": "llm"
+      },
+      "span_id": "6cc9aaa0d7088373",
+      "span_parents": [
+        "1bb1df3d2963badd"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:21.846Z",
+      "id": "94570746-550d-460c-9c91-b262df60ff3a",
+      "metadata": {
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "b9c655274eeca952"
+      },
+      "metrics": {
+        "duration": 1.1881749629974365,
+        "end": 1795108283.0347278,
+        "start": 1795108281.8465528
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 22,
+        "name": "agent_turn",
+        "type": "task"
+      },
+      "span_id": "b9c655274eeca952",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:21.846Z",
+      "id": "fa22b06d-9e96-46a3-b0df-439610a184b5",
+      "metadata": {
+        "audio.source_id": "agent-output",
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "b9c655274eeca952"
+      },
+      "metrics": {
+        "duration": 1.188143014907837,
+        "end": 1795108283.0347278,
+        "start": 1795108281.8465848
+      },
+      "output": [
+        {
+          "content": " Your order DMO1042",
+          "role": "assistant"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 23,
+        "name": "transcript_received",
+        "type": "task"
+      },
+      "span_id": "0afa24463ad31e90",
+      "span_parents": [
+        "b9c655274eeca952"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:22.083Z",
+      "id": "40a07100-9e0c-4345-9bf1-a85a4bc03767",
+      "metadata": {
+        "audio.participant_ids": [
+          "participant-0"
+        ],
+        "audio.selections": {
+          "selection-0": {
+            "end_offset_ms": 15064,
+            "start_offset_ms": 10985
+          }
+        },
+        "audio.source_id": "agent-output"
+      },
+      "metrics": {
+        "duration": 4.079447984695435,
+        "end": 1795108286.1604302,
+        "start": 1795108282.0809822
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 24,
+        "name": "agent_speech",
+        "type": "task"
+      },
+      "span_id": "76a816f9aded9f87",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:23.229Z",
+      "id": "36458a1a-563c-4e00-b6f0-e3b9697a92a6",
+      "metadata": {
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "3c77346cf362cbef"
+      },
+      "metrics": {
+        "duration": 2.4846112728118896,
+        "end": 1795108285.7139277,
+        "start": 1795108283.2293165
+      },
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 25,
+        "name": "agent_turn",
+        "type": "task"
+      },
+      "span_id": "3c77346cf362cbef",
+      "span_parents": [
+        "5a7791b28c328eaf"
+      ]
+    },
+    {
+      "created": "2026-11-19T17:11:23.229Z",
+      "id": "650b61bc-0f37-460a-8b53-eb8bac4602d5",
+      "metadata": {
+        "audio.source_id": "agent-output",
+        "contrib.pipecat.live.grouping": "pipecat_transcript_gap",
+        "turn.id": "3c77346cf362cbef"
+      },
+      "metrics": {
+        "duration": 2.484567880630493,
+        "end": 1795108285.7139277,
+        "start": 1795108283.2293599
+      },
+      "output": [
+        {
+          "content": " is in transit and should arrive on Friday.",
+          "role": "assistant"
+        }
+      ],
+      "root_span_id": "3fe6e7ac5a844bb2641a5ee2f4f04db5",
+      "span_attributes": {
+        "created_by_api_key_id": "2fa84306-d804-40a7-970e-f3b8bea8c213",
+        "created_by_user_id": "c755328d-f64a-4737-a984-e83c088cd9f7",
+        "exec_counter": 26,
+        "name": "transcript_received",
+        "type": "task"
+      },
+      "span_id": "115501ac26675a4f",
+      "span_parents": [
+        "3c77346cf362cbef"
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "interrupted": null,
+      "request_id": "593f2a7b-6539-4e6a-ad43-8c5bd89261ac",
+      "response_id": "30313c3d-1005-4011-9ed1-a00946f4c8da",
+      "response_text": " Hi, how can I help?",
+      "user_texts": [],
+      "work_ids": []
+    },
+    {
+      "interrupted": null,
+      "request_id": "d738e9b7-4bef-4943-8fe5-58b594502698",
+      "response_id": null,
+      "response_text": "",
+      "user_texts": [
+        " Where is my order DMO1042"
+      ],
+      "work_ids": []
+    },
+    {
+      "interrupted": null,
+      "request_id": "1cdb3a96-8532-4a5b-a9e6-ec0d27da4701",
+      "response_id": "650b61bc-0f37-460a-8b53-eb8bac4602d5",
+      "response_text": " Your order DMO1042 is in transit and should arrive on Friday.",
+      "user_texts": [],
+      "work_ids": [
+        "b4f7f3a6-74bf-4a15-ac9a-2716413cb151",
+        "cd803ad5-ecd0-4364-a42a-2efacc692246",
+        "090eadd8-240c-4f2b-b8e4-f4f4c7b78c08",
+        "4c7c6860-22fe-4fc7-930e-db2ff75412bf"
+      ]
+    }
+  ]
+}
