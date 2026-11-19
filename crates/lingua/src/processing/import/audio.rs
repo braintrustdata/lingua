@@ -18,6 +18,7 @@ pub struct VoiceContext {
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
     pub interrupted: Option<bool>,
+    pub delegation_id: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
 }
@@ -65,6 +66,8 @@ struct Metadata {
     turn_id: Option<json::Value>,
     #[serde(rename = "turn.reply_to")]
     reply_to: Option<json::Value>,
+    #[serde(rename = "contrib.pipecat.live.delegation_id")]
+    delegation_id: Option<json::Value>,
     #[serde(rename = "audio.timeline")]
     timeline: Option<json::Value>,
     #[serde(rename = "audio.sources")]
@@ -110,6 +113,11 @@ pub(super) fn parse(
                 .or(metadata.livekit_interrupted)
                 .or(metadata.pipecat_interrupted),
             "interrupted",
+            &mut header_errors,
+        ),
+        delegation_id: metadata_field(
+            metadata.delegation_id,
+            "contrib.pipecat.live.delegation_id",
             &mut header_errors,
         ),
         errors: header_errors,

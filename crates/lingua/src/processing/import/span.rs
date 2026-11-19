@@ -23,6 +23,7 @@ pub const TRAJECTORY_METADATA_FIELDS: &[&str] = &[
     "audio.schema.version",
     "turn.id",
     "turn.reply_to",
+    "contrib.pipecat.live.delegation_id",
     "interrupted",
     "contrib.livekit.interrupted",
     "contrib.pipecat.interrupted",
