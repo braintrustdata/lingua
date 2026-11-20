@@ -136,16 +136,19 @@ fn joined<'a>(texts: impl Iterator<Item = &'a str>) -> Option<json::Value> {
 }
 
 /// Joins transcript fragments. Fragments that carry their own spacing (" DMO", "1042") join
-/// as they are; others get a space between them.
+/// as they are; others get a space between them unless one is already there.
 pub(super) fn join_fragments(fragments: &[&str]) -> String {
-    if fragments
+    let spaced = fragments
         .iter()
-        .any(|text| text.starts_with(char::is_whitespace))
-    {
-        fragments.concat()
-    } else {
-        fragments.join(" ")
+        .any(|text| text.starts_with(char::is_whitespace));
+    let mut text = String::new();
+    for fragment in fragments {
+        if !spaced && !text.is_empty() && !text.ends_with(char::is_whitespace) {
+            text.push(' ');
+        }
+        text.push_str(fragment);
     }
+    text
 }
 
 pub(super) fn user_text(message: &Message) -> Vec<&str> {
@@ -535,6 +538,7 @@ pub(super) fn fold(mut response: AgentResponse, next: AgentResponse) -> AgentRes
             }
         }
     }
+    response.opaque_input.extend(next.opaque_input);
     response.opaque_output.extend(next.opaque_output);
     response.end_time = next.end_time;
     response
