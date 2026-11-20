@@ -331,12 +331,27 @@ pub(super) fn plan(
         .filter(|index| spans[*index].source.voice.interrupted == Some(true))
         .filter_map(turn_of)
         .collect();
-    let mut turns: Vec<usize> = (0..spans.len()).filter(|index| is_turn(*index)).collect();
-    turns.sort_by(by_start);
+    let mut order: Vec<usize> = (0..spans.len()).collect();
+    order.sort_by(by_start);
     let mut head: HashMap<usize, usize> = HashMap::new();
     let mut previous: HashMap<Option<usize>, usize> = HashMap::new();
-    for &turn in &turns {
-        let Some(prev) = previous.insert(session_of[turn], turn) else {
+    // Per session, the latest tool or LLM start and the latest end of each speaker's speech.
+    let mut latest: HashMap<(Option<usize>, &str), DateTime<Utc>> = HashMap::new();
+    for index in order {
+        let session = session_of[index];
+        if matches!(kinds[index], Some(SpanKind::Work(StepKind::Chat(_)))) {
+            latest.insert((session, "work"), spans[index].start);
+        }
+        if let Some(name @ ("user_speech" | "agent_speech")) = spans[index].source.name.as_deref() {
+            let end = spans[index].source.end.unwrap_or(DateTime::<Utc>::MAX_UTC);
+            let at = latest.entry((session, name)).or_insert(end);
+            *at = (*at).max(end);
+        }
+        if !is_turn(index) {
+            continue;
+        }
+        let turn = index;
+        let Some(prev) = previous.insert(session, turn) else {
             continue;
         };
         let other = if kinds[turn] == Some(SpanKind::UserTurn) {
@@ -344,28 +359,21 @@ pub(super) fn plan(
         } else {
             "user_speech"
         };
+        let since_prev = |key| {
+            latest
+                .get(&(session, key))
+                .is_some_and(|at| *at > spans[prev].start)
+        };
         let close = spans[prev]
             .source
             .end
             .is_some_and(|end| spans[turn].start - end <= MAX_TURN_GAP);
-        let spoken_between = (0..spans.len()).any(|at| {
-            session_of[at] == session_of[turn]
-                && spans[at].source.name.as_deref() == Some(other)
-                && spans[at].start < spans[turn].start
-                && spans[at].source.end.is_none_or(|end| end > spans[prev].start)
-        });
-        let worked_between = (0..spans.len()).any(|at| {
-            session_of[at] == session_of[turn]
-                && matches!(kinds[at], Some(SpanKind::Work(StepKind::Chat(_))))
-                && spans[prev].start < spans[at].start
-                && spans[at].start < spans[turn].start
-        });
         if kinds[prev] == kinds[turn]
             && spans[prev].source.voice.reply_to == spans[turn].source.voice.reply_to
             && close
             && !interrupted_turns.contains(&prev)
-            && !spoken_between
-            && !worked_between
+            && !since_prev(other)
+            && !since_prev("work")
         {
             head.insert(turn, *head.get(&prev).unwrap_or(&prev));
         }

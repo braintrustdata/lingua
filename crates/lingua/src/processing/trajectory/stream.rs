@@ -99,7 +99,15 @@ impl VoiceTurnState {
             .flat_map(|fragment| fragment.opaque_request.clone())
             .collect();
         let messages: Vec<&Message> = fragments.flat_map(|fragment| &fragment.request).collect();
-        if self.fragments.len() == 1 || !messages.iter().all(|message| is_user_text(message)) {
+        let text_only = messages.iter().all(|message| match message {
+            Message::User {
+                content: UserContent::Array(parts),
+            } => parts
+                .iter()
+                .all(|part| matches!(part, UserContentPart::Text(_))),
+            message => matches!(message, Message::User { .. }),
+        });
+        if self.fragments.len() == 1 || !text_only {
             return (messages.into_iter().cloned().collect(), opaque_request);
         }
         let parts: Vec<&str> = messages.into_iter().flat_map(voice::user_text).collect();
@@ -111,17 +119,6 @@ impl VoiceTurnState {
             .into_iter()
             .collect();
         (request, opaque_request)
-    }
-}
-
-fn is_user_text(message: &Message) -> bool {
-    match message {
-        Message::User {
-            content: UserContent::Array(parts),
-        } => parts
-            .iter()
-            .all(|part| matches!(part, UserContentPart::Text(_))),
-        message => matches!(message, Message::User { .. }),
     }
 }
 
@@ -1413,7 +1410,6 @@ impl TrajectoryStream {
             state.fragments.insert(key, fragment);
             replaces = true;
         }
-        let (request, opaque_request) = state.request();
         if !state.started {
             if own
                 && voice_turn.span_count == 1
@@ -1424,6 +1420,7 @@ impl TrajectoryStream {
                 return Ok(());
             }
             state.started = true;
+            let (request, opaque_request) = state.request();
             events.push(TrajectoryEvent::Turn {
                 scope: scope.clone(),
                 id: id.clone(),
@@ -1443,6 +1440,7 @@ impl TrajectoryStream {
                 }),
             });
         } else if replaces {
+            let (request, opaque_request) = state.request();
             events.push(TrajectoryEvent::Request {
                 scope: scope.clone(),
                 id: id.clone(),
