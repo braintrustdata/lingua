@@ -867,12 +867,19 @@
     {
       "interrupted": null,
       "request_id": "a8b7df78-1a1d-421e-8db6-3273c4a0853f",
+      "response_id": "3ec9b332-5bfe-4c29-a060-af06c7379be8",
+      "response_text": " Sure, I'll check on that.",
+      "user_texts": [],
+      "work_ids": []
+    },
+    {
+      "interrupted": null,
+      "request_id": "53f36fd9-e309-4c41-82b7-84e94a10c216",
       "response_id": "c4c55fa4-3310-467e-be48-2e79d78ab575",
       "response_text": " Your order DEMO 1042 is in transit and expected to be delivered on Friday.",
       "user_texts": [],
       "work_ids": [
         "93ffd692-15ac-4ce2-b7d6-9d18acd07c58",
-        "3ec9b332-5bfe-4c29-a060-af06c7379be8",
         "e7a6b139-cbca-4688-961b-2e785effb1bf",
         "1c210e02-f944-46ee-94b3-6badb5c2010b"
       ]

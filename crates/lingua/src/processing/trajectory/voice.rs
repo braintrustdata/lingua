@@ -3,9 +3,10 @@
 //! nearest `turn.id`. The last agent speech is the response; the rest is work.
 //!
 //! A turn merges into the previous one in its session when both have the same speaker, it
-//! starts within `MAX_TURN_GAP` of the previous turn's end, the other speaker's speech doesn't
-//! start between them, and nothing in the previous turn was interrupted. Tracers such as
-//! Pipecat live split one utterance into several turns on short pauses.
+//! starts within `MAX_TURN_GAP` of the previous turn's end, no tool or LLM work starts and no
+//! other-speaker speech runs between their starts, and nothing in the previous turn was
+//! interrupted. Tracers such as Pipecat live split one utterance into several turns on short
+//! pauses.
 //!
 //! Duplex frameworks such as Pipecat live log `transcript_received` spans inside the turns and
 //! work and speech beside them. A transcript under a `user_turn` supplies its request when the
@@ -339,6 +340,9 @@ pub(super) fn plan(
             )
         })
         .collect();
+    let work: Vec<usize> = (0..spans.len())
+        .filter(|index| matches!(kinds[*index], Some(SpanKind::Work(StepKind::Chat(_)))))
+        .collect();
     let mut turns: Vec<usize> = (0..spans.len()).filter(|index| is_turn(*index)).collect();
     turns.sort_by(by_start);
     let mut head: HashMap<usize, usize> = HashMap::new();
@@ -359,6 +363,14 @@ pub(super) fn plan(
         let spoken_between = speech.iter().any(|at| {
             session_of[*at] == session_of[turn]
                 && spans[*at].source.name.as_deref() == Some(other)
+                && spans[*at].start < spans[turn].start
+                && spans[*at]
+                    .source
+                    .end
+                    .is_none_or(|end| end > spans[prev].start)
+        });
+        let worked_between = work.iter().any(|at| {
+            session_of[*at] == session_of[turn]
                 && spans[prev].start < spans[*at].start
                 && spans[*at].start < spans[turn].start
         });
@@ -367,6 +379,7 @@ pub(super) fn plan(
             && close
             && !interrupted_turns.contains(&prev)
             && !spoken_between
+            && !worked_between
         {
             head.insert(turn, *head.get(&prev).unwrap_or(&prev));
         }

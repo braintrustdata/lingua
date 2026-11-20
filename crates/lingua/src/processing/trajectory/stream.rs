@@ -1,5 +1,5 @@
 use super::*;
-use crate::universal::UserContent;
+use crate::universal::{UserContent, UserContentPart};
 
 #[cfg(test)]
 mod tests;
@@ -93,8 +93,30 @@ struct VoiceFragment {
 
 impl VoiceTurnState {
     fn request(&self) -> (Vec<Message>, Vec<OpaqueItem>) {
-        if let [fragment] = self.fragments.as_slice() {
-            return (fragment.request.clone(), fragment.opaque_request.clone());
+        let opaque_request = self
+            .fragments
+            .iter()
+            .flat_map(|fragment| fragment.opaque_request.clone())
+            .collect();
+        let text_only = self
+            .fragments
+            .iter()
+            .flat_map(|fragment| &fragment.request)
+            .all(|message| match message {
+                Message::User {
+                    content: UserContent::Array(parts),
+                } => parts
+                    .iter()
+                    .all(|part| matches!(part, UserContentPart::Text(_))),
+                message => matches!(message, Message::User { .. }),
+            });
+        if self.fragments.len() == 1 || !text_only {
+            let request = self
+                .fragments
+                .iter()
+                .flat_map(|fragment| fragment.request.clone())
+                .collect();
+            return (request, opaque_request);
         }
         let parts: Vec<&str> = self
             .fragments
@@ -110,11 +132,6 @@ impl VoiceTurnState {
                 content: UserContent::String(text),
             }]
         };
-        let opaque_request = self
-            .fragments
-            .iter()
-            .flat_map(|fragment| fragment.opaque_request.clone())
-            .collect();
         (request, opaque_request)
     }
 }
