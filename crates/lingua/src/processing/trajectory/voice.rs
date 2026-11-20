@@ -256,18 +256,15 @@ pub(super) fn plan(
     let kinds: Vec<_> = (0..spans.len())
         .map(|index| {
             let parent = parents[index].map(|parent| &spans[parent]);
-            let kind =
-                (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
-                    .then(|| kind(&spans[index], parent, roles[index]))
-                    .flatten();
-            let duplicate = by_span_id[&(
-                spans[index].root_span_id.as_str(),
-                spans[index].span_id.as_str(),
-            )] != index;
-            match kind {
-                Some(SpanKind::UserTurn | SpanKind::AgentTurn) if duplicate => None,
-                kind => kind,
-            }
+            let span = &spans[index];
+            let duplicate =
+                by_span_id[&(span.root_span_id.as_str(), span.span_id.as_str())] != index;
+            (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
+                .then(|| kind(span, parent, roles[index]))
+                .flatten()
+                .filter(|kind| {
+                    !(duplicate && matches!(kind, SpanKind::UserTurn | SpanKind::AgentTurn))
+                })
         })
         .collect();
     let is_turn =
@@ -288,11 +285,17 @@ pub(super) fn plan(
         .filter(|index| kinds[*index] == Some(SpanKind::AgentTurn))
         .collect();
     agent_turns.sort_by(by_start);
+    let ancestors = {
+        let session_of = &session_of;
+        move |index: usize| {
+            std::iter::successors(Some(index), move |at| parents[*at])
+                .take(spans.len())
+                .take_while(move |at| session_of[*at] == session_of[index])
+        }
+    };
+    let turn_above = |index: usize| ancestors(index).find(|at| is_turn(*at));
     let delegation = |index: usize| {
-        std::iter::successors(Some(index), |at| parents[*at])
-            .take(spans.len())
-            .take_while(|at| session_of[*at] == session_of[index])
-            .find_map(|at| spans[at].source.voice.delegation_id.as_deref())
+        ancestors(index).find_map(|at| spans[at].source.voice.delegation_id.as_deref())
     };
     let mut delegation_ends: HashMap<(Option<usize>, &str), DateTime<Utc>> = HashMap::new();
     for index in 0..spans.len() {
@@ -319,29 +322,14 @@ pub(super) fn plan(
             .copied()
     };
     let turn_of = |index: usize| {
-        std::iter::successors(Some(index), |at| parents[*at])
-            .take(spans.len())
-            .take_while(|at| session_of[*at] == session_of[index])
-            .find(|at| is_turn(*at))
-            .or_else(|| {
-                let turn = resolve(index, owners[&index].voice_turn.as_deref()?)?;
-                is_turn(turn).then_some(turn)
-            })
+        turn_above(index).or_else(|| {
+            let turn = resolve(index, owners[&index].voice_turn.as_deref()?)?;
+            is_turn(turn).then_some(turn)
+        })
     };
     let interrupted_turns: HashSet<usize> = (0..spans.len())
         .filter(|index| spans[*index].source.voice.interrupted == Some(true))
         .filter_map(turn_of)
-        .collect();
-    let speech: Vec<usize> = (0..spans.len())
-        .filter(|index| {
-            matches!(
-                spans[*index].source.name.as_deref(),
-                Some("user_speech" | "agent_speech")
-            )
-        })
-        .collect();
-    let work: Vec<usize> = (0..spans.len())
-        .filter(|index| matches!(kinds[*index], Some(SpanKind::Work(StepKind::Chat(_)))))
         .collect();
     let mut turns: Vec<usize> = (0..spans.len()).filter(|index| is_turn(*index)).collect();
     turns.sort_by(by_start);
@@ -360,19 +348,17 @@ pub(super) fn plan(
             .source
             .end
             .is_some_and(|end| spans[turn].start - end <= MAX_TURN_GAP);
-        let spoken_between = speech.iter().any(|at| {
-            session_of[*at] == session_of[turn]
-                && spans[*at].source.name.as_deref() == Some(other)
-                && spans[*at].start < spans[turn].start
-                && spans[*at]
-                    .source
-                    .end
-                    .is_none_or(|end| end > spans[prev].start)
+        let spoken_between = (0..spans.len()).any(|at| {
+            session_of[at] == session_of[turn]
+                && spans[at].source.name.as_deref() == Some(other)
+                && spans[at].start < spans[turn].start
+                && spans[at].source.end.is_none_or(|end| end > spans[prev].start)
         });
-        let worked_between = work.iter().any(|at| {
-            session_of[*at] == session_of[turn]
-                && spans[prev].start < spans[*at].start
-                && spans[*at].start < spans[turn].start
+        let worked_between = (0..spans.len()).any(|at| {
+            session_of[at] == session_of[turn]
+                && matches!(kinds[at], Some(SpanKind::Work(StepKind::Chat(_))))
+                && spans[prev].start < spans[at].start
+                && spans[at].start < spans[turn].start
         });
         if kinds[prev] == kinds[turn]
             && spans[prev].source.voice.reply_to == spans[turn].source.voice.reply_to
@@ -404,12 +390,7 @@ pub(super) fn plan(
         }
         let turn = match &owners[&index].voice_turn {
             _ if is_turn(index) || kinds[index] == Some(SpanKind::UserSpeech) => Ok(index),
-            None => match std::iter::successors(parents[index], |at| parents[*at])
-                .take(spans.len())
-                .take_while(|at| session_of[*at] == session_of[index])
-                .find(|at| is_turn(*at))
-                .or_else(|| delegated(index))
-            {
+            None => match turn_above(index).or_else(|| delegated(index)) {
                 Some(turn) => Ok(turn),
                 None => {
                     plan.ignored.insert(index);

@@ -77,7 +77,8 @@ pub enum TrajectoryEvent {
 struct VoiceTurnState {
     started: bool,
     remaining: usize,
-    fragments: Vec<VoiceFragment>,
+    /// Keyed by each user turn's start and index, so fragments stay in spoken order.
+    fragments: BTreeMap<(DateTime<Utc>, usize), VoiceFragment>,
     /// The response so far, with the id of the last span that added to it.
     response: Option<(String, AgentResponse)>,
 }
@@ -85,7 +86,6 @@ struct VoiceTurnState {
 /// What one user turn said, merged into a voice turn's request.
 #[derive(Debug, Clone)]
 struct VoiceFragment {
-    turn: usize,
     own: bool,
     request: Vec<Message>,
     opaque_request: Vec<OpaqueItem>,
@@ -93,46 +93,35 @@ struct VoiceFragment {
 
 impl VoiceTurnState {
     fn request(&self) -> (Vec<Message>, Vec<OpaqueItem>) {
-        let opaque_request = self
-            .fragments
-            .iter()
+        let fragments = self.fragments.values();
+        let opaque_request = fragments
+            .clone()
             .flat_map(|fragment| fragment.opaque_request.clone())
             .collect();
-        let text_only = self
-            .fragments
-            .iter()
-            .flat_map(|fragment| &fragment.request)
-            .all(|message| match message {
-                Message::User {
-                    content: UserContent::Array(parts),
-                } => parts
-                    .iter()
-                    .all(|part| matches!(part, UserContentPart::Text(_))),
-                message => matches!(message, Message::User { .. }),
-            });
-        if self.fragments.len() == 1 || !text_only {
-            let request = self
-                .fragments
-                .iter()
-                .flat_map(|fragment| fragment.request.clone())
-                .collect();
-            return (request, opaque_request);
+        let messages: Vec<&Message> = fragments.flat_map(|fragment| &fragment.request).collect();
+        if self.fragments.len() == 1 || !messages.iter().all(|message| is_user_text(message)) {
+            return (messages.into_iter().cloned().collect(), opaque_request);
         }
-        let parts: Vec<&str> = self
-            .fragments
-            .iter()
-            .flat_map(|fragment| &fragment.request)
-            .flat_map(voice::user_text)
-            .collect();
+        let parts: Vec<&str> = messages.into_iter().flat_map(voice::user_text).collect();
         let text = voice::join_fragments(&parts);
-        let request = if text.is_empty() {
-            Vec::new()
-        } else {
-            vec![Message::User {
+        let request = (!text.is_empty())
+            .then(|| Message::User {
                 content: UserContent::String(text),
-            }]
-        };
+            })
+            .into_iter()
+            .collect();
         (request, opaque_request)
+    }
+}
+
+fn is_user_text(message: &Message) -> bool {
+    match message {
+        Message::User {
+            content: UserContent::Array(parts),
+        } => parts
+            .iter()
+            .all(|part| matches!(part, UserContentPart::Text(_))),
+        message => matches!(message, Message::User { .. }),
     }
 }
 
@@ -662,7 +651,7 @@ impl TrajectoryStream {
                 .map(|turn| VoiceTurnState {
                     started: false,
                     remaining: turn.span_count,
-                    fragments: Vec::new(),
+                    fragments: BTreeMap::new(),
                     response: None,
                 })
                 .collect(),
@@ -1405,12 +1394,13 @@ impl TrajectoryStream {
             (said, span.opaque_output.clone())
         };
         let empty = request.is_empty() && opaque_request.is_empty();
+        let fragment_turn = if own {
+            index
+        } else {
+            self.parents[index].unwrap_or(index)
+        };
+        let key = (self.spans[fragment_turn].start, fragment_turn);
         let fragment = VoiceFragment {
-            turn: if own {
-                index
-            } else {
-                self.parents[index].unwrap_or(index)
-            },
             own,
             request,
             opaque_request,
@@ -1419,25 +1409,9 @@ impl TrajectoryStream {
         state.remaining -= 1;
         // A turn span's own input beats the transcripts under it.
         let mut replaces = false;
-        if !empty {
-            match state
-                .fragments
-                .iter_mut()
-                .find(|old| old.turn == fragment.turn)
-            {
-                Some(old) if old.own && !own => {}
-                Some(old) => {
-                    *old = fragment;
-                    replaces = true;
-                }
-                None => {
-                    state.fragments.push(fragment);
-                    state
-                        .fragments
-                        .sort_by_key(|fragment| self.spans[fragment.turn].start);
-                    replaces = true;
-                }
-            }
+        if !empty && !state.fragments.get(&key).is_some_and(|old| old.own && !own) {
+            state.fragments.insert(key, fragment);
+            replaces = true;
         }
         let (request, opaque_request) = state.request();
         if !state.started {
