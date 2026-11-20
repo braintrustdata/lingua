@@ -1232,6 +1232,10 @@ import_fixture!(
     "fixtures/pipecat-live-delegation.json"
 );
 import_fixture!(
+    pipecat_live_fragmented_turns,
+    "fixtures/pipecat-live-fragmented-turns.json"
+);
+import_fixture!(
     pipecat_interruption_during_playback,
     "fixtures/pipecat-interruption-during-playback.json"
 );
