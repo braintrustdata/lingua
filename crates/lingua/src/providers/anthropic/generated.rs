@@ -30,6 +30,11 @@ pub struct AnthropicSchemas {
     pub response: Option<Message>,
 }
 
+/// The parameters of a request for the next message in a conversation.
+///
+/// See the [Messages API
+/// guide](https://platform.claude.com/docs/en/build-with-claude/working-with-messages#basic-request-and-response)
+/// to learn more about requests and responses.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct CreateMessageParams {
@@ -39,7 +44,12 @@ pub struct CreateMessageParams {
     pub cache_control: Option<CacheControlEphemeral>,
     /// Container identifier for reuse across requests.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub container: Option<String>,
+    pub container: Option<ContainerUnion>,
+    /// Request-level diagnostics. Supply `previous_message_id` to have the response include
+    /// `diagnostics.cache_miss_reason` explaining any prompt-cache divergence from that prior
+    /// request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diagnostics: Option<DiagnosticsParam>,
     /// Specifies the geographic region for inference processing. If not specified, the
     /// workspace's `default_inference_geo` is used.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -69,7 +79,9 @@ pub struct CreateMessageParams {
     ///
     /// If the final message uses the `assistant` role, the response content will continue
     /// immediately from the content in that message. This can be used to constrain part of the
-    /// model's response.
+    /// model's response. This is called prefill. On models that don't support prefill, creating
+    /// a message that ends with a partial `assistant` response returns a 400 error. See [Prefill
+    /// not supported](https://platform.claude.com/docs/en/api/errors#prefill-not-supported).
     ///
     /// Example with a single `user` message:
     ///
@@ -87,7 +99,7 @@ pub struct CreateMessageParams {
     /// ]
     /// ```
     ///
-    /// Example with a partially-filled response from Claude:
+    /// Example with a partially-filled response from Claude, for models that support prefill:
     ///
     /// ```json
     /// [
@@ -115,8 +127,7 @@ pub struct CreateMessageParams {
     ///
     /// Note that if you want to include a [system
     /// prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
-    /// you can use the top-level `system` parameter — there is no `"system"` role for input
-    /// messages in the Messages API.
+    /// you can use the top-level `system` parameter.
     ///
     /// There is a limit of 100,000 messages in a single request.
     pub messages: Vec<InputMessage>,
@@ -134,6 +145,14 @@ pub struct CreateMessageParams {
     /// [service-tiers](https://platform.claude.com/docs/en/api/service-tiers) for details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierEnum>,
+    /// The inference speed mode for this request. `"fast"` enables high output-tokens-per-second
+    /// inference.
+    ///
+    /// Some models require the `fast-mode-2026-02-01` beta header for any `speed` value. See
+    /// [fast mode](https://platform.claude.com/docs/en/build-with-claude/fast-mode) for which
+    /// models.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed: Option<Speed>,
     /// Custom text sequences that will cause the model to stop generating.
     ///
     /// Our models will normally stop when they have naturally completed their turn, which will
@@ -145,10 +164,14 @@ pub struct CreateMessageParams {
     /// `stop_sequence` value will contain the matched stop sequence.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_sequences: Option<Vec<String>>,
-    /// Whether to incrementally stream the response using server-sent events.
+    /// Whether to incrementally stream the response using server-sent events. When `true`, SDKs
+    /// return a raw event stream.
     ///
-    /// See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming) for
-    /// details.
+    /// In the TypeScript, Python and Ruby SDKs, the recommended way to stream is
+    /// `messages.stream()`. It sets `stream` for you and accumulates the events into the final
+    /// message. See [Streaming with
+    /// SDKs](https://platform.claude.com/docs/en/build-with-claude/streaming#streaming-with-sdks)
+    /// for an example in each language.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     /// System prompt.
@@ -160,10 +183,8 @@ pub struct CreateMessageParams {
     pub system: Option<System>,
     /// Amount of randomness injected into the response.
     ///
-    /// Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0` for
-    /// analytical / multiple choice, and closer to `1.0` for creative and generative tasks.
-    ///
-    /// Note that even with `temperature` of `0.0`, the results will not be fully deterministic.
+    /// Defaults to `1.0`. Ranges from `0.0` to `1.0`. Models released after Claude Opus 4.6 only
+    /// accept `1.0`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -248,17 +269,10 @@ pub struct CreateMessageParams {
     pub tools: Option<Vec<Tool>>,
     /// Only sample from the top K options for each subsequent token.
     ///
-    /// Used to remove "long tail" low probability responses. [Learn more technical details
-    /// here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
-    ///
     /// Recommended for advanced use cases only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_k: Option<i64>,
     /// Use nucleus sampling.
-    ///
-    /// In nucleus sampling, we compute the cumulative distribution over all the options for each
-    /// subsequent token in decreasing probability order and cut it off once it reaches a
-    /// particular probability specified by `top_p`.
     ///
     /// Recommended for advanced use cases only.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -306,6 +320,63 @@ pub enum Ttl {
     The1H,
     #[serde(rename = "5m")]
     The5M,
+}
+
+/// Container identifier for reuse across requests.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(untagged)]
+#[ts(export_to = "anthropic/")]
+pub enum ContainerUnion {
+    ContainerParams(ContainerParams),
+    PurpleString(String),
+}
+
+/// Container parameters with skills to be loaded.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ContainerParams {
+    /// Container id
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    /// List of skills to load in the container
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skills: Option<Vec<SkillParams>>,
+}
+
+/// Specification for a skill to be loaded in a container.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct SkillParams {
+    /// Skill ID
+    pub skill_id: String,
+    /// Type of skill - either 'anthropic' (built-in) or 'custom' (user-defined)
+    #[serde(rename = "type")]
+    pub skill_params_type: SkillType,
+    /// Skill version or 'latest' for most recent version
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+}
+
+/// Type of skill - either 'anthropic' (built-in) or 'custom' (user-defined)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum SkillType {
+    Anthropic,
+    Custom,
+}
+
+/// Request-level diagnostics. Currently carries the previous response
+/// id for prompt-cache divergence reporting.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct DiagnosticsParam {
+    /// The `id` (`msg_...`) from this client's previous /v1/messages response. The server
+    /// compares that request's prompt fingerprint against this one and returns
+    /// `diagnostics.cache_miss_reason` when the prompt-cache prefix could not be reused. Pass
+    /// `null` on the first turn to opt in without a prior message to compare.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub previous_message_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -361,6 +432,12 @@ pub struct InputContentBlock {
     pub input_content_block_type: InputContentBlockType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<SourceUnion>,
+    /// Configures the transformations the server applies to this image before the model observes
+    /// it. Each key names a condition the server transforms images for; its value selects the
+    /// transformation applied. Omitted keys keep their default behavior, and an empty object is
+    /// equivalent to omitting the field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transformations: Option<RequestImageTransformations>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -368,10 +445,18 @@ pub struct InputContentBlock {
     /// System instruction text blocks.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<InputContentBlockContent>,
+    /// The `signature` value of this thinking block, exactly as returned by the API in a
+    /// previous response. Used to verify that the block was generated by Claude.
+    ///
+    /// Thinking blocks must be passed back unmodified and in their original order; a modified
+    /// block results in a 400 `invalid_request_error`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<String>,
+    /// The `thinking` text of this block as returned by the API.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<String>,
+    /// The `data` value of this redacted thinking block, exactly as returned by the API in a
+    /// previous response. Opaque and encrypted; pass it back unchanged.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -383,12 +468,53 @@ pub struct InputContentBlock {
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    /// For a toolset member tool_use, the toolset family this member belongs to.
+    ///
+    /// For a toolset member tool_result, the toolset family of the paired tool_use.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub toolset_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_error: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_use_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file_id: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum InputContentBlockType {
+    #[serde(rename = "bash_code_execution_tool_result")]
+    BashCodeExecutionToolResult,
+    #[serde(rename = "code_execution_tool_result")]
+    CodeExecutionToolResult,
+    #[serde(rename = "container_upload")]
+    ContainerUpload,
+    Document,
+    Image,
+    #[serde(rename = "mid_conv_system")]
+    MidConvSystem,
+    #[serde(rename = "redacted_thinking")]
+    RedactedThinking,
+    #[serde(rename = "search_result")]
+    SearchResult,
+    #[serde(rename = "server_tool_use")]
+    ServerToolUse,
+    Text,
+    #[serde(rename = "text_editor_code_execution_tool_result")]
+    TextEditorCodeExecutionToolResult,
+    Thinking,
+    #[serde(rename = "tool_result")]
+    ToolResult,
+    #[serde(rename = "tool_search_tool_result")]
+    ToolSearchToolResult,
+    #[serde(rename = "tool_use")]
+    ToolUse,
+    #[serde(rename = "web_fetch_tool_result")]
+    WebFetchToolResult,
+    #[serde(rename = "web_search_tool_result")]
+    WebSearchToolResult,
 }
 
 /// Tool invocation directly from the model.
@@ -514,6 +640,14 @@ pub enum InputContentBlockContent {
 /// via a URL.
 ///
 /// Tool reference block that can be included in tool_result content.
+///
+/// The caller's browser state after a browser toolset member call —
+/// the full inventory of open tabs, which tab is active, and any side
+/// effects (tabs opened, download state changes) the call produced.
+///
+/// At most one per `tool_result`, only on a non-error result answering a
+/// browser toolset member `tool_use`. The server renders the
+/// model-visible text from it; the model never sees the raw fields.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct Block {
@@ -528,6 +662,12 @@ pub struct Block {
     pub block_type: WebSearchToolResultBlockItemType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<SourceUnion>,
+    /// Configures the transformations the server applies to this image before the model observes
+    /// it. Each key names a condition the server transforms images for; its value selects the
+    /// transformation applied. Omitted keys keep their default behavior, and an empty object is
+    /// equivalent to omitting the field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transformations: Option<RequestImageTransformations>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Vec<RequestTextBlock>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -536,6 +676,14 @@ pub struct Block {
     pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_name: Option<String>,
+    /// Tabs opened and download state changes during this call. "Nothing to report" is expressed
+    /// by omitting the field, never by an empty list.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state_changes: Option<Vec<BrowserStateChange>>,
+    /// All tabs open in the browser after this call — the full inventory, not a delta. May be
+    /// empty. Whenever non-empty, exactly one entry carries `active: true`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tabs: Option<Vec<BrowserStateTabEntry>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -548,6 +696,8 @@ pub struct Block {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
 pub enum WebSearchToolResultBlockItemType {
+    #[serde(rename = "browser_state")]
+    BrowserState,
     Document,
     Image,
     #[serde(rename = "search_result")]
@@ -600,6 +750,8 @@ pub struct Source {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Base64ImageSourceContent>,
 }
 
@@ -628,6 +780,12 @@ pub struct ContentBlockSourceContentItem {
     pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<SourceSource>,
+    /// Configures the transformations the server applies to this image before the model observes
+    /// it. Each key names a condition the server transforms images for; its value selects the
+    /// transformation applied. Omitted keys keep their default behavior, and an empty object is
+    /// equivalent to omitting the field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transformations: Option<RequestImageTransformations>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -649,6 +807,8 @@ pub struct SourceSource {
     pub source_type: PurpleType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -669,7 +829,37 @@ pub enum PurpleMediaType {
 #[ts(export_to = "anthropic/")]
 pub enum PurpleType {
     Base64,
+    File,
     Url,
+}
+
+/// Configures the transformations the server applies to this image before the model observes
+/// it. Each key names a condition the server transforms images for; its value selects the
+/// transformation applied. Omitted keys keep their default behavior, and an empty object is
+/// equivalent to omitting the field.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct RequestImageTransformations {
+    /// What the server does when this image exceeds the model's maximum image size. `"downsize"`
+    /// (the default) scales the image down to fit, which changes the dimensions the model
+    /// observes without telling you. `"error"` instead rejects the request with a 400 error
+    /// naming the image's dimensions and the largest dimensions that fit, so you can scale the
+    /// image deliberately — your image is never silently scaled down.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub oversized_image: Option<OversizedImage>,
+}
+
+/// What the server does when this image exceeds the model's maximum image size. `"downsize"`
+/// (the default) scales the image down to fit, which changes the dimensions the model
+/// observes without telling you. `"error"` instead rejects the request with a 400 error
+/// naming the image's dimensions and the largest dimensions that fit, so you can scale the
+/// image deliberately — your image is never silently scaled down.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum OversizedImage {
+    Downsize,
+    Error,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -695,11 +885,93 @@ pub enum Base64ImageSourceMediaType {
 pub enum Base64ImageSourceType {
     Base64,
     Content,
+    File,
     Text,
     Url,
 }
 
-/// Code execution result with encrypted stdout for PFC + web_search results.
+/// A tab this call's execution opened that remains open at its end —
+/// the creation delta of the `tabs` inventory, not an event log.
+///
+/// Carries only the `tab_id`; the tab's `title` and `url` live on its
+/// `tabs` entry, which must include the same `tab_id`. A tab opened
+/// during a failed call gets no deferred `tab_opened`; it simply appears
+/// in the next result's `tabs` inventory.
+///
+/// A file download that started during this call.
+///
+/// A file download that finished during this call, reported with the
+/// same `download_id` as its `download_started` — or without a prior
+/// `download_started`, when the download finished during the call that
+/// started it (at most one state change per `download_id` per result).
+///
+/// A file download that failed — or was cancelled — during this call.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserStateChange {
+    /// The `tab_id` of the opened tab, present in `tabs`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tab_id: Option<String>,
+    #[serde(rename = "type")]
+    pub browser_state_change_type: StateChangeType,
+    /// The caller-assigned identifier for this download, stable across the state changes
+    /// reporting it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub download_id: Option<String>,
+    /// The final post-redirect URL the download was served from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    /// Where the executor saved the file, on the executor's filesystem. Only included when
+    /// another tool in the same environment can read the file at that path.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+    /// The completed download's size.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size_bytes: Option<i64>,
+    /// The failure or cancellation detail, when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum StateChangeType {
+    #[serde(rename = "download_completed")]
+    DownloadCompleted,
+    #[serde(rename = "download_failed")]
+    DownloadFailed,
+    #[serde(rename = "download_started")]
+    DownloadStarted,
+    #[serde(rename = "tab_opened")]
+    TabOpened,
+}
+
+/// One open browser tab reported in a `browser_state` block's `tabs`
+/// inventory.
+///
+/// `tab_id` is the caller-assigned identifier for the tab; `title` and
+/// `url` describe the page the tab is currently showing and may be empty
+/// strings (a blank tab legitimately has both empty). `active` marks the
+/// tab that is active after this call; whenever `tabs` is non-empty,
+/// exactly one entry is marked.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserStateTabEntry {
+    /// Whether this tab is the active tab after this call. Whenever `tabs` is non-empty, exactly
+    /// one entry is marked `active: true`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active: Option<bool>,
+    /// The caller-assigned identifier for this tab, unique within the inventory.
+    pub tab_id: String,
+    /// The title of the page the tab is showing. May be empty.
+    pub title: String,
+    /// The URL of the page the tab is showing. May be empty.
+    pub url: String,
+}
+
+/// The output and exit code of Python code that Claude ran with the code execution tool,
+/// with standard output in encrypted form, sent back in a later request.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct Request {
@@ -815,6 +1087,8 @@ pub struct RequestDocumentBlockSource {
     pub content: Option<Base64ImageSourceContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -830,6 +1104,8 @@ pub enum FluffyMediaType {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
 pub enum ToolResultErrorCode {
+    #[serde(rename = "content_too_large")]
+    ContentTooLarge,
     #[serde(rename = "execution_time_exceeded")]
     ExecutionTimeExceeded,
     #[serde(rename = "file_not_found")]
@@ -925,42 +1201,6 @@ pub enum ToolReferenceType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum InputContentBlockType {
-    #[serde(rename = "bash_code_execution_tool_result")]
-    BashCodeExecutionToolResult,
-    #[serde(rename = "code_execution_tool_result")]
-    CodeExecutionToolResult,
-    #[serde(rename = "container_upload")]
-    ContainerUpload,
-    Document,
-    Image,
-    #[serde(rename = "mid_conv_system")]
-    MidConvSystem,
-    #[serde(rename = "redacted_thinking")]
-    RedactedThinking,
-    #[serde(rename = "search_result")]
-    SearchResult,
-    #[serde(rename = "server_tool_use")]
-    ServerToolUse,
-    Text,
-    #[serde(rename = "text_editor_code_execution_tool_result")]
-    TextEditorCodeExecutionToolResult,
-    Thinking,
-    #[serde(rename = "tool_result")]
-    ToolResult,
-    #[serde(rename = "tool_search_tool_result")]
-    ToolSearchToolResult,
-    #[serde(rename = "tool_use")]
-    ToolUse,
-    #[serde(rename = "web_fetch_tool_result")]
-    WebFetchToolResult,
-    #[serde(rename = "web_search_tool_result")]
-    WebSearchToolResult,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "anthropic/")]
 pub enum MessageRole {
     Assistant,
     System,
@@ -1040,6 +1280,14 @@ pub enum ServiceTierEnum {
     StandardOnly,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum Speed {
+    Fast,
+    Standard,
+}
+
 /// System prompt.
 ///
 /// A system prompt is a way of providing context and instructions to Claude, such as
@@ -1053,15 +1301,16 @@ pub enum System {
     RequestTextBlockArray(Vec<RequestTextBlock>),
 }
 
-/// Configuration for enabling Claude's extended thinking.
+/// Configuration for Claude's thinking.
 ///
-/// When enabled, responses include `thinking` content blocks showing Claude's thinking
-/// process before the final answer. Requires a minimum budget of 1,024 tokens and counts
-/// towards your `max_tokens` limit.
+/// With `{"type": "adaptive"}`, Claude decides when and how much to think. With `{"type":
+/// "enabled"}` (manual extended thinking), you set a `budget_tokens` of at least 1,024.
+/// Thinking tokens count toward your `max_tokens` limit.
 ///
-/// See [extended
-/// thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) for
-/// details.
+/// Which `type` values are accepted, and what happens when you omit `thinking`, depend on
+/// the model. See
+/// [thinking](https://platform.claude.com/docs/en/build-with-claude/thinking#configuring-thinking)
+/// for each model's behavior.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct Thinking {
@@ -1078,7 +1327,9 @@ pub struct Thinking {
     pub budget_tokens: Option<i64>,
     /// Controls how thinking content appears in the response. When set to `summarized`, thinking
     /// is returned normally. When set to `omitted`, thinking content is redacted but a signature
-    /// is returned for multi-turn continuity. Defaults to `summarized`.
+    /// is returned for multi-turn continuity. The default depends on the model; see [Controlling
+    /// thinking
+    /// display](https://platform.claude.com/docs/en/build-with-claude/thinking#controlling-thinking-display).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display: Option<ThinkingDisplayMode>,
     #[serde(rename = "type")]
@@ -1098,6 +1349,8 @@ pub enum ThinkingDisplayMode {
 #[ts(export_to = "anthropic/")]
 pub enum ThinkingType {
     Adaptive,
+    #[serde(rename = "between_tools")]
+    BetweenTools,
     Disabled,
     Enabled,
 }
@@ -1142,9 +1395,32 @@ pub enum ToolChoiceType {
     TypeNone,
 }
 
-/// Code execution tool with REPL state persistence (daemon mode + gVisor checkpoint).
+/// A `tools` entry for the code execution tool, version `code_execution_20260120`. It adds
+/// REPL state persistence to version `code_execution_20250825`.
+///
+/// REPL state persistence applies with programmatic tool calling. With it, the Python
+/// interpreter state, such as variable bindings, persists across requests that reuse the
+/// container.
+///
+/// See the [code execution tool
+/// guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool#tool-versions)
+/// to learn what each tool version adds.
 ///
 /// Code execution tool with REPL state persistence.
+///
+/// The browser toolset: a single ``tools[]`` entry (carrying no
+/// ``name``) that declares the browser tool family. The model is served
+/// the family's tool with any members disabled via ``configs`` removed
+/// from its schema.
+///
+/// The computer toolset: a single ``tools[]`` entry (carrying no
+/// ``name``) that declares the computer tool family. The model is
+/// served the family's tool with any members disabled via ``configs``
+/// removed from its schema. Every member is enabled by default, zoom
+/// included. The single-tool options ``display_number`` and
+/// ``enable_zoom`` are not fields of a toolset entry — it carries only
+/// ``type``, ``configs``, and ``cache_control``; zoom is controlled
+/// via ``configs.zoom.enabled``.
 ///
 /// Web fetch tool with use_cache parameter for bypassing cached content.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1208,6 +1484,22 @@ pub struct BashTool20250124 {
     pub strict: Option<bool>,
 }
 
+/// The browser toolset: a single ``tools[]`` entry (carrying no
+/// ``name``) that declares the browser tool family. The model is served
+/// the family's tool with any members disabled via ``configs`` removed
+/// from its schema.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserToolset20260801 {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Sparse per-member overrides, keyed by member name. Absent, null, and {} are equivalent; a member's defaults apply wherever its key is absent.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub configs: Option<ToolsetConfigs>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct CodeExecutionTool20250522 {
@@ -1250,7 +1542,11 @@ pub struct CodeExecutionTool20250825 {
     pub strict: Option<bool>,
 }
 
-/// Code execution tool with REPL state persistence (daemon mode + gVisor checkpoint).
+/// A `tools` entry for the code execution tool, version `code_execution_20260120`. It adds REPL state persistence to version `code_execution_20250825`.
+///
+/// REPL state persistence applies with programmatic tool calling. With it, the Python interpreter state, such as variable bindings, persists across requests that reuse the container.
+///
+/// See the [code execution tool guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool#tool-versions) to learn what each tool version adds.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct CodeExecutionTool20260120 {
@@ -1292,6 +1588,26 @@ pub struct CodeExecutionTool20260521 {
     /// When true, guarantees schema validation on tool names and inputs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
+}
+
+/// The computer toolset: a single ``tools[]`` entry (carrying no
+/// ``name``) that declares the computer tool family. The model is
+/// served the family's tool with any members disabled via ``configs``
+/// removed from its schema. Every member is enabled by default, zoom
+/// included. The single-tool options ``display_number`` and
+/// ``enable_zoom`` are not fields of a toolset entry — it carries only
+/// ``type``, ``configs``, and ``cache_control``; zoom is controlled
+/// via ``configs.zoom.enabled``.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerToolset20260801 {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Sparse per-member overrides, keyed by member name. Absent, null, and {} are equivalent; a member's defaults apply wherever its key is absent.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub configs: Option<ToolsetConfigs>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1428,6 +1744,9 @@ pub struct WebFetchTool20250910 {
     /// When true, guarantees schema validation on tool names and inputs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
+    /// Which sources contribute to the set of URLs the tool may fetch. Omitted means every source.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url_sources: Option<WebFetchUrlSources>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1465,6 +1784,9 @@ pub struct WebFetchTool20260209 {
     /// When true, guarantees schema validation on tool names and inputs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
+    /// Which sources contribute to the set of URLs the tool may fetch. Omitted means every source.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url_sources: Option<WebFetchUrlSources>,
 }
 
 /// Web fetch tool with use_cache parameter for bypassing cached content.
@@ -1503,6 +1825,9 @@ pub struct WebFetchTool20260309 {
     /// When true, guarantees schema validation on tool names and inputs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
+    /// Which sources contribute to the set of URLs the tool may fetch. Omitted means every source.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url_sources: Option<WebFetchUrlSources>,
     /// Whether to use cached content. Set to false to bypass the cache and fetch fresh content. Only set to false when the user explicitly requests fresh content or when fetching rapidly-changing sources.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub use_cache: Option<bool>,
@@ -1546,6 +1871,9 @@ pub struct WebFetchTool20260318 {
     /// When true, guarantees schema validation on tool names and inputs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
+    /// Which sources contribute to the set of URLs the tool may fetch. Omitted means every source.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url_sources: Option<WebFetchUrlSources>,
     /// Whether to use cached content. Set to false to bypass the cache and fetch fresh content. Only set to false when the user explicitly requests fresh content or when fetching rapidly-changing sources.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub use_cache: Option<bool>,
@@ -1672,6 +2000,9 @@ pub enum Tool {
     #[serde(rename = "bash_20250124")]
     Bash20250124(BashTool20250124),
 
+    #[serde(rename = "browser_toolset_20260801")]
+    Browserset20260801(BrowserToolset20260801),
+
     #[serde(rename = "code_execution_20250522")]
     CodeExecution20250522(CodeExecutionTool20250522),
 
@@ -1683,6 +2014,9 @@ pub enum Tool {
 
     #[serde(rename = "code_execution_20260521")]
     CodeExecution20260521(CodeExecutionTool20260521),
+
+    #[serde(rename = "computer_toolset_20260801")]
+    Computerset20260801(ComputerToolset20260801),
 
     #[serde(rename = "memory_20250818")]
     Memory20250818(MemoryTool20250818),
@@ -1756,6 +2090,537 @@ pub enum AllowedCaller {
     Direct,
 }
 
+/// Per-member configuration for ``browser_toolset_20260801``: one
+/// optional field per member tool, keyed by the member name — the same
+/// name the member's ``tool_use`` blocks carry. Every member is an
+/// accepted key, and a member's defaults apply wherever its key is
+/// absent. Unknown keys are rejected: the field set is this toolset
+/// version's complete member set.
+///
+/// Per-member configuration for ``computer_toolset_20260801``: one
+/// optional field per member tool, keyed by the member name — the same
+/// name the member's ``tool_use`` blocks carry. Every member is an
+/// accepted key, and a member's defaults apply wherever its key is
+/// absent. Unknown keys are rejected: the field set is this toolset
+/// version's complete member set.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetConfigs {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub close_tab: Option<BrowserCloseTabConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub double_click: Option<ToolsetDoubleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_upload: Option<BrowserFileUploadConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub find: Option<BrowserFindConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub form_input: Option<BrowserFormInputConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub get_page_text: Option<BrowserGetPageTextConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hold_key: Option<ToolsetHoldKeyConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hover: Option<BrowserHoverConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub javascript_exec: Option<BrowserJavascriptExecConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key: Option<ToolsetKeyConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_click: Option<ToolsetLeftClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_click_drag: Option<ToolsetLeftClickDragConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_mouse_down: Option<ToolsetLeftMouseDownConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_mouse_up: Option<ToolsetLeftMouseUpConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub list_tabs: Option<BrowserListTabsConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub middle_click: Option<ToolsetMiddleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mouse_move: Option<ToolsetMouseMoveConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub navigate: Option<BrowserNavigateConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_tab: Option<BrowserNewTabConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub read_console: Option<BrowserReadConsoleConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub read_network: Option<BrowserReadNetworkConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub read_page: Option<BrowserReadPageConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub right_click: Option<ToolsetRightClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub screenshot: Option<ToolsetScreenshotConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scroll: Option<ToolsetScrollConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scroll_to: Option<BrowserScrollToConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub switch_tab: Option<BrowserSwitchTabConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub triple_click: Option<ToolsetTripleClickConfig>,
+    #[serde(rename = "type")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub toolset_configs_type: Option<ToolsetTypeConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wait: Option<ToolsetWaitConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub zoom: Option<ToolsetZoomConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cursor_position: Option<ComputerCursorPositionConfig>,
+}
+
+/// ``close_tab``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserCloseTabConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``cursor_position``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerCursorPositionConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``double_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetDoubleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``type``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetTypeConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``file_upload``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserFileUploadConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``find``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserFindConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``form_input``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserFormInputConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``get_page_text``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserGetPageTextConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``hold_key``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetHoldKeyConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``hover``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserHoverConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``javascript_exec``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserJavascriptExecConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``key``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetKeyConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetLeftClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_click_drag``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetLeftClickDragConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_mouse_down``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetLeftMouseDownConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_mouse_up``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetLeftMouseUpConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``list_tabs``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserListTabsConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``middle_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetMiddleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``mouse_move``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetMouseMoveConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``navigate``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserNavigateConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``new_tab``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserNewTabConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``read_console``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserReadConsoleConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``read_network``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserReadNetworkConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``read_page``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserReadPageConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``right_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetRightClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``screenshot``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetScreenshotConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``scroll``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetScrollConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``scroll_to``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserScrollToConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``switch_tab``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserSwitchTabConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``triple_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetTripleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``wait``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetWaitConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``zoom``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolsetZoomConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
 /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
 ///
 /// This defines the shape of the `input` that your tool accepts and that the model will
@@ -1798,6 +2663,8 @@ pub enum ResponseInclusion {
 pub enum Type {
     #[serde(rename = "bash_20250124")]
     Bash20250124,
+    #[serde(rename = "browser_toolset_20260801")]
+    BrowserToolset20260801,
     #[serde(rename = "code_execution_20250522")]
     CodeExecution20250522,
     #[serde(rename = "code_execution_20250825")]
@@ -1806,6 +2673,8 @@ pub enum Type {
     CodeExecution20260120,
     #[serde(rename = "code_execution_20260521")]
     CodeExecution20260521,
+    #[serde(rename = "computer_toolset_20260801")]
+    ComputerToolset20260801,
     Custom,
     #[serde(rename = "memory_20250818")]
     Memory20250818,
@@ -1837,6 +2706,100 @@ pub enum Type {
     WebSearch20260209,
     #[serde(rename = "web_search_20260318")]
     WebSearch20260318,
+}
+
+/// Which sources contribute to the set of URLs web fetch may fetch.
+///
+/// Each key is a tagged variant: ``user_input`` is ``all`` or ``none``; the
+/// two tool filters are ``all``, ``none``, ``only`` (only the named tools'
+/// results) or ``except`` (every result but the named tools'). A named tool
+/// must be declared in this request's ``tools[]``.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct WebFetchUrlSources {
+    /// Which client tools' results contribute fetchable URLs: "all", "none", or an only or
+    /// except list of client tool names from tools[].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_tool_results: Option<ToolResults>,
+    /// Which server tools' results contribute fetchable URLs: "all", "none", or an only or
+    /// except list of server tool names from tools[]; only web_search and web_fetch results ever
+    /// contribute.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub server_tool_results: Option<ToolResults>,
+    /// Whether URLs in user messages are fetchable: "all" or "none".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_input: Option<UserInput>,
+}
+
+/// Which client tools' results contribute fetchable URLs: "all", "none", or an only or
+/// except list of client tool names from tools[].
+///
+/// Which server tools' results contribute fetchable URLs: "all", "none", or an only or
+/// except list of server tool names from tools[]; only web_search and web_fetch results ever
+/// contribute.
+///
+/// The ``url_sources`` variant under which a source contributes in
+/// full: every result of the tool filter's source, or all user input.
+///
+/// The ``url_sources`` variant under which a source contributes nothing:
+/// no result of the tool filter's source, or no user input.
+///
+/// The tool filter variant under which only the named tools' results
+/// contribute.
+///
+/// The tool filter variant under which every result but the named
+/// tools' contributes.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolResults {
+    #[serde(rename = "type")]
+    pub tool_results_type: ClientToolResultsType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tools: Option<Vec<WebFetchUrlSourceToolReference>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum ClientToolResultsType {
+    All,
+    Except,
+    Only,
+    #[serde(rename = "none")]
+    TypeNone,
+}
+
+/// One entry of a tool filter's ``tools``: it must name a tool declared
+/// in this request's ``tools[]``.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct WebFetchUrlSourceToolReference {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub web_fetch_url_source_tool_reference_type: ToolReferenceType,
+}
+
+/// Whether URLs in user messages are fetchable: "all" or "none".
+///
+/// The ``url_sources`` variant under which a source contributes in
+/// full: every result of the tool filter's source, or all user input.
+///
+/// The ``url_sources`` variant under which a source contributes nothing:
+/// no result of the tool filter's source, or no user input.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct UserInput {
+    #[serde(rename = "type")]
+    pub user_input_type: UserInputType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum UserInputType {
+    All,
+    #[serde(rename = "none")]
+    TypeNone,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1904,6 +2867,10 @@ pub struct Message {
     /// [{"type": "text", "text": "B)"}]
     /// ```
     pub content: Vec<ContentBlock>,
+    /// Request-level diagnostics. `null` when the request did not supply `diagnostics`, or when
+    /// it did and no prompt-cache divergence was detected.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diagnostics: Option<Diagnostics>,
     /// Unique object identifier.
     ///
     /// The format and length of IDs may change over time.
@@ -1970,6 +2937,22 @@ pub struct Container {
     pub expires_at: String,
     /// Identifier for the container used in this request
     pub id: String,
+    /// Skills loaded in the container
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skills: Option<Vec<ContainerSkill>>,
+}
+
+/// A skill that was loaded in a container (response model).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ContainerSkill {
+    /// Skill ID
+    pub skill_id: String,
+    /// Type of skill - either 'anthropic' (built-in) or 'custom' (user-defined)
+    #[serde(rename = "type")]
+    pub container_skill_type: SkillType,
+    /// The resolved version: a skill version ID for custom skills.
+    pub version: String,
 }
 
 /// Response model for a file uploaded to the container.
@@ -1987,10 +2970,31 @@ pub struct ContentBlock {
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub content_block_type: ContentBlockType,
+    /// A value used to verify that this thinking block was generated by Claude when it is passed
+    /// back to the API.
+    ///
+    /// This is an opaque field and should not be interpreted or parsed. When passing thinking
+    /// blocks back to the API (required when using tools with extended thinking), pass them back
+    /// exactly as received, with this field intact.
+    ///
+    /// See [extended
+    /// thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) for
+    /// details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<String>,
+    /// The text of Claude's thinking process for this block.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<String>,
+    /// The contents of this redacted thinking block, returned when portions of the model's
+    /// thinking were safety-redacted. This field is opaque and encrypted, with no readable
+    /// content.
+    ///
+    /// Pass `redacted_thinking` blocks back to the API unchanged when continuing a multi-turn
+    /// conversation.
+    ///
+    /// See [extended
+    /// thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#redacted-thinking-blocks)
+    /// for details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2002,6 +3006,9 @@ pub struct ContentBlock {
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    /// For a toolset member tool_use, the toolset family.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub toolset_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<ContentBlockContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2090,7 +3097,15 @@ pub enum TentacledType {
     WebSearchResult,
 }
 
-/// Code execution result with encrypted stdout for PFC + web_search results.
+/// The output and exit code of Python code that Claude ran with the code execution tool,
+/// with standard output in encrypted form.
+///
+/// The API returns this block in place of `code_execution_result` when the code called the
+/// web search tool.
+///
+/// See the [programmatic tool calling
+/// guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/programmatic-tool-calling)
+/// to learn more about programmatic tool calling.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct Response {
@@ -2230,6 +3245,93 @@ pub enum ContentBlockType {
     WebSearchToolResult,
 }
 
+/// Request-level diagnostics: why the prompt cache could not fully reuse
+/// the prefix of the request named by `diagnostics.previous_message_id`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct Diagnostics {
+    /// Explains why the prompt cache could not fully reuse the prefix from the request
+    /// identified by `diagnostics.previous_message_id`. `null` means diagnosis is still pending
+    /// — the response was serialized before the background comparison completed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_miss_reason: Option<CacheMiss>,
+}
+
+/// A `cache_miss_reason` for a request whose `model` or `speed` differs from the previous
+/// request's.
+///
+/// See the [cache diagnostics
+/// guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+/// to learn what to change for each reason.
+///
+/// A `cache_miss_reason` for a request whose `system` differs from the previous request's.
+///
+/// See the [cache diagnostics
+/// guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+/// to learn what to change for each reason.
+///
+/// A `cache_miss_reason` for a request whose `tools` differ from the previous request's, for
+/// example because tools were added, removed, or reordered.
+///
+/// See the [cache diagnostics
+/// guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+/// to learn what to change for each reason.
+///
+/// A `cache_miss_reason` for a request whose `messages` differ from the previous request's
+/// in an earlier entry, instead of only having entries appended. The `model`, `system`, and
+/// `tools` match.
+///
+/// See the [cache diagnostics
+/// guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+/// to learn what to change for each reason.
+///
+/// A `cache_miss_reason` for when the API doesn't have a stored record of the request that
+/// `diagnostics.previous_message_id` references.
+///
+/// This doesn't mean that this request changed.
+///
+/// See the [cache diagnostics
+/// guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+/// to learn what to change for each reason.
+///
+/// A `cache_miss_reason` for when the API can't give a diagnosis. The request itself was
+/// processed normally.
+///
+/// This includes a request whose `model`, `system`, and `tools` match the previous request's
+/// but whose other prompt-affecting parameters, such as `thinking` or `tool_choice`,
+/// differ.
+///
+/// See the [cache diagnostics
+/// guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+/// to learn what to change for each reason.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct CacheMiss {
+    /// Approximate number of input tokens that would have been read from cache had the prefix
+    /// matched the previous request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_missed_input_tokens: Option<i64>,
+    #[serde(rename = "type")]
+    pub cache_miss_type: CacheMissModelChangedType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum CacheMissModelChangedType {
+    #[serde(rename = "messages_changed")]
+    MessagesChanged,
+    #[serde(rename = "model_changed")]
+    ModelChanged,
+    #[serde(rename = "previous_message_not_found")]
+    PreviousMessageNotFound,
+    #[serde(rename = "system_changed")]
+    SystemChanged,
+    #[serde(rename = "tools_changed")]
+    ToolsChanged,
+    Unavailable,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
@@ -2263,7 +3365,22 @@ pub struct RefusalStopDetails {
     pub refusal_stop_details_type: RefusalStopDetailsType,
 }
 
-/// The policy category that triggered a refusal.
+/// The request could enable cyber harm, such as malware or exploit development. Benign
+/// cybersecurity work can also trigger this category.
+///
+/// The request could enable biological harm, such as dangerous lab methods. Beneficial life
+/// sciences work can also trigger this category.
+///
+/// The request could assist the development of competing AI models, which is restricted
+/// under [Anthropic's commercial terms](https://www.anthropic.com/legal/commercial-terms).
+/// Benign machine learning work can also trigger this category.
+///
+/// The request asks the model to reproduce its internal reasoning in the response text. To
+/// get reasoning in a structured form instead, use [adaptive
+/// thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking).
+///
+/// The request could be related to an area that was determined as harmful. Benign work might
+/// sometimes trigger this category.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
@@ -2352,6 +3469,9 @@ pub struct Usage {
     /// If the request used the priority, standard, or batch tier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierServiceTier>,
+    /// The inference speed mode used for this request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed: Option<Speed>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
