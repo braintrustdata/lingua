@@ -7,8 +7,8 @@ import type { Part } from "./Part";
  * containing multi-part data that contains the content of the message turn.
  *
  * Optional. Developer set [system
- * instruction(s)](https://ai.google.dev/gemini-api/docs/system-instructions). Currently,
- * text only.
+ * instruction(s)](https://aistudio.google.com/docs/text-generation#system-instructions).
+ * Currently, text only.
  *
  * Output only. Generated content returned from the model.
  *

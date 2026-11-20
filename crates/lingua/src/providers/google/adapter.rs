@@ -1280,6 +1280,7 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::ToolType;
     use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
@@ -1525,6 +1526,112 @@ mod tests {
         assert_eq!(thinking_config.thinking_budget, None);
         assert_eq!(thinking_config.include_thoughts, Some(true));
         assert_eq!(thinking_config.thinking_level, Some(ThinkingLevel::Medium));
+    }
+
+    #[test]
+    fn test_google_thinking_level_xhigh_roundtrips() {
+        // Discovery revision 20261118 added XHIGH to `ThinkingConfig.thinkingLevel`.
+        // A native Google request carrying it must survive Google -> universal -> Google
+        // instead of being downgraded to HIGH.
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "model": "gemini-3.5-flash",
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Hello"}]
+            }],
+            "generationConfig": {
+                "thinkingConfig": {
+                    "includeThoughts": true,
+                    "thinkingLevel": "XHIGH"
+                }
+            }
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert_eq!(
+            universal.params.reasoning.as_ref().and_then(|r| r.effort),
+            Some(ReasoningEffort::Xhigh)
+        );
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        let thinking_config = reconstructed
+            .generation_config
+            .and_then(|config| config.thinking_config)
+            .expect("thinkingConfig should be present");
+
+        assert_eq!(thinking_config.thinking_level, Some(ThinkingLevel::Xhigh));
+    }
+
+    #[test]
+    fn test_google_thinking_level_xhigh_serializes_to_spec_value() {
+        let config = ThinkingConfig {
+            include_thoughts: Some(true),
+            thinking_budget: None,
+            thinking_level: Some(ThinkingLevel::Xhigh),
+        };
+        let value = serde_json::to_value(&config).unwrap();
+        assert_eq!(value["thinkingLevel"], json!("XHIGH"));
+
+        // Google also accepts the lowercase spelling on input (generator-added alias).
+        let parsed: ThinkingConfig =
+            serde_json::from_value(json!({"thinkingLevel": "xhigh"})).unwrap();
+        assert_eq!(parsed.thinking_level, Some(ThinkingLevel::Xhigh));
+    }
+
+    #[test]
+    fn test_google_thinking_level_xhigh_lowercase_alias_normalizes_to_canonical() {
+        // Callers sometimes send the lowercase spelling; it must reach the same
+        // universal effort and be re-emitted in the canonical spec casing.
+        let adapter = GoogleAdapter;
+        let universal = adapter
+            .request_to_universal(json!({
+                "model": "gemini-3.5-flash",
+                "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+                "generationConfig": {"thinkingConfig": {"thinkingLevel": "xhigh"}}
+            }))
+            .unwrap();
+        assert_eq!(
+            universal.params.reasoning.as_ref().and_then(|r| r.effort),
+            Some(ReasoningEffort::Xhigh)
+        );
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            reconstructed["generationConfig"]["thinkingConfig"]["thinkingLevel"],
+            json!("XHIGH")
+        );
+    }
+
+    #[test]
+    fn test_google_xhigh_effort_on_thinking_budget_model_emits_no_thinking_level() {
+        // gemini-2.5 is on the thinkingBudget style, which has no level ladder at
+        // all; the new Xhigh arm must not leak a thinkingLevel into it.
+        let adapter = GoogleAdapter;
+        let mut universal = adapter
+            .request_to_universal(json!({
+                "model": "gemini-2.5-flash",
+                "contents": [{"role": "user", "parts": [{"text": "Hello"}]}]
+            }))
+            .unwrap();
+        universal.params.reasoning = Some(ReasoningConfig {
+            enabled: Some(true),
+            effort: Some(ReasoningEffort::Xhigh),
+            ..Default::default()
+        });
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        let thinking_config = reconstructed
+            .generation_config
+            .and_then(|config| config.thinking_config)
+            .expect("thinkingConfig should be present");
+
+        assert_eq!(thinking_config.thinking_level, None);
+        assert_eq!(thinking_config.thinking_budget, Some(MIN_THINKING_BUDGET));
     }
 
     #[test]
@@ -2605,6 +2712,313 @@ mod tests {
                 }]
             })),
             "toolCall",
+        );
+    }
+
+    #[test]
+    fn test_google_media_processing_tool_call_native_passthrough() {
+        let part = json!({
+            "toolCall": {
+                "id": "srv_mp_1",
+                "toolType": "MEDIA_PROCESSING",
+                "toolName": "google_understanding_video",
+                "args": {"fileUri": "gs://b/v.mp4"}
+            }
+        });
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Describe the clip."}]},
+                    {"role": "model", "parts": [part.clone()]}
+                ]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "toolCall",
+        );
+    }
+
+    #[test]
+    fn test_google_media_processing_tool_response_native_passthrough() {
+        // The client echoes the hosted tool's result back as `toolResponse`; it is
+        // the other half of a Google-executed lifecycle and must be rejected, not
+        // quietly dropped.
+        let part = json!({
+            "toolResponse": {
+                "id": "srv_mp_1",
+                "toolType": "MEDIA_PROCESSING",
+                "toolName": "google_understanding_video",
+                "response": {"summary": "A cat."}
+            }
+        });
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Describe the clip."}]},
+                    {"role": "user", "parts": [part.clone()]}
+                ]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "toolResponse",
+        );
+    }
+
+    #[test]
+    fn test_google_tool_type_media_processing_deserializes_from_spec_value() {
+        // Nothing outside generated.rs references ToolType, so pin the wire value.
+        let parsed: ToolType = serde_json::from_value(json!("MEDIA_PROCESSING")).unwrap();
+        assert_eq!(parsed, ToolType::MediaProcessing);
+        assert_eq!(
+            serde_json::to_value(ToolType::MediaProcessing).unwrap(),
+            json!("MEDIA_PROCESSING")
+        );
+    }
+
+    #[test]
+    fn test_google_part_preprocessing_metadata_native_passthrough() {
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [{
+                    "role": "user",
+                    "parts": [{
+                        "inlineData": {"mimeType": "audio/mpeg", "data": "AAAA"},
+                        "audioMetadata": {"startOffset": "1s", "endOffset": "9s"}
+                    }]
+                }]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {
+                        "role": "model",
+                        "parts": [{
+                            "inlineData": {"mimeType": "audio/mpeg", "data": "AAAA"},
+                            "audioMetadata": {"startOffset": "1s"}
+                        }]
+                    }
+                }]
+            })),
+            "audioMetadata",
+        );
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [{
+                    "role": "user",
+                    "parts": [{
+                        "fileData": {"fileUri": "gs://b/d.pdf", "mimeType": "application/pdf"},
+                        "documentMetadata": {
+                            "contentLayers": ["PAGE_TEXT"],
+                            "startPage": 3,
+                            "endPage": 7
+                        }
+                    }]
+                }]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {
+                        "role": "model",
+                        "parts": [{
+                            "fileData": {"fileUri": "gs://b/d.pdf", "mimeType": "application/pdf"},
+                            "documentMetadata": {"contentLayers": ["PAGE_IMAGE"]}
+                        }]
+                    }
+                }]
+            })),
+            "documentMetadata",
+        );
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [{
+                    "role": "user",
+                    "parts": [{
+                        "fileData": {
+                            "fileUri": "gs://b/s.xlsx",
+                            "mimeType": "application/vnd.ms-excel"
+                        },
+                        "spreadsheetMetadata": {
+                            "contentLayers": ["DATA", "FORMULAS"],
+                            "sheetIndex": 1,
+                            "visibleCells": "A1:D10"
+                        }
+                    }]
+                }]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {
+                        "role": "model",
+                        "parts": [{
+                            "fileData": {
+                                "fileUri": "gs://b/s.xlsx",
+                                "mimeType": "application/vnd.ms-excel"
+                            },
+                            "spreadsheetMetadata": {"contentLayers": ["VISUAL"]}
+                        }]
+                    }
+                }]
+            })),
+            "spreadsheetMetadata",
+        );
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [{
+                    "role": "user",
+                    "parts": [{
+                        "fileData": {"fileUri": "gs://b/v.mp4", "mimeType": "video/mp4"},
+                        "videoMetadata": {
+                            "contentLayers": ["TRANSCRIPT"],
+                            "startOffset": "0s"
+                        }
+                    }]
+                }]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {
+                        "role": "model",
+                        "parts": [{
+                            "fileData": {"fileUri": "gs://b/v.mp4", "mimeType": "video/mp4"},
+                            "videoMetadata": {"contentLayers": ["AUDIO", "FRAMES"]}
+                        }]
+                    }
+                }]
+            })),
+            "videoMetadata.contentLayers",
+        );
+    }
+
+    #[test]
+    fn test_google_video_metadata_without_content_layers_still_converts() {
+        // Clipping and frame-rate members predate this revision and stay portable,
+        // so the new rejection must not widen to all of videoMetadata.
+        let adapter = GoogleAdapter;
+        let universal = adapter
+            .request_to_universal(json!({
+                "model": "gemini-3.5-flash",
+                "contents": [{
+                    "role": "user",
+                    "parts": [{
+                        "fileData": {"fileUri": "gs://b/v.mp4", "mimeType": "video/mp4"},
+                        "videoMetadata": {"startOffset": "0s", "endOffset": "5s", "fps": 2.0}
+                    }]
+                }]
+            }))
+            .expect("plain videoMetadata clipping must keep converting");
+        assert_eq!(universal.messages.len(), 1);
+    }
+
+    #[test]
+    fn test_google_function_response_media_parts_native_passthrough() {
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Chart it."}]},
+                    {"role": "user", "parts": [{
+                        "functionResponse": {
+                            "id": "call_1",
+                            "name": "render_chart",
+                            "response": {"output": "ok"},
+                            "parts": [{
+                                "fileData": {
+                                    "displayName": "chart.png",
+                                    "fileUri": "gs://b/chart.png",
+                                    "mimeType": "image/png"
+                                }
+                            }]
+                        }
+                    }]}
+                ]
+            })),
+            None,
+            "functionResponse.parts",
+        );
+    }
+
+    #[test]
+    fn test_google_function_response_blob_display_name_native_passthrough() {
+        // The `{"$ref": ...}` sentinel resolves server-side against the blob's
+        // display name; converting would leave the reference dangling.
+        let part = json!({
+            "functionResponse": {
+                "id": "call_1",
+                "name": "render_chart",
+                "response": {"image": {"$ref": "chart.png"}},
+                "parts": [{
+                    "inlineData": {
+                        "displayName": "chart.png",
+                        "mimeType": "image/png",
+                        "data": "AAAA"
+                    }
+                }]
+            }
+        });
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Chart it."}]},
+                    {"role": "user", "parts": [part.clone()]}
+                ]
+            })),
+            Some(json!({
+                "candidates": [{
+                    "index": 0,
+                    "content": {"role": "model", "parts": [part]}
+                }]
+            })),
+            "functionResponse.parts",
+        );
+    }
+
+    #[test]
+    fn test_google_function_response_without_parts_still_converts() {
+        let adapter = GoogleAdapter;
+        let universal = adapter
+            .request_to_universal(json!({
+                "model": "gemini-3.5-flash",
+                "contents": [
+                    {"role": "user", "parts": [{"text": "Chart it."}]},
+                    {"role": "user", "parts": [{
+                        "functionResponse": {
+                            "id": "call_1",
+                            "name": "render_chart",
+                            "response": {"output": "ok"}
+                        }
+                    }]}
+                ]
+            }))
+            .expect("a plain tool result must keep converting");
+        assert!(matches!(
+            universal.messages.last(),
+            Some(Message::Tool { .. })
+        ));
+    }
+
+    #[test]
+    fn test_google_audio_transcription_source_text_only_native_passthrough() {
+        // The whole struct is provider-only; locking a sourceText-only config
+        // guards against narrowing the reject to individual members.
+        assert_google_provider_only_passthrough(
+            Some(json!({
+                "contents": [{"role": "user", "parts": [{"text": "Rewrite it."}]}],
+                "generationConfig": {
+                    "audioTranscriptionConfig": {"sourceText": "the original line"}
+                }
+            })),
+            None,
+            "audioTranscriptionConfig",
         );
     }
 }

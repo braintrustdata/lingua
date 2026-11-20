@@ -4427,7 +4427,7 @@ exports[`anthropic → google > reasoningEffortMaxClampsToGpt5NanoParam > reques
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "HIGH",
+      "thinkingLevel": "XHIGH",
     },
   },
   "model": "gemini-3.5-flash",
@@ -4713,7 +4713,7 @@ exports[`anthropic → google > responsesReasoningEffortMaxParam > request 1`] =
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "HIGH",
+      "thinkingLevel": "XHIGH",
     },
   },
   "model": "gemini-3.5-flash",
@@ -35665,7 +35665,7 @@ exports[`responses → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > r
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "HIGH",
+      "thinkingLevel": "XHIGH",
     },
   },
   "model": "gemini-3.5-flash",
@@ -37093,7 +37093,7 @@ exports[`responses → google > openAIMultipleReasoningSignaturesReplayParam > r
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "HIGH",
+      "thinkingLevel": "XHIGH",
     },
   },
   "model": "gemini-3.5-flash",
@@ -38771,7 +38771,7 @@ exports[`responses → google > responsesGpt56ReasoningMaxProContextParam > requ
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "HIGH",
+      "thinkingLevel": "XHIGH",
     },
   },
   "model": "gemini-3.5-flash",
@@ -39014,7 +39014,7 @@ exports[`responses → google > responsesReasoningEffortMaxParam > request 1`] =
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "HIGH",
+      "thinkingLevel": "XHIGH",
     },
   },
   "model": "gemini-3.5-flash",

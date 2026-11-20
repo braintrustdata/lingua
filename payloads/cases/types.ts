@@ -9,13 +9,20 @@ import type {
 } from "@google/genai";
 import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
 
-// Google REST also accepts lowercase thinking levels absent from the SDK enum.
+// Google REST also accepts lowercase thinking levels absent from the SDK enum,
+// and XHIGH, which the Discovery spec exposes ahead of the SDK enum.
+type GoogleRestThinkingLevel =
+  | ThinkingLevel
+  | Lowercase<ThinkingLevel>
+  | "XHIGH"
+  | "xhigh";
+
 type GoogleRestGenerationConfig = Omit<
   GenerateContentConfig,
   "thinkingConfig"
 > & {
   thinkingConfig?: Omit<ThinkingConfig, "thinkingLevel"> & {
-    thinkingLevel?: ThinkingLevel | Lowercase<ThinkingLevel>;
+    thinkingLevel?: GoogleRestThinkingLevel;
   };
 };
 

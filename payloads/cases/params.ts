@@ -3470,6 +3470,22 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  thinkingLevelLowercaseXhighParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_3_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: "xhigh",
+        },
+      },
+    },
+    bedrock: null,
+  },
+
   thinkingLevelParam: {
     "chat-completions": null,
     responses: null,
@@ -3482,6 +3498,25 @@ export const paramsCases: TestCaseCollection = {
       generationConfig: {
         thinkingConfig: {
           thinkingLevel: ThinkingLevel.HIGH,
+          includeThoughts: true,
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  thinkingLevelXhighParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_3_MODEL,
+      contents: [
+        { role: "user", parts: [{ text: "Solve this complex problem." }] },
+      ],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: "XHIGH",
           includeThoughts: true,
         },
       },
