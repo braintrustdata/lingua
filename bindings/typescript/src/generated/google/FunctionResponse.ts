@@ -35,7 +35,7 @@ parts: Array<FunctionResponsePart> | null,
  * have an "error" key to return error details to the model. Multimedia can be included by
  * using a subobject containing a single "$ref" key whose value is the
  * `inline_data.display_name` of a `FunctionResponsePart` holding the multimedia. See
- * https://ai.google.dev/gemini-api/docs/function-calling#multimodal.
+ * https://aistudio.google.com/docs/function-calling#multimodal.
  */
 response: unknown, 
 /**
