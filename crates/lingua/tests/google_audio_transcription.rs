@@ -15,6 +15,18 @@ fn google_request_with_audio_transcription_config() -> Bytes {
     }))
 }
 
+fn google_request_with_transcription_source_text() -> Bytes {
+    to_bytes(json!({
+        "contents": [{"role": "user", "parts": [{"text": "Make it shorter."}]}],
+        "generationConfig": {
+            "audioTranscriptionConfig": {
+                "mode": "SMART",
+                "sourceText": "The original draft text."
+            }
+        }
+    }))
+}
+
 fn google_response_with_audio_transcription_part() -> Bytes {
     to_bytes(json!({
         "candidates": [{
@@ -65,6 +77,30 @@ fn google_audio_transcription_cross_provider_transform_is_unsupported() {
                 .expect_err("hosted transcription output has no cross-provider stream mapping");
         assert_unsupported(&error, "audioTranscription");
     }
+}
+
+#[test]
+fn google_audio_transcription_source_text_cross_provider_transform_is_unsupported() {
+    for target in [ProviderFormat::Anthropic, ProviderFormat::ChatCompletions] {
+        let error = lingua::transform_request(
+            google_request_with_transcription_source_text(),
+            target,
+            None,
+        )
+        .expect_err("hosted SMART transcription has no cross-provider mapping");
+        assert_unsupported(&error, "audioTranscriptionConfig");
+    }
+}
+
+#[test]
+fn google_audio_transcription_source_text_survives_native_passthrough() {
+    let request = google_request_with_transcription_source_text();
+    let result = lingua::transform_request(request.clone(), ProviderFormat::Google, None)
+        .expect("a native Google request must pass through");
+    let TransformResult::PassThrough(actual) = result.result else {
+        panic!("native Google requests must not be re-serialized");
+    };
+    assert_eq!(actual, request);
 }
 
 #[test]

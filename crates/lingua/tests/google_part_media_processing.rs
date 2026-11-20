@@ -40,6 +40,41 @@ fn google_response_with_media_processing() -> Bytes {
     }))
 }
 
+fn function_response_part_with_media_processing() -> serde_json::Value {
+    json!({
+        "functionResponse": {
+            "name": "fetch_clip",
+            "response": {"status": "ok"},
+            "parts": [{
+                "fileData": {"fileUri": "gs://bucket/clip.mp4", "mimeType": "video/mp4"},
+                "mediaProcessing": "AGENTIC"
+            }]
+        }
+    })
+}
+
+fn google_request_with_nested_media_processing() -> Bytes {
+    to_bytes(json!({
+        "contents": [{
+            "role": "user",
+            "parts": [function_response_part_with_media_processing()]
+        }]
+    }))
+}
+
+fn google_response_with_nested_media_processing() -> Bytes {
+    to_bytes(json!({
+        "candidates": [{
+            "index": 0,
+            "content": {
+                "role": "model",
+                "parts": [function_response_part_with_media_processing()]
+            },
+            "finishReason": "STOP"
+        }]
+    }))
+}
+
 fn assert_unsupported(error: &TransformError) {
     let TransformError::ToUniversalFailed(reason) = error else {
         panic!("expected a to-universal conversion failure, got {error:?}");
@@ -67,6 +102,28 @@ fn google_media_processing_cross_provider_transform_is_unsupported() {
 
         let error = lingua::transform_stream_chunk(google_response_with_media_processing(), target)
             .expect_err("provider media processing has no cross-provider stream mapping");
+        assert_unsupported(&error);
+    }
+}
+
+#[test]
+fn google_nested_function_response_media_processing_cross_provider_transform_is_unsupported() {
+    for target in [ProviderFormat::Anthropic, ProviderFormat::ChatCompletions] {
+        let error =
+            lingua::transform_request(google_request_with_nested_media_processing(), target, None)
+                .expect_err("nested provider media processing has no cross-provider mapping");
+        assert_unsupported(&error);
+
+        let error =
+            lingua::transform_response(google_response_with_nested_media_processing(), target)
+                .expect_err("nested provider media processing has no cross-provider mapping");
+        assert_unsupported(&error);
+
+        let error =
+            lingua::transform_stream_chunk(google_response_with_nested_media_processing(), target)
+                .expect_err(
+                    "nested provider media processing has no cross-provider stream mapping",
+                );
         assert_unsupported(&error);
     }
 }
