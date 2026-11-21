@@ -11,6 +11,52 @@ fn google_request_with_labels() -> Bytes {
     Bytes::from(serde_json::to_vec(&request).expect("request serializes"))
 }
 
+fn chat_completions_request_with_labels() -> Bytes {
+    let request = json!({
+        "model": "gemini-2.5-flash",
+        "messages": [{"role": "user", "content": "Hello"}],
+        "labels": {"bt_project": "openai-format", "team": "cx"}
+    });
+
+    Bytes::from(serde_json::to_vec(&request).expect("request serializes"))
+}
+
+#[test]
+fn chat_completions_labels_reach_google_request() {
+    let result = lingua::transform_request(
+        chat_completions_request_with_labels(),
+        ProviderFormat::Google,
+        None,
+    )
+    .expect("Chat Completions billing labels should reach Google");
+
+    let TransformResult::Transformed { bytes, .. } = result.result else {
+        panic!("expected a Google request transform");
+    };
+    let actual: serde_json::Value =
+        serde_json::from_slice(&bytes).expect("Google request serializes");
+    assert_eq!(
+        actual,
+        json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "model": "gemini-2.5-flash",
+            "labels": {"bt_project": "openai-format", "team": "cx"}
+        })
+    );
+}
+
+#[test]
+fn chat_completions_labels_survive_native_passthrough() {
+    let request = chat_completions_request_with_labels();
+    let result = lingua::transform_request(request.clone(), ProviderFormat::ChatCompletions, None)
+        .expect("native Chat Completions request must pass through");
+
+    let TransformResult::PassThrough(actual) = result.result else {
+        panic!("native Chat Completions request must not be re-serialized");
+    };
+    assert_eq!(actual, request);
+}
+
 #[test]
 fn google_request_labels_cross_provider_transform_is_unsupported() {
     for target in [ProviderFormat::Anthropic, ProviderFormat::ChatCompletions] {

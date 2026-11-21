@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That depends on what’s on your mind! Here are a few options depending on your mood:\n\n1.  **Productivity:** Tell me a task you’ve been putting off, and I’ll help you break it down into tiny, easy steps.\n2.  **Learning:** Pick a random topic (like black holes, how tea is made, or the Roman Empire) and I'll give you a 60-second summary.\n3.  **Entertainment:** Ask me for a riddle, a short story prompt, or a movie recommendation.\n4.  **Utility:** Ask me to help you draft an email, plan a meal with ingredients you have, or organize your schedule.\n\n**What’s your goal for the next 30 minutes?**",
+            "thoughtSignature": "EmUKYwFpFH0TwiwnGz28WgqCuzYyU48OQ0unnTtYdCTgmVYyLNkD1Pjrf8aTLbDVfyhxD81FFX35HdviET9bpACXidvHioQsbGKi+kvo5odwHNmWRa4y41fUYCQKzKYc71ezlHz49g=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 14,
+    "candidatesTokenCount": 162,
+    "totalTokenCount": 176,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 14
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3-flash-preview",
+  "responseId": "BcXMateLKOGO39IP-6eEsAY"
+}

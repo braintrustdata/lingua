@@ -45,6 +45,11 @@ use serde::{Deserialize, Serialize};
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
 
+#[derive(Deserialize)]
+struct ChatCompletionsLabelsView {
+    labels: Option<std::collections::BTreeMap<String, String>>,
+}
+
 fn validate_system_messages_have_no_audio(messages: &[Message]) -> Result<(), TransformError> {
     if messages.iter().any(|message| {
         matches!(
@@ -404,6 +409,22 @@ impl ProviderAdapter for GoogleAdapter {
             serde_json::to_value(google_contents)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
+
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::ChatCompletions) {
+            let view: ChatCompletionsLabelsView =
+                serde_json::from_value(Value::Object(extras.clone())).map_err(|e| {
+                    TransformError::FromUniversalFailed(format!(
+                        "invalid Chat Completions extras: {e}"
+                    ))
+                })?;
+            if let Some(labels) = view.labels {
+                obj.insert(
+                    "labels".into(),
+                    serde_json::to_value(labels)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
+        }
 
         let service_tier =
             req.params

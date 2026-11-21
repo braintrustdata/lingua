@@ -1,21 +1,26 @@
 mod stream;
 #[cfg(test)]
 mod tests;
+mod voice;
 pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };
 
-use crate::processing::import::{is_instruction, ImportedSpan, OpaqueItem, SpanContext};
+use crate::processing::import::{
+    is_instruction, ImportedSpan, OpaqueItem, SpanContext, VoicePayload,
+};
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    Agent, AgentResponse, LLMAnalysis, Scope, ToolResult, Trajectory, Turn, Work, WorkStep,
+    Agent, AgentResponse, LLMAnalysis, Recording, Scope, ToolResult, Trajectory, Turn, Work,
+    WorkStep,
 };
 use crate::universal::{AssistantContent, AssistantContentPart, Message};
 use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::sync::Arc;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -46,6 +51,7 @@ impl ImportFailure {
 pub struct PreparedSpan {
     id: String,
     root_span_id: String,
+    group_root_span_id: Option<Arc<str>>,
     span_id: String,
     start: DateTime<Utc>,
     source: SpanContext,
@@ -60,6 +66,7 @@ pub struct PreparedSpan {
     tool_result: Option<ToolResult>,
     failure: Option<ImportFailure>,
     warnings: Vec<String>,
+    voice: VoicePayload,
 }
 
 #[derive(Debug, Clone)]
@@ -138,6 +145,7 @@ impl PreparedSpan {
         Ok(Self {
             id,
             root_span_id,
+            group_root_span_id: None,
             span_id,
             start,
             source,
@@ -152,6 +160,7 @@ impl PreparedSpan {
             tool_result: span.tool_result,
             failure,
             warnings: span.warnings,
+            voice: span.voice,
         })
     }
 
@@ -163,6 +172,13 @@ impl PreparedSpan {
         self.usage = None;
         self.tool_result = None;
         self.source.error = None;
+        self.voice = VoicePayload::default();
+    }
+
+    fn trajectory_root_span_id(&self) -> &str {
+        self.group_root_span_id
+            .as_deref()
+            .unwrap_or(&self.root_span_id)
     }
 
     fn current_input(&self, initial_request: bool) -> impl Iterator<Item = &RequestMessage> {
@@ -270,6 +286,7 @@ fn message_keys(messages: &[Message]) -> Vec<u64> {
 #[derive(Clone, Default)]
 struct Ownership {
     turn: Option<String>,
+    voice_turn: Option<String>,
     tool: Option<usize>,
     compaction: Option<usize>,
     skipped: bool,
@@ -301,6 +318,9 @@ fn ownership(
     }
     if span.source.turn.is_some() {
         result.turn.clone_from(&span.source.turn);
+    }
+    if span.source.voice.turn_id.is_some() {
+        result.voice_turn.clone_from(&span.source.voice.turn_id);
     }
     if result.compaction.is_none() && span.source.compaction.is_some() {
         result.compaction = Some(index);

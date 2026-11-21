@@ -12338,6 +12338,85 @@ exports[`chat-completions → anthropic > toolChoiceRequiredWithReasoningParam >
 }
 `;
 
+exports[`chat-completions → anthropic > toolSchemaPropertyOrderParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Select Clear and explain why.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "name": "select_choice",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "choice": {
+            "enum": [
+              "Hold",
+              "Clear",
+            ],
+            "type": "string",
+          },
+          "reasons": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "reasons",
+          "choice",
+        ],
+        "type": "object",
+      },
+      "name": "select_choice",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > toolSchemaPropertyOrderParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"choice":"Clear","reasons":"I'm selecting Clear as requested. This option typically indicates clearing data, resetting a form, removing content, or starting fresh with a blank state. Without additional context about what system or interface this pertains to, I'm following your direct instruction to select Clear. This action would remove or reset whatever content, selections, or data is currently present in the system."}",
+              "name": "select_choice",
+            },
+            "id": "toolu_01SVryJFscu4os7gKvHcrmar",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011Ch9aE1hxhBGbciy3hTB6y",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 121,
+    "prompt_tokens": 678,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 799,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > topPParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -15577,6 +15656,91 @@ exports[`chat-completions → bedrock > toolChoiceRequiredWithReasoningParam > r
 }
 `;
 
+exports[`chat-completions → bedrock > toolSchemaPropertyOrderParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Select Clear and explain why.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": null,
+          "inputSchema": {
+            "json": {
+              "additionalProperties": false,
+              "properties": {
+                "choice": {
+                  "enum": [
+                    "Hold",
+                    "Clear",
+                  ],
+                  "type": "string",
+                },
+                "reasons": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "reasons",
+                "choice",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "select_choice",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > toolSchemaPropertyOrderParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"choice":"Clear","reasons":"Clear is selected to remove any existing content, settings, or data that may be obsolete, redundant, or no longer needed. This action helps maintain a clean slate, improves system performance by removing clutter, and allows for a fresh start. Clearing ensures that old or unnecessary information doesn't interfere with current operations or create confusion going forward."}",
+              "name": "select_choice",
+            },
+            "id": "tooluse_i9TrJX9jv62kGyMDD9slEk",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 141,
+    "prompt_tokens": 581,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 722,
+  },
+}
+`;
+
 exports[`chat-completions → bedrock > topPParam > request 1`] = `
 {
   "inferenceConfig": {
@@ -16095,6 +16259,54 @@ exports[`chat-completions → google > chatCompletionsUrlBackedVideoFileParam > 
     },
     "prompt_tokens": 551,
     "total_tokens": 858,
+  },
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsVertexLabelsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Hello",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "labels": {
+    "bt_project": "openai-format",
+    "team": "cx",
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsVertexLabelsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 197,
+    "completion_tokens_details": {
+      "reasoning_tokens": 188,
+    },
+    "prompt_tokens": 2,
+    "total_tokens": 199,
   },
 }
 `;
@@ -19415,6 +19627,99 @@ Okay, here's the situation: the user needs the weather for Tokyo. Thankfully, I 
 }
 `;
 
+exports[`chat-completions → google > toolSchemaPropertyOrderParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Select Clear and explain why.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "allowedFunctionNames": [
+        "select_choice",
+      ],
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "select_choice",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "choice": {
+                "enum": [
+                  "Hold",
+                  "Clear",
+                ],
+                "type": "string",
+              },
+              "reasons": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "reasons",
+              "choice",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolSchemaPropertyOrderParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning_signature": "EsgECsUEAWkUfRNgg5JTHBGB3rRBUdSs8frnidI5mbspEPWaxcefAfxV7PUvNyFoa3y8m+CbXyOWQYiHuVwbIdGLDs472kD6ikbDzMtk8swyU7RaqdbXomq8R864UJ8VccSQsh8WEN49MMV1/wWMerQOgn62aJOQuMarNhNeOeTF5z9ENVwIISl8Zk2VCO1I0BaEt9gVIqN346lI8+GtwqKyvG88YWhiSvxHXN5w4kAResVuBrHqTZ+hzENkEq/z+KOD+UUM7nMRyIvbM2o9jXHbgRKeetYKltBHaMuVj762ryn0KTcyTHykk3rX/BZBLmQZtVO+QUWQpW4/VZC3TYRGA3ug9+4TJy6ISvSY0aIVrTMhfV9dYOaDhC5pomn22PAJZO2YuEzeBsVlxtKHtZV0BOxNsB7rsPSGialuT/zw2f070PmDpkuVPL3/XlWwTWtNQqua8YNNra987XHF1LKCAhOiZFs10icmzz7vXVn/wEkVGI5SK73Lm55ItgkWMCqXvOLsP4Jeg5IKOhyL8Yb0IvMxbl/bUzVoFO+ciejHf10Q0s3fFCqjEmjWPkloEZRmpednaoia2eGSHQm37htfCDw7RWV1yWfOL3HfjmFp7sDkOzLEWcPv26rbH9lXS4I3/ZVCtQQILgZEZk2ckjPT0hJI7r7JGFrAdKkidMIbTlm+lWCwHXSKrAJrGsaW8uIMga42exy6iXh7OpqIWpZGQWJdvlvMcYmmbp/qwznT4kjAjQQtqRoZOgKn6tGBwjHUqEcPcjNgT40=",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"reasons":"The option 'Clear' was explicitly selected as requested by the user to execute the clearing action.","choice":"Clear"}",
+              "name": "select_choice",
+            },
+            "id": "call_2818441627186270423",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 152,
+    "completion_tokens_details": {
+      "reasoning_tokens": 111,
+    },
+    "prompt_tokens": 69,
+    "total_tokens": 221,
+  },
+}
+`;
+
 exports[`chat-completions → google > topPParam > request 1`] = `
 {
   "contents": [
@@ -22642,6 +22947,87 @@ exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam >
 }
 `;
 
+exports[`chat-completions → responses > toolSchemaPropertyOrderParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Select Clear and explain why.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "tool_choice": {
+    "name": "select_choice",
+    "type": "function",
+  },
+  "tools": [
+    {
+      "name": "select_choice",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "choice": {
+            "enum": [
+              "Hold",
+              "Clear",
+            ],
+            "type": "string",
+          },
+          "reasons": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "reasons",
+          "choice",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > toolSchemaPropertyOrderParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"reasons":"The user explicitly requested selecting Clear.","choice":"Clear"}",
+              "name": "select_choice",
+            },
+            "id": "call_kVfGo6mD6Xlvt6Lxi4kAtkT5",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-05ef258e96e2c891016afd07bfe58887d09cdd366b6bf16465",
+  "model": "gpt-5.6-terra",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "usage": {
+    "completion_tokens": 28,
+    "prompt_tokens": 51,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 79,
+  },
+}
+`;
+
 exports[`chat-completions → responses > topPParam > request 1`] = `
 {
   "input": [
@@ -24647,6 +25033,206 @@ exports[`google → anthropic > textFormatJsonSchemaWithDescriptionParam > respo
     "promptTokenCount": 177,
     "serviceTier": "standard",
     "totalTokenCount": 189,
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseHighParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 3072,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseHighParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to say "ok". This is a simple, straightforward request that doesn't involve anything harmful or problematic. I'll respond with "ok" as requested.",
+            "thought": true,
+            "thoughtSignature": "EsUDCroBCBIYAipAPoyOpu0YZ0/vdBwRVqQDiWkLv+bTzZUyUv9nAxL9A87CEKj4T80ShExuX5mkEWLhRvCyqmtcedhKxiwQnLjIEDIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAamMs9YGEgytWJX30vNXXlhx0oIaDBjsTEDquVpLfYpBtiIwTSPxF9zc7nvWNJQcWVq3sq75CVAlHcXGASb2OTzGV/BPNF2XOf9UmOiflKYGlUslKrcBNJTjfcvQ4pG+IrVqluoz8zBvxXX/qopBy8DLm0AkKddH1TIVCGTlDh+/jRVHP/IFuBCwwLwWkSB4rFvTsDZRkFG99cwJeSuTuM+lYSbpoMvnAczS7W00PRDU9S3XbeguMNt+x7GMCC14pr9QRojgOcayfek3IbQ2I4wG2oZn5mctXuUolEDDiqTcWR/J4uxe2SbPv4G/gV6s+M4CJYsbmalMTBxcbm4wR6Ve6AkwrruKDq0ZGy9/GAE=",
+          },
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 7,
+    "promptTokenCount": 39,
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 43,
+    "totalTokenCount": 89,
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseLowParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseLowParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to say "ok". This is a simple, straightforward request with no harmful content or issues. I'll comply with this request.",
+            "thought": true,
+            "thoughtSignature": "EqwDCroBCBIYAipAPXt0Gpszq8EPv9mPt6fdI1B2QdnTBbQoYDfoHruw1gC1njsVuKkB+64ODUQAYy0AAce8B0nlECtH8SNniwHy9zIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAamMs9YGEgwkrmycmL1/gSSdVeQaDKEgcJk/daIg/JDBcCIwx/n5gzuG6ieQkzPiIULk/gVFAkwG8obQlXjBG4oMO1njuaEg1EleH4dMgJNXXRYRKp4B98CV3a8jG3xQF4N80im7m5ahz+Tz41Dv85cobJArVsSox364o0gZgbkl269UZTy7/dJu6G8M8hWdmgir4eNJX79+q2B+P6yhF2VWcsNkTSJ10+LLHlpB0Y3y8Ip5zuPNhEdScszaHqF7+ojNbCu/fwSANLV7NFyp2lS/OEM9zGP/50cbGgHnvy2FcQrKuzNclt/34epXUWsrY8R7MqkYAQ==",
+          },
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 7,
+    "promptTokenCount": 39,
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 37,
+    "totalTokenCount": 83,
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseMediumParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 2048,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseMediumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to say "ok". This is a simple, straightforward request that doesn't involve anything harmful or problematic. I'll simply respond with "ok" as requested.",
+            "thought": true,
+            "thoughtSignature": "EswDCroBCBIYAipAb5xu5xrnAYEG1XihhV0Fg35FzeIqEYWmofwg41d9B3+mcrJ8S669Hq9cYIFhGd9pfGY/9XJfQfAIMEdI0REMZDIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAaqMs9YGEgyUMXbPGnx9VrDTSbIaDAnG++Tqjjn+XJ7qHyIwr1GvdMLIsWFZSP2wA3Y0WiF+hPvxGjDu9J6GipQOH7viQ0xFGcx55vI4TvI4rJ+oKr4BPAjqRtjuDhogX0+nV68xce8iSJRe8PO6AVurKk6nTj7vQhu8zROrIgWvJDZuJ1JpyHR/JGQvzplKL2BBij3c76GUDN1srx1zp5E/F4aO39RbEpek44ifmepRJ4/r687BQHk0UORVSl7mD+n4Vk4cGa+XOLlxVqfcfNKVoxJyR626qLWeN3Y3wD3+o/2XsEtcNU2rWoxjkqa/eLRiZpWnHxBX4MRVravPgOa4rZXBA2qhtLfGAS/32/ixrZ2FlRgB",
+          },
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 7,
+    "promptTokenCount": 39,
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 44,
+    "totalTokenCount": 90,
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseMinimalParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelLowercaseMinimalParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to say "ok". This is a simple, straightforward request that doesn't involve anything harmful or problematic. I'll simply respond with "ok" as requested.",
+            "thought": true,
+            "thoughtSignature": "EswDCroBCBIYAipAb5xu5xrnAYEG1XihhV0Fg35FzeIqEYWmofwg41d9B3+mcrJ8S669Hq9cYIFhGd9pfGY/9XJfQfAIMEdI0REMZDIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNZoBHAoaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5MjmoAaqMs9YGEgwe4hRkOkix+9Or6mEaDL4SUVx8qVGa+kpJhCIwPSYelQ+jbvLPtE7Mj8uKpJKVWg+VC0k7j/jkG4eXDuhG7rnXyoOw0ZV2Ct6tU6IGKr4B6eYLSANsVnejmkozzi4KPCikXR82OLSwtghW/Jw6oPcPUEVtSYrHYnBTg13p3xrptKcALUkdi57ILNeYqksOgxObPeOJphyTHSLd2mdOvvmbRtdDXqeF9eU0THyEkdBFd2eDkDsyZRGhEp9OsmdJ++9ggYGLTnSEXKgZj5unHwYkwjPdhfBEIOgm6uViLJHC6T7WLtpUEjB5rESOVmHmZ+r4ROHS7ZsT40cbF/z910k8Z0jn+cHySLtlYgihExgB",
+          },
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 7,
+    "promptTokenCount": 39,
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 44,
+    "totalTokenCount": 90,
   },
 }
 `;
@@ -27345,6 +27931,164 @@ exports[`google → chat-completions > textFormatJsonSchemaWithDescriptionParam 
 }
 `;
 
+exports[`google → chat-completions > thinkingLevelLowercaseHighParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseHighParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 448,
+    "totalTokenCount": 468,
+  },
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseLowParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "low",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseLowParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "totalTokenCount": 20,
+  },
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseMediumParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "medium",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseMediumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 212,
+  },
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseMinimalParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "minimal",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelLowercaseMinimalParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Ok.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "totalTokenCount": 20,
+  },
+}
+`;
+
 exports[`google → chat-completions > thinkingLevelParam > request 1`] = `
 {
   "messages": [
@@ -29956,6 +30700,174 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > respo
     "promptTokenCount": 41,
     "thoughtsTokenCount": 384,
     "totalTokenCount": 448,
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseHighParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseHighParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 9,
+    "totalTokenCount": 14,
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseLowParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "low",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseLowParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 9,
+    "totalTokenCount": 14,
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseMediumParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "medium",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseMediumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 9,
+    "totalTokenCount": 14,
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseMinimalParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "low",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelLowercaseMinimalParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 9,
+    "totalTokenCount": 14,
   },
 }
 `;
@@ -33017,7 +33929,7 @@ exports[`responses → anthropic > responsesFunctionCallOutputWithoutThoughtSign
     {
       "content": [
         {
-          "content": "[{"text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}","type":"text"}]",
+          "content": "[{"type":"text","text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}"}]",
           "tool_use_id": "6k7x6c84",
           "type": "tool_result",
         },

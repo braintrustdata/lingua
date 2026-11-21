@@ -1,13 +1,29 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import type { Content, GenerateContentConfig, Tool } from "@google/genai";
+import type {
+  Content,
+  GenerateContentConfig,
+  ThinkingConfig,
+  ThinkingLevel,
+  Tool,
+} from "@google/genai";
 import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
 
-// Google Gemini API request type (matching the js-genai library)
+// Google REST also accepts lowercase thinking levels absent from the SDK enum.
+type GoogleRestGenerationConfig = Omit<
+  GenerateContentConfig,
+  "thinkingConfig"
+> & {
+  thinkingConfig?: Omit<ThinkingConfig, "thinkingLevel"> & {
+    thinkingLevel?: ThinkingLevel | Lowercase<ThinkingLevel>;
+  };
+};
+
+// Google Gemini API request type, including REST enum aliases.
 export interface GoogleGenerateContentRequest {
   model?: string;
   contents: Content[];
-  generationConfig?: GenerateContentConfig;
+  generationConfig?: GoogleRestGenerationConfig;
   tools?: Tool[];
   toolConfig?: Record<string, unknown>;
   systemInstruction?: Content;
@@ -227,6 +243,16 @@ export interface TestCase {
   // Decision models answer typed questions instead of generating text.
   decisions?: DecisionsRequest | null;
   typesafe?: SystemOneRequest | null;
+  // Limit a provider-specific case to the transform targets it exercises.
+  transformTargets?: Array<
+    | "chat-completions"
+    | "responses"
+    | "anthropic"
+    | "google"
+    | "bedrock"
+    | "vertex-anthropic"
+    | "baseten"
+  >;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
 }

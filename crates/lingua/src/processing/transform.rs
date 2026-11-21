@@ -1122,6 +1122,41 @@ mod tests {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
     }
 
+    #[test]
+    fn transform_request_preserves_tool_schema_property_order() {
+        let input = Bytes::from_static(
+            br#"{
+                "model":"gpt-5.6-luna",
+                "messages":[{"role":"user","content":"Classify this message."}],
+                "tools":[{
+                    "type":"function",
+                    "function":{
+                        "name":"select_choice",
+                        "parameters":{
+                            "type":"object",
+                            "properties":{
+                                "reasons":{
+                                    "type":"object",
+                                    "properties":{
+                                        "zeta":{"type":"string"},
+                                        "alpha":{"type":"string"}
+                                    }
+                                },
+                                "choice":{"type":"string"}
+                            },
+                            "required":["reasons","choice"]
+                        }
+                    }
+                }]
+            }"#,
+        );
+        let transformed = transform_request(input, ProviderFormat::Responses, None).unwrap();
+        let output = std::str::from_utf8(transformed.as_bytes()).unwrap();
+
+        assert!(output.contains(r#""properties":{"reasons":"#), "{output}");
+        assert!(output.contains(r#""properties":{"zeta":"#), "{output}");
+    }
+
     fn assert_requires_json_response(
         payload: Value,
         provider: ProviderFormat,

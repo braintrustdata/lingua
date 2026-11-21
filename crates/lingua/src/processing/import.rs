@@ -2,6 +2,9 @@ use crate::import_parse::{try_parsers_in_order, MessageParser};
 use crate::import_value::Field;
 pub use crate::import_value::{ImportValue, InputKind};
 mod ai_sdk;
+mod audio;
+#[cfg(feature = "bedrock")]
+mod bedrock;
 pub use ai_sdk::try_import_ai_sdk_prompt_message;
 mod langchain;
 mod pydantic_ai;
@@ -35,6 +38,7 @@ use crate::universal::{
     AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
+pub use audio::{VoiceContext, VoicePayload};
 use serde::{Deserialize, Serialize};
 pub use span::{
     import_span, import_span_with_options, ImportedSpan, SpanContext, TRAJECTORY_METADATA_FIELDS,
@@ -279,6 +283,8 @@ fn provider_parsers_for_import<'a, V: ImportValue + 'a>() -> &'a [MessageParser<
         try_parse_anthropic_for_import,
         #[cfg(feature = "google")]
         try_parse_google_for_import,
+        #[cfg(feature = "bedrock")]
+        bedrock::try_parse_bedrock_trace_for_import,
         #[cfg(feature = "bedrock")]
         try_parse_bedrock_for_import,
     ]
@@ -1017,6 +1023,19 @@ struct SpanMessages {
     warnings: Vec<String>,
 }
 
+fn try_system_message_from_metadata(metadata: &impl ImportValue) -> Option<Message> {
+    #[cfg(feature = "openai")]
+    if let Some(message) = try_system_message_from_openai_metadata(metadata) {
+        return Some(message);
+    }
+    #[cfg(feature = "bedrock")]
+    if let Some(message) = bedrock::try_system_message_from_strands_metadata(metadata) {
+        return Some(message);
+    }
+    let _ = metadata;
+    None
+}
+
 /// Import a span's input and output messages, preserving their boundary and parse errors.
 ///
 /// Both structured span imports and message-only imports use this conversion path to
@@ -1098,8 +1117,7 @@ fn import_span_messages(
         Some(output) => parse(output, "output", &mut import),
         None => Vec::new(),
     };
-    #[cfg(feature = "openai")]
-    if let Some(message) = metadata.and_then(try_system_message_from_openai_metadata) {
+    if let Some(message) = metadata.and_then(try_system_message_from_metadata) {
         if !input
             .iter()
             .any(|message| matches!(message, Message::System { .. }))
@@ -1163,8 +1181,7 @@ pub fn import_messages_from_values_with_metadata<I: ImportValue, O: ImportValue,
     } else {
         parse(input, &mut import)
     };
-    #[cfg(feature = "openai")]
-    if let Some(message) = metadata.and_then(try_system_message_from_openai_metadata) {
+    if let Some(message) = metadata.and_then(try_system_message_from_metadata) {
         if !input
             .iter()
             .any(|message| matches!(message, Message::System { .. }))

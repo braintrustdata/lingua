@@ -1,0 +1,65 @@
+{
+  "spans": [
+    {
+      "id": "session",
+      "span_id": "session",
+      "root_span_id": "root",
+      "span_attributes": {"type": "task", "name": "session"},
+      "metrics": {"start": 0, "end": 10},
+      "metadata": {"audio.schema.version": "3.0.0", "audio.timeline": {"origin_unix_ms": 0}, "audio.sources": {}, "audio.segments": {}}
+    },
+    {
+      "id": "agent",
+      "span_id": "agent",
+      "root_span_id": "root",
+      "span_parents": ["session"],
+      "span_attributes": {"type": "task", "name": "agent_turn"},
+      "metrics": {"start": 2, "end": 5},
+      "metadata": {"turn.id": "agent"}
+    },
+    {
+      "id": "spoken",
+      "span_id": "spoken",
+      "root_span_id": "root",
+      "span_parents": ["agent"],
+      "span_attributes": {"type": "task", "name": "agent_speech"},
+      "metrics": {"start": 3, "end": 4},
+      "output": [{"role": "assistant", "content": "Hello"}]
+    },
+    {
+      "id": "unowned",
+      "span_id": "unowned",
+      "root_span_id": "root",
+      "span_parents": ["session"],
+      "span_attributes": {"type": "tool", "name": "lookup_order"},
+      "metrics": {"start": 3, "end": 4},
+      "metadata": {},
+      "input": {"order_id": "123"},
+      "output": {"status": "found"}
+    },
+    {
+      "id": "unresolved",
+      "span_id": "unresolved",
+      "root_span_id": "root",
+      "span_parents": ["session"],
+      "span_attributes": {"type": "tool", "name": "lookup_order"},
+      "metrics": {"start": 3, "end": 4},
+      "metadata": {"turn.id": "missing"},
+      "input": {"order_id": "123"},
+      "output": {"status": "found"}
+    },
+    {
+      "id": "invalid",
+      "span_id": "invalid",
+      "root_span_id": "root",
+      "span_parents": ["session"],
+      "span_attributes": {"type": "tool", "name": "lookup_order"},
+      "metrics": {"start": 3, "end": 4},
+      "metadata": {"turn.id": "session"},
+      "input": {"order_id": "123"},
+      "output": {"status": "found"}
+    }
+  ],
+  "turns": [{"request_id": "agent", "response_id": "spoken", "response_text": "Hello", "work_ids": [], "user_texts": []}],
+  "import_failures": [{"span_id": "invalid", "message": "turn.id session is not a user or agent turn"}, {"span_id": "unresolved", "message": "Unresolved turn.id missing"}]
+}

@@ -1,0 +1,128 @@
+{
+  "id": "resp_05ef258e96e2c891016afd07bfe58887d09cdd366b6bf16465",
+  "object": "response",
+  "created_at": 1794967487,
+  "status": "completed",
+  "access_programs": null,
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1794967489,
+  "error": null,
+  "frequency_penalty": 0,
+  "image": {
+    "context_compression": "disabled"
+  },
+  "incomplete_details": null,
+  "input_transformations": [],
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "fc_05ef258e96e2c891016afd07c0e46087d0ae31c3fc1ab6f55b",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"reasons\":\"The user explicitly requested selecting Clear.\",\"choice\":\"Clear\"}",
+      "call_id": "call_kVfGo6mD6Xlvt6Lxi4kAtkT5",
+      "name": "select_choice"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": {
+    "type": "function",
+    "name": "select_choice"
+  },
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [
+    {
+      "type": "function",
+      "description": null,
+      "name": "select_choice",
+      "output_schema": null,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reasons": {
+            "type": "string"
+          },
+          "choice": {
+            "type": "string",
+            "enum": [
+              "Hold",
+              "Clear"
+            ]
+          }
+        },
+        "required": [
+          "reasons",
+          "choice"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 51,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cache_write_tokens_details": {
+        "ttl_12h_tokens": 0,
+        "ttl_30m_tokens": 0
+      },
+      "cached_tokens": 0
+    },
+    "output_tokens": 28,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 79
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}

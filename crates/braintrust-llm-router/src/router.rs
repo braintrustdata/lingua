@@ -1481,6 +1481,7 @@ fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
         "ANTHROPIC_API_KEY" => Some("anthropic"),
         "GEMINI_API_KEY" => Some("google"),
         "MISTRAL_API_KEY" => Some("mistral"),
+        "OPENROUTER_API_KEY" => Some("openrouter"),
         "AWS_DEFAULT_CREDENTIALS" => Some("bedrock"),
         "GOOGLE_DEFAULT_CREDENTIALS" => Some("vertex"),
         "AZURE_DEFAULT_CREDENTIALS" => Some("azure"),
@@ -4574,6 +4575,71 @@ mod tests {
     }
 
     #[test]
+    fn overlay_catalog_failover_prefers_configured_bedrock_profile() {
+        let base = Arc::new(
+            ModelCatalog::from_json_str(
+                r#"{
+  "claude-opus-5-5": {
+    "format": "anthropic", "flavor": "chat",
+    "fallback_models": ["anthropic.claude-opus-5-5", "eu.anthropic.claude-opus-5-5"]
+  },
+  "anthropic.claude-opus-5-5": {
+    "format": "anthropic", "flavor": "chat", "available_providers": ["bedrock"]
+  },
+  "eu.anthropic.claude-opus-5-5": {
+    "format": "anthropic", "flavor": "chat", "available_providers": ["bedrock"]
+  }
+}"#,
+            )
+            .expect("base catalog parses"),
+        );
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec("failover-drill", ModelFlavor::Chat);
+        primary.available_providers = vec!["primary".to_string()];
+        custom.insert("failover-drill".into(), primary);
+        custom
+            .add_external_fallback_models(
+                "failover-drill".to_string(),
+                vec!["eu.anthropic.claude-opus-5-5".to_string()],
+            )
+            .expect("fallback is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(base, custom)
+            .add_provider(
+                "primary",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "bedrock",
+                FakeProvider {
+                    name: "bedrock",
+                    formats: vec![ProviderFormat::BedrockAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                "failover-drill",
+                ProviderFormat::ChatCompletions,
+                &["primary".to_string(), "bedrock".to_string()],
+            )
+            .expect("failover routes resolve");
+        assert_eq!(routes.len(), 2);
+        assert_eq!(routes[1].provider_alias(), "bedrock");
+        assert_eq!(routes[1].model(), "eu.anthropic.claude-opus-5-5");
+    }
+
+    #[test]
     fn resolved_aliases_returns_only_registered_available_providers() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
@@ -4755,6 +4821,38 @@ mod tests {
             )
             .expect("routes"),
             vec!["my-openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn fallback_provider_routes_match_named_openrouter_secret_for_default_alias() {
+        let model = "gpt-6.1-terra";
+        let mut catalog = ModelCatalog::empty();
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["OPENROUTER_API_KEY".into()];
+        catalog.insert(model.into(), spec);
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "my-openrouter",
+                FakeOpenAICompatibleProvider {
+                    alias: "openrouter",
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["my-openrouter"]
+            )
+            .expect("routes"),
+            vec!["my-openrouter".to_string()]
         );
     }
 

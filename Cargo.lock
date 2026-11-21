@@ -608,6 +608,7 @@ name = "braintrust_serde_json"
 version = "1.0.145"
 source = "git+https://github.com/braintrustdata/serde-json.git?rev=905b790b50e8922370f3e73ef93d7d5fb7010edc#905b790b50e8922370f3e73ef93d7d5fb7010edc"
 dependencies = [
+ "indexmap 2.11.0",
  "itoa",
  "memchr",
  "ryu",

@@ -59,8 +59,17 @@ impl Default for ClientSettings {
     }
 }
 
+/// Starts a reqwest builder pinned to rustls.
+///
+/// reqwest defaults to native-tls whenever any crate in the build enables its
+/// `default-tls` feature, and native-tls loads the full system CA bundle into a
+/// separate OpenSSL store for every client.
+pub fn rustls_client_builder() -> ClientBuilder {
+    ClientBuilder::new().use_rustls_tls()
+}
+
 pub fn build_client(settings: &ClientSettings) -> Result<Client> {
-    let mut builder = ClientBuilder::new()
+    let mut builder = rustls_client_builder()
         .connect_timeout(settings.connect_timeout)
         .timeout(settings.request_timeout)
         .pool_idle_timeout(settings.pool_idle_timeout)

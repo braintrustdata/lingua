@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That depends on your mood! Since I don’t have much context yet, here are a few directions we could take:\n\n1.  **Be Productive:** Tell me one thing you’ve been procrastinating on, and I’ll help you break it down into tiny, manageable steps.\n2.  **Get Creative:** Give me three random words, and I’ll write a short story or a poem using them.\n3.  **Learn Something:** Pick a topic you know nothing about (e.g., quantum physics, how coffee is made, the history of the Roman Empire), and I’ll give you a \"crash course.\"\n4.  **Have Fun:** We can play a game, like 20 Questions, a text-based adventure, or a trivia challenge.\n5.  **Plan Something:** Tell me what’s in your fridge, and I’ll give you a recipe idea; or tell me a city you want to visit, and I’ll build you a 1-day itinerary.\n\n**What sounds best to you?** (Or, just tell me what you're currently doing, and I can help with that!)",
+            "thoughtSignature": "Es0JCsoJAWkUfRNw8I1/V2+JIr9CRtgx0bXBk0LLk9MlmelWzuiNP4b48wkin0y+Q3CadAyAXB8wVmT1F5g3Y0WLueeEl5PB+xJ9XgK/Af3J94TAxkNb63FcgCWXiNIlsAb+veKnhndUTU8A2AjO9/L7lH0epVNN/Ru1yWeq/gawTwMz8AxBzdTs9fdeNoViqfZ4qge4XQoarbkhhwSVcfHYmMO8UYlY/djRauzrRxs+rLt2ufL550uTHmgaZZ5llRK5yXhcpDNno/C6M8lmybCmo+hiqgeOsaXIO1vr3WJzO0ZEXQdtrMAZYk3FCsLfn4+zV73KIDV1C2gDdBvZzCn1IiSpp5p2ulOwNZljlaXVLHmm33gdptnpl1RBPa0nsSejM5QykMoME1E6trQ7SPfye/bypw/k1z6T5r8JvFe2MTRor9MPPB5Rm5shMSj6vuMEKWpbdi+LyuRX04njf+LItj0UfSZXQ2YNJs5eMH0KfiuhoPRzAujowB+PKKqcvsgLu5vWYmdHPMqYfFtMFdcqD8FjDRTYPSN8Pvl4l2vOJn2lApmSeH8ym+QpP865Bu213dMC+XXU0V2VnlKpNu75tT4yIqt9UtUqGq3LgBlikyNwkRaoqjYiuuHt4BZ+vZ9qo3YQPAT6fgfkS4oBB25fl3P/Y4XBn0/DwWjxubYj3etzFSu9e44FIZfbQ2DRvhfM4RSKFjVWvPau4OS8HqSkgMipFmsDv56KrtowL6ANzcH73EbSbV+TPoDIz+wym6C9y8Jtf5yIu2Xi5az7CHyIhWYlXRYFx7jKyQZcWJnGofNjXsHKc2XSo1IWtnrtNQj7V3rau1EzyZug+z5lH1EKArqIoqmYA7NJDdrsQYiycdD3Wpp07DYjcBqMlBpQ/7o+kFpV8WwrdtitnxZoXOnJAoClpcNTV5KKI2KH2y6UEBip5GcsVUPn1dFmN6+ezNqN+X3HBgW0nc+7CRsqAqtsOUkQ85cbBrMa0b3sVkHqimTp2a0Rs8qll3nQoIz3LDhQQIQAAF178+rJyeW3l0Q0aAhTyugsHbokaMwo/rvWnj3ziWUAnjTymJ2YxdZxw8TmViy9jY6mAhSdWVZS8jSJzEHf7VMs18zs8YLbjcxZBZAMnPMSWKDfHd7rheLxX2/MWagXzbYHxxcnL44OQ7InbzpnzR6JEWE0Ow+u/A9nzSGv5LSVh34f7V8TqEPyPKo2l+tKKwSrPMA7XZhg5hWKLwwek78iBjhNRRQUZYJw8hemIjojwAjg81jlf9DekAdwVs2zqtEZXVyoXoAHWPSFRWFRUtkYxQHl+tW2xJROl1zfx7w/+kkrSsERYEwslFmDxr4XKU9/4cijLhBefNbQ5ECUq2YOKq2FpLSxwUyU5+9niAZYSToetTP1MZt+Pn080RseyIhhTL5tPt95wI31aaFuVq07Ggq7z3iERZs74+hd7tYR5mPbsW+fby9pJyUOQAJ2R+wKt5CT1Agf8kuIcaFg0lADChbr0WkKUH3zqZAI94UCe1N2Z284CqtLXN+6dyNA2gSMZHW9VJGiFuCFPbwd9FkZx4TEzeCpAvVmhhzt/Cd7QOP790qsquYMKuXrXdO5WTcNVREnzijNY9O1AyojPl9mflJ69YdVVvo="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 13,
+    "candidatesTokenCount": 245,
+    "totalTokenCount": 560,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 13
+      }
+    ],
+    "thoughtsTokenCount": 302,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3-flash-preview",
+  "responseId": "BcXMaru0LoHv-8YPyoau-Qw"
+}

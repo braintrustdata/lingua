@@ -114,6 +114,10 @@ impl ClientHeaders {
         Ok(())
     }
 
+    pub(crate) fn user_configured_headers(&self) -> &HashMap<String, String> {
+        &self.user_configured
+    }
+
     fn apply_inner(&self, headers: &mut HeaderMap) {
         for (name, value) in &self.inner {
             if name == "host" {

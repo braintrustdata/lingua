@@ -661,9 +661,15 @@ impl TrajectoryStream {
         headers: Vec<ImportedSpan>,
         exclude_system: bool,
         failures: Option<js_sys::Array>,
+        group_traces: Option<bool>,
     ) -> Result<TrajectoryStream, JsValue> {
+        let build = if group_traces.unwrap_or(false) {
+            crate::processing::trajectory::TrajectoryStream::with_grouped_traces
+        } else {
+            crate::processing::trajectory::TrajectoryStream::with_failures
+        };
         Ok(Self {
-            inner: crate::processing::trajectory::TrajectoryStream::with_failures(
+            inner: build(
                 headers
                     .into_iter()
                     .map(|span| span.inner.header_only())
