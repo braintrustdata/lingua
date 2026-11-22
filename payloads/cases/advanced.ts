@@ -40,6 +40,14 @@ const anthropicMidConversationSystemRequest = {
 
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
+  anthropicStreamUsageCounters: {
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 64,
+      stream: true,
+      messages: [{ role: "user", content: "Reply with exactly OK." }],
+    },
+  },
   anthropicMidConversationSystemMessage: {
     "chat-completions": null,
     responses: null,
