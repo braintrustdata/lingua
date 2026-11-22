@@ -858,7 +858,9 @@ fn response_to_stream_chunk(
 
     Ok(
         UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
-            .with_served_service_tier(response.served_service_tier),
+            .with_served_service_tier(response.served_service_tier)
+            .with_served_speed(response.served_speed)
+            .with_inference_geo(response.inference_geo),
     )
 }
 
@@ -2601,6 +2603,8 @@ mod tests {
             }],
             usage: None,
             served_service_tier: Some(ServedServiceTier::Priority),
+            served_speed: None,
+            inference_geo: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };

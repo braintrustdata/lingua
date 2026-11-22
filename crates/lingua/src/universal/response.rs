@@ -40,6 +40,14 @@ pub struct UniversalResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub served_service_tier: Option<ServedServiceTier>,
 
+    /// Inference speed mode that served the response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub served_speed: Option<ServedSpeed>,
+
+    /// Geographic region where inference ran, as reported by the provider.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub inference_geo: Option<String>,
+
     /// Why the model stopped generating
     pub finish_reason: Option<FinishReason>,
 
@@ -242,6 +250,23 @@ impl ServedServiceTier {
             Self::Batch => "batch",
             Self::Reserved => "reserved",
             Self::Unspecified => "unspecified",
+        }
+    }
+}
+
+/// Inference speed mode reported by the provider that served a response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ServedSpeed {
+    Standard,
+    Fast,
+}
+
+impl ServedSpeed {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Standard => "standard",
+            Self::Fast => "fast",
         }
     }
 }
@@ -1374,6 +1399,8 @@ mod tests {
             messages: Vec::new(),
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Length, FinishReason::Stop],
         };
@@ -1386,6 +1413,8 @@ mod tests {
             messages: Vec::new(),
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop, FinishReason::ToolCalls],
         };
@@ -1410,6 +1439,8 @@ mod tests {
             ],
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop, FinishReason::Stop],
         };
@@ -1422,6 +1453,8 @@ mod tests {
             messages: Vec::new(),
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };
@@ -1446,6 +1479,8 @@ mod tests {
             }],
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };

@@ -7,7 +7,7 @@ structure as the canonical representation.
 */
 
 use crate::serde_json::{self, Value};
-use crate::universal::response::{ServedServiceTier, UniversalUsage};
+use crate::universal::response::{ServedServiceTier, ServedSpeed, UniversalUsage};
 use serde::{Deserialize, Serialize};
 
 /// A single choice in a streaming chunk.
@@ -136,6 +136,14 @@ pub struct UniversalStreamChunk {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub served_service_tier: Option<ServedServiceTier>,
 
+    /// Inference speed mode that served this streamed response.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub served_speed: Option<ServedSpeed>,
+
+    /// Geographic region where inference ran, as reported by the provider.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inference_geo: Option<String>,
+
     /// Internal flag for keep-alive events (not serialized)
     #[serde(skip)]
     keep_alive: bool,
@@ -157,12 +165,24 @@ impl UniversalStreamChunk {
             created,
             usage,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             keep_alive: false,
         }
     }
 
     pub fn with_served_service_tier(mut self, service_tier: Option<ServedServiceTier>) -> Self {
         self.served_service_tier = service_tier;
+        self
+    }
+
+    pub fn with_served_speed(mut self, speed: Option<ServedSpeed>) -> Self {
+        self.served_speed = speed;
+        self
+    }
+
+    pub fn with_inference_geo(mut self, inference_geo: Option<String>) -> Self {
+        self.inference_geo = inference_geo;
         self
     }
 
@@ -180,6 +200,8 @@ impl UniversalStreamChunk {
             created: None,
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             keep_alive: true,
         }
     }
