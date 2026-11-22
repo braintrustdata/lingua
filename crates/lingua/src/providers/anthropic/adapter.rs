@@ -37,7 +37,7 @@ use crate::universal::request::{
 };
 use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
-    FinishReason, ServedServiceTier, ServedSpeed, TokenBudget, UniversalParams,
+    FinishReason, ServedInfo, ServedServiceTier, ServedSpeed, TokenBudget, UniversalParams,
     UniversalReasoningDelta, UniversalReasoningSignature, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
     UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
@@ -107,27 +107,15 @@ fn anthropic_speed(speed: ServedSpeed) -> Speed {
     }
 }
 
-/// Serving metadata Anthropic reports in `usage`: service tier, speed, and inference geo.
-struct ServedMetadata {
-    service_tier: Option<ServedServiceTier>,
-    speed: Option<ServedSpeed>,
-    inference_geo: Option<String>,
-}
-
-impl ServedMetadata {
-    fn from_usage(usage: Option<Usage>) -> Self {
-        let Some(usage) = usage else {
-            return Self {
-                service_tier: None,
-                speed: None,
-                inference_geo: None,
-            };
-        };
-        Self {
-            service_tier: usage.service_tier.map(served_service_tier_from_anthropic),
-            speed: usage.speed.map(served_speed_from_anthropic),
-            inference_geo: usage.inference_geo,
-        }
+/// How Anthropic reports serving a response, from its `usage`.
+fn served_info_from_usage(usage: Option<Usage>) -> ServedInfo {
+    let Some(usage) = usage else {
+        return ServedInfo::default();
+    };
+    ServedInfo {
+        service_tier: usage.service_tier.map(served_service_tier_from_anthropic),
+        speed: usage.speed.map(served_speed_from_anthropic),
+        inference_geo: usage.inference_geo,
     }
 }
 
@@ -902,7 +890,7 @@ impl ProviderAdapter for AnthropicAdapter {
             usage: Option<Usage>,
         }
 
-        let served = ServedMetadata::from_usage(
+        let served = served_info_from_usage(
             serde_json::from_value::<AnthropicResponseUsageView>(payload.clone())
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
                 .usage,
@@ -1199,7 +1187,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 struct MessageStartView {
                     message: Option<AnthropicMessage>,
                 }
-                let served = ServedMetadata::from_usage(
+                let served = served_info_from_usage(
                     serde_json::from_value::<MessageStartView>(payload.clone())
                         .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
                         .message

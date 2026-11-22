@@ -7,7 +7,7 @@ structure as the canonical representation.
 */
 
 use crate::serde_json::{self, Value};
-use crate::universal::response::{ServedServiceTier, ServedSpeed, UniversalUsage};
+use crate::universal::response::{ServedInfo, ServedServiceTier, ServedSpeed, UniversalUsage};
 use serde::{Deserialize, Serialize};
 
 /// A single choice in a streaming chunk.
@@ -184,6 +184,15 @@ impl UniversalStreamChunk {
     pub fn with_inference_geo(mut self, inference_geo: Option<String>) -> Self {
         self.inference_geo = inference_geo;
         self
+    }
+
+    /// How the provider served this streamed response, as reported by this chunk.
+    pub fn served(&self) -> ServedInfo {
+        ServedInfo {
+            service_tier: self.served_service_tier,
+            speed: self.served_speed,
+            inference_geo: self.inference_geo.clone(),
+        }
     }
 
     /// Create a keep-alive chunk that signals the stream is active but has no content.

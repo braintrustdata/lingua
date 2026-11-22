@@ -38,7 +38,7 @@ pub use request::{
 };
 pub use response::{
     FinishReason, InputTokenDetails, ModalityTokenCount, OutputTokenDetails, ParsableResponseInfo,
-    ResponseRequirement, ServedServiceTier, ServedSpeed, TokenBreakdown, TokenModality,
+    ResponseRequirement, ServedInfo, ServedServiceTier, ServedSpeed, TokenBreakdown, TokenModality,
     UniversalResponse, UniversalUsage,
 };
 pub use stream::{

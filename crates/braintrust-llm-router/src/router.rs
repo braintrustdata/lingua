@@ -23,9 +23,12 @@ use crate::providers::{
     RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
-use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
+use crate::streaming::{
+    transform_provider_stream, RawStreamChunkCapture, ResponseStream, ServedInfoCapture,
+};
 use lingua::serde_json::Value;
 use lingua::universal::decision::{DecisionParams, TypeSafeDecisionOptions};
+use lingua::universal::ServedInfo;
 use lingua::ProviderFormat;
 use lingua::{DecisionResponseContext, ParsableResponseInfo, TransformError, TransformResult};
 use serde::Deserialize;
@@ -40,6 +43,19 @@ pub struct CompleteResponseWithRaw {
     pub raw_response: Bytes,
     pub parsable_info: ParsableResponseInfo,
     pub requires_json_response: bool,
+    /// How the provider served the response. Empty when the response was not
+    /// converted (same-format passthrough and decisions).
+    pub served: ServedInfo,
+}
+
+/// Optional observers for a streamed completion.
+#[derive(Clone, Default)]
+pub struct StreamCaptures {
+    /// Called with each raw provider chunk before conversion.
+    pub raw_chunk: Option<RawStreamChunkCapture>,
+    /// Called when a converted provider chunk reports how it was served. Same-format
+    /// passthrough streams are not converted, so this is not called for them.
+    pub served: Option<ServedInfoCapture>,
 }
 
 use crate::providers::{
@@ -683,6 +699,7 @@ impl Router {
                     saw_terminal_finish: false,
                 },
                 requires_json_response,
+                served: ServedInfo::default(),
             });
         }
         let result = lingua::transform_response(response_bytes.clone(), output_format).map_err(
@@ -702,6 +719,7 @@ impl Router {
             raw_response: response_bytes,
             parsable_info: result.parsable_info,
             requires_json_response,
+            served: result.served,
         })
     }
 
@@ -810,6 +828,7 @@ impl Router {
                 saw_terminal_finish: true,
             },
             requires_json_response: false,
+            served: ServedInfo::default(),
         })
     }
 
@@ -867,8 +886,13 @@ impl Router {
         client_headers: &ClientHeaders,
         gateway_request_id: Option<String>,
     ) -> Result<ResponseStream> {
-        self.complete_stream_internal(request, client_headers, gateway_request_id, None)
-            .await
+        self.complete_stream_internal(
+            request,
+            client_headers,
+            gateway_request_id,
+            StreamCaptures::default(),
+        )
+        .await
     }
 
     #[cfg_attr(
@@ -890,9 +914,31 @@ impl Router {
             request,
             client_headers,
             gateway_request_id,
-            Some(raw_chunk_capture),
+            StreamCaptures {
+                raw_chunk: Some(raw_chunk_capture),
+                served: None,
+            },
         )
         .await
+    }
+
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete_stream",
+            skip(self, request, client_headers, gateway_request_id, captures),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
+    pub async fn complete_stream_with_captures(
+        &self,
+        request: PreparedStreamRequest,
+        client_headers: &ClientHeaders,
+        gateway_request_id: Option<String>,
+        captures: StreamCaptures,
+    ) -> Result<ResponseStream> {
+        self.complete_stream_internal(request, client_headers, gateway_request_id, captures)
+            .await
     }
 
     async fn complete_stream_internal(
@@ -900,8 +946,12 @@ impl Router {
         request: PreparedStreamRequest,
         client_headers: &ClientHeaders,
         gateway_request_id: Option<String>,
-        raw_chunk_capture: Option<RawStreamChunkCapture>,
+        captures: StreamCaptures,
     ) -> Result<ResponseStream> {
+        let StreamCaptures {
+            raw_chunk: raw_chunk_capture,
+            served: served_capture,
+        } = captures;
         let PreparedRequestInner {
             provider,
             auth,
@@ -929,6 +979,7 @@ impl Router {
             output_format,
             gateway_request_id,
             raw_chunk_capture,
+            served_capture,
         ))
     }
 

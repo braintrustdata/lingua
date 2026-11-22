@@ -271,6 +271,20 @@ impl ServedSpeed {
     }
 }
 
+/// How the provider served a response: its service tier, speed, and inference geo.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ServedInfo {
+    pub service_tier: Option<ServedServiceTier>,
+    pub speed: Option<ServedSpeed>,
+    pub inference_geo: Option<String>,
+}
+
+impl ServedInfo {
+    pub fn is_empty(&self) -> bool {
+        self.service_tier.is_none() && self.speed.is_none() && self.inference_geo.is_none()
+    }
+}
+
 /// Reason why the model stopped generating.
 ///
 /// Normalized across provider-specific values.
@@ -492,6 +506,15 @@ impl FinishReason {
 }
 
 impl UniversalResponse {
+    /// How the provider served this response.
+    pub fn served(&self) -> ServedInfo {
+        ServedInfo {
+            service_tier: self.served_service_tier,
+            speed: self.served_speed,
+            inference_geo: self.inference_geo.clone(),
+        }
+    }
+
     /// Return the response ID to use when serializing to a given provider format.
     ///
     /// If the stored ID originated from the same format, it is returned as-is so

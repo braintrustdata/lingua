@@ -38,11 +38,11 @@ pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{
     create_provider, extract_request_hints, CompleteResponseWithRaw, PreparedDecisionRequest,
     PreparedRequest, PreparedStreamRequest, ProviderRoute, RequestHints, Router, RouterBuilder,
-    RouterMetadata,
+    RouterMetadata, StreamCaptures,
 };
 pub use streaming::{
     sse_stream, transform_provider_stream, RawResponseStream, RawStreamChunkCapture,
-    ResponseStream, StreamChunk,
+    ResponseStream, ServedInfoCapture, StreamChunk,
 };
 
 // Provider trait requirement (for custom provider implementations)

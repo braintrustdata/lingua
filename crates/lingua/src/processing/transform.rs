@@ -26,10 +26,11 @@ use crate::providers::openai::responses_adapter::{
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, ParsableResponseInfo, TextContentPart,
-    ToolCallArguments, UniversalReasoningDelta, UniversalReasoningSignature, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, ParsableResponseInfo, ServedInfo,
+    TextContentPart, ToolCallArguments, UniversalReasoningDelta, UniversalReasoningSignature,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent,
+    UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -165,6 +166,9 @@ impl RequestTransformResult {
 pub struct ResponseTransformResult {
     pub result: TransformResult,
     pub parsable_info: ParsableResponseInfo,
+    /// How the provider served the response. Empty for same-format passthrough,
+    /// which is not converted.
+    pub served: ServedInfo,
 }
 
 impl TransformResult {
@@ -606,6 +610,7 @@ pub fn transform_response(
         return Ok(ResponseTransformResult {
             result: TransformResult::PassThrough(response_bytes),
             parsable_info: ParsableResponseInfo::valid(),
+            served: ServedInfo::default(),
         });
     }
 
@@ -625,6 +630,11 @@ pub fn transform_response(
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
     let transformed = target_adapter.response_from_universal(&universal_resp)?;
+    let served = ServedInfo {
+        service_tier: universal_resp.served_service_tier,
+        speed: universal_resp.served_speed,
+        inference_geo: universal_resp.inference_geo.take(),
+    };
 
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
@@ -636,6 +646,7 @@ pub fn transform_response(
             actual_target_format: target_format,
         },
         parsable_info,
+        served,
     })
 }
 
@@ -1122,6 +1133,27 @@ mod tests {
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn transform_response_reports_served_info_only_when_converting() {
+        let anthropic = Bytes::from_static(
+            br#"{"id":"msg_1","type":"message","role":"assistant","model":"claude","content":[{"type":"text","text":"hi"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":3,"output_tokens":1,"service_tier":"standard","speed":"fast","inference_geo":"us"}}"#,
+        );
+        let converted =
+            transform_response(anthropic.clone(), ProviderFormat::ChatCompletions).unwrap();
+        assert_eq!(
+            converted.served,
+            ServedInfo {
+                service_tier: Some(ServedServiceTier::Standard),
+                speed: Some(crate::universal::ServedSpeed::Fast),
+                inference_geo: Some("us".to_string()),
+            }
+        );
+        let passthrough = transform_response(anthropic, ProviderFormat::Anthropic).unwrap();
+        assert!(passthrough.result.is_passthrough());
+        assert!(passthrough.served.is_empty());
     }
 
     #[test]
