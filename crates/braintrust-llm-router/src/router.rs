@@ -1290,7 +1290,10 @@ impl Router {
         })?;
         // Nace accepts TypeSafe wire requests for Drex, but does not serve Jev
         // (or arbitrary models selected through a format fallback).
-        if provider.id() == "nace" && !spec.model.starts_with("drex-") {
+        if provider.id() == "nace"
+            && !spec.model.starts_with("drex-")
+            && spec.model != "nacedm-latest"
+        {
             return Err(Error::NoProvider(catalog_format));
         }
         let provider_formats = provider.provider_formats();

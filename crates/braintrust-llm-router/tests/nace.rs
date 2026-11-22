@@ -121,6 +121,14 @@ async fn nace_format_defaults_and_explicit_fallbacks_do_not_claim_other_models()
                 }
             }
         }
+        for model in ["drex-latest", "nacedm-latest"] {
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::Decisions, &[])
+                .unwrap();
+            assert_eq!(routes.len(), 1);
+            assert_eq!(routes[0].provider_alias(), "nace");
+            assert_eq!(routes[0].model(), model);
+        }
     }
 }
 
