@@ -12,10 +12,10 @@ use bytes::Bytes;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let api_key = std::env::var("NACE_API_KEY")?;
-    let model = "drex-max-v1.1";
+    let model = "drex-latest";
     // A local catalog makes this example usable before the shared catalog is updated.
     let catalog = ModelCatalog::from_json_str(
-        r#"{"drex-max-v1.1": {
+        r#"{"drex-latest": {
             "format": "openai", "flavor": "decisions",
             "available_providers": ["nace"], "supports_streaming": false
         }}"#,
@@ -26,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
             "nace",
             NaceProvider::new(NaceConfig::default())?,
             api_key_auth(&api_key),
-            vec![ProviderFormat::Decisions, ProviderFormat::TypeSafe],
+            vec![],
         )
         .build()?;
     let body = Bytes::from(serde_json::to_vec(&serde_json::json!({

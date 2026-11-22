@@ -97,7 +97,10 @@ cargo run -p braintrust-llm-router --example nace
 `create_provider("nace", ...)` defaults to `https://console.nace.ai`. Custom endpoints
 may include `/v1`. Register Nace credentials under `nace` and catalog models with
 `format: "openai"`, `flavor: "decisions"`, `supports_streaming: false` and
-`available_providers: ["nace"]`. The pinned models are `drex-max-v1.1`,
+`available_providers: ["nace"]`. The example uses the moving `drex-latest` alias.
+TypeSafe wire-format support applies to catalogued Drex routes; Nace does not
+serve Jev models or replace the native TypeSafe format fallback.
+The pinned models are `drex-max-v1.1`,
 `drex-max-finance` and `drex-v2.0`.
 
 Use the router's decision entry points (`create_decision_request` and

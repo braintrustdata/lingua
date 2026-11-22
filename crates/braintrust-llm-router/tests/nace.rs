@@ -7,6 +7,7 @@ use braintrust_llm_router::{
     serde_json::{self, json, Value},
     AuthConfig, ClientHeaders, ClientSettings, Error, ModelCatalog, ModelSpec, NaceConfig,
     NaceProvider, OpenAIConfig, OpenAIProvider, Provider, ProviderFormat, RetryPolicy, Router,
+    TypeSafeConfig, TypeSafeProvider,
 };
 use bytes::Bytes;
 use reqwest::Url;
@@ -92,6 +93,71 @@ fn router_with_retries(base_url: &str, max_attempts: usize) -> Router {
 
 fn body(value: &Value) -> Bytes {
     Bytes::from(serde_json::to_vec(value).unwrap())
+}
+
+#[tokio::test]
+async fn nace_format_defaults_and_explicit_fallbacks_do_not_claim_other_models() {
+    for defaults in [vec![], vec![ProviderFormat::TypeSafe]] {
+        let router = Router::builder()
+            .with_catalog(Arc::new(ModelCatalog::empty()))
+            .add_provider(
+                "nace",
+                NaceProvider::new(NaceConfig::default()).unwrap(),
+                auth(),
+                defaults,
+            )
+            .build()
+            .unwrap();
+        for model in ["jev-unlisted", "braintrust/jev-unlisted", "other-model"] {
+            for format in [ProviderFormat::Decisions, ProviderFormat::TypeSafe] {
+                for fallbacks in [vec![], vec!["nace".to_string()]] {
+                    assert!(
+                        matches!(
+                            router.resolve_provider_routes(model, format, &fallbacks),
+                            Err(Error::NoProvider(_))
+                        ),
+                        "Nace must not route {model} via {format} with {fallbacks:?}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn registering_nace_first_preserves_native_typesafe_fallback() {
+    let router = Router::builder()
+        .with_catalog(Arc::new(ModelCatalog::empty()))
+        .add_provider(
+            "nace",
+            NaceProvider::new(NaceConfig::default()).unwrap(),
+            auth(),
+            vec![],
+        )
+        .add_provider(
+            "typesafe",
+            TypeSafeProvider::new(TypeSafeConfig::default()).unwrap(),
+            AuthConfig::ApiKey {
+                key: "typesafe-test-key".into(),
+                header: Some("authorization".into()),
+                prefix: Some("Bearer".into()),
+            },
+            vec![],
+        )
+        .build()
+        .unwrap();
+    for model in ["jev-unlisted", "braintrust/jev-unlisted"] {
+        for format in [ProviderFormat::Decisions, ProviderFormat::TypeSafe] {
+            for fallbacks in [vec![], vec!["nace".to_string(), "typesafe".to_string()]] {
+                let routes = router
+                    .resolve_provider_routes(model, format, &fallbacks)
+                    .unwrap();
+                assert_eq!(routes.len(), 1);
+                assert_eq!(routes[0].provider_alias(), "typesafe");
+                assert_eq!(routes[0].model(), "jev-unlisted");
+            }
+        }
+    }
 }
 
 fn decision_request() -> Value {
