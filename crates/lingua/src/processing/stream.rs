@@ -171,12 +171,12 @@ impl StreamTransformSession {
         input: Bytes,
         observe: impl FnOnce(&UniversalStreamChunk),
     ) -> Result<Vec<StreamOutputChunk>, TransformError> {
-        let mut step = transform_stream_chunk_step(
+        let step = transform_stream_chunk_step(
             input,
             self.target_format,
             self.allow_full_response_fallback,
+            |source_format, universal| self.retain_anthropic_usage(source_format, universal),
         )?;
-        self.retain_anthropic_usage(&mut step)?;
         if let Some(universal) = &step.universal {
             observe(universal);
         }
@@ -217,24 +217,19 @@ impl StreamTransformSession {
 
     fn retain_anthropic_usage(
         &mut self,
-        step: &mut crate::processing::transform::StreamTransformStep,
-    ) -> Result<(), TransformError> {
-        if step.is_passthrough
-            || !step.source_is_native_stream
-            || !matches!(
-                step.source_format,
-                ProviderFormat::Anthropic
-                    | ProviderFormat::BedrockAnthropic
-                    | ProviderFormat::VertexAnthropic
-            )
-        {
-            return Ok(());
+        source_format: ProviderFormat,
+        universal: &mut UniversalStreamChunk,
+    ) {
+        if !matches!(
+            source_format,
+            ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
+        ) {
+            return;
         }
-        let Some(universal) = step.universal.as_mut() else {
-            return Ok(());
-        };
         let Some(usage) = universal.usage.as_mut() else {
-            return Ok(());
+            return;
         };
         if let Some(previous) = self.anthropic_usage.take() {
             usage.prompt_tokens = usage.prompt_tokens.or(previous.prompt_tokens);
@@ -269,14 +264,6 @@ impl StreamTransformSession {
                 .or(usage.completion_tokens);
         }
         self.anthropic_usage = Some(usage.clone());
-        let adapter = adapter_for_format(self.target_format)
-            .ok_or(TransformError::UnsupportedTargetFormat(self.target_format))?;
-        step.result = TransformResult::Transformed {
-            bytes: serialize_stream_value(&adapter.stream_from_universal(universal)?)?,
-            source_format: step.source_format,
-            actual_target_format: self.target_format,
-        };
-        Ok(())
     }
 
     #[cfg(feature = "openai")]

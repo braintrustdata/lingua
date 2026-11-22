@@ -693,7 +693,7 @@ pub fn transform_stream_chunk(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<TransformResult, TransformError> {
-    Ok(transform_stream_chunk_step(input, target_format, true)?.result)
+    Ok(transform_stream_chunk_step(input, target_format, true, |_, _| {})?.result)
 }
 
 fn extract_event_type(value: &Value) -> Option<String> {
@@ -879,6 +879,7 @@ pub(crate) fn transform_stream_chunk_step(
     input: Bytes,
     target_format: ProviderFormat,
     allow_full_response_fallback: bool,
+    normalize_native: impl FnOnce(ProviderFormat, &mut UniversalStreamChunk),
 ) -> Result<StreamTransformStep, TransformError> {
     let parsed = parse_json_body(input)?;
     let chunk = parsed.value;
@@ -915,7 +916,12 @@ pub(crate) fn transform_stream_chunk_step(
     }
 
     let universal = match detection.kind {
-        DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
+        DetectKind::Stream => source_adapter
+            .stream_to_universal(chunk)?
+            .map(|mut universal| {
+                normalize_native(source_format, &mut universal);
+                universal
+            }),
         DetectKind::Response => {
             let response = source_adapter.response_to_universal(chunk)?;
             Some(response_to_stream_chunk(response, source_format)?)
