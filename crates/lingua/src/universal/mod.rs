@@ -38,8 +38,8 @@ pub use request::{
 };
 pub use response::{
     FinishReason, InputTokenDetails, ModalityTokenCount, OutputTokenDetails, ParsableResponseInfo,
-    ResponseRequirement, ServedServiceTier, TokenBreakdown, TokenModality, UniversalResponse,
-    UniversalUsage,
+    ResponseRequirement, ServedInfo, ServedServiceTier, ServedSpeed, TokenBreakdown, TokenModality,
+    UniversalResponse, UniversalUsage,
 };
 pub use stream::{
     UniversalReasoningDelta, UniversalReasoningSignature, UniversalStreamChoice,

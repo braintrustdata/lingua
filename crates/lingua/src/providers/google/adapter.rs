@@ -719,6 +719,8 @@ impl ProviderAdapter for GoogleAdapter {
             messages,
             usage,
             served_service_tier,
+            served_speed: None,
+            inference_geo: None,
             finish_reason,
             finish_reasons,
         })

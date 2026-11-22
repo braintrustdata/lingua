@@ -159,11 +159,24 @@ impl StreamTransformSession {
     }
 
     pub fn push(&mut self, input: Bytes) -> Result<Vec<StreamOutputChunk>, TransformError> {
+        self.push_observing(input, |_| {})
+    }
+
+    /// Like [`push`](Self::push), also passing the chunk's universal form to `observe`.
+    /// Same-format chunks pass through unconverted, so `observe` is not called for them.
+    pub fn push_observing(
+        &mut self,
+        input: Bytes,
+        observe: impl FnOnce(&UniversalStreamChunk),
+    ) -> Result<Vec<StreamOutputChunk>, TransformError> {
         let step = transform_stream_chunk_step(
             input,
             self.target_format,
             self.allow_full_response_fallback,
         )?;
+        if let Some(universal) = &step.universal {
+            observe(universal);
+        }
 
         #[cfg(feature = "openai")]
         if let Some(event) = &step.responses_text_message_event {
@@ -2154,6 +2167,34 @@ mod tests {
         assert_eq!(out.len(), 2);
         assert_eq!(out[0].event_type.as_deref(), Some("message_delta"));
         assert_eq!(out[1].event_type.as_deref(), Some("message_stop"));
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_session_observes_converted_chunks_only() {
+        let message_start = to_bytes(&json!({
+            "type": "message_start",
+            "message": {
+                "id": "msg_1", "type": "message", "role": "assistant", "model": "claude",
+                "content": [], "stop_reason": null, "stop_sequence": null,
+                "usage": {"input_tokens": 3, "output_tokens": 0, "speed": "fast", "inference_geo": "us"}
+            }
+        }));
+        let mut observed = None;
+        StreamTransformSession::new(ProviderFormat::ChatCompletions)
+            .push_observing(message_start.clone(), |chunk| {
+                observed = Some(chunk.served())
+            })
+            .unwrap();
+        let observed = observed.expect("converted chunks are observed");
+        assert_eq!(observed.speed, Some(crate::universal::ServedSpeed::Fast));
+        assert_eq!(observed.inference_geo.as_deref(), Some("us"));
+
+        let mut called = false;
+        StreamTransformSession::new(ProviderFormat::Anthropic)
+            .push_observing(message_start, |_| called = true)
+            .unwrap();
+        assert!(!called, "same-format chunks pass through unconverted");
     }
 
     #[test]

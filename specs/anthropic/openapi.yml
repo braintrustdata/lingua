@@ -36756,6 +36756,7 @@
         "title": "SignatureContentBlockDelta",
         "type": "object"
       },
+      "Speed": { "enum": ["standard", "fast"], "type": "string" },
       "SucceededResult": {
         "properties": {
           "message": { "$ref": "#/components/schemas/Message" },
@@ -37353,6 +37354,11 @@
             "default": null,
             "description": "If the request used the priority, standard, or batch tier.",
             "title": "Service Tier"
+          },
+          "speed": {
+            "anyOf": [{ "$ref": "#/components/schemas/Speed" }, { "type": "null" }],
+            "default": null,
+            "description": "The inference speed mode used for this request."
           }
         },
         "required": [
@@ -37364,7 +37370,8 @@
           "output_tokens",
           "output_tokens_details",
           "server_tool_use",
-          "service_tier"
+          "service_tier",
+          "speed"
         ],
         "title": "Usage",
         "type": "object"

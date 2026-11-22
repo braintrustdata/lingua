@@ -450,6 +450,8 @@ impl ProviderAdapter for BedrockAdapter {
             messages,
             usage,
             served_service_tier,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })

@@ -1341,6 +1341,8 @@ impl ProviderAdapter for ResponsesAdapter {
             messages,
             usage,
             served_service_tier,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })
@@ -2338,6 +2340,8 @@ mod tests {
             }],
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };
@@ -3106,6 +3110,8 @@ mod tests {
             }],
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };

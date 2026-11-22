@@ -649,6 +649,8 @@ fn merge_universal_stream_chunks(
                 chunk.usage.clone(),
             )
             .with_served_service_tier(chunk.served_service_tier)
+            .with_served_speed(chunk.served_speed)
+            .with_inference_geo(chunk.inference_geo.clone())
         });
 
         if target.id.is_none() {
@@ -665,6 +667,12 @@ fn merge_universal_stream_chunks(
         }
         if target.served_service_tier.is_none() {
             target.served_service_tier = chunk.served_service_tier;
+        }
+        if target.served_speed.is_none() {
+            target.served_speed = chunk.served_speed;
+        }
+        if target.inference_geo.is_none() {
+            target.inference_geo = chunk.inference_geo;
         }
 
         for mut choice in chunk.choices {
@@ -1160,6 +1168,14 @@ impl<'a> CompareContext<'a> {
                     "Target provider does not support this served service tier".to_string(),
                 );
             }
+        }
+        if matches!(field, "served_speed" | "inference_geo")
+            && !matches!(
+                self.target,
+                "Anthropic" | "Bedrock Anthropic" | "Vertex Anthropic"
+            )
+        {
+            return Some("Target provider does not report inference speed or geo".to_string());
         }
         self.is_expected(field)
     }

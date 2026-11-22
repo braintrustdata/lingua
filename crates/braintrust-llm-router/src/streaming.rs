@@ -9,6 +9,7 @@ use futures::Stream;
 use reqwest::Response;
 
 use crate::error::{Error, Result};
+use lingua::universal::ServedInfo;
 use lingua::ProviderFormat;
 
 #[cfg(feature = "tracing")]
@@ -79,6 +80,9 @@ pub type RawResponseStream = Pin<Box<dyn Stream<Item = Result<StreamChunk>> + Se
 
 pub type RawStreamChunkCapture = Arc<dyn Fn(&StreamChunk) + Send + Sync>;
 
+/// Called when a converted provider chunk reports how it was served.
+pub type ServedInfoCapture = Arc<dyn Fn(&ServedInfo) + Send + Sync>;
+
 /// Create a raw SSE stream that yields JSON bytes without transformation.
 ///
 /// Parses Server-Sent Events from the HTTP response and yields raw JSON bytes.
@@ -99,6 +103,7 @@ pub fn transform_provider_stream(
         String,
     >,
     raw_chunk_capture: Option<RawStreamChunkCapture>,
+    served_capture: Option<ServedInfoCapture>,
 ) -> ResponseStream {
     Box::pin(SessionTransformStream {
         raw,
@@ -106,6 +111,7 @@ pub fn transform_provider_stream(
         #[cfg(feature = "tracing")]
         gateway_request_id,
         raw_chunk_capture,
+        served_capture,
         pending: Vec::new(),
         done: false,
     })
@@ -117,6 +123,7 @@ struct SessionTransformStream {
     #[cfg(feature = "tracing")]
     gateway_request_id: Option<String>,
     raw_chunk_capture: Option<RawStreamChunkCapture>,
+    served_capture: Option<ServedInfoCapture>,
     pending: Vec<Result<StreamChunk>>,
     done: bool,
 }
@@ -147,7 +154,15 @@ impl Stream for SessionTransformStream {
                         continue;
                     }
 
-                    match this.session.push(data.clone()) {
+                    let served_capture = this.served_capture.as_ref();
+                    match this.session.push_observing(data.clone(), |universal| {
+                        if let Some(capture) = served_capture {
+                            let served = universal.served();
+                            if !served.is_empty() {
+                                capture(&served);
+                            }
+                        }
+                    }) {
                         Ok(chunks) => {
                             this.pending.extend(chunks.into_iter().map(|chunk| {
                                 Ok(StreamChunk {
@@ -550,6 +565,41 @@ mod tests {
         assert!(!buffer.is_empty());
     }
 
+    #[test]
+    fn transform_provider_stream_reports_served_info_for_converted_chunks() {
+        let message_start = Bytes::from_static(
+            br#"{"type":"message_start","message":{"id":"msg_1","type":"message","role":"assistant","model":"claude","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":3,"output_tokens":0,"service_tier":"priority","speed":"fast","inference_geo":"us"}}}"#,
+        );
+        for (output_format, expected) in [
+            (
+                ProviderFormat::ChatCompletions,
+                vec![ServedInfo {
+                    service_tier: Some(lingua::universal::ServedServiceTier::Priority),
+                    speed: Some(lingua::universal::ServedSpeed::Fast),
+                    inference_geo: Some("us".to_string()),
+                }],
+            ),
+            // Same-format chunks pass through unconverted, so nothing is reported.
+            (ProviderFormat::Anthropic, Vec::new()),
+        ] {
+            let captured = Arc::new(std::sync::Mutex::new(Vec::new()));
+            let capture: ServedInfoCapture = Arc::new({
+                let captured = Arc::clone(&captured);
+                move |served: &ServedInfo| captured.lock().unwrap().push(served.clone())
+            });
+            let raw: RawResponseStream = Box::pin(futures::stream::once({
+                let message_start = message_start.clone();
+                async move { Ok(StreamChunk::data(message_start)) }
+            }));
+            let mut stream =
+                transform_provider_stream(raw, output_format, None, None, Some(capture));
+            futures::executor::block_on(stream.next())
+                .expect("stream should yield a chunk")
+                .expect("chunk should be ok");
+            assert_eq!(*captured.lock().unwrap(), expected, "{output_format:?}");
+        }
+    }
+
     /// A fake-streamed full response is synthesized into a stream rather than
     /// passed through raw.
     #[test]
@@ -562,7 +612,7 @@ mod tests {
             async move { Ok(StreamChunk::data(full_response)) }
         }));
         let mut stream =
-            transform_provider_stream(raw, ProviderFormat::ChatCompletions, None, None);
+            transform_provider_stream(raw, ProviderFormat::ChatCompletions, None, None, None);
 
         let first = futures::executor::block_on(stream.next())
             .expect("stream should yield a chunk")
