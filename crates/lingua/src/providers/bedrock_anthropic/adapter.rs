@@ -201,6 +201,8 @@ fn usage_from_bedrock_invocation_metrics(
         prompt_cache_creation_tokens: None,
         prompt_cache_creation_5m_tokens: None,
         prompt_cache_creation_1h_tokens: None,
+        prompt_cache_creation_30m_tokens: None,
+        prompt_cache_creation_12h_tokens: None,
         // Anthropic-style token counting excludes cache tokens (none are
         // reported here, so this is for semantic consistency only)
         prompt_tokens_exclude_cache: true,
