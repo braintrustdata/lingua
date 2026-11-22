@@ -1426,6 +1426,8 @@ impl From<&UsageMetadata> for UniversalUsage {
             prompt_cache_creation_tokens: None,
             prompt_cache_creation_5m_tokens: None,
             prompt_cache_creation_1h_tokens: None,
+            prompt_cache_creation_30m_tokens: None,
+            prompt_cache_creation_12h_tokens: None,
             // Google's promptTokenCount includes cachedContentTokenCount
             prompt_tokens_exclude_cache: false,
             completion_reasoning_tokens: usage.thoughts_token_count,
