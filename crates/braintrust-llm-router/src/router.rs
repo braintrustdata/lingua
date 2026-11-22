@@ -44,8 +44,8 @@ pub struct CompleteResponseWithRaw {
 
 use crate::providers::{
     is_openai_compatible, AnthropicProvider, AzureAiGatewayProvider, AzureProvider,
-    BedrockProvider, DatabricksProvider, GoogleProvider, MistralProvider, OpenAIProvider,
-    TypeSafeProvider, VertexProvider,
+    BedrockProvider, DatabricksProvider, GoogleProvider, MistralProvider, NaceProvider,
+    OpenAIProvider, TypeSafeProvider, VertexProvider,
 };
 
 /// Create a provider instance from configuration parameters.
@@ -132,6 +132,11 @@ pub fn create_provider(
             client_settings,
         )?)),
         "mistral" => Ok(Arc::new(MistralProvider::from_config(
+            endpoint,
+            timeout,
+            client_settings,
+        )?)),
+        "nace" => Ok(Arc::new(NaceProvider::from_config(
             endpoint,
             timeout,
             client_settings,
@@ -1283,6 +1288,14 @@ impl Router {
             );
             Error::NoProvider(catalog_format)
         })?;
+        // Nace accepts TypeSafe wire requests for Drex, but does not serve Jev
+        // (or arbitrary models selected through a format fallback).
+        if provider.id() == "nace"
+            && !spec.model.starts_with("drex-")
+            && spec.model != "nacedm-latest"
+        {
+            return Err(Error::NoProvider(catalog_format));
+        }
         let provider_formats = provider.provider_formats();
         let format = if passthrough {
             if !provider_formats.contains(&output_format) {
@@ -1627,6 +1640,11 @@ impl RouterBuilder {
             }
             for format in entry.provider.provider_formats() {
                 if entry.provider.id() == "google" && format == ProviderFormat::ChatCompletions {
+                    continue;
+                }
+                // TypeSafe compatibility for catalogued Drex routes must not
+                // replace the native TypeSafe fallback for uncatalogued Jev.
+                if entry.provider.id() == "nace" && format == ProviderFormat::TypeSafe {
                     continue;
                 }
                 #[cfg(feature = "tracing")]

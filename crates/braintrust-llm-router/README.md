@@ -83,7 +83,43 @@ async fn main() -> anyhow::Result<()> {
 | AWS Bedrock | AWS SigV4 | Yes | |
 | Azure OpenAI | API Key / Entra | Yes | |
 | Mistral | API Key | Yes | |
+| Nace | API Key (Bearer) | No | Drex decision models; OpenAI Decisions and System One |
 | OpenAI-compatible | API Key | Yes | Together, Groq, Perplexity, etc. |
+
+### Nace Drex decisions
+
+Run the [Nace example](examples/nace.rs) with `NACE_API_KEY` set:
+
+```bash
+cargo run -p braintrust-llm-router --example nace
+```
+
+`create_provider("nace", ...)` defaults to `https://console.nace.ai`. Custom endpoints
+may include `/v1`. Register Nace credentials under `nace` and catalog models with
+`format: "openai"`, `flavor: "decisions"`, `supports_streaming: false` and
+`available_providers: ["nace"]`. The example uses the moving `drex-latest` alias.
+TypeSafe wire-format support applies to catalogued Drex routes; Nace does not
+serve Jev models or replace the native TypeSafe format fallback.
+The pinned models are `drex-max-v1.1`,
+`drex-max-finance` and `drex-v2.0`.
+
+Use the router's decision entry points (`create_decision_request` and
+`complete_decision`). OpenAI Decisions requests use `/v1/decisions`; native TypeSafe
+requests use `/v1/systemone`. Chat, Responses and streaming are unsupported.
+The provider forwards `X-Nace-Client: braintrust/<version>` for attribution and
+requests object-shaped score legends on the System One endpoint.
+
+Drex Max v1.1 and Finance accept inline PNG, JPEG and WebP images; Drex 2.0 is text
+only. For JSON System One calls, put data URLs in the top-level `images` array;
+TypeSafe JSON `assets` are not supported. Drex's [Decisions API contract](https://console.nace.ai/docs/drex/guides/openai-compatible-decisions)
+limits supported input roles, question types and image inputs; unsupported inputs
+return the upstream validation error. Responses retain probability values, question
+order and usage. Nace [bills input tokens only](https://console.nace.ai/docs/drex/reference/pricing),
+including image tokens; reported output tokens are not billed.
+
+This configures the routing library. Braintrust's hosted gateway also needs its
+Nace credential/provider registration and deployment; a local example does not
+enable a hosted listing.
 
 ## API reference
 
