@@ -18275,7 +18275,7 @@ exports[`chat-completions → google > reasoningEffortNoneParam > request 1`] = 
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "LOW",
+      "thinkingLevel": "MINIMAL",
     },
   },
   "model": "gemini-3.5-flash",
@@ -18290,19 +18290,19 @@ exports[`chat-completions → google > reasoningEffortNoneParam > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "2+2 = 4",
+        "content": "2 + 2 = 4",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
   "id": "chatcmpl-transformed",
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.6-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 6,
+    "completion_tokens": 7,
     "prompt_tokens": 8,
-    "total_tokens": 14,
+    "total_tokens": 15,
   },
 }
 `;
@@ -37667,7 +37667,7 @@ exports[`responses → google > reasoningEffortNoneParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingLevel": "LOW",
+      "thinkingLevel": "MINIMAL",
     },
   },
   "model": "gemini-3.5-flash",
@@ -37679,14 +37679,14 @@ exports[`responses → google > reasoningEffortNoneParam > response 1`] = `
   "created_at": 0,
   "id": "resp_transformed",
   "incomplete_details": null,
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.6-flash",
   "object": "response",
   "output": [
     {
       "content": [
         {
           "annotations": [],
-          "text": "2+2 equals 4.",
+          "text": "2 + 2 = 4",
           "type": "output_text",
         },
       ],
@@ -37696,7 +37696,7 @@ exports[`responses → google > reasoningEffortNoneParam > response 1`] = `
       "type": "message",
     },
   ],
-  "output_text": "2+2 equals 4.",
+  "output_text": "2 + 2 = 4",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",

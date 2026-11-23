@@ -1628,6 +1628,14 @@ mod tests {
                 json!({"model": "gemini-4-argon", "reasoning_budget": 2000, "max_tokens": 2048}),
                 Some(ThinkingLevel::Low),
             ),
+            (
+                json!({"model": "gemini-3.5-flash", "reasoning_effort": "none"}),
+                Some(ThinkingLevel::Minimal),
+            ),
+            (
+                json!({"model": "gemini-3.1-pro", "reasoning_effort": "none"}),
+                Some(ThinkingLevel::Low),
+            ),
         ];
 
         for (chat_request, expected_level) in cases {

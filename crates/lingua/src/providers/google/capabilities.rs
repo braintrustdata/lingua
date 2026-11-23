@@ -152,14 +152,19 @@ pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
 
 /// Convert ReasoningEffort to Google ThinkingLevel enum value.
 ///
-/// Gemini 3+ cannot turn thinking off, so none maps to LOW. Minimal maps to
-/// MINIMAL and xhigh/max map to XHIGH only on models that accept them.
+/// Gemini 3+ cannot turn thinking off, so none and minimal map to the lowest
+/// accepted level: MINIMAL where the model accepts it, otherwise LOW.
+/// xhigh/max map to XHIGH only on models that accept it.
 pub fn effort_to_thinking_level(
     effort: ReasoningEffort,
     caps: &GoogleCapabilities,
 ) -> ThinkingLevel {
     match effort {
-        ReasoningEffort::Minimal if caps.supports_minimal_thinking_level => ThinkingLevel::Minimal,
+        ReasoningEffort::None | ReasoningEffort::Minimal
+            if caps.supports_minimal_thinking_level =>
+        {
+            ThinkingLevel::Minimal
+        }
         ReasoningEffort::None | ReasoningEffort::Minimal | ReasoningEffort::Low => {
             ThinkingLevel::Low
         }
@@ -358,19 +363,22 @@ mod tests {
                 effort_to_thinking_level(ReasoningEffort::High, &caps),
                 ThinkingLevel::High
             );
-            assert_eq!(
-                effort_to_thinking_level(ReasoningEffort::None, &caps),
-                ThinkingLevel::Low
-            );
         }
         let argon = GoogleCapabilities::detect(Some("gemini-4-argon"));
         let flash = GoogleCapabilities::detect(Some("gemini-3.5-flash"));
         let hydrogen =
             GoogleCapabilities::detect(Some("publishers/google/models/gemini-4-hydrogen"));
-        assert_eq!(
-            effort_to_thinking_level(ReasoningEffort::Minimal, &argon),
-            ThinkingLevel::Low
-        );
+        for effort in [ReasoningEffort::None, ReasoningEffort::Minimal] {
+            assert_eq!(effort_to_thinking_level(effort, &argon), ThinkingLevel::Low);
+            assert_eq!(
+                effort_to_thinking_level(effort, &flash),
+                ThinkingLevel::Minimal
+            );
+            assert_eq!(
+                effort_to_thinking_level(effort, &hydrogen),
+                ThinkingLevel::Low
+            );
+        }
         assert_eq!(
             effort_to_thinking_level(ReasoningEffort::Minimal, &flash),
             ThinkingLevel::Minimal
