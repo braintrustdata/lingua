@@ -69,7 +69,7 @@ struct TraceFunctionResponse {
 
 impl TraceFunctionResponse {
     fn into_response(self) -> Result<FunctionResponse, ConvertError> {
-        if self.will_continue.is_some() {
+        if self.will_continue == Some(true) {
             return Err(ConvertError::UnsupportedMapping {
                 from: "Google functionResponse.willContinue".to_string(),
                 to: "Lingua universal message",

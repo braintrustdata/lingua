@@ -1499,7 +1499,7 @@ mod tests {
 
     #[cfg(feature = "google")]
     #[test]
-    fn gemini_import_rejects_nonblocking_function_responses() {
+    fn gemini_import_rejects_continuing_function_responses() {
         for continuation in ["will_continue", "willContinue"] {
             let span: Span = serde_json::from_value(crate::serde_json::json!({
                 "input": {"contents": [{"role": "user", "parts": [{
@@ -1515,6 +1515,41 @@ mod tests {
                 }),
                 "{continuation}"
             );
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_keeps_completed_function_responses() {
+        for continuation in ["will_continue", "willContinue"] {
+            let span: Span = serde_json::from_value(crate::serde_json::json!({
+                "input": {"contents": [
+                    "Run the tool.",
+                    {"role": "model", "parts": [{"functionCall": {"name": "work", "id": "call_a"}}]},
+                    {"role": "user", "parts": [{
+                        "function_response": {
+                            "name": "work",
+                            "id": "call_a",
+                            "response": {"value": 1},
+                            (continuation): false
+                        }
+                    }]}
+                ]}
+            }))
+            .unwrap();
+
+            let imported = import_span(span).unwrap();
+            let [Message::User { .. }, Message::Assistant { .. }, Message::Tool { content }] =
+                imported.input.as_slice()
+            else {
+                panic!("expected a prompt with a completed tool response: {continuation}");
+            };
+            let [ToolContentPart::ToolResult(result)] = content.as_slice() else {
+                panic!("expected one tool result: {continuation}");
+            };
+            assert_eq!(result.tool_call_id, "call_a");
+            assert_eq!(result.output, crate::serde_json::json!({"value": 1}));
+            assert!(imported.errors.is_empty(), "{continuation}");
         }
     }
 
