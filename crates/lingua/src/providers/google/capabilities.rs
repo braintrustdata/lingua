@@ -37,8 +37,9 @@ const MINIMAL_THINKING_LEVEL_PREFIXES: &[&str] = &[
     "gemini-3.6-flash",
 ];
 
-/// Gemini models that accept thinkingLevel XHIGH. Other models reject it.
-const XHIGH_THINKING_LEVEL_PREFIXES: &[&str] = &["gemini-4-hydrogen"];
+/// Gemini models that accept thinkingLevel XHIGH (Gemini 4 Hydrogen and the
+/// Neon family). Other models reject it.
+const XHIGH_THINKING_LEVEL_PREFIXES: &[&str] = &["gemini-4-hydrogen", "gemini-4-neon"];
 
 /// Model prefixes that use thinkingBudget (Gemini 2.5)
 const THINKING_BUDGET_PREFIXES: &[&str] = &["gemini-2.5", "gemini-2.0"];

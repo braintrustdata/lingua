@@ -1682,6 +1682,11 @@ mod tests {
     fn test_google_roundtrip_preserves_xhigh_only_where_supported() {
         for (model, expected_level) in [
             ("gemini-4-hydrogen", ThinkingLevel::Xhigh),
+            ("gemini-4-neon", ThinkingLevel::Xhigh),
+            (
+                "publishers/google/models/gemini-4-neon",
+                ThinkingLevel::Xhigh,
+            ),
             ("gemini-4-argon", ThinkingLevel::High),
         ] {
             let universal = GoogleAdapter
