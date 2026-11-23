@@ -40,10 +40,11 @@ pub use capabilities::ProviderFormat;
 pub use providers::openai::parse_decision_response;
 
 pub use processing::{
-    extract_model, normalize_json_lone_surrogate_escapes, parse_json, parse_json_body,
-    parse_json_value, parse_stream_event, request_to_universal, response_to_universal,
-    sanitize_payload, transform_request, transform_response, transform_stream_chunk,
-    ParsedJsonBody, ParsedStreamEvent, RequestTransformResult, ResponseTransformResult,
+    extract_model, normalize_json_lone_surrogate_escapes, observe_response, observe_stream_event,
+    parse_json, parse_json_body, parse_json_value, parse_stream_event, request_to_universal,
+    response_to_universal, sanitize_payload, transform_request, transform_response,
+    transform_stream_chunk, GenerationEvidence, ParsedJsonBody, ParsedStreamEvent,
+    PreGenerationRejection, RequestTransformResult, ResponseObservation, ResponseTransformResult,
     StreamOutputChunk, StreamTransformSession, TransformError, TransformResult,
 };
 pub use processing::{

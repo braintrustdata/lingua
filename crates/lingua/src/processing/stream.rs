@@ -7,6 +7,7 @@ use crate::processing::adapters::adapter_for_format;
 use crate::processing::transform::{
     serialize_stream_value, transform_stream_chunk_step, TransformError, TransformResult,
 };
+use crate::processing::ResponseObservation;
 #[cfg(feature = "openai")]
 use crate::providers::openai::generated::MessagePhase;
 #[cfg(feature = "openai")]
@@ -161,25 +162,33 @@ impl StreamTransformSession {
     }
 
     pub fn push(&mut self, input: Bytes) -> Result<Vec<StreamOutputChunk>, TransformError> {
-        self.push_observing(input, |_| {})
+        self.push_internal(input, None, None)
     }
 
-    /// Like [`push`](Self::push), also passing the chunk's universal form to `observe`.
-    /// Same-format chunks pass through unconverted, so `observe` is not called for them.
+    /// Like [`push`](Self::push), also observing the provider response before conversion.
     pub fn push_observing(
         &mut self,
         input: Bytes,
-        observe: impl FnOnce(&UniversalStreamChunk),
+        event_type: Option<&str>,
+        mut observe: impl FnMut(&ResponseObservation),
+    ) -> Result<Vec<StreamOutputChunk>, TransformError> {
+        self.push_internal(input, event_type, Some(&mut observe))
+    }
+
+    fn push_internal(
+        &mut self,
+        input: Bytes,
+        event_type: Option<&str>,
+        observe: Option<&mut dyn FnMut(&ResponseObservation)>,
     ) -> Result<Vec<StreamOutputChunk>, TransformError> {
         let step = transform_stream_chunk_step(
             input,
             self.target_format,
             self.allow_full_response_fallback,
             |source_format, universal| self.retain_anthropic_usage(source_format, universal),
+            event_type,
+            observe,
         )?;
-        if let Some(universal) = &step.universal {
-            observe(universal);
-        }
 
         #[cfg(feature = "openai")]
         if let Some(event) = &step.responses_text_message_event {
@@ -2225,7 +2234,7 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
-    fn test_stream_session_observes_converted_chunks_only() {
+    fn test_stream_session_observes_converted_and_passthrough_chunks() {
         let message_start = to_bytes(&json!({
             "type": "message_start",
             "message": {
@@ -2236,8 +2245,8 @@ mod tests {
         }));
         let mut observed = None;
         StreamTransformSession::new(ProviderFormat::ChatCompletions)
-            .push_observing(message_start.clone(), |chunk| {
-                observed = Some(chunk.served())
+            .push_observing(message_start.clone(), None, |observation| {
+                observed = Some(observation.served.clone())
             })
             .unwrap();
         let observed = observed.expect("converted chunks are observed");
@@ -2246,9 +2255,44 @@ mod tests {
 
         let mut called = false;
         StreamTransformSession::new(ProviderFormat::Anthropic)
-            .push_observing(message_start, |_| called = true)
+            .push_observing(message_start, None, |_| called = true)
             .unwrap();
-        assert!(!called, "same-format chunks pass through unconverted");
+        assert!(called, "same-format chunks must also be observed");
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn observes_split_anthropic_usage_without_rewriting_passthrough() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let events = [
+            to_bytes(&json!({
+                "type":"message_start", "message":{
+                    "id":"msg_usage", "type":"message", "role":"assistant", "model":"claude",
+                    "content":[], "stop_reason":null, "stop_sequence":null,
+                    "usage":{"input_tokens":3,"output_tokens":0,"cache_read_input_tokens":7,"cost":0.25}
+                }
+            })),
+            to_bytes(
+                &json!({"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":4}}),
+            ),
+        ];
+        let mut observed = Vec::new();
+        for event in events {
+            let output = session
+                .push_observing(event.clone(), None, |observation| {
+                    observed.push(observation.clone());
+                })
+                .unwrap();
+            assert_eq!(output.len(), 1);
+            assert_eq!(output[0].data, event);
+        }
+        assert_eq!(observed.len(), 2);
+        assert_eq!(observed[0].provider_cost_usd, Some(0.25));
+        let usage = observed[1].usage.as_ref().unwrap();
+        assert_eq!(usage.prompt_tokens, Some(3));
+        assert_eq!(usage.prompt_cached_tokens, Some(7));
+        assert_eq!(usage.completion_tokens, Some(4));
+        assert_eq!(usage.inclusive_prompt_tokens(), Some(10));
     }
 
     #[test]
