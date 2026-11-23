@@ -401,6 +401,8 @@ impl ResponsesOutputItemAddedItem {
     }
 }
 
+/// Typed classification of a native Responses stream event for the stateful
+/// Responses → Chat Completions text-message policy.
 #[derive(Debug)]
 pub(crate) enum ResponsesTextMessageEvent {
     MessageAdded {
@@ -414,6 +416,9 @@ pub(crate) enum ResponsesTextMessageEvent {
     TextDelta {
         output_index: u32,
     },
+    /// A `function_call` or `custom_tool_call` output item started. A turn that
+    /// ends on a tool call is complete without a final-answer message.
+    ToolCallAdded,
     Completed,
     Other,
 }
@@ -440,8 +445,13 @@ pub(crate) fn responses_text_message_event(
         TransformError::DeserializationFailed(format!("Responses stream event: {e}"))
     })?;
     let message_item = |added: ResponsesOutputItemAddedEvent, done: bool| {
-        let Some(ResponsesOutputItemAddedItem::Message { phase }) = added.item else {
-            return Ok(ResponsesTextMessageEvent::Other);
+        let phase = match added.item {
+            Some(ResponsesOutputItemAddedItem::Message { phase }) => phase,
+            Some(
+                ResponsesOutputItemAddedItem::FunctionCall { .. }
+                | ResponsesOutputItemAddedItem::CustomToolCall { .. },
+            ) if !done => return Ok(ResponsesTextMessageEvent::ToolCallAdded),
+            Some(_) | None => return Ok(ResponsesTextMessageEvent::Other),
         };
         let output_index = added.output_index.ok_or_else(|| {
             TransformError::DeserializationFailed(
