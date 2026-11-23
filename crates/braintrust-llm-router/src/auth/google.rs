@@ -246,6 +246,7 @@ fn token_host(token_url: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use jsonwebtoken::{decode, DecodingKey, Validation};
     use serde_json::json;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -280,6 +281,16 @@ LlP8bOXhMTiDzwDVqnW2qmtDiZOGEPOkVejVBvGxv9bV4ivdTQDO/qLzsWbP54LR
 IaDWu5YTkzCysoEwOqOEjoAyIwVi6g2wBcKbA/yajNTiun2pd0e2Y+xyydVUkIur
 AuWIGWj6mq+yKlKUjA2WGQ==
 -----END PRIVATE KEY-----"#;
+
+    const TEST_RSA_PUBLIC_KEY_PEM: &str = r#"-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnDCW5vY46Dq72M+hvD2u
+ITcKCrrozHeYr7YsjcQu/0vwC4veLdeJJSkrfZ00H1JozPAswPhD5/9h1pozg7Mg
+7VzgEW8EtYwq5RGnUXurkkS/YF7Ah4ZoD6HE+krOc+iKDosAInJ0BuZCr1MNBXZ4
+9/OX2AvUeTJKjtPzgotMXT5yJnAhFGT8K6ge8wZpDp0zoNuPPnhEs7BGr7ZSHQuO
+IJYJTyxcilgqdOZbKEiKC6B+qqzZPdqor7Na/b1qzusI0VL1F1CpSMj6CTkvc4zy
+bo67BGpN9vVe3fxmL9nYBiJwBJvL1pkRTePYjbvj4eksgWW+KRIu6HF/RaXQazbH
+nQIDAQAB
+-----END PUBLIC KEY-----"#;
 
     #[tokio::test]
     async fn refreshes_stale_token() {
@@ -356,6 +367,10 @@ AuWIGWj6mq+yKlKUjA2WGQ==
         let manager = GoogleTokenManager::new();
         let client = Client::builder().build().expect("build HTTP client");
 
+        let issued_after = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock")
+            .as_secs();
         for _ in 0..2 {
             let token = manager
                 .get_token(&client, &config)
@@ -364,6 +379,33 @@ AuWIGWj6mq+yKlKUjA2WGQ==
             assert_eq!(token, "vertex-access-token");
         }
 
-        assert_eq!(server.received_requests().await.unwrap().len(), 1);
+        let requests = server.received_requests().await.unwrap();
+        assert_eq!(requests.len(), 1);
+        let (_, assertion) = url::form_urlencoded::parse(&requests[0].body)
+            .find(|(name, _)| name == "assertion")
+            .expect("OAuth JWT assertion");
+        let key =
+            DecodingKey::from_rsa_pem(TEST_RSA_PUBLIC_KEY_PEM.as_bytes()).expect("RSA public key");
+        let mut validation = Validation::new(Algorithm::RS256);
+        validation.set_audience(&[config.key.token_uri.as_str()]);
+        validation.set_issuer(&[config.key.client_email.as_str()]);
+
+        #[derive(Deserialize)]
+        struct AssertionClaims {
+            scope: String,
+            iat: u64,
+            exp: u64,
+        }
+
+        let claims = decode::<AssertionClaims>(assertion.as_ref(), &key, &validation)
+            .expect("valid Google service-account JWT")
+            .claims;
+        let issued_before = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock")
+            .as_secs();
+        assert_eq!(claims.scope, DEFAULT_SCOPE);
+        assert!(claims.iat >= issued_after && claims.iat <= issued_before);
+        assert_eq!(claims.exp, claims.iat + 3600);
     }
 }
