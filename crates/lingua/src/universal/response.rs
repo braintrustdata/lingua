@@ -1110,6 +1110,37 @@ impl UniversalUsage {
         }
     }
 
+    /// Merge an Anthropic stream update with the previous cumulative counts.
+    ///
+    /// Reported counts replace prior values, and omitted counts retain them.
+    /// Callers can recompute `total_tokens` from the merged counts.
+    pub fn merge_anthropic_stream_counts(&mut self, previous: Self) {
+        self.prompt_tokens = self.prompt_tokens.or(previous.prompt_tokens);
+        self.completion_tokens = self.completion_tokens.or(previous.completion_tokens);
+        self.prompt_cached_tokens = self.prompt_cached_tokens.or(previous.prompt_cached_tokens);
+        self.prompt_cache_creation_tokens = self
+            .prompt_cache_creation_tokens
+            .or(previous.prompt_cache_creation_tokens);
+        self.prompt_cache_creation_5m_tokens = self
+            .prompt_cache_creation_5m_tokens
+            .or(previous.prompt_cache_creation_5m_tokens);
+        self.prompt_cache_creation_1h_tokens = self
+            .prompt_cache_creation_1h_tokens
+            .or(previous.prompt_cache_creation_1h_tokens);
+        self.completion_reasoning_tokens = self
+            .completion_reasoning_tokens
+            .or(previous.completion_reasoning_tokens);
+        match (self.input_details.as_mut(), previous.input_details) {
+            (Some(current), Some(previous)) => {
+                current.cached = current.cached.take().or(previous.cached);
+                current.cache_creation = current.cache_creation.take().or(previous.cache_creation);
+            }
+            (None, previous) => self.input_details = previous,
+            _ => {}
+        }
+        self.output_details = self.output_details.take().or(previous.output_details);
+    }
+
     /// Prompt tokens following the OpenAI convention of including cache
     /// read/creation tokens. For providers that report prompt tokens
     /// exclusive of the cache buckets (Anthropic, Converse), the cache
