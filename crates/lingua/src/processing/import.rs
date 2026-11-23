@@ -70,6 +70,19 @@ struct MessageImport {
     google_tools: TraceToolCalls,
 }
 
+#[cfg(feature = "google")]
+impl MessageImport {
+    fn finish_google_import(
+        &mut self,
+        result: Result<Vec<Message>, crate::error::ConvertError>,
+    ) -> Vec<Message> {
+        result.unwrap_or_else(|error| {
+            self.errors.push(error.to_string());
+            Vec::new()
+        })
+    }
+}
+
 fn opaque_item_kind(data: &impl ImportValue) -> Option<OpaqueItemKind> {
     #[cfg(feature = "openai")]
     {
@@ -109,13 +122,7 @@ fn try_converting_to_messages<V: ImportValue>(
     // ADK envelope before interpreting its content object as AI SDK JSON text.
     #[cfg(feature = "google")]
     if let Some(result) = try_parse_adk_for_import(data, &mut import.google_tools) {
-        return match result {
-            Ok(messages) => messages,
-            Err(error) => {
-                import.errors.push(error.to_string());
-                Vec::new()
-            }
-        };
+        return import.finish_google_import(result);
     }
 
     if let Some(messages) = try_parse_ai_sdk_for_import(data) {
@@ -438,8 +445,10 @@ fn try_parse_provider_messages_for_import<V: ImportValue>(
         ],
     );
     #[cfg(feature = "google")]
-    let messages =
-        messages.or_else(|| try_parse_google_for_import(data, &mut _import.google_tools));
+    let messages = messages.or_else(|| {
+        let result = try_parse_google_for_import(data, &mut _import.google_tools)?;
+        Some(_import.finish_google_import(result))
+    });
     #[cfg(feature = "bedrock")]
     let messages = messages.or_else(|| {
         try_parsers_in_order(
@@ -1370,6 +1379,143 @@ mod tests {
             .errors
             .iter()
             .any(|error| error.contains("Unsupported mapping") && error.contains("toolCall")));
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_keeps_direct_video_uri_with_metadata() {
+        let span: Span = serde_json::from_value(crate::serde_json::json!({
+            "input": {"contents": [{
+                "uri": "https://generativelanguage.googleapis.com/v1beta/files/video",
+                "mime_type": "video/mp4",
+                "video_metadata": {"fps": 2.0}
+            }]}
+        }))
+        .unwrap();
+
+        let imported = import_span(span).unwrap();
+        let [Message::User {
+            content: UserContent::Array(parts),
+        }] = imported.input.as_slice()
+        else {
+            panic!("expected one user message with a file");
+        };
+        assert!(matches!(
+            parts.as_slice(),
+            [UserContentPart::File { data: Value::String(uri), media_type, .. }]
+                if uri.ends_with("/files/video") && media_type == "video/mp4"
+        ));
+        assert!(imported.errors.is_empty());
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_keeps_text_between_explicit_content_tool_results() {
+        let span: Span = serde_json::from_value(crate::serde_json::json!({
+            "input": {"contents": [
+                {"role": "model", "parts": [
+                    {"function_call": {"name": "weather"}},
+                    {"function_call": {"name": "clock"}}
+                ]},
+                {"role": "user", "parts": [
+                    {"function_response": {"name": "weather", "response": {"degrees": 20}}},
+                    {"text": "Summarize."},
+                    {"function_response": {"name": "clock", "response": {"hour": 12}}},
+                    {"text": "Include the time."}
+                ]}
+            ]}
+        }))
+        .unwrap();
+
+        let imported = import_span(span).unwrap();
+        let [Message::Assistant {
+            content: AssistantContent::Array(calls),
+            ..
+        }, Message::Tool { content: weather }, Message::User {
+            content: UserContent::String(summarize),
+        }, Message::Tool { content: clock }, Message::User {
+            content: UserContent::String(include_time),
+        }] = imported.input.as_slice()
+        else {
+            panic!("expected tool results and text in their original order");
+        };
+        assert_eq!(summarize, "Summarize.");
+        assert_eq!(include_time, "Include the time.");
+        for (call, result) in calls.iter().zip([weather, clock]) {
+            let AssistantContentPart::ToolCall {
+                tool_call_id,
+                tool_name,
+                ..
+            } = call
+            else {
+                panic!("expected a tool call");
+            };
+            let [ToolContentPart::ToolResult(result)] = result.as_slice() else {
+                panic!("expected a tool result");
+            };
+            assert_eq!(tool_call_id, &result.tool_call_id);
+            assert_eq!(tool_name, &result.tool_name);
+        }
+        assert_eq!(calls.len(), 2);
+        assert!(imported.errors.is_empty());
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_reports_unsupported_request_part() {
+        let span: Span = serde_json::from_value(crate::serde_json::json!({
+            "input": {"contents": [{"role": "user", "parts": [
+                {"toolCall": {"tool_type": "GOOGLE_MAPS"}}
+            ]}]}
+        }))
+        .unwrap();
+        let imported = import_span(span).unwrap();
+        assert!(imported.input.is_empty());
+        assert!(imported
+            .errors
+            .iter()
+            .any(|error| { error.contains("Unsupported mapping") && error.contains("toolCall") }));
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_reports_unsupported_candidate_part() {
+        let span: Span = serde_json::from_value(crate::serde_json::json!({
+            "output": {"candidates": [
+                {"content": {"role": "model", "parts": [{"text": "A plain candidate"}]}},
+                {"content": {"role": "model", "parts": [
+                    {"toolCall": {"tool_type": "GOOGLE_MAPS"}}
+                ]}}
+            ]}
+        }))
+        .unwrap();
+        let imported = import_span(span).unwrap();
+        assert!(imported.output.is_empty());
+        assert!(imported
+            .errors
+            .iter()
+            .any(|error| { error.contains("Unsupported mapping") && error.contains("toolCall") }));
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_rejects_nonblocking_function_responses() {
+        for continuation in ["will_continue", "willContinue"] {
+            let span: Span = serde_json::from_value(crate::serde_json::json!({
+                "input": {"contents": [{"role": "user", "parts": [{
+                    "function_response": {"name": "work", "response": {}, (continuation): true}
+                }]}]}
+            }))
+            .unwrap();
+            let imported = import_span(span).unwrap();
+            assert!(imported.input.is_empty(), "{continuation}");
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains("willContinue")
+                }),
+                "{continuation}"
+            );
+        }
     }
 
     #[test]

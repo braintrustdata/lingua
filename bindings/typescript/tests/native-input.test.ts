@@ -146,7 +146,7 @@ describe.each([
         content: [
           {
             type: "tool_call",
-            tool_call_id: "call_0",
+            tool_call_id: expect.stringMatching(/^call_trace_[0-9a-f]{16}_0$/),
             tool_name: "get_weather",
             arguments: { type: "valid", value: { city_name: "Paris" } },
           },

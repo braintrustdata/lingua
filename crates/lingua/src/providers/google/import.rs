@@ -11,6 +11,9 @@ use crate::serde_json;
 use crate::universal::message::{AssistantContent, Message, UserContent, UserContentPart};
 use crate::universal::trajectory::AttachmentReference;
 use serde::Deserialize;
+use std::borrow::Cow;
+
+type TraceMessagePart = (Part, Option<UserContentPart>);
 
 #[derive(Deserialize)]
 struct TraceAttachmentUrl {
@@ -33,7 +36,7 @@ struct TracePart {
     #[serde(alias = "function_call")]
     function_call: Option<FunctionCall>,
     #[serde(alias = "function_response")]
-    function_response: Option<FunctionResponse>,
+    function_response: Option<TraceFunctionResponse>,
     #[serde(alias = "inline_data")]
     inline_data: Option<TraceBlob>,
     #[serde(alias = "media_processing")]
@@ -54,6 +57,26 @@ struct TracePart {
     tool_response: Option<ToolResponse>,
     #[serde(alias = "video_metadata")]
     video_metadata: Option<VideoMetadata>,
+}
+
+#[derive(Deserialize)]
+struct TraceFunctionResponse {
+    #[serde(alias = "willContinue")]
+    will_continue: Option<bool>,
+    #[serde(flatten)]
+    response: FunctionResponse,
+}
+
+impl TraceFunctionResponse {
+    fn into_response(self) -> Result<FunctionResponse, ConvertError> {
+        if self.will_continue.is_some() {
+            return Err(ConvertError::UnsupportedMapping {
+                from: "Google functionResponse.willContinue".to_string(),
+                to: "Lingua universal message",
+            });
+        }
+        Ok(self.response)
+    }
 }
 
 #[derive(Deserialize)]
@@ -88,7 +111,7 @@ impl From<TraceFileData> for FileData {
 }
 
 impl TracePart {
-    fn into_parts(self) -> Option<(Part, Option<UserContentPart>)> {
+    fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
         let attachment = match self.image_url {
             Some(TraceAttachmentUrl { url }) => {
                 let media_type = match &url {
@@ -98,7 +121,12 @@ impl TracePart {
                     }
                 };
                 Some(UserContentPart::Image {
-                    image: serde_json::to_value(url).ok()?,
+                    image: serde_json::to_value(url).map_err(|error| {
+                        ConvertError::JsonSerializationFailed {
+                            field: "Google attachment URL".to_string(),
+                            error: error.to_string(),
+                        }
+                    })?,
                     media_type: Some(media_type),
                     provider_options: None,
                 })
@@ -111,7 +139,10 @@ impl TracePart {
             executable_code: self.executable_code,
             file_data: self.file_data.map(FileData::from),
             function_call: self.function_call,
-            function_response: self.function_response,
+            function_response: self
+                .function_response
+                .map(TraceFunctionResponse::into_response)
+                .transpose()?,
             inline_data: self.inline_data.map(|blob| Blob {
                 data: blob.data,
                 display_name: blob.display_name,
@@ -128,7 +159,7 @@ impl TracePart {
             tool_response: self.tool_response,
             video_metadata: self.video_metadata,
         };
-        Some((part, attachment))
+        Ok((part, attachment))
     }
 }
 
@@ -139,16 +170,17 @@ struct TraceContent {
 }
 
 impl TraceContent {
-    fn into_message(
+    fn into_role_and_parts(
         self,
-        envelope_role: Option<&str>,
-        trace_tools: Option<&mut TraceToolCalls>,
-    ) -> Result<Message, ConvertError> {
-        let role = self.role.as_deref().or(envelope_role).ok_or_else(|| {
-            ConvertError::MissingRequiredField {
+        envelope_role: Option<&'static str>,
+    ) -> Result<(Cow<'static, str>, Vec<TraceMessagePart>), ConvertError> {
+        let role = self
+            .role
+            .map(Cow::Owned)
+            .or(envelope_role.map(Cow::Borrowed))
+            .ok_or_else(|| ConvertError::MissingRequiredField {
                 field: "Google content role".to_string(),
-            }
-        })?;
+            })?;
         let parts = match self.parts {
             Some(parts) => parts,
             None if role == "model" => Vec::new(),
@@ -161,11 +193,17 @@ impl TraceContent {
         let parts = parts
             .into_iter()
             .map(TracePart::into_parts)
-            .collect::<Option<Vec<_>>>()
-            .ok_or_else(|| ConvertError::ContentConversionFailed {
-                reason: "invalid Google content part".to_string(),
-            })?;
-        Content::message_from_parts_with_trace_tools(role, parts, trace_tools)
+            .collect::<Result<_, _>>()?;
+        Ok((role, parts))
+    }
+
+    fn into_message(
+        self,
+        envelope_role: Option<&'static str>,
+        trace_tools: Option<&mut TraceToolCalls>,
+    ) -> Result<Message, ConvertError> {
+        let (role, parts) = self.into_role_and_parts(envelope_role)?;
+        Content::message_from_parts_with_trace_tools(&role, parts, trace_tools)
     }
 }
 
@@ -193,9 +231,9 @@ enum RequestPart {
 }
 
 impl RequestPart {
-    fn into_parts(self) -> Option<(Part, Option<UserContentPart>)> {
+    fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
         match self {
-            Self::Text(text) => Some((
+            Self::Text(text) => Ok((
                 Part {
                     text: Some(text),
                     ..Default::default()
@@ -217,14 +255,19 @@ struct RequestPartObject {
 }
 
 impl RequestPartObject {
-    fn into_parts(self) -> Option<(Part, Option<UserContentPart>)> {
+    fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
         let (mut part, attachment) = self.part.into_parts()?;
-        if part == Part::default() && attachment.is_none() {
-            let mut file = self.file;
-            file.file_uri = Some(file.file_uri.or(self.uri)?);
+        let mut file = self.file;
+        file.file_uri = file.file_uri.or(self.uri);
+        if part.file_data.is_none() && file.file_uri.is_some() {
             part.file_data = Some(file.into());
         }
-        Some((part, attachment))
+        if part == Part::default() && attachment.is_none() {
+            return Err(ConvertError::ContentConversionFailed {
+                reason: "unrecognized Google request part".to_string(),
+            });
+        }
+        Ok((part, attachment))
     }
 }
 
@@ -262,30 +305,28 @@ fn request_part_kind(part: &Part) -> RequestPartKind {
 #[derive(Default)]
 struct RequestMessages {
     messages: Vec<Message>,
-    pending: Vec<(Part, Option<UserContentPart>)>,
+    pending: Vec<TraceMessagePart>,
     trace_tools: TraceToolCalls,
 }
 
 impl RequestMessages {
-    fn flush(&mut self) -> Option<()> {
+    fn flush(&mut self) -> Result<(), ConvertError> {
         if let Some((part, _)) = self.pending.first() {
             let role = match request_part_kind(part) {
                 RequestPartKind::Model => "model",
                 RequestPartKind::ToolResult | RequestPartKind::User => "user",
             };
-            self.messages.push(
-                Content::message_from_parts_with_trace_tools(
+            self.messages
+                .push(Content::message_from_parts_with_trace_tools(
                     role,
                     self.pending.drain(..),
                     Some(&mut self.trace_tools),
-                )
-                .ok()?,
-            );
+                )?);
         }
-        Some(())
+        Ok(())
     }
 
-    fn push_part(&mut self, part: (Part, Option<UserContentPart>)) -> Option<()> {
+    fn push_part(&mut self, part: TraceMessagePart) -> Result<(), ConvertError> {
         if self
             .pending
             .first()
@@ -294,23 +335,45 @@ impl RequestMessages {
             self.flush()?;
         }
         self.pending.push(part);
-        Some(())
+        Ok(())
     }
 
-    fn push_content(&mut self, content: TraceContent) -> Option<()> {
+    fn push_content(&mut self, content: TraceContent) -> Result<(), ConvertError> {
         self.flush()?;
-        self.messages.push(
-            content
-                .into_message(Some("user"), Some(&mut self.trace_tools))
-                .ok()?,
-        );
-        Some(())
+        let (role, parts) = content.into_role_and_parts(Some("user"))?;
+        if role == "user"
+            && parts
+                .iter()
+                .any(|(part, _)| part.function_response.is_some())
+        {
+            let mut parts = parts.into_iter().peekable();
+            while let Some(first) = parts.next() {
+                let is_result = first.0.function_response.is_some();
+                let rest = std::iter::from_fn(|| {
+                    parts.next_if(|(part, _)| part.function_response.is_some() == is_result)
+                });
+                self.messages
+                    .push(Content::message_from_parts_with_trace_tools(
+                        &role,
+                        std::iter::once(first).chain(rest),
+                        Some(&mut self.trace_tools),
+                    )?);
+            }
+        } else {
+            self.messages
+                .push(Content::message_from_parts_with_trace_tools(
+                    &role,
+                    parts,
+                    Some(&mut self.trace_tools),
+                )?);
+        }
+        Ok(())
     }
 }
 
 fn messages_from_request_entries(
     entries: impl IntoIterator<Item = RequestEntry>,
-) -> Option<RequestMessages> {
+) -> Result<RequestMessages, ConvertError> {
     let mut request = RequestMessages::default();
     for entry in entries {
         let part = match entry {
@@ -334,7 +397,7 @@ fn messages_from_request_entries(
         request.push_part(part)?;
     }
     request.flush()?;
-    Some(request)
+    Ok(request)
 }
 
 #[derive(Deserialize)]
@@ -346,31 +409,34 @@ enum SystemInstruction {
 }
 
 impl SystemInstruction {
-    fn into_message(self) -> Option<Message> {
+    fn into_message(self) -> Result<Message, ConvertError> {
         let message = match self {
             Self::Text(text) => {
-                return Some(Message::System {
+                return Ok(Message::System {
                     content: UserContent::String(text),
                 })
             }
             Self::Object(object) if object.is_content() => {
-                object.content.into_message(Some("user"), None).ok()?
+                object.content.into_message(Some("user"), None)?
             }
             Self::Object(object) => {
                 let part = object.part.into_parts()?;
-                Content::message_from_parts("user", [part]).ok()?
+                Content::message_from_parts("user", [part])?
             }
             Self::Parts(parts) => {
                 let parts = parts
                     .into_iter()
                     .map(RequestPart::into_parts)
-                    .collect::<Option<Vec<_>>>()?;
-                Content::message_from_parts("user", parts).ok()?
+                    .collect::<Result<Vec<_>, _>>()?;
+                Content::message_from_parts("user", parts)?
             }
         };
         match message {
-            Message::User { content } => Some(Message::System { content }),
-            _ => None,
+            Message::User { content } => Ok(Message::System { content }),
+            _ => Err(ConvertError::UnsupportedMapping {
+                from: "Google system instruction with non-user content".to_string(),
+                to: "Lingua system message",
+            }),
         }
     }
 }
@@ -443,8 +509,22 @@ fn try_parse_content<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
 fn try_parse_request(
     data: &impl ImportValue,
     trace_tools: &mut TraceToolCalls,
-) -> Option<Vec<Message>> {
+) -> Option<Result<Vec<Message>, ConvertError>> {
+    if data.kind() != InputKind::Object {
+        return None;
+    }
     let request: TraceRequest = try_parse(data)?;
+    match convert_request(request) {
+        Ok(parsed) => {
+            let messages = non_empty_messages(parsed.messages)?;
+            *trace_tools = parsed.trace_tools;
+            Some(Ok(messages))
+        }
+        Err(error) => Some(Err(error)),
+    }
+}
+
+fn convert_request(request: TraceRequest) -> Result<RequestMessages, ConvertError> {
     let mut parsed = match request.contents {
         RequestContents::Text(text) => RequestMessages {
             messages: vec![Message::User {
@@ -463,16 +543,14 @@ fn try_parse_request(
     if let Some(instruction) = system_instruction {
         parsed.messages.insert(0, instruction.into_message()?);
     }
-    let messages = non_empty_messages(parsed.messages)?;
-    *trace_tools = parsed.trace_tools;
-    Some(messages)
+    Ok(parsed)
 }
 
 fn messages_from_candidates(
     candidates: Vec<TraceCandidate>,
     in_candidates: bool,
     trace_tools: &mut TraceToolCalls,
-) -> Result<Vec<Message>, ConvertError> {
+) -> Result<Option<Vec<Message>>, ConvertError> {
     let mut messages = Vec::new();
     for candidate in candidates {
         let finished = candidate.is_finished(in_candidates);
@@ -486,24 +564,25 @@ fn messages_from_candidates(
             });
         }
     }
-    Ok(messages)
+    Ok(non_empty_messages(messages))
 }
 
 fn try_parse_response(
     data: &impl ImportValue,
     trace_tools: &mut TraceToolCalls,
-) -> Option<Vec<Message>> {
+) -> Option<Result<Vec<Message>, ConvertError>> {
+    if data.kind() != InputKind::Object {
+        return None;
+    }
     let response: TraceResponse = try_parse(data)?;
-    non_empty_messages(messages_from_candidates(response.candidates, true, trace_tools).ok()?)
+    messages_from_candidates(response.candidates, true, trace_tools).transpose()
 }
 
 fn try_parse_candidates(
     data: &impl ImportValue,
     trace_tools: &mut TraceToolCalls,
 ) -> Option<Vec<Message>> {
-    non_empty_messages(
-        messages_from_candidates(try_parse_vec_or_single(data)?, false, trace_tools).ok()?,
-    )
+    messages_from_candidates(try_parse_vec_or_single(data)?, false, trace_tools).ok()?
 }
 
 pub(crate) fn try_parse_adk_for_import(
@@ -525,19 +604,17 @@ pub(crate) fn try_parse_adk_for_import(
     {
         return None;
     }
-    match messages_from_candidates(vec![candidate], false, trace_tools) {
-        Ok(messages) => non_empty_messages(messages).map(Ok),
-        Err(error) => Some(Err(error)),
-    }
+    messages_from_candidates(vec![candidate], false, trace_tools).transpose()
 }
 
 pub(crate) fn try_parse_google_for_import(
     data: &impl ImportValue,
     trace_tools: &mut TraceToolCalls,
-) -> Option<Vec<Message>> {
+) -> Option<Result<Vec<Message>, ConvertError>> {
     try_parse_content(data)
         .and_then(non_empty_messages)
+        .map(Ok)
         .or_else(|| try_parse_request(data, trace_tools))
         .or_else(|| try_parse_response(data, trace_tools))
-        .or_else(|| try_parse_candidates(data, trace_tools))
+        .or_else(|| try_parse_candidates(data, trace_tools).map(Ok))
 }
