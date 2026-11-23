@@ -17,7 +17,7 @@ use crate::providers::openai::responses_adapter::{
     ResponsesTextMessageEvent, ResponsesToolItem,
 };
 use crate::serde_json::Value;
-use crate::universal::{UniversalReasoningSignature, UniversalStreamChunk};
+use crate::universal::{UniversalReasoningSignature, UniversalStreamChunk, UniversalUsage};
 
 static EMPTY_JSON: Bytes = Bytes::from_static(b"{}");
 static SSE_DATA_PREFIX: &[u8] = b"data: ";
@@ -116,6 +116,7 @@ pub struct StreamTransformSession {
     responses_answer_item: Option<u32>,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
+    anthropic_usage: Option<UniversalUsage>,
 }
 
 impl StreamTransformSession {
@@ -151,6 +152,7 @@ impl StreamTransformSession {
             responses_answer_item: None,
             bedrock_tool_call_indexes: BTreeMap::new(),
             next_bedrock_tool_call_index: 0,
+            anthropic_usage: None,
         }
     }
 
@@ -173,6 +175,7 @@ impl StreamTransformSession {
             input,
             self.target_format,
             self.allow_full_response_fallback,
+            |source_format, universal| self.retain_anthropic_usage(source_format, universal),
         )?;
         if let Some(universal) = &step.universal {
             observe(universal);
@@ -210,6 +213,57 @@ impl StreamTransformSession {
             },
         )?;
         self.process_chunks(chunks)
+    }
+
+    fn retain_anthropic_usage(
+        &mut self,
+        source_format: ProviderFormat,
+        universal: &mut UniversalStreamChunk,
+    ) {
+        if !matches!(
+            source_format,
+            ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
+        ) {
+            return;
+        }
+        let Some(usage) = universal.usage.as_mut() else {
+            return;
+        };
+        if let Some(previous) = self.anthropic_usage.take() {
+            usage.prompt_tokens = usage.prompt_tokens.or(previous.prompt_tokens);
+            usage.completion_tokens = usage.completion_tokens.or(previous.completion_tokens);
+            usage.prompt_cached_tokens =
+                usage.prompt_cached_tokens.or(previous.prompt_cached_tokens);
+            usage.prompt_cache_creation_tokens = usage
+                .prompt_cache_creation_tokens
+                .or(previous.prompt_cache_creation_tokens);
+            usage.prompt_cache_creation_5m_tokens = usage
+                .prompt_cache_creation_5m_tokens
+                .or(previous.prompt_cache_creation_5m_tokens);
+            usage.prompt_cache_creation_1h_tokens = usage
+                .prompt_cache_creation_1h_tokens
+                .or(previous.prompt_cache_creation_1h_tokens);
+            usage.completion_reasoning_tokens = usage
+                .completion_reasoning_tokens
+                .or(previous.completion_reasoning_tokens);
+            match (usage.input_details.as_mut(), previous.input_details) {
+                (Some(current), Some(previous)) => {
+                    current.cached = current.cached.take().or(previous.cached);
+                    current.cache_creation =
+                        current.cache_creation.take().or(previous.cache_creation);
+                }
+                (None, previous) => usage.input_details = previous,
+                _ => {}
+            }
+            usage.output_details = usage.output_details.take().or(previous.output_details);
+            usage.total_tokens = usage
+                .inclusive_prompt_tokens()
+                .map(|prompt| prompt + usage.completion_tokens.unwrap_or(0))
+                .or(usage.completion_tokens);
+        }
+        self.anthropic_usage = Some(usage.clone());
     }
 
     #[cfg(feature = "openai")]
@@ -3007,6 +3061,63 @@ mod tests {
                 .and_then(Value::as_str),
             Some("response_123")
         );
+    }
+
+    #[test]
+    #[cfg(all(feature = "anthropic", feature = "openai"))]
+    fn test_stream_session_preserves_anthropic_usage_counters() {
+        for target in [ProviderFormat::Responses, ProviderFormat::ChatCompletions] {
+            for (delta_usage, prompt, total) in [
+                (json!({"output_tokens": 4}), 15, 19),
+                (
+                    json!({"input_tokens": 0, "cache_read_input_tokens": 0,
+                    "cache_creation_input_tokens": 0, "output_tokens": 4}),
+                    0,
+                    4,
+                ),
+            ] {
+                let mut session = StreamTransformSession::new(target);
+                let mut out = session
+                    .push(to_bytes(&json!({
+                        "type": "message_start",
+                        "message": {"id": "msg_usage", "type": "message", "role": "assistant",
+                            "model": "claude-haiku-4-5", "content": [], "stop_reason": null,
+                            "usage": {"input_tokens": 3, "output_tokens": 0,
+                                "cache_read_input_tokens": 5, "cache_creation_input_tokens": 7}}
+                    })))
+                    .unwrap();
+                out.extend(
+                    session
+                        .push(to_bytes(&json!({
+                            "type": "message_delta", "delta": {"stop_reason": "end_turn"},
+                            "usage": delta_usage,
+                        })))
+                        .unwrap(),
+                );
+                out.extend(session.finish());
+                let values: Vec<Value> = out
+                    .iter()
+                    .map(|chunk| crate::serde_json::from_slice(&chunk.data).unwrap())
+                    .collect();
+                let usage = values
+                    .iter()
+                    .rev()
+                    .find_map(|event| {
+                        let usage = if target == ProviderFormat::Responses {
+                            &event["response"]["usage"]
+                        } else {
+                            &event["usage"]
+                        };
+                        (!usage.is_null()).then(|| {
+                            crate::universal::UniversalUsage::from_provider_value(usage, target)
+                        })
+                    })
+                    .unwrap();
+                assert_eq!(usage.prompt_tokens, Some(prompt), "{target:?}");
+                assert_eq!(usage.completion_tokens, Some(4), "{target:?}");
+                assert_eq!(usage.total_tokens, Some(total), "{target:?}");
+            }
+        }
     }
 
     #[test]
