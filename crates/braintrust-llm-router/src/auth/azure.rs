@@ -26,7 +26,7 @@ impl AzureEntraCredentials {
         serde_json::from_str(payload).context("failed to parse Azure Entra credentials JSON")
     }
 
-    fn cache_key(&self) -> String {
+    fn cache_key(&self) -> [u8; 32] {
         let mut hasher = Sha256::new();
         hasher.update(self.client_id.as_bytes());
         hasher.update(b"|");
@@ -37,7 +37,7 @@ impl AzureEntraCredentials {
             hasher.update(b"|");
             hasher.update(url.as_bytes());
         }
-        format!("{:x}", hasher.finalize())
+        hasher.finalize().into()
     }
 
     fn token_url(&self) -> String {
@@ -57,7 +57,7 @@ struct CachedToken {
 
 #[derive(Debug, Default)]
 pub struct AzureEntraTokenManager {
-    cache: DashMap<String, CachedToken>,
+    cache: DashMap<[u8; 32], CachedToken>,
 }
 
 impl AzureEntraTokenManager {
