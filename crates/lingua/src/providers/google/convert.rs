@@ -40,7 +40,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(crate) struct TraceToolCalls {
     pending_calls: HashMap<String, VecDeque<String>>,
     occurrences: HashMap<u64, usize>,

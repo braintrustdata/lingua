@@ -638,17 +638,22 @@ fn messages_from_candidates(
     trace_tools: &mut TraceToolCalls,
 ) -> Result<Option<Vec<Message>>, ConvertError> {
     let mut messages = Vec::new();
+    let mut pending_tools = None;
     for candidate in candidates {
         let finished = candidate.is_finished(in_candidates);
         if let Some(content) = candidate.content {
             let envelope_role = (in_candidates || finished).then_some("model");
-            messages.push(content.into_message(envelope_role, Some(trace_tools))?);
+            let tools = pending_tools.get_or_insert_with(|| trace_tools.clone());
+            messages.push(content.into_message(envelope_role, Some(tools))?);
         } else if finished || candidate.is_adk_error() {
             messages.push(Message::Assistant {
                 content: AssistantContent::String(String::new()),
                 id: None,
             });
         }
+    }
+    if let Some(tools) = pending_tools {
+        *trace_tools = tools;
     }
     Ok(non_empty_messages(messages))
 }

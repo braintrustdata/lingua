@@ -1362,6 +1362,56 @@ mod tests {
 
     #[cfg(feature = "google")]
     #[test]
+    fn gemini_import_keeps_tool_state_after_a_failed_candidate_conversion() {
+        let failing = crate::serde_json::json!({
+            "candidates": [{"content": {"role": "model", "parts": [
+                {"functionCall": {"name": "weather"}},
+                {"audioTranscription": {"text": "Unsupported"}}
+            ]}}]
+        });
+        let success = crate::serde_json::json!({
+            "candidates": [{"content": {"role": "model", "parts": [
+                {"functionCall": {"name": "weather"}}
+            ]}}]
+        });
+        let history = crate::serde_json::json!({
+            "contents": [{"role": "model", "parts": [{"functionCall": {"name": "weather"}}]}]
+        });
+        for (input, output, clean_input) in [
+            (Some(failing.clone()), success.clone(), None),
+            (
+                Some(history.clone()),
+                crate::serde_json::json!({"result": failing, "response": success}),
+                Some(history),
+            ),
+        ] {
+            let imported = import_span(Span {
+                input,
+                output: Some(output),
+                other: Default::default(),
+            })
+            .unwrap();
+            let clean = import_span(Span {
+                input: clean_input,
+                output: Some(success.clone()),
+                other: Default::default(),
+            })
+            .unwrap();
+            let [message] = imported.output.as_slice() else {
+                panic!("expected a tool call from the valid response");
+            };
+            assert!(imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("audioTranscription")
+            }));
+            assert_eq!(
+                serde_json::to_value(message).unwrap(),
+                serde_json::to_value(&clean.output[0]).unwrap()
+            );
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
     fn adk_error_only_output_imports_an_empty_assistant_turn() {
         for output in [
             crate::serde_json::json!({"errorCode": "PERMISSION_DENIED"}),
