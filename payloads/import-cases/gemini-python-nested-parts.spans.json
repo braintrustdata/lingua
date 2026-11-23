@@ -1,0 +1,22 @@
+[
+  {
+    "input": {
+      "model": "gemini-2.5-flash",
+      "contents": [[{"text": "Nested first."}, "Nested second."]]
+    }
+  },
+  {
+    "input": {
+      "model": "gemini-2.5-flash",
+      "contents": "First question.",
+      "config": {"system_instruction": {"text": "Be concise."}}
+    }
+  },
+  {
+    "input": {
+      "model": "gemini-2.5-flash",
+      "contents": "Second question.",
+      "config": {"system_instruction": [{"text": "Keep the examples."}, "Show the results."]}
+    }
+  }
+]

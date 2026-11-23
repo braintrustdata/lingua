@@ -161,6 +161,42 @@ enum RequestContents {
 enum RequestEntry {
     Text(String),
     Object(Box<RequestObject>),
+    Parts(Vec<RequestPart>),
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum RequestPart {
+    Text(String),
+    Object(Box<TracePart>),
+}
+
+impl RequestPart {
+    fn into_parts(self) -> Option<(Part, Option<UserContentPart>)> {
+        match self {
+            Self::Text(text) => Some((
+                Part {
+                    text: Some(text),
+                    ..Default::default()
+                },
+                None,
+            )),
+            Self::Object(part) => decode_request_part(*part),
+        }
+    }
+}
+
+fn decode_request_part(part: TracePart) -> Option<(Part, Option<UserContentPart>)> {
+    let (part, attachment) = part.into_parts()?;
+    (part != Part::default() || attachment.is_some()).then_some((part, attachment))
+}
+
+fn message_from_request_parts(parts: Vec<RequestPart>) -> Option<Message> {
+    let parts = parts
+        .into_iter()
+        .map(RequestPart::into_parts)
+        .collect::<Option<Vec<_>>>()?;
+    Content::message_from_parts("user", parts).ok()
 }
 
 #[derive(Deserialize)]
@@ -169,6 +205,12 @@ struct RequestObject {
     content: TraceContent,
     #[serde(flatten)]
     part: TracePart,
+}
+
+impl RequestObject {
+    fn is_content(&self) -> bool {
+        self.content.parts.is_some() || self.content.role.is_some()
+    }
 }
 
 #[derive(PartialEq)]
@@ -209,24 +251,19 @@ fn messages_from_request_entries(
     let mut pending = Vec::new();
     for entry in entries {
         let (part, attachment) = match entry {
-            RequestEntry::Text(text) => (
-                Part {
-                    text: Some(text),
-                    ..Default::default()
-                },
-                None,
-            ),
+            RequestEntry::Text(text) => RequestPart::Text(text).into_parts()?,
             RequestEntry::Object(object) => {
-                if object.content.parts.is_some() || object.content.role.is_some() {
+                if object.is_content() {
                     flush_request_parts(&mut messages, &mut pending)?;
                     messages.push(object.content.into_message(Some("user"))?);
                     continue;
                 }
-                let (part, attachment) = object.part.into_parts()?;
-                if part == Part::default() && attachment.is_none() {
-                    return None;
-                }
-                (part, attachment)
+                decode_request_part(object.part)?
+            }
+            RequestEntry::Parts(parts) => {
+                flush_request_parts(&mut messages, &mut pending)?;
+                messages.push(message_from_request_parts(parts)?);
+                continue;
             }
         };
         if pending
@@ -245,19 +282,31 @@ fn messages_from_request_entries(
 #[serde(untagged)]
 enum SystemInstruction {
     Text(String),
-    Content(TraceContent),
+    Object(Box<RequestObject>),
+    Parts(Vec<RequestPart>),
 }
 
 impl SystemInstruction {
     fn into_message(self) -> Option<Message> {
-        let content = match self {
-            Self::Text(text) => UserContent::String(text),
-            Self::Content(content) => match content.into_message(Some("user"))? {
-                Message::User { content } => content,
-                _ => return None,
-            },
+        let message = match self {
+            Self::Text(text) => {
+                return Some(Message::System {
+                    content: UserContent::String(text),
+                })
+            }
+            Self::Object(object) if object.is_content() => {
+                object.content.into_message(Some("user"))?
+            }
+            Self::Object(object) => {
+                let part = decode_request_part(object.part)?;
+                Content::message_from_parts("user", [part]).ok()?
+            }
+            Self::Parts(parts) => message_from_request_parts(parts)?,
         };
-        Some(Message::System { content })
+        match message {
+            Message::User { content } => Some(Message::System { content }),
+            _ => None,
+        }
     }
 }
 

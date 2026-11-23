@@ -1,0 +1,15 @@
+{
+  "expectedMessageCount": 5,
+  "expectedRolesInOrder": ["user", "system", "user", "system", "user"],
+  "expectedAssistantContentPartTypes": null,
+  "expectedReasoningEncryptedContent": null,
+  "mustContainText": [
+    "Nested first.",
+    "Nested second.",
+    "Be concise.",
+    "First question.",
+    "Keep the examples.",
+    "Show the results.",
+    "Second question."
+  ]
+}
