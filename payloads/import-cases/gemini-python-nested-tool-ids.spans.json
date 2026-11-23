@@ -1,0 +1,38 @@
+[
+  {
+    "input": {
+      "contents": [
+        {
+          "role": "model",
+          "parts": [
+            { "function_call": { "id": "native-flight", "name": "flight" } },
+            { "function_call": { "name": "weather" } },
+            { "function_call": { "name": "clock" } }
+          ]
+        },
+        [
+          {
+            "function_response": {
+              "id": "native-flight",
+              "name": "flight",
+              "response": { "status": "on time" }
+            }
+          },
+          {
+            "function_response": {
+              "name": "weather",
+              "response": { "forecast": "sunny" }
+            }
+          },
+          "Summarize both results.",
+          {
+            "function_response": {
+              "name": "clock",
+              "response": { "time": "3 pm" }
+            }
+          }
+        ]
+      ]
+    }
+  }
+]

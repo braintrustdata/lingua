@@ -38,6 +38,12 @@ use crate::util::media::{
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
 
+#[derive(Default)]
+pub(super) struct ToolCallPositions {
+    calls: usize,
+    results: usize,
+}
+
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 struct GoogleAssistantPartProviderOptions {
@@ -258,6 +264,14 @@ impl GoogleContent {
         role: &str,
         parts: impl IntoIterator<Item = (GooglePart, Option<UserContentPart>)>,
     ) -> Result<Message, ConvertError> {
+        Self::message_from_parts_with_tool_positions(role, parts, &mut ToolCallPositions::default())
+    }
+
+    pub(super) fn message_from_parts_with_tool_positions(
+        role: &str,
+        parts: impl IntoIterator<Item = (GooglePart, Option<UserContentPart>)>,
+        tool_positions: &mut ToolCallPositions,
+    ) -> Result<Message, ConvertError> {
         match role {
             "model" => {
                 let mut assistant_parts: Vec<AssistantContentPart> = Vec::new();
@@ -323,10 +337,8 @@ impl GoogleContent {
                             // Google omits `id` on functionCall parts; generate a
                             // positional synthetic ID so other providers get a non-empty
                             // call_id to correlate calls with results.
-                            let call_index = assistant_parts
-                                .iter()
-                                .filter(|p| matches!(p, AssistantContentPart::ToolCall { .. }))
-                                .count();
+                            let call_index = tool_positions.calls;
+                            tool_positions.calls += 1;
                             let tool_call_id = fc.id.clone().unwrap_or_else(|| {
                                 format!("{SYNTHETIC_CALL_ID_PREFIX}{call_index}")
                             });
@@ -458,7 +470,8 @@ impl GoogleContent {
                                 None => Value::Null,
                             };
                             // Mirror the synthetic ID logic used for functionCall parts.
-                            let response_index = tool_parts.len();
+                            let response_index = tool_positions.results;
+                            tool_positions.results += 1;
                             let tool_call_id = fr.id.clone().unwrap_or_else(|| {
                                 format!("{SYNTHETIC_CALL_ID_PREFIX}{response_index}")
                             });

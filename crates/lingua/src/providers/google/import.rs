@@ -1,3 +1,4 @@
+use super::convert::ToolCallPositions;
 use super::generated::{
     AudioTranscription, Blob, CodeExecutionResult, Content, ExecutableCode, FileData, FinishReason,
     FunctionCall, FunctionResponse, MediaProcessing, MediaResolution, Part, SpeechMetadata,
@@ -140,6 +141,14 @@ struct TraceContent {
 
 impl TraceContent {
     fn into_message(self, envelope_role: Option<&str>) -> Option<Message> {
+        self.into_message_with_tool_positions(envelope_role, &mut ToolCallPositions::default())
+    }
+
+    fn into_message_with_tool_positions(
+        self,
+        envelope_role: Option<&str>,
+        tool_positions: &mut ToolCallPositions,
+    ) -> Option<Message> {
         let role = self.role.as_deref().or(envelope_role)?;
         let parts = match self.parts {
             Some(parts) => parts,
@@ -150,7 +159,7 @@ impl TraceContent {
             .into_iter()
             .map(TracePart::into_parts)
             .collect::<Option<Vec<_>>>()?;
-        Content::message_from_parts(role, parts).ok()
+        Content::message_from_parts_with_tool_positions(role, parts, tool_positions).ok()
     }
 }
 
@@ -244,64 +253,80 @@ fn request_part_kind(part: &Part) -> RequestPartKind {
     }
 }
 
-fn flush_request_parts(
-    messages: &mut Vec<Message>,
-    pending: &mut Vec<(Part, Option<UserContentPart>)>,
-) -> Option<()> {
-    if let Some((part, _)) = pending.first() {
-        let role = match request_part_kind(part) {
-            RequestPartKind::Model => "model",
-            RequestPartKind::ToolResult | RequestPartKind::User => "user",
-        };
-        messages.push(Content::message_from_parts(role, pending.drain(..)).ok()?);
-    }
-    Some(())
+#[derive(Default)]
+struct RequestMessages {
+    messages: Vec<Message>,
+    pending: Vec<(Part, Option<UserContentPart>)>,
+    tool_positions: ToolCallPositions,
 }
 
-fn push_request_part(
-    messages: &mut Vec<Message>,
-    pending: &mut Vec<(Part, Option<UserContentPart>)>,
-    part: (Part, Option<UserContentPart>),
-) -> Option<()> {
-    if pending
-        .first()
-        .is_some_and(|(previous, _)| request_part_kind(previous) != request_part_kind(&part.0))
-    {
-        flush_request_parts(messages, pending)?;
+impl RequestMessages {
+    fn flush(&mut self) -> Option<()> {
+        if let Some((part, _)) = self.pending.first() {
+            let role = match request_part_kind(part) {
+                RequestPartKind::Model => "model",
+                RequestPartKind::ToolResult | RequestPartKind::User => "user",
+            };
+            self.messages.push(
+                Content::message_from_parts_with_tool_positions(
+                    role,
+                    self.pending.drain(..),
+                    &mut self.tool_positions,
+                )
+                .ok()?,
+            );
+        }
+        Some(())
     }
-    pending.push(part);
-    Some(())
+
+    fn push_part(&mut self, part: (Part, Option<UserContentPart>)) -> Option<()> {
+        if self
+            .pending
+            .first()
+            .is_some_and(|(previous, _)| request_part_kind(previous) != request_part_kind(&part.0))
+        {
+            self.flush()?;
+        }
+        self.pending.push(part);
+        Some(())
+    }
+
+    fn push_content(&mut self, content: TraceContent) -> Option<()> {
+        self.flush()?;
+        self.messages.push(
+            content.into_message_with_tool_positions(Some("user"), &mut self.tool_positions)?,
+        );
+        Some(())
+    }
 }
 
 fn messages_from_request_entries(
     entries: impl IntoIterator<Item = RequestEntry>,
 ) -> Option<Vec<Message>> {
-    let mut messages = Vec::new();
-    let mut pending = Vec::new();
+    let mut request = RequestMessages::default();
     for entry in entries {
         let part = match entry {
             RequestEntry::Text(text) => RequestPart::Text(text).into_parts()?,
             RequestEntry::Object(object) => {
                 if object.is_content() {
-                    flush_request_parts(&mut messages, &mut pending)?;
-                    messages.push(object.content.into_message(Some("user"))?);
+                    request.push_content(object.content)?;
                     continue;
                 }
                 object.part.into_parts()?
             }
             RequestEntry::Parts(parts) => {
-                flush_request_parts(&mut messages, &mut pending)?;
+                request.flush()?;
                 for part in parts {
-                    push_request_part(&mut messages, &mut pending, part.into_parts()?)?;
+                    request.push_part(part.into_parts()?)?;
                 }
-                flush_request_parts(&mut messages, &mut pending)?;
+                request.flush()?;
                 continue;
             }
         };
-        push_request_part(&mut messages, &mut pending, part)?;
+        request.push_part(part)?;
     }
-    flush_request_parts(&mut messages, &mut pending)?;
-    Some(messages)
+    request.flush()?;
+    Some(request.messages)
 }
 
 #[derive(Deserialize)]
