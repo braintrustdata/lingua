@@ -1,4 +1,4 @@
-use super::convert::ToolCallPositions;
+use super::convert::TraceToolCalls;
 use super::generated::{
     AudioTranscription, Blob, CodeExecutionResult, Content, ExecutableCode, FileData, FinishReason,
     FunctionCall, FunctionResponse, MediaProcessing, MediaResolution, Part, SpeechMetadata,
@@ -141,15 +141,10 @@ struct TraceContent {
 }
 
 impl TraceContent {
-    fn into_message(self, envelope_role: Option<&str>) -> Option<Message> {
-        self.into_message_with_tool_positions(envelope_role, &mut ToolCallPositions::default())
-            .ok()
-    }
-
-    fn into_message_with_tool_positions(
+    fn into_message(
         self,
         envelope_role: Option<&str>,
-        tool_positions: &mut ToolCallPositions,
+        trace_tools: Option<&mut TraceToolCalls>,
     ) -> Result<Message, ConvertError> {
         let role = self.role.as_deref().or(envelope_role).ok_or_else(|| {
             ConvertError::MissingRequiredField {
@@ -172,7 +167,7 @@ impl TraceContent {
             .ok_or_else(|| ConvertError::ContentConversionFailed {
                 reason: "invalid Google content part".to_string(),
             })?;
-        Content::message_from_parts_with_tool_positions(role, parts, tool_positions)
+        Content::message_from_parts_with_trace_tools(role, parts, trace_tools)
     }
 }
 
@@ -270,7 +265,7 @@ fn request_part_kind(part: &Part) -> RequestPartKind {
 struct RequestMessages {
     messages: Vec<Message>,
     pending: Vec<(Part, Option<UserContentPart>)>,
-    tool_positions: ToolCallPositions,
+    trace_tools: TraceToolCalls,
 }
 
 impl RequestMessages {
@@ -281,10 +276,10 @@ impl RequestMessages {
                 RequestPartKind::ToolResult | RequestPartKind::User => "user",
             };
             self.messages.push(
-                Content::message_from_parts_with_tool_positions(
+                Content::message_from_parts_with_trace_tools(
                     role,
                     self.pending.drain(..),
-                    &mut self.tool_positions,
+                    Some(&mut self.trace_tools),
                 )
                 .ok()?,
             );
@@ -308,7 +303,7 @@ impl RequestMessages {
         self.flush()?;
         self.messages.push(
             content
-                .into_message_with_tool_positions(Some("user"), &mut self.tool_positions)
+                .into_message(Some("user"), Some(&mut self.trace_tools))
                 .ok()?,
         );
         Some(())
@@ -361,7 +356,7 @@ impl SystemInstruction {
                 })
             }
             Self::Object(object) if object.is_content() => {
-                object.content.into_message(Some("user"))?
+                object.content.into_message(Some("user"), None).ok()?
             }
             Self::Object(object) => {
                 let part = object.part.into_parts()?;
@@ -443,7 +438,7 @@ impl TraceCandidate {
 fn try_parse_content<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     try_parse_vec_or_single::<TraceContent>(data)?
         .into_iter()
-        .map(|content| content.into_message(None))
+        .map(|content| content.into_message(None, None).ok())
         .collect()
 }
 
@@ -476,10 +471,8 @@ fn messages_from_candidates(
         let finished = candidate.is_finished(in_candidates);
         if let Some(content) = candidate.content {
             let envelope_role = (in_candidates || finished).then_some("model");
-            messages.push(content.into_message_with_tool_positions(
-                envelope_role,
-                &mut ToolCallPositions::default(),
-            )?);
+            messages
+                .push(content.into_message(envelope_role, Some(&mut TraceToolCalls::default()))?);
         } else if finished || candidate.is_adk_error() {
             messages.push(Message::Assistant {
                 content: AssistantContent::String(String::new()),

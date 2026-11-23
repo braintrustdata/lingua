@@ -1253,6 +1253,73 @@ mod tests {
 
     #[cfg(feature = "google")]
     #[test]
+    fn gemini_tool_call_history_deduplicates_against_original_output() {
+        fn tool_id(message: &Message) -> &str {
+            match message {
+                Message::Assistant {
+                    content: AssistantContent::Array(parts),
+                    ..
+                } => match &parts[..] {
+                    [AssistantContentPart::ToolCall { tool_call_id, .. }] => tool_call_id,
+                    _ => panic!("expected a single tool call"),
+                },
+                Message::Tool { content } => match &content[..] {
+                    [ToolContentPart::ToolResult(result)] => &result.tool_call_id,
+                    _ => panic!("expected a single tool result"),
+                },
+                _ => panic!("expected a tool call or result"),
+            }
+        }
+
+        let spans: Vec<Span> = serde_json::from_str(
+            r#"[
+                {
+                    "output": {
+                        "candidates": [{"content": {"parts": [
+                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                        ]}}]
+                    }
+                },
+                {
+                    "input": {"contents": [
+                        {"role": "model", "parts": [{"functionCall": {"name": "weather"}}]},
+                        {"role": "model", "parts": [
+                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                        ]},
+                        {"role": "model", "parts": [{"functionCall": {"name": "weather"}}]},
+                        [
+                            {"functionResponse": {"name": "weather"}},
+                            "Summarize the weather.",
+                            {"functionResponse": {"name": "weather"}},
+                            "And check the weather again.",
+                            {"functionResponse": {"name": "clock"}}
+                        ]
+                    ]}
+                }
+            ]"#,
+        )
+        .unwrap();
+
+        let messages = import_messages_from_spans(spans);
+        let [original, weather, copied, repeated_weather, weather_result, _, repeated_weather_result, _, clock_result] =
+            &messages[..]
+        else {
+            panic!("expected all calls and results with intervening text");
+        };
+        assert_eq!(tool_id(weather), tool_id(weather_result));
+        assert_eq!(tool_id(copied), tool_id(clock_result));
+        assert_eq!(tool_id(repeated_weather), tool_id(repeated_weather_result));
+        assert_ne!(tool_id(weather), tool_id(copied));
+        assert_ne!(tool_id(weather), tool_id(repeated_weather));
+        assert_eq!(tool_id(original), tool_id(clock_result));
+        assert_eq!(
+            super::super::dedup::deduplicate_messages_iter(messages.iter()).len(),
+            8
+        );
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
     fn adk_unsupported_part_keeps_the_google_mapping_error() {
         let span: Span = serde_json::from_str(
             r#"{

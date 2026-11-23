@@ -34,14 +34,54 @@ use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolT
 use crate::util::media::{
     infer_mime_type_from_reference, is_remote_media_uri, parse_base64_data_url,
 };
+use std::collections::{HashMap, VecDeque};
+use std::hash::{DefaultHasher, Hash, Hasher};
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
 
 #[derive(Default)]
-pub(super) struct ToolCallPositions {
-    calls: usize,
-    results: usize,
+pub(super) struct TraceToolCalls {
+    pending_calls: HashMap<String, VecDeque<String>>,
+    occurrences: HashMap<u64, usize>,
+    unmatched_results: usize,
+}
+
+impl TraceToolCalls {
+    fn call_id(&mut self, call: &GoogleFunctionCall, name: &str) -> String {
+        let id = call.id.clone().unwrap_or_else(|| {
+            let mut hasher = DefaultHasher::new();
+            (name, &call.args).hash(&mut hasher);
+            let fingerprint = hasher.finish();
+            let occurrence = self.occurrences.entry(fingerprint).or_default();
+            let id = format!("{SYNTHETIC_CALL_ID_PREFIX}trace_{fingerprint:016x}_{occurrence}");
+            *occurrence += 1;
+            id
+        });
+        self.pending_calls
+            .entry(name.to_owned())
+            .or_default()
+            .push_back(id.clone());
+        id
+    }
+
+    fn result_id(&mut self, result: &GoogleFunctionResponse, name: &str) -> String {
+        let pending = self.pending_calls.get_mut(name);
+        if let Some(id) = &result.id {
+            if let Some(pending) = pending {
+                if let Some(position) = pending.iter().position(|call_id| call_id == id) {
+                    pending.remove(position);
+                }
+            }
+            return id.clone();
+        }
+        if let Some(id) = pending.and_then(VecDeque::pop_front) {
+            return id;
+        }
+        let index = self.unmatched_results;
+        self.unmatched_results += 1;
+        format!("{SYNTHETIC_CALL_ID_PREFIX}trace_result_{index}")
+    }
 }
 
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
@@ -264,17 +304,18 @@ impl GoogleContent {
         role: &str,
         parts: impl IntoIterator<Item = (GooglePart, Option<UserContentPart>)>,
     ) -> Result<Message, ConvertError> {
-        Self::message_from_parts_with_tool_positions(role, parts, &mut ToolCallPositions::default())
+        Self::message_from_parts_with_trace_tools(role, parts, None)
     }
 
-    pub(super) fn message_from_parts_with_tool_positions(
+    pub(super) fn message_from_parts_with_trace_tools(
         role: &str,
         parts: impl IntoIterator<Item = (GooglePart, Option<UserContentPart>)>,
-        tool_positions: &mut ToolCallPositions,
+        mut trace_tools: Option<&mut TraceToolCalls>,
     ) -> Result<Message, ConvertError> {
         match role {
             "model" => {
                 let mut assistant_parts: Vec<AssistantContentPart> = Vec::new();
+                let mut call_index = 0;
 
                 for (part, attachment) in parts {
                     if attachment.is_some() {
@@ -334,14 +375,14 @@ impl GoogleContent {
                                     reason: format!("Failed to serialize function call args: {e}"),
                                 }
                             })?;
-                            // Google omits `id` on functionCall parts; generate a
-                            // positional synthetic ID so other providers get a non-empty
-                            // call_id to correlate calls with results.
-                            let call_index = tool_positions.calls;
-                            tool_positions.calls += 1;
-                            let tool_call_id = fc.id.clone().unwrap_or_else(|| {
-                                format!("{SYNTHETIC_CALL_ID_PREFIX}{call_index}")
-                            });
+                            // Trace history may copy a call at a different position.
+                            let tool_call_id = match trace_tools.as_deref_mut() {
+                                Some(tools) => tools.call_id(fc, tool_name),
+                                None => fc.id.clone().unwrap_or_else(|| {
+                                    format!("{SYNTHETIC_CALL_ID_PREFIX}{call_index}")
+                                }),
+                            };
+                            call_index += 1;
                             assistant_parts.push(AssistantContentPart::ToolCall {
                                 tool_call_id,
                                 tool_name: tool_name.clone(),
@@ -470,11 +511,13 @@ impl GoogleContent {
                                 None => Value::Null,
                             };
                             // Mirror the synthetic ID logic used for functionCall parts.
-                            let response_index = tool_positions.results;
-                            tool_positions.results += 1;
-                            let tool_call_id = fr.id.clone().unwrap_or_else(|| {
-                                format!("{SYNTHETIC_CALL_ID_PREFIX}{response_index}")
-                            });
+                            let tool_call_id = match trace_tools.as_deref_mut() {
+                                Some(tools) => tools.result_id(fr, tool_name),
+                                None => fr.id.clone().unwrap_or_else(|| {
+                                    let response_index = tool_parts.len();
+                                    format!("{SYNTHETIC_CALL_ID_PREFIX}{response_index}")
+                                }),
+                            };
                             tool_parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
                                 tool_call_id,
                                 tool_name: tool_name.clone(),

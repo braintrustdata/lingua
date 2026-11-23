@@ -5,13 +5,11 @@
   "expectedReasoningEncryptedContent": null,
   "mustContainText": [
     "\"tool_call_id\":\"native-flight\",\"tool_name\":\"flight\"",
-    "\"tool_call_id\":\"call_1\",\"tool_name\":\"weather\"",
-    "\"tool_call_id\":\"call_2\",\"tool_name\":\"clock\"",
+    "\"tool_name\":\"weather\"",
+    "\"tool_name\":\"clock\"",
     "Summarize both results."
   ],
   "mustNotContainText": [
-    "\"tool_call_id\":\"call_0\"",
-    "\"tool_call_id\":\"call_1\",\"tool_name\":\"clock\"",
-    "\"tool_call_id\":\"call_2\",\"tool_name\":\"weather\""
+    "\"tool_call_id\":\"call_trace_result_"
   ]
 }
