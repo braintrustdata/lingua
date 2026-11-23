@@ -2,7 +2,7 @@ pub(crate) use super::convert::TraceToolCalls;
 use super::generated::{
     AudioTranscription, Blob, CodeExecutionResult, Content, ExecutableCode, FileData, FinishReason,
     FunctionCall, FunctionResponse, MediaProcessing, MediaResolution, Part, SpeechMetadata,
-    ToolCall, ToolResponse, UsageMetadata, VideoMetadata,
+    ToolCall, ToolResponse, UsageMetadata,
 };
 use crate::error::ConvertError;
 use crate::import_parse::{non_empty_messages, try_parse, try_parse_vec_or_single};
@@ -56,7 +56,23 @@ struct TracePart {
     #[serde(alias = "tool_response")]
     tool_response: Option<ToolResponse>,
     #[serde(alias = "video_metadata")]
-    video_metadata: Option<VideoMetadata>,
+    video_metadata: Option<TraceVideoMetadata>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TraceVideoMetadata {
+    #[serde(alias = "end_offset")]
+    end_offset: Option<String>,
+    fps: Option<f64>,
+    #[serde(alias = "start_offset")]
+    start_offset: Option<String>,
+}
+
+impl TraceVideoMetadata {
+    fn has_preprocessing(&self) -> bool {
+        self.end_offset.is_some() || self.fps.is_some() || self.start_offset.is_some()
+    }
 }
 
 #[derive(Deserialize)]
@@ -123,6 +139,16 @@ impl From<TraceFileData> for FileData {
 
 impl TracePart {
     fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
+        if self
+            .video_metadata
+            .as_ref()
+            .is_some_and(TraceVideoMetadata::has_preprocessing)
+        {
+            return Err(ConvertError::UnsupportedMapping {
+                from: "Google Part.videoMetadata preprocessing".to_string(),
+                to: "Lingua universal message",
+            });
+        }
         let attachment = match self.image_url {
             Some(TraceAttachmentUrl { url }) => {
                 let media_type = match &url {
@@ -168,7 +194,7 @@ impl TracePart {
             thought_signature: self.thought_signature,
             tool_call: self.tool_call,
             tool_response: self.tool_response,
-            video_metadata: self.video_metadata,
+            video_metadata: None,
         };
         Ok((part, attachment))
     }
@@ -181,6 +207,14 @@ struct TraceContent {
 }
 
 impl TraceContent {
+    fn is_direct_content(&self) -> bool {
+        match self.role.as_deref() {
+            Some("model") => true,
+            Some("user") => self.parts.is_some(),
+            _ => false,
+        }
+    }
+
     fn into_role_and_parts(
         self,
         envelope_role: Option<&'static str>,
@@ -510,11 +544,17 @@ impl TraceCandidate {
     }
 }
 
-fn try_parse_content<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    try_parse_vec_or_single::<TraceContent>(data)?
-        .into_iter()
-        .map(|content| content.into_message(None, None).ok())
-        .collect()
+fn try_parse_content(data: &impl ImportValue) -> Option<Result<Vec<Message>, ConvertError>> {
+    let contents = try_parse_vec_or_single::<TraceContent>(data)?;
+    if contents.is_empty() || !contents.iter().all(TraceContent::is_direct_content) {
+        return None;
+    }
+    Some(
+        contents
+            .into_iter()
+            .map(|content| content.into_message(None, None))
+            .collect(),
+    )
 }
 
 fn try_parse_request(
@@ -592,8 +632,16 @@ fn try_parse_response(
 fn try_parse_candidates(
     data: &impl ImportValue,
     trace_tools: &mut TraceToolCalls,
-) -> Option<Vec<Message>> {
-    messages_from_candidates(try_parse_vec_or_single(data)?, false, trace_tools).ok()?
+) -> Option<Result<Vec<Message>, ConvertError>> {
+    let candidates = try_parse_vec_or_single::<TraceCandidate>(data)?;
+    if candidates.iter().any(|candidate| {
+        candidate.content.as_ref().is_some_and(|content| {
+            !content.is_direct_content() && !candidate.has_roleless_finished_content()
+        })
+    }) {
+        return None;
+    }
+    messages_from_candidates(candidates, false, trace_tools).transpose()
 }
 
 pub(crate) fn try_parse_adk_for_import(
@@ -623,9 +671,7 @@ pub(crate) fn try_parse_google_for_import(
     trace_tools: &mut TraceToolCalls,
 ) -> Option<Result<Vec<Message>, ConvertError>> {
     try_parse_content(data)
-        .and_then(non_empty_messages)
-        .map(Ok)
         .or_else(|| try_parse_request(data, trace_tools))
         .or_else(|| try_parse_response(data, trace_tools))
-        .or_else(|| try_parse_candidates(data, trace_tools).map(Ok))
+        .or_else(|| try_parse_candidates(data, trace_tools))
 }

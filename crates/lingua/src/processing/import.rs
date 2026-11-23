@@ -1388,7 +1388,7 @@ mod tests {
             "input": {"contents": [{
                 "uri": "https://generativelanguage.googleapis.com/v1beta/files/video",
                 "mime_type": "video/mp4",
-                "video_metadata": {"fps": 2.0}
+                "video_metadata": {}
             }]}
         }))
         .unwrap();
@@ -1406,6 +1406,33 @@ mod tests {
                 if uri.ends_with("/files/video") && media_type == "video/mp4"
         ));
         assert!(imported.errors.is_empty());
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_reports_unsupported_video_preprocessing() {
+        for (field, value) in [
+            ("start_offset", crate::serde_json::json!("1s")),
+            ("endOffset", crate::serde_json::json!("2s")),
+            ("fps", crate::serde_json::json!(2.0)),
+        ] {
+            let span: Span = serde_json::from_value(crate::serde_json::json!({
+                "input": {"contents": [{
+                    "uri": "https://generativelanguage.googleapis.com/v1beta/files/video",
+                    "mime_type": "video/mp4",
+                    "video_metadata": {(field): value}
+                }]}
+            }))
+            .unwrap();
+            let imported = import_span(span).unwrap();
+            assert!(imported.input.is_empty(), "{field}");
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains("videoMetadata")
+                }),
+                "{field}"
+            );
+        }
     }
 
     #[cfg(feature = "google")]
@@ -1495,6 +1522,35 @@ mod tests {
             .errors
             .iter()
             .any(|error| { error.contains("Unsupported mapping") && error.contains("toolCall") }));
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_reports_unsupported_direct_content_and_candidates() {
+        let content = crate::serde_json::json!({
+            "role": "user",
+            "parts": [{"toolCall": {"tool_type": "GOOGLE_MAPS"}}]
+        });
+        let candidate = crate::serde_json::json!({"content": content.clone()});
+        for input in [
+            content,
+            candidate.clone(),
+            crate::serde_json::json!([
+                {"content": {"role": "model", "parts": [{"text": "Plain candidate"}]}},
+                candidate
+            ]),
+        ] {
+            let imported = import_span(Span {
+                input: Some(input),
+                output: None,
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.input.is_empty());
+            assert!(imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("toolCall")
+            }));
+        }
     }
 
     #[cfg(feature = "google")]
