@@ -4,7 +4,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::{ensure_trailing_slash, ClientHeaders};
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -41,9 +41,10 @@ impl GoogleProvider {
     }
 
     pub fn new_with_client_settings(
-        config: GoogleConfig,
+        mut config: GoogleConfig,
         mut settings: ClientSettings,
     ) -> Result<Self> {
+        ensure_trailing_slash(&mut config.endpoint);
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -362,6 +363,20 @@ mod tests {
         assert_eq!(
             url.as_str(),
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse"
+        );
+    }
+
+    #[test]
+    fn native_url_keeps_endpoint_path_without_trailing_slash() {
+        let provider =
+            provider(Url::parse("https://generativelanguage.googleapis.com/v1beta").unwrap());
+        let url = provider
+            .url_for_format("gemini-2.5-flash", false, ProviderFormat::Google)
+            .expect("url");
+
+        assert_eq!(
+            url.as_str(),
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
         );
     }
 
