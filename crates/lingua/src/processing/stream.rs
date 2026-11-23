@@ -232,32 +232,7 @@ impl StreamTransformSession {
             return;
         };
         if let Some(previous) = self.anthropic_usage.take() {
-            usage.prompt_tokens = usage.prompt_tokens.or(previous.prompt_tokens);
-            usage.completion_tokens = usage.completion_tokens.or(previous.completion_tokens);
-            usage.prompt_cached_tokens =
-                usage.prompt_cached_tokens.or(previous.prompt_cached_tokens);
-            usage.prompt_cache_creation_tokens = usage
-                .prompt_cache_creation_tokens
-                .or(previous.prompt_cache_creation_tokens);
-            usage.prompt_cache_creation_5m_tokens = usage
-                .prompt_cache_creation_5m_tokens
-                .or(previous.prompt_cache_creation_5m_tokens);
-            usage.prompt_cache_creation_1h_tokens = usage
-                .prompt_cache_creation_1h_tokens
-                .or(previous.prompt_cache_creation_1h_tokens);
-            usage.completion_reasoning_tokens = usage
-                .completion_reasoning_tokens
-                .or(previous.completion_reasoning_tokens);
-            match (usage.input_details.as_mut(), previous.input_details) {
-                (Some(current), Some(previous)) => {
-                    current.cached = current.cached.take().or(previous.cached);
-                    current.cache_creation =
-                        current.cache_creation.take().or(previous.cache_creation);
-                }
-                (None, previous) => usage.input_details = previous,
-                _ => {}
-            }
-            usage.output_details = usage.output_details.take().or(previous.output_details);
+            usage.merge_anthropic_stream_counts(previous);
             usage.total_tokens = usage
                 .inclusive_prompt_tokens()
                 .map(|prompt| prompt + usage.completion_tokens.unwrap_or(0))
