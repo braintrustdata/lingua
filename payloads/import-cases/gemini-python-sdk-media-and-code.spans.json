@@ -1,0 +1,30 @@
+[
+  {
+    "input": {
+      "contents": [
+        { "inline_data": { "data": "aW1hZ2U=", "mime_type": "image/png" } },
+        {
+          "file_data": {
+            "file_uri": "https://example.com/report.pdf",
+            "display_name": "report.pdf",
+            "mime_type": "application/pdf"
+          }
+        }
+      ]
+    },
+    "output": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              { "executable_code": { "code": "print(42)", "language": "PYTHON" } },
+              { "code_execution_result": { "outcome": "OUTCOME_OK", "output": "42" } }
+            ]
+          },
+          "finish_reason": "STOP"
+        }
+      ]
+    }
+  }
+]

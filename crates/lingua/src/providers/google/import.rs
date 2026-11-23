@@ -1,5 +1,7 @@
 use super::generated::{
-    Content, FinishReason, FunctionCall, FunctionResponse, Part, UsageMetadata,
+    AudioTranscription, Blob, CodeExecutionResult, Content, ExecutableCode, FileData, FinishReason,
+    FunctionCall, FunctionResponse, MediaProcessing, MediaResolution, Part, SpeechMetadata,
+    ToolCall, ToolResponse, UsageMetadata, VideoMetadata,
 };
 use crate::import_parse::{
     non_empty_messages, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
@@ -16,21 +18,67 @@ struct TraceAttachmentUrl {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct TracePart {
-    #[serde(alias = "imageUrl")]
+    #[serde(alias = "image_url")]
     image_url: Option<TraceAttachmentUrl>,
+    #[serde(alias = "audio_transcription")]
+    audio_transcription: Option<AudioTranscription>,
+    #[serde(alias = "code_execution_result")]
+    code_execution_result: Option<CodeExecutionResult>,
+    #[serde(alias = "executable_code")]
+    executable_code: Option<ExecutableCode>,
+    #[serde(alias = "file_data")]
+    file_data: Option<TraceFileData>,
+    #[serde(alias = "function_call")]
     function_call: Option<FunctionCall>,
+    #[serde(alias = "function_response")]
     function_response: Option<FunctionResponse>,
+    #[serde(alias = "inline_data")]
+    inline_data: Option<TraceBlob>,
+    #[serde(alias = "media_processing")]
+    media_processing: Option<MediaProcessing>,
+    #[serde(alias = "media_resolution")]
+    media_resolution: Option<MediaResolution>,
+    #[serde(alias = "part_metadata")]
+    part_metadata: Option<serde_json::Map<String, serde_json::Value>>,
+    #[serde(alias = "speech_metadata")]
+    speech_metadata: Option<SpeechMetadata>,
+    text: Option<String>,
+    thought: Option<bool>,
+    #[serde(alias = "thought_signature")]
     thought_signature: Option<String>,
-    #[serde(flatten)]
-    rest: Part,
+    #[serde(alias = "tool_call")]
+    tool_call: Option<ToolCall>,
+    #[serde(alias = "tool_response")]
+    tool_response: Option<ToolResponse>,
+    #[serde(alias = "video_metadata")]
+    video_metadata: Option<VideoMetadata>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TraceBlob {
+    data: Option<String>,
+    #[serde(alias = "display_name")]
+    display_name: Option<String>,
+    #[serde(alias = "mime_type")]
+    mime_type: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TraceFileData {
+    #[serde(alias = "display_name")]
+    display_name: Option<String>,
+    #[serde(alias = "file_uri")]
+    file_uri: Option<String>,
+    #[serde(alias = "mime_type")]
+    mime_type: Option<String>,
 }
 
 impl TracePart {
-    fn into_parts(mut self) -> Option<(Part, Option<UserContentPart>)> {
-        self.rest.function_call = self.rest.function_call.or(self.function_call);
-        self.rest.function_response = self.rest.function_response.or(self.function_response);
-        self.rest.thought_signature = self.rest.thought_signature.or(self.thought_signature);
+    fn into_parts(self) -> Option<(Part, Option<UserContentPart>)> {
         let attachment = match self.image_url {
             Some(TraceAttachmentUrl { url }) => {
                 let media_type = match &url {
@@ -47,7 +95,34 @@ impl TracePart {
             }
             None => None,
         };
-        Some((self.rest, attachment))
+        let part = Part {
+            audio_transcription: self.audio_transcription,
+            code_execution_result: self.code_execution_result,
+            executable_code: self.executable_code,
+            file_data: self.file_data.map(|file| FileData {
+                display_name: file.display_name,
+                file_uri: file.file_uri,
+                mime_type: file.mime_type,
+            }),
+            function_call: self.function_call,
+            function_response: self.function_response,
+            inline_data: self.inline_data.map(|blob| Blob {
+                data: blob.data,
+                display_name: blob.display_name,
+                mime_type: blob.mime_type,
+            }),
+            media_processing: self.media_processing,
+            media_resolution: self.media_resolution,
+            part_metadata: self.part_metadata,
+            speech_metadata: self.speech_metadata,
+            text: self.text,
+            thought: self.thought,
+            thought_signature: self.thought_signature,
+            tool_call: self.tool_call,
+            tool_response: self.tool_response,
+            video_metadata: self.video_metadata,
+        };
+        Some((part, attachment))
     }
 }
 
