@@ -268,8 +268,8 @@ async fn applies_typesafe_header_defaults_and_request_overrides() {
         .map(|name| {
             requests[index]
                 .headers
-                .get(&name.parse().unwrap())
-                .map(|values| values.as_str().to_string())
+                .get(name)
+                .map(|value| value.to_str().unwrap().to_string())
         })
     };
     assert_eq!(flags(0), [None, None]);

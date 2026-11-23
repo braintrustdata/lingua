@@ -110,7 +110,7 @@ tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
 
 # Router dev dependencies
-wiremock = "0.5.22"
+wiremock = "0.6.5"
 proptest = "1.4"
 criterion = { version = "0.5", features = ["async_tokio"] }
 pretty_assertions = "1.4"
