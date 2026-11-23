@@ -1,8 +1,8 @@
 pub(crate) use super::convert::TraceToolCalls;
 use super::generated::{
     AudioTranscription, Blob, CodeExecutionResult, Content, ExecutableCode, FileData, FinishReason,
-    FunctionCall, FunctionResponse, Level, MediaProcessing, MediaResolution, Part, Scheduling,
-    SpeechMetadata, ToolCall, ToolResponse, UsageMetadata,
+    FunctionCall, FunctionResponse, Level, MediaProcessing, Part, Scheduling, SpeechMetadata,
+    ToolCall, ToolResponse, UsageMetadata,
 };
 use crate::error::ConvertError;
 use crate::import_parse::{non_empty_messages, try_parse, try_parse_vec_or_single};
@@ -42,7 +42,7 @@ struct TracePart {
     #[serde(alias = "media_processing")]
     media_processing: Option<MediaProcessing>,
     #[serde(alias = "media_resolution")]
-    media_resolution: Option<MediaResolution>,
+    media_resolution: Option<TraceMediaResolution>,
     #[serde(alias = "part_metadata")]
     part_metadata: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(alias = "speech_metadata")]
@@ -57,6 +57,14 @@ struct TracePart {
     tool_response: Option<ToolResponse>,
     #[serde(alias = "video_metadata")]
     video_metadata: Option<TraceVideoMetadata>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TraceMediaResolution {
+    level: Option<Level>,
+    #[serde(alias = "num_tokens")]
+    num_tokens: Option<i64>,
 }
 
 #[derive(Deserialize)]
@@ -150,12 +158,13 @@ impl TracePart {
             "codeExecutionResult"
         } else if self.tool_response.is_some() {
             "toolResponse"
-        } else if self
-            .media_resolution
-            .as_ref()
-            .and_then(|resolution| resolution.level.as_ref())
-            .is_some_and(|level| *level != Level::MediaResolutionUnspecified)
-        {
+        } else if self.media_resolution.as_ref().is_some_and(|resolution| {
+            resolution.num_tokens.is_some()
+                || resolution
+                    .level
+                    .as_ref()
+                    .is_some_and(|level| *level != Level::MediaResolutionUnspecified)
+        }) {
             "mediaResolution"
         } else if self
             .part_metadata
@@ -547,8 +556,6 @@ struct TraceCandidate {
     usage_metadata: Option<UsageMetadata>,
     #[serde(alias = "error_code", alias = "ErrorCode")]
     error_code: Option<String>,
-    #[serde(alias = "error_message", alias = "ErrorMessage")]
-    error_message: Option<String>,
 }
 
 impl TraceCandidate {
@@ -569,7 +576,6 @@ impl TraceCandidate {
         self.error_code
             .as_ref()
             .is_some_and(|code| !code.is_empty())
-            && self.error_message.is_some()
     }
 }
 

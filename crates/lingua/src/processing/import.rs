@@ -1364,6 +1364,7 @@ mod tests {
     #[test]
     fn adk_error_only_output_imports_an_empty_assistant_turn() {
         for output in [
+            crate::serde_json::json!({"errorCode": "PERMISSION_DENIED"}),
             crate::serde_json::json!({"errorCode": "PERMISSION_DENIED", "errorMessage": "Denied"}),
             crate::serde_json::json!({"error_code": "RESOURCE_EXHAUSTED", "error_message": "Quota"}),
             crate::serde_json::json!({"ErrorCode": "UNKNOWN_ERROR", "ErrorMessage": "Unknown"}),
@@ -1479,6 +1480,29 @@ mod tests {
                 if uri.ends_with("/files/video") && media_type == "video/mp4"
         ));
         assert!(imported.errors.is_empty());
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_reports_unsupported_media_resolution_token_budgets() {
+        for token_field in ["num_tokens", "numTokens"] {
+            let span: Span = serde_json::from_value(crate::serde_json::json!({
+                "input": {"contents": [{"role": "user", "parts": [{
+                    "inline_data": {"data": "aW1hZ2U=", "mime_type": "image/png"},
+                    "media_resolution": {(token_field): 512}
+                }]}]}
+            }))
+            .unwrap();
+
+            let imported = import_span(span).unwrap();
+            assert!(imported.input.is_empty(), "{token_field}");
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains("mediaResolution")
+                }),
+                "{token_field}"
+            );
+        }
     }
 
     #[cfg(feature = "google")]
