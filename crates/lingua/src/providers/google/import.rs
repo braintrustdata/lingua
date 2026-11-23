@@ -566,7 +566,10 @@ impl TraceCandidate {
     }
 
     fn is_adk_error(&self) -> bool {
-        self.error_code.as_deref() == Some("UNKNOWN_ERROR") && self.error_message.is_some()
+        self.error_code
+            .as_ref()
+            .is_some_and(|code| !code.is_empty())
+            && self.error_message.is_some()
     }
 }
 

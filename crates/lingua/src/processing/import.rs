@@ -344,6 +344,7 @@ fn import_mixed_message_item<V: ImportValue>(
     index: usize,
     import: &mut MessageImport,
 ) -> Vec<Message> {
+    let errors_before = import.errors.len();
     let kind = if import.options.preserve_unsupported {
         opaque_item_kind(item)
     } else {
@@ -414,21 +415,23 @@ fn import_mixed_message_item<V: ImportValue>(
         }
     }
 
-    let Some(parsed_messages) = parsed_messages else {
+    if parsed_messages.is_none() {
         import
             .errors
             .push(format!("Unsupported message item at index {index}"));
-        if import.options.preserve_unsupported && !import.discard_opaque {
-            import.opaque.push(OpaqueItem {
-                index: Some(index),
-                value: item.to_value().into_owned(),
-                kind: None,
-                is_metadata: false,
-            });
-        }
-        return Vec::new();
-    };
-    parsed_messages
+    }
+    if import.errors.len() > errors_before
+        && import.options.preserve_unsupported
+        && !import.discard_opaque
+    {
+        import.opaque.push(OpaqueItem {
+            index: Some(index),
+            value: item.to_value().into_owned(),
+            kind: None,
+            is_metadata: false,
+        });
+    }
+    parsed_messages.unwrap_or_default()
 }
 
 fn try_parse_provider_messages_for_import<V: ImportValue>(
@@ -1355,6 +1358,75 @@ mod tests {
             super::super::dedup::deduplicate_messages_iter(messages.iter()).len(),
             9
         );
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn adk_error_only_output_imports_an_empty_assistant_turn() {
+        for output in [
+            crate::serde_json::json!({"errorCode": "PERMISSION_DENIED", "errorMessage": "Denied"}),
+            crate::serde_json::json!({"error_code": "RESOURCE_EXHAUSTED", "error_message": "Quota"}),
+            crate::serde_json::json!({"ErrorCode": "UNKNOWN_ERROR", "ErrorMessage": "Unknown"}),
+        ] {
+            let span = Span {
+                input: None,
+                output: Some(output),
+                other: Default::default(),
+            };
+            let imported = import_span(span).unwrap();
+            assert!(matches!(
+                imported.output.as_slice(),
+                [Message::Assistant {
+                    content: AssistantContent::String(text),
+                    ..
+                }] if text.is_empty()
+            ));
+            assert!(imported.errors.is_empty());
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_preserves_unsupported_role_array_item() {
+        let unsupported = crate::serde_json::json!({
+            "role": "model",
+            "parts": [{"text": "Unrepresentable", "partMetadata": {"stream": "a"}}]
+        });
+        let span = Span {
+            input: Some(crate::serde_json::json!([
+                {"role": "user", "content": "Keep this message."},
+                unsupported
+            ])),
+            output: None,
+            other: Default::default(),
+        };
+        let strict = import_span(span.clone()).unwrap();
+        assert!(strict.input.is_empty());
+        assert!(strict.opaque_input.is_empty());
+        assert!(strict.errors.iter().any(|error| {
+            error.contains("Unsupported mapping") && error.contains("partMetadata")
+        }));
+
+        let preserved = import_span_with_options(
+            span,
+            ImportOptions {
+                preserve_unsupported: true,
+            },
+        )
+        .unwrap();
+        assert!(matches!(
+            preserved.input.as_slice(),
+            [Message::User { content: UserContent::String(text) }] if text == "Keep this message."
+        ));
+        assert!(matches!(
+            preserved.opaque_input.as_slice(),
+            [OpaqueItem { index: Some(1), value, kind: None, is_metadata: false }]
+                if value == &unsupported
+        ));
+        assert!(preserved.errors.is_empty());
+        assert!(preserved.warnings.iter().any(|warning| {
+            warning.contains("Unsupported mapping") && warning.contains("partMetadata")
+        }));
     }
 
     #[cfg(feature = "google")]
