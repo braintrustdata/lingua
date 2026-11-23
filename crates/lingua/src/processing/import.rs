@@ -1531,6 +1531,7 @@ mod tests {
                             "name": "work",
                             "id": "call_a",
                             "response": {"value": 1},
+                            "parts": [],
                             (continuation): false
                         }
                     }]}
@@ -1551,6 +1552,28 @@ mod tests {
             assert_eq!(result.output, crate::serde_json::json!({"value": 1}));
             assert!(imported.errors.is_empty(), "{continuation}");
         }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_reports_unsupported_function_response_media() {
+        let span: Span = serde_json::from_value(crate::serde_json::json!({
+            "input": {"contents": [{"role": "user", "parts": [{
+                "functionResponse": {
+                    "name": "render",
+                    "willContinue": false,
+                    "response": {"image": {"$ref": "chart.png"}},
+                    "parts": [{"inlineData": {"mimeType": "image/png", "data": "AA=="}}]
+                }
+            }]}]}
+        }))
+        .unwrap();
+
+        let imported = import_span(span).unwrap();
+        assert!(imported.input.is_empty());
+        assert!(imported.errors.iter().any(|error| {
+            error.contains("Unsupported mapping") && error.contains("functionResponse.parts")
+        }));
     }
 
     #[test]

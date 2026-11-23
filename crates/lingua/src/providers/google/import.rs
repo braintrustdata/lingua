@@ -75,6 +75,17 @@ impl TraceFunctionResponse {
                 to: "Lingua universal message",
             });
         }
+        if self
+            .response
+            .parts
+            .as_ref()
+            .is_some_and(|parts| !parts.is_empty())
+        {
+            return Err(ConvertError::UnsupportedMapping {
+                from: "Google functionResponse.parts".to_string(),
+                to: "Lingua universal message",
+            });
+        }
         Ok(self.response)
     }
 }
