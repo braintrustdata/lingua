@@ -3,7 +3,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::Value;
-use rand::Rng;
+use rand::RngExt;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
 

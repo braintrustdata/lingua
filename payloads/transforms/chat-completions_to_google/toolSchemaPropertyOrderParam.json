@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "select_choice",
+              "args": {
+                "reasons": "The option 'Clear' was explicitly selected as requested by the user to execute the clearing action.",
+                "choice": "Clear"
+              },
+              "id": "call_2818441627186270423"
+            },
+            "thoughtSignature": "EsgECsUEAWkUfRNgg5JTHBGB3rRBUdSs8frnidI5mbspEPWaxcefAfxV7PUvNyFoa3y8m+CbXyOWQYiHuVwbIdGLDs472kD6ikbDzMtk8swyU7RaqdbXomq8R864UJ8VccSQsh8WEN49MMV1/wWMerQOgn62aJOQuMarNhNeOeTF5z9ENVwIISl8Zk2VCO1I0BaEt9gVIqN346lI8+GtwqKyvG88YWhiSvxHXN5w4kAResVuBrHqTZ+hzENkEq/z+KOD+UUM7nMRyIvbM2o9jXHbgRKeetYKltBHaMuVj762ryn0KTcyTHykk3rX/BZBLmQZtVO+QUWQpW4/VZC3TYRGA3ug9+4TJy6ISvSY0aIVrTMhfV9dYOaDhC5pomn22PAJZO2YuEzeBsVlxtKHtZV0BOxNsB7rsPSGialuT/zw2f070PmDpkuVPL3/XlWwTWtNQqua8YNNra987XHF1LKCAhOiZFs10icmzz7vXVn/wEkVGI5SK73Lm55ItgkWMCqXvOLsP4Jeg5IKOhyL8Yb0IvMxbl/bUzVoFO+ciejHf10Q0s3fFCqjEmjWPkloEZRmpednaoia2eGSHQm37htfCDw7RWV1yWfOL3HfjmFp7sDkOzLEWcPv26rbH9lXS4I3/ZVCtQQILgZEZk2ckjPT0hJI7r7JGFrAdKkidMIbTlm+lWCwHXSKrAJrGsaW8uIMga42exy6iXh7OpqIWpZGQWJdvlvMcYmmbp/qwznT4kjAjQQtqRoZOgKn6tGBwjHUqEcPcjNgT40="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 69,
+    "candidatesTokenCount": 41,
+    "totalTokenCount": 221,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 69
+      }
+    ],
+    "thoughtsTokenCount": 111,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.6-flash",
+  "responseId": "vwf9apq_G8Gf_uMPyZuu2Ag"
+}

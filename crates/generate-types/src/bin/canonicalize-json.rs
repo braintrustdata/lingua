@@ -32,7 +32,8 @@ impl Error for AtomicReplaceError {
 }
 
 fn canonicalize_json(source: &str) -> Result<String, serde_json::Error> {
-    let value: serde_json::Value = serde_json::from_str(source)?;
+    let mut value: serde_json::Value = serde_json::from_str(source)?;
+    value.sort_all_objects();
     Ok(format!("{}\n", serde_json::to_string_pretty(&value)?))
 }
 

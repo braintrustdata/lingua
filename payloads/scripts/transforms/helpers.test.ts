@@ -42,6 +42,24 @@ test("Haiku 5.5 sampling captures exclude Vertex", () => {
   expect(paramsCases.haiku55SamplingParams?.["vertex-anthropic"]).toBeNull();
 });
 
+test("Chat Completions Vertex labels target Google and survive validation", () => {
+  const caseName = "chatCompletionsVertexLabelsParam";
+  const input = paramsCases[caseName]?.["chat-completions"];
+  if (!input) throw new Error(`Missing ${caseName} request`);
+
+  const pairs = TRANSFORM_PAIRS.filter(
+    (pair) => pair.source === "chat-completions"
+  );
+  expect(
+    pairs.filter((pair) => getTransformableCases(pair).includes(caseName))
+  ).toEqual([findPair(pairs, "chat-completions", "google")]);
+
+  const request = transformAndValidateRequest(input, "Google", "google");
+  expect(request).toMatchObject({
+    labels: { bt_project: "openai-format", team: "cx" },
+  });
+});
+
 test("Haiku 5.5 requests omit deprecated sampling parameters", () => {
   const testCase = paramsCases.haiku55SamplingParams;
   if (!testCase?.["chat-completions"] || !testCase.anthropic) {

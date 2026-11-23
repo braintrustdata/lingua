@@ -1,0 +1,38 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011Ch9aE1hxhBGbciy3hTB6y",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01SVryJFscu4os7gKvHcrmar",
+      "name": "select_choice",
+      "input": {
+        "choice": "Clear",
+        "reasons": "I'm selecting Clear as requested. This option typically indicates clearing data, resetting a form, removing content, or starting fresh with a blank state. Without additional context about what system or interface this pertains to, I'm following your direct instruction to select Clear. This action would remove or reset whatever content, selections, or data is currently present in the system."
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "container": null,
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 678,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 121,
+    "service_tier": "standard",
+    "inference_geo": "not_available",
+    "speed": "standard"
+  },
+  "diagnostics": null
+}

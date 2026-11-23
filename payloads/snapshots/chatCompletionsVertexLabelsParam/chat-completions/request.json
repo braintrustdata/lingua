@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello"
+    }
+  ],
+  "labels": {
+    "bt_project": "openai-format",
+    "team": "cx"
+  }
+}

@@ -1150,38 +1150,38 @@ pub enum ToolChoiceType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct CustomTool {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_callers: Option<Vec<AllowedCaller>>,
-    /// Create a cache control breakpoint at this content block.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "unknown")]
-    pub cache_control: Option<serde_json::Value>,
-    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub defer_loading: Option<bool>,
     /// Description of what this tool does.
     ///
     /// Tool descriptions should be as detailed as possible. The more information that the model has about what the tool is and how to use it, the better it will perform. You can use natural language descriptions to reinforce important aspects of the tool input JSON schema.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    /// Enable eager input streaming for this tool. When true, tool input parameters will be streamed incrementally as they are generated, and types will be inferred on-the-fly rather than buffering the full JSON output. When false, streaming is disabled for this tool even if the fine-grained-tool-streaming beta is active. When null (default), uses the default behavior based on beta headers.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub eager_input_streaming: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "unknown")]
-    pub input_examples: Option<Vec<serde_json::Map<String, serde_json::Value>>>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
     /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
     ///
     /// This defines the shape of the `input` that your tool accepts and that the model will produce.
     #[ts(type = "unknown")]
     pub input_schema: serde_json::Value,
-    /// Name of the tool.
-    ///
-    /// This is how the tool will be called by the model and in `tool_use` blocks.
-    pub name: String,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
     /// When true, guarantees schema validation on tool names and inputs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
+    /// Enable eager input streaming for this tool. When true, tool input parameters will be streamed incrementally as they are generated, and types will be inferred on-the-fly rather than buffering the full JSON output. When false, streaming is disabled for this tool even if the fine-grained-tool-streaming beta is active. When null (default), uses the default behavior based on beta headers.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eager_input_streaming: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub input_examples: Option<Vec<serde_json::Map<String, serde_json::Value>>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -2352,6 +2352,9 @@ pub struct Usage {
     /// If the request used the priority, standard, or batch tier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierServiceTier>,
+    /// The inference speed mode used for this request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed: Option<Speed>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -2394,5 +2397,13 @@ pub struct ServerToolUsage {
 pub enum ServiceTierServiceTier {
     Batch,
     Priority,
+    Standard,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum Speed {
+    Fast,
     Standard,
 }

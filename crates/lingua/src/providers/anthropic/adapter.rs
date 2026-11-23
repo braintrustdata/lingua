@@ -22,7 +22,7 @@ use crate::providers::anthropic::convert::{
 use crate::providers::anthropic::detect::is_anthropic_request;
 use crate::providers::anthropic::generated::{
     ContentBlock, CreateMessageParams, EffortLevel, Message as AnthropicMessage, OutputConfig,
-    ServiceTierEnum, ServiceTierServiceTier, Thinking, ThinkingType, Tool, ToolChoice,
+    ServiceTierEnum, ServiceTierServiceTier, Speed, Thinking, ThinkingType, Tool, ToolChoice,
     ToolChoiceType, Usage,
 };
 use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicMessagesView};
@@ -37,10 +37,10 @@ use crate::universal::request::{
 };
 use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
-    FinishReason, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
-    UniversalReasoningSignature, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
-    UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    FinishReason, ServedInfo, ServedServiceTier, ServedSpeed, TokenBudget, UniversalParams,
+    UniversalReasoningDelta, UniversalReasoningSignature, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 
@@ -90,6 +90,32 @@ fn served_service_tier_from_anthropic(service_tier: ServiceTierServiceTier) -> S
         ServiceTierServiceTier::Batch => ServedServiceTier::Batch,
         ServiceTierServiceTier::Priority => ServedServiceTier::Priority,
         ServiceTierServiceTier::Standard => ServedServiceTier::Standard,
+    }
+}
+
+fn served_speed_from_anthropic(speed: Speed) -> ServedSpeed {
+    match speed {
+        Speed::Fast => ServedSpeed::Fast,
+        Speed::Standard => ServedSpeed::Standard,
+    }
+}
+
+fn anthropic_speed(speed: ServedSpeed) -> Speed {
+    match speed {
+        ServedSpeed::Fast => Speed::Fast,
+        ServedSpeed::Standard => Speed::Standard,
+    }
+}
+
+/// How Anthropic reports serving a response, from its `usage`.
+fn served_info_from_usage(usage: Option<Usage>) -> ServedInfo {
+    let Some(usage) = usage else {
+        return ServedInfo::default();
+    };
+    ServedInfo {
+        service_tier: usage.service_tier.map(served_service_tier_from_anthropic),
+        speed: usage.speed.map(served_speed_from_anthropic),
+        inference_geo: usage.inference_geo,
     }
 }
 
@@ -860,16 +886,15 @@ impl ProviderAdapter for AnthropicAdapter {
         };
 
         #[derive(Deserialize)]
-        struct AnthropicResponseServiceTierView {
+        struct AnthropicResponseUsageView {
             usage: Option<Usage>,
         }
 
-        let served_service_tier =
-            serde_json::from_value::<AnthropicResponseServiceTierView>(payload.clone())
+        let served = served_info_from_usage(
+            serde_json::from_value::<AnthropicResponseUsageView>(payload.clone())
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
-                .usage
-                .and_then(|usage| usage.service_tier)
-                .map(served_service_tier_from_anthropic);
+                .usage,
+        );
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
@@ -882,7 +907,9 @@ impl ProviderAdapter for AnthropicAdapter {
                 .map(String::from),
             messages,
             usage,
-            served_service_tier,
+            served_service_tier: served.service_tier,
+            served_speed: served.speed,
+            inference_geo: served.inference_geo,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })
@@ -928,11 +955,19 @@ impl ProviderAdapter for AnthropicAdapter {
                     serde_json::from_value(usage.to_provider_value(self.format()))
                         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
                 usage.service_tier = service_tier;
+                usage.speed = resp.served_speed.map(anthropic_speed);
+                usage.inference_geo = resp.inference_geo.clone();
                 Some(usage)
             }
             (None, Some(_)) => {
                 return Err(TransformError::FromUniversalFailed(
                     "Anthropic responses cannot encode a service tier without usage".to_string(),
+                ));
+            }
+            (None, None) if resp.served_speed.is_some() || resp.inference_geo.is_some() => {
+                return Err(TransformError::FromUniversalFailed(
+                    "Anthropic responses cannot encode an inference speed or geo without usage"
+                        .to_string(),
                 ));
             }
             (None, None) => None,
@@ -1152,12 +1187,12 @@ impl ProviderAdapter for AnthropicAdapter {
                 struct MessageStartView {
                     message: Option<AnthropicMessage>,
                 }
-                let served_service_tier =
+                let served = served_info_from_usage(
                     serde_json::from_value::<MessageStartView>(payload.clone())
                         .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
                         .message
-                        .and_then(|message| message.usage.service_tier)
-                        .map(served_service_tier_from_anthropic);
+                        .map(|message| message.usage),
+                );
                 let tool_call_delta = message_start_tool_use_part(&payload)
                     .map(|part| {
                         let arguments = part
@@ -1201,7 +1236,9 @@ impl ProviderAdapter for AnthropicAdapter {
                         None,
                         usage,
                     )
-                    .with_served_service_tier(served_service_tier),
+                    .with_served_service_tier(served.service_tier)
+                    .with_served_speed(served.speed)
+                    .with_inference_geo(served.inference_geo),
                 ))
             }
 
@@ -1366,12 +1403,20 @@ impl ProviderAdapter for AnthropicAdapter {
                             ServedServiceTier::Standard => Some(ServiceTierServiceTier::Standard),
                             _ => None,
                         });
-                if let (Some(usage), Some(service_tier)) =
-                    (usage_value.as_object_mut(), service_tier)
-                {
-                    let service_tier = serde_json::to_value(service_tier)
-                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-                    usage.insert("service_tier".into(), service_tier);
+                if let Some(usage) = usage_value.as_object_mut() {
+                    if let Some(service_tier) = service_tier {
+                        let service_tier = serde_json::to_value(service_tier)
+                            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                        usage.insert("service_tier".into(), service_tier);
+                    }
+                    if let Some(speed) = chunk.served_speed.map(anthropic_speed) {
+                        let speed = serde_json::to_value(speed)
+                            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                        usage.insert("speed".into(), speed);
+                    }
+                    if let Some(inference_geo) = &chunk.inference_geo {
+                        usage.insert("inference_geo".into(), Value::String(inference_geo.clone()));
+                    }
                 }
                 obj.insert("usage".into(), usage_value);
             }
@@ -1910,6 +1955,8 @@ mod tests {
             messages: Vec::new(),
             usage: None,
             served_service_tier: Some(ServedServiceTier::Standard),
+            served_speed: None,
+            inference_geo: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };
@@ -1923,6 +1970,106 @@ mod tests {
         }
     }
 
+    fn anthropic_message_payload_with_serving(speed: &str, inference_geo: &str) -> Value {
+        let mut message = anthropic_message_payload(Some("priority"));
+        message["usage"]["speed"] = json!(speed);
+        message["usage"]["inference_geo"] = json!(inference_geo);
+        message
+    }
+
+    #[test]
+    fn response_roundtrips_served_speed_and_inference_geo() {
+        let adapter = AnthropicAdapter;
+        for (wire, served, anthropic) in [
+            ("fast", ServedSpeed::Fast, Speed::Fast),
+            ("standard", ServedSpeed::Standard, Speed::Standard),
+        ] {
+            let universal = adapter
+                .response_to_universal(anthropic_message_payload_with_serving(wire, "us"))
+                .unwrap();
+            assert_eq!(universal.served_speed, Some(served));
+            assert_eq!(universal.inference_geo.as_deref(), Some("us"));
+            assert_eq!(
+                universal.served_service_tier,
+                Some(ServedServiceTier::Priority),
+                "speed is reported independently of the service tier"
+            );
+
+            let reconstructed: AnthropicUsageView =
+                serde_json::from_value(adapter.response_from_universal(&universal).unwrap())
+                    .unwrap();
+            assert_eq!(reconstructed.usage.speed, Some(anthropic));
+            assert_eq!(reconstructed.usage.inference_geo.as_deref(), Some("us"));
+            assert_eq!(
+                reconstructed.usage.service_tier,
+                Some(ServiceTierServiceTier::Priority)
+            );
+        }
+    }
+
+    #[test]
+    fn response_without_speed_or_geo_has_none() {
+        let adapter = AnthropicAdapter;
+        let universal = adapter
+            .response_to_universal(anthropic_message_payload(None))
+            .unwrap();
+        assert_eq!(universal.served_speed, None);
+        assert_eq!(universal.inference_geo, None);
+
+        let reconstructed: AnthropicUsageView =
+            serde_json::from_value(adapter.response_from_universal(&universal).unwrap()).unwrap();
+        assert_eq!(reconstructed.usage.speed, None);
+        assert_eq!(reconstructed.usage.inference_geo, None);
+    }
+
+    #[test]
+    fn stream_message_start_roundtrips_served_speed_and_inference_geo() {
+        let adapter = AnthropicAdapter;
+        let message_start = json!({
+            "type": "message_start",
+            "message": anthropic_message_payload_with_serving("fast", "not_available"),
+        });
+        let chunk = adapter.stream_to_universal(message_start).unwrap().unwrap();
+        assert_eq!(chunk.served_speed, Some(ServedSpeed::Fast));
+        assert_eq!(chunk.inference_geo.as_deref(), Some("not_available"));
+
+        let reconstructed: AnthropicMessageStartView =
+            serde_json::from_value(adapter.stream_from_universal(&chunk).unwrap()).unwrap();
+        assert_eq!(reconstructed.message.usage.speed, Some(Speed::Fast));
+        assert_eq!(
+            reconstructed.message.usage.inference_geo.as_deref(),
+            Some("not_available")
+        );
+    }
+
+    #[test]
+    fn response_rejects_speed_or_geo_without_usage() {
+        let adapter = AnthropicAdapter;
+        for (served_speed, inference_geo) in [
+            (Some(ServedSpeed::Fast), None),
+            (None, Some("us".to_string())),
+        ] {
+            let response = UniversalResponse {
+                id: None,
+                id_format: None,
+                model: Some("claude-sonnet-4-5-20250929".to_string()),
+                messages: Vec::new(),
+                usage: None,
+                served_service_tier: None,
+                served_speed,
+                inference_geo,
+                finish_reason: None,
+                finish_reasons: Vec::new(),
+            };
+            match adapter.response_from_universal(&response).unwrap_err() {
+                TransformError::FromUniversalFailed(reason) => {
+                    assert!(reason.contains("speed or geo without usage"), "{reason}");
+                }
+                other => panic!("expected unsupported serving metadata mapping, got {other:?}"),
+            }
+        }
+    }
+
     #[test]
     fn response_includes_null_stop_sequence_for_tool_use() {
         let response = UniversalResponse {
@@ -1932,6 +2079,8 @@ mod tests {
             messages: Vec::new(),
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::ToolCalls),
             finish_reasons: vec![FinishReason::ToolCalls],
         };

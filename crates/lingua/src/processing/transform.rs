@@ -26,10 +26,11 @@ use crate::providers::openai::responses_adapter::{
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, ParsableResponseInfo, TextContentPart,
-    ToolCallArguments, UniversalReasoningDelta, UniversalReasoningSignature, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, ParsableResponseInfo, ServedInfo,
+    TextContentPart, ToolCallArguments, UniversalReasoningDelta, UniversalReasoningSignature,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent,
+    UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -165,6 +166,9 @@ impl RequestTransformResult {
 pub struct ResponseTransformResult {
     pub result: TransformResult,
     pub parsable_info: ParsableResponseInfo,
+    /// How the provider served the response. Empty for same-format passthrough,
+    /// which is not converted.
+    pub served: ServedInfo,
 }
 
 impl TransformResult {
@@ -606,6 +610,7 @@ pub fn transform_response(
         return Ok(ResponseTransformResult {
             result: TransformResult::PassThrough(response_bytes),
             parsable_info: ParsableResponseInfo::valid(),
+            served: ServedInfo::default(),
         });
     }
 
@@ -625,6 +630,11 @@ pub fn transform_response(
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
     let transformed = target_adapter.response_from_universal(&universal_resp)?;
+    let served = ServedInfo {
+        service_tier: universal_resp.served_service_tier,
+        speed: universal_resp.served_speed,
+        inference_geo: universal_resp.inference_geo.take(),
+    };
 
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
@@ -636,6 +646,7 @@ pub fn transform_response(
             actual_target_format: target_format,
         },
         parsable_info,
+        served,
     })
 }
 
@@ -682,7 +693,7 @@ pub fn transform_stream_chunk(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<TransformResult, TransformError> {
-    Ok(transform_stream_chunk_step(input, target_format, true)?.result)
+    Ok(transform_stream_chunk_step(input, target_format, true, |_, _| {})?.result)
 }
 
 fn extract_event_type(value: &Value) -> Option<String> {
@@ -858,7 +869,9 @@ fn response_to_stream_chunk(
 
     Ok(
         UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
-            .with_served_service_tier(response.served_service_tier),
+            .with_served_service_tier(response.served_service_tier)
+            .with_served_speed(response.served_speed)
+            .with_inference_geo(response.inference_geo),
     )
 }
 
@@ -866,6 +879,7 @@ pub(crate) fn transform_stream_chunk_step(
     input: Bytes,
     target_format: ProviderFormat,
     allow_full_response_fallback: bool,
+    normalize_native: impl FnOnce(ProviderFormat, &mut UniversalStreamChunk),
 ) -> Result<StreamTransformStep, TransformError> {
     let parsed = parse_json_body(input)?;
     let chunk = parsed.value;
@@ -902,7 +916,12 @@ pub(crate) fn transform_stream_chunk_step(
     }
 
     let universal = match detection.kind {
-        DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
+        DetectKind::Stream => source_adapter
+            .stream_to_universal(chunk)?
+            .map(|mut universal| {
+                normalize_native(source_format, &mut universal);
+                universal
+            }),
         DetectKind::Response => {
             let response = source_adapter.response_to_universal(chunk)?;
             Some(response_to_stream_chunk(response, source_format)?)
@@ -1120,6 +1139,62 @@ mod tests {
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn transform_response_reports_served_info_only_when_converting() {
+        let anthropic = Bytes::from_static(
+            br#"{"id":"msg_1","type":"message","role":"assistant","model":"claude","content":[{"type":"text","text":"hi"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":3,"output_tokens":1,"service_tier":"standard","speed":"fast","inference_geo":"us"}}"#,
+        );
+        let converted =
+            transform_response(anthropic.clone(), ProviderFormat::ChatCompletions).unwrap();
+        assert_eq!(
+            converted.served,
+            ServedInfo {
+                service_tier: Some(ServedServiceTier::Standard),
+                speed: Some(crate::universal::ServedSpeed::Fast),
+                inference_geo: Some("us".to_string()),
+            }
+        );
+        let passthrough = transform_response(anthropic, ProviderFormat::Anthropic).unwrap();
+        assert!(passthrough.result.is_passthrough());
+        assert!(passthrough.served.is_empty());
+    }
+
+    #[test]
+    fn transform_request_preserves_tool_schema_property_order() {
+        let input = Bytes::from_static(
+            br#"{
+                "model":"gpt-5.6-luna",
+                "messages":[{"role":"user","content":"Classify this message."}],
+                "tools":[{
+                    "type":"function",
+                    "function":{
+                        "name":"select_choice",
+                        "parameters":{
+                            "type":"object",
+                            "properties":{
+                                "reasons":{
+                                    "type":"object",
+                                    "properties":{
+                                        "zeta":{"type":"string"},
+                                        "alpha":{"type":"string"}
+                                    }
+                                },
+                                "choice":{"type":"string"}
+                            },
+                            "required":["reasons","choice"]
+                        }
+                    }
+                }]
+            }"#,
+        );
+        let transformed = transform_request(input, ProviderFormat::Responses, None).unwrap();
+        let output = std::str::from_utf8(transformed.as_bytes()).unwrap();
+
+        assert!(output.contains(r#""properties":{"reasons":"#), "{output}");
+        assert!(output.contains(r#""properties":{"zeta":"#), "{output}");
     }
 
     fn assert_requires_json_response(
@@ -2566,6 +2641,8 @@ mod tests {
             }],
             usage: None,
             served_service_tier: Some(ServedServiceTier::Priority),
+            served_speed: None,
+            inference_geo: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };

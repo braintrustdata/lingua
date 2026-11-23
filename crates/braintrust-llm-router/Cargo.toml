@@ -89,7 +89,7 @@ provider-bedrock = ["aws-sigv4", "aws-credential-types", "aws-smithy-runtime-api
 tracing = ["dep:tracing"]
 
 # TLS backends
-rustls = ["reqwest/rustls-tls"]
+rustls = ["reqwest/rustls"]
 native-tls = ["reqwest/native-tls"]
 
 # Advanced features

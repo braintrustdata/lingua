@@ -50,7 +50,34 @@ for (const pair of STREAMING_PAIRS) {
         try {
           const rawChunks = JSON.parse(readFileSync(streamingPath, "utf-8"));
           const sse = buildSse(rawChunks, pair.wasmSource);
-          expect(sse).toMatchSnapshot("streaming");
+          const normalizedSse = sse.replace(
+            /^data: (.+)$/gm,
+            (line: string, data: string) => {
+              if (data === "[DONE]") {
+                return line;
+              }
+              const payload: unknown = JSON.parse(data);
+              return `data: ${JSON.stringify(
+                payload,
+                (key: string, value: unknown) => {
+                  if (
+                    key === "properties" ||
+                    typeof value !== "object" ||
+                    value === null ||
+                    Array.isArray(value)
+                  ) {
+                    return value;
+                  }
+                  return Object.fromEntries(
+                    Object.entries(value).sort(([left], [right]) =>
+                      left < right ? -1 : left > right ? 1 : 0
+                    )
+                  );
+                }
+              )}`;
+            }
+          );
+          expect(normalizedSse).toMatchSnapshot("streaming");
         } catch (e) {
           const errorReason = transformErrors[pairKey]?.[caseName];
           if (errorReason) {

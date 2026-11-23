@@ -40,6 +40,14 @@ pub struct UniversalResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub served_service_tier: Option<ServedServiceTier>,
 
+    /// Inference speed mode that served the response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub served_speed: Option<ServedSpeed>,
+
+    /// Geographic region where inference ran, as reported by the provider.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub inference_geo: Option<String>,
+
     /// Why the model stopped generating
     pub finish_reason: Option<FinishReason>,
 
@@ -182,6 +190,16 @@ pub struct UniversalUsage {
     #[serde(default, deserialize_with = "deserialize_optional_integer")]
     pub prompt_cache_creation_1h_tokens: Option<i64>,
 
+    /// Tokens written to the 30-minute-TTL cache (OpenAI split cache writes)
+    #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
+    pub prompt_cache_creation_30m_tokens: Option<i64>,
+
+    /// Tokens written to the 12-hour-TTL cache (OpenAI split cache writes)
+    #[ts(optional, type = "number")]
+    #[serde(default, deserialize_with = "deserialize_optional_integer")]
+    pub prompt_cache_creation_12h_tokens: Option<i64>,
+
     /// True when `prompt_tokens` excludes the cache read/creation buckets.
     /// Anthropic-style usage reports `input_tokens` exclusive of cache
     /// tokens, while OpenAI-style usage reports `prompt_tokens` inclusive of
@@ -243,6 +261,37 @@ impl ServedServiceTier {
             Self::Reserved => "reserved",
             Self::Unspecified => "unspecified",
         }
+    }
+}
+
+/// Inference speed mode reported by the provider that served a response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ServedSpeed {
+    Standard,
+    Fast,
+}
+
+impl ServedSpeed {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Standard => "standard",
+            Self::Fast => "fast",
+        }
+    }
+}
+
+/// How the provider served a response: its service tier, speed, and inference geo.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ServedInfo {
+    pub service_tier: Option<ServedServiceTier>,
+    pub speed: Option<ServedSpeed>,
+    pub inference_geo: Option<String>,
+}
+
+impl ServedInfo {
+    pub fn is_empty(&self) -> bool {
+        self.service_tier.is_none() && self.speed.is_none() && self.inference_geo.is_none()
     }
 }
 
@@ -467,6 +516,15 @@ impl FinishReason {
 }
 
 impl UniversalResponse {
+    /// How the provider served this response.
+    pub fn served(&self) -> ServedInfo {
+        ServedInfo {
+            service_tier: self.served_service_tier,
+            speed: self.served_speed,
+            inference_geo: self.inference_geo.clone(),
+        }
+    }
+
     /// Return the response ID to use when serializing to a given provider format.
     ///
     /// If the stored ID originated from the same format, it is returned as-is so
@@ -698,8 +756,19 @@ struct OpenAIResponsesUsageDetailsView {
     cached_tokens: Option<i64>,
     #[serde(default, deserialize_with = "deserialize_optional_i64")]
     cache_write_tokens: Option<i64>,
+    cache_write_tokens_details: Option<TypedUsageDetails<OpenAICacheWriteTokensDetailsView>>,
     #[serde(default, deserialize_with = "deserialize_optional_i64")]
     reasoning_tokens: Option<i64>,
+}
+
+/// Responses cache writes split by minimum cache lifetime. The buckets sum to
+/// `cache_write_tokens`.
+#[derive(Debug, Default, Deserialize)]
+struct OpenAICacheWriteTokensDetailsView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    ttl_30m_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    ttl_12h_tokens: Option<i64>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -873,6 +942,8 @@ impl UniversalUsage {
                     prompt_cache_creation_tokens: None,
                     prompt_cache_creation_5m_tokens: None,
                     prompt_cache_creation_1h_tokens: None,
+                    prompt_cache_creation_30m_tokens: None,
+                    prompt_cache_creation_12h_tokens: None,
                     // OpenAI's prompt_tokens already includes cached tokens
                     prompt_tokens_exclude_cache: false,
                     completion_reasoning_tokens: reasoning_tokens,
@@ -912,6 +983,20 @@ impl UniversalUsage {
                     }
                     None => OpenAIResponsesUsageDetailsView::default(),
                 };
+                let cache_write_ttl = match input_details.cache_write_tokens_details {
+                    Some(TypedUsageDetails::Valid(details)) => details,
+                    Some(TypedUsageDetails::Malformed(value)) => {
+                        drop(value);
+                        OpenAICacheWriteTokensDetailsView::default()
+                    }
+                    None => OpenAICacheWriteTokensDetailsView::default(),
+                };
+                let cache_write_tokens = input_details.cache_write_tokens.or_else(|| {
+                    sum_usage_counts(
+                        cache_write_ttl.ttl_30m_tokens,
+                        cache_write_ttl.ttl_12h_tokens,
+                    )
+                });
                 let reasoning_tokens = output_details.reasoning_tokens.filter(|&v| v > 0);
                 let total_tokens = usage
                     .total_tokens
@@ -921,9 +1006,11 @@ impl UniversalUsage {
                     completion_tokens: usage.output_tokens,
                     total_tokens,
                     prompt_cached_tokens: input_details.cached_tokens,
-                    prompt_cache_creation_tokens: input_details.cache_write_tokens,
+                    prompt_cache_creation_tokens: cache_write_tokens,
                     prompt_cache_creation_5m_tokens: None,
                     prompt_cache_creation_1h_tokens: None,
+                    prompt_cache_creation_30m_tokens: cache_write_ttl.ttl_30m_tokens,
+                    prompt_cache_creation_12h_tokens: cache_write_ttl.ttl_12h_tokens,
                     // OpenAI's input_tokens already includes cached tokens
                     prompt_tokens_exclude_cache: false,
                     // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
@@ -931,10 +1018,7 @@ impl UniversalUsage {
                     input_details: optional_input_details(InputTokenDetails {
                         content_by_modality: None,
                         cached: usage_token_breakdown(input_details.cached_tokens, None),
-                        cache_creation: usage_token_breakdown(
-                            input_details.cache_write_tokens,
-                            None,
-                        ),
+                        cache_creation: usage_token_breakdown(cache_write_tokens, None),
                         tool_prompt: None,
                     }),
                     output_details: optional_output_details(OutputTokenDetails {
@@ -975,6 +1059,8 @@ impl UniversalUsage {
                     prompt_cache_creation_tokens: cache_creation_tokens,
                     prompt_cache_creation_5m_tokens: cache_creation.ephemeral_5m_input_tokens,
                     prompt_cache_creation_1h_tokens: cache_creation.ephemeral_1h_input_tokens,
+                    prompt_cache_creation_30m_tokens: None,
+                    prompt_cache_creation_12h_tokens: None,
                     // Anthropic's input_tokens excludes cache read/creation tokens
                     prompt_tokens_exclude_cache: true,
                     completion_reasoning_tokens: reasoning_tokens,
@@ -1006,6 +1092,8 @@ impl UniversalUsage {
                     prompt_cache_creation_tokens: usage.cache_write_input_tokens,
                     prompt_cache_creation_5m_tokens: None,
                     prompt_cache_creation_1h_tokens: None,
+                    prompt_cache_creation_30m_tokens: None,
+                    prompt_cache_creation_12h_tokens: None,
                     // Converse's inputTokens excludes cache read/write tokens
                     prompt_tokens_exclude_cache: true,
                     completion_reasoning_tokens: None,
@@ -1020,6 +1108,37 @@ impl UniversalUsage {
             }
             ProviderFormat::Google => unreachable!("Google usage is handled via typed From trait"),
         }
+    }
+
+    /// Merge an Anthropic stream update with the previous cumulative counts.
+    ///
+    /// Reported counts replace prior values, and omitted counts retain them.
+    /// Callers can recompute `total_tokens` from the merged counts.
+    pub fn merge_anthropic_stream_counts(&mut self, previous: Self) {
+        self.prompt_tokens = self.prompt_tokens.or(previous.prompt_tokens);
+        self.completion_tokens = self.completion_tokens.or(previous.completion_tokens);
+        self.prompt_cached_tokens = self.prompt_cached_tokens.or(previous.prompt_cached_tokens);
+        self.prompt_cache_creation_tokens = self
+            .prompt_cache_creation_tokens
+            .or(previous.prompt_cache_creation_tokens);
+        self.prompt_cache_creation_5m_tokens = self
+            .prompt_cache_creation_5m_tokens
+            .or(previous.prompt_cache_creation_5m_tokens);
+        self.prompt_cache_creation_1h_tokens = self
+            .prompt_cache_creation_1h_tokens
+            .or(previous.prompt_cache_creation_1h_tokens);
+        self.completion_reasoning_tokens = self
+            .completion_reasoning_tokens
+            .or(previous.completion_reasoning_tokens);
+        match (self.input_details.as_mut(), previous.input_details) {
+            (Some(current), Some(previous)) => {
+                current.cached = current.cached.take().or(previous.cached);
+                current.cache_creation = current.cache_creation.take().or(previous.cache_creation);
+            }
+            (None, previous) => self.input_details = previous,
+            _ => {}
+        }
+        self.output_details = self.output_details.take().or(previous.output_details);
     }
 
     /// Prompt tokens following the OpenAI convention of including cache
@@ -1061,15 +1180,15 @@ impl UniversalUsage {
             .and_then(|details| details.total_tokens)
             .or(self.prompt_cache_creation_tokens)
             .or_else(|| {
-                if self.prompt_cache_creation_5m_tokens.is_none()
-                    && self.prompt_cache_creation_1h_tokens.is_none()
-                {
-                    return None;
-                }
-                Some(
-                    self.prompt_cache_creation_5m_tokens.unwrap_or(0)
-                        + self.prompt_cache_creation_1h_tokens.unwrap_or(0),
-                )
+                [
+                    self.prompt_cache_creation_5m_tokens,
+                    self.prompt_cache_creation_1h_tokens,
+                    self.prompt_cache_creation_30m_tokens,
+                    self.prompt_cache_creation_12h_tokens,
+                ]
+                .into_iter()
+                .flatten()
+                .reduce(|total, tokens| total + tokens)
             })
     }
 
@@ -1176,6 +1295,17 @@ impl UniversalUsage {
                 if let Some(cache_write) = cache_creation_tokens {
                     input_details
                         .insert("cache_write_tokens".into(), serde_json::json!(cache_write));
+                }
+                if self.prompt_cache_creation_30m_tokens.is_some()
+                    || self.prompt_cache_creation_12h_tokens.is_some()
+                {
+                    input_details.insert(
+                        "cache_write_tokens_details".into(),
+                        serde_json::json!({
+                            "ttl_30m_tokens": self.prompt_cache_creation_30m_tokens.unwrap_or(0),
+                            "ttl_12h_tokens": self.prompt_cache_creation_12h_tokens.unwrap_or(0),
+                        }),
+                    );
                 }
                 map.insert("input_tokens_details".into(), Value::Object(input_details));
 
@@ -1374,6 +1504,8 @@ mod tests {
             messages: Vec::new(),
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Length, FinishReason::Stop],
         };
@@ -1386,6 +1518,8 @@ mod tests {
             messages: Vec::new(),
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop, FinishReason::ToolCalls],
         };
@@ -1410,6 +1544,8 @@ mod tests {
             ],
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop, FinishReason::Stop],
         };
@@ -1422,6 +1558,8 @@ mod tests {
             messages: Vec::new(),
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };
@@ -1446,6 +1584,8 @@ mod tests {
             }],
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };
@@ -1987,5 +2127,120 @@ mod tests {
         let responses = usage.to_provider_value(ProviderFormat::Responses);
         assert_eq!(responses["input_tokens_details"]["cached_tokens"], 40);
         assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 15);
+        assert!(responses["input_tokens_details"]["cache_write_tokens_details"].is_null());
+    }
+
+    #[test]
+    fn test_openai_responses_cache_write_ttl_buckets_roundtrip() {
+        let usage = crate::serde_json::json!({
+            "input_tokens": 100,
+            "output_tokens": 25,
+            "input_tokens_details": {
+                "cached_tokens": 40,
+                "cache_write_tokens": 50,
+                "cache_write_tokens_details": {
+                    "ttl_30m_tokens": 20,
+                    "ttl_12h_tokens": 30
+                }
+            }
+        });
+
+        let usage = UniversalUsage::from_provider_value(&usage, ProviderFormat::Responses);
+
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(50));
+        assert_eq!(usage.prompt_cache_creation_30m_tokens, Some(20));
+        assert_eq!(usage.prompt_cache_creation_12h_tokens, Some(30));
+        assert_eq!(usage.prompt_cache_creation_5m_tokens, None);
+        assert_eq!(usage.prompt_cache_creation_1h_tokens, None);
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 50);
+        assert_eq!(
+            responses["input_tokens_details"]["cache_write_tokens_details"],
+            crate::serde_json::json!({ "ttl_30m_tokens": 20, "ttl_12h_tokens": 30 })
+        );
+
+        let anthropic = usage.to_provider_value(ProviderFormat::Anthropic);
+        assert_eq!(anthropic["input_tokens"], 10);
+        assert_eq!(anthropic["cache_creation_input_tokens"], 50);
+        assert!(anthropic["cache_creation"].is_null());
+    }
+
+    #[test]
+    fn test_openai_responses_serializes_both_cache_write_ttl_buckets() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(100),
+            prompt_cache_creation_tokens: Some(20),
+            prompt_cache_creation_12h_tokens: Some(20),
+            ..Default::default()
+        };
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+        assert_eq!(
+            responses["input_tokens_details"]["cache_write_tokens_details"],
+            crate::serde_json::json!({ "ttl_30m_tokens": 0, "ttl_12h_tokens": 20 })
+        );
+    }
+
+    #[test]
+    fn test_cache_write_tokens_use_openai_ttl_buckets_when_aggregate_missing() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            prompt_cache_creation_30m_tokens: Some(30),
+            prompt_cache_creation_12h_tokens: Some(40),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        assert_eq!(usage.inclusive_prompt_tokens(), Some(80));
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 70);
+    }
+
+    #[test]
+    fn test_openai_responses_cache_write_total_falls_back_to_ttl_buckets() {
+        let usage = crate::serde_json::json!({
+            "input_tokens": 100,
+            "output_tokens": 25,
+            "input_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens_details": {
+                    "ttl_30m_tokens": 20,
+                    "ttl_12h_tokens": 30
+                }
+            }
+        });
+
+        let usage = UniversalUsage::from_provider_value(&usage, ProviderFormat::Responses);
+
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(50));
+        assert_eq!(
+            usage
+                .input_details
+                .as_ref()
+                .and_then(|details| details.cache_creation.as_ref())
+                .and_then(|details| details.total_tokens),
+            Some(50)
+        );
+    }
+
+    #[test]
+    fn test_openai_responses_malformed_cache_write_details_preserve_total() {
+        let usage = crate::serde_json::json!({
+            "input_tokens": 100,
+            "output_tokens": 25,
+            "input_tokens_details": {
+                "cached_tokens": 40,
+                "cache_write_tokens": 15,
+                "cache_write_tokens_details": "invalid"
+            }
+        });
+
+        let usage = UniversalUsage::from_provider_value(&usage, ProviderFormat::Responses);
+
+        assert_eq!(usage.prompt_cached_tokens, Some(40));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(15));
+        assert_eq!(usage.prompt_cache_creation_30m_tokens, None);
+        assert_eq!(usage.prompt_cache_creation_12h_tokens, None);
     }
 }

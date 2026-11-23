@@ -22,12 +22,12 @@ impl DatabricksCredentials {
         serde_json::from_str(payload).context("failed to parse Databricks OAuth credentials JSON")
     }
 
-    fn cache_key(&self, api_base: &str) -> String {
+    fn cache_key(&self, api_base: &str) -> [u8; 32] {
         let mut hasher = Sha256::new();
         hasher.update(self.client_id.as_bytes());
         hasher.update(b"|");
         hasher.update(api_base.as_bytes());
-        format!("{:x}", hasher.finalize())
+        hasher.finalize().into()
     }
 }
 
@@ -40,7 +40,7 @@ struct CachedToken {
 
 #[derive(Debug, Default)]
 pub struct DatabricksTokenManager {
-    cache: DashMap<String, CachedToken>,
+    cache: DashMap<[u8; 32], CachedToken>,
 }
 
 impl DatabricksTokenManager {

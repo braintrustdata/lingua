@@ -1,5 +1,7 @@
 import { describe, test, expect } from "vitest";
 import { readFileSync } from "fs";
+import { join } from "path";
+import { type RawMessageStreamEvent } from "@anthropic-ai/sdk/resources/messages";
 import {
   STREAMING_PAIRS,
   flattenStreamChunks,
@@ -17,6 +19,44 @@ interface StreamChunk {
 interface AnthropicEventData {
   index?: number;
 }
+
+test.each<["Responses" | "OpenAI"]>([["Responses"], ["OpenAI"]])(
+  "preserves captured Anthropic input usage with output-only deltas in %s",
+  (target) => {
+    const captured: RawMessageStreamEvent[] = JSON.parse(
+      readFileSync(
+        join(
+          __dirname,
+          "../../snapshots/streamParam/anthropic/response-streaming.json"
+        ),
+        "utf-8"
+      )
+    );
+    const chunks = captured.map((chunk) =>
+      chunk.type === "message_delta"
+        ? { ...chunk, usage: { output_tokens: chunk.usage.output_tokens } }
+        : chunk
+    );
+    const converted = flattenStreamChunks(chunks, target).map(
+      (chunk) => chunk.data
+    );
+    const usage = expect.objectContaining(
+      target === "Responses"
+        ? { input_tokens: 10, output_tokens: 11, total_tokens: 21 }
+        : { prompt_tokens: 10, completion_tokens: 11, total_tokens: 21 }
+    );
+    expect(converted).toContainEqual(
+      expect.objectContaining(
+        target === "Responses"
+          ? {
+              type: "response.completed",
+              response: expect.objectContaining({ usage }),
+            }
+          : { usage }
+      )
+    );
+  }
+);
 
 function eventData(chunk: StreamChunk): AnthropicEventData {
   if (typeof chunk.data !== "object" || chunk.data === null) {

@@ -35,6 +35,14 @@ prompt_cache_creation_5m_tokens?: number,
  */
 prompt_cache_creation_1h_tokens?: number, 
 /**
+ * Tokens written to the 30-minute-TTL cache (OpenAI split cache writes)
+ */
+prompt_cache_creation_30m_tokens?: number, 
+/**
+ * Tokens written to the 12-hour-TTL cache (OpenAI split cache writes)
+ */
+prompt_cache_creation_12h_tokens?: number, 
+/**
  * True when `prompt_tokens` excludes the cache read/creation buckets.
  * Anthropic-style usage reports `input_tokens` exclusive of cache
  * tokens, while OpenAI-style usage reports `prompt_tokens` inclusive of

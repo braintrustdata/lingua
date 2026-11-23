@@ -730,6 +730,8 @@ impl ProviderAdapter for OpenAIAdapter {
             messages,
             usage,
             served_service_tier,
+            served_speed: None,
+            inference_geo: None,
             finish_reason,
             finish_reasons,
         })
@@ -1435,6 +1437,8 @@ mod tests {
             ],
             usage: None,
             served_service_tier: None,
+            served_speed: None,
+            inference_geo: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };

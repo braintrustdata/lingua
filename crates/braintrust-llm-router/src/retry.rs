@@ -1,4 +1,4 @@
-use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand::{rngs::SmallRng, RngExt};
 use std::time::Duration;
 
 use crate::error::Error;
@@ -33,7 +33,7 @@ impl RetryPolicy {
         RetryStrategy {
             policy: self.clone(),
             attempts: 0,
-            rng: self.jitter.then(StdRng::from_os_rng),
+            rng: self.jitter.then(rand::make_rng),
         }
     }
 }
@@ -42,7 +42,7 @@ impl RetryPolicy {
 pub struct RetryStrategy {
     policy: RetryPolicy,
     attempts: usize,
-    rng: Option<StdRng>,
+    rng: Option<SmallRng>,
 }
 
 impl RetryStrategy {
@@ -160,5 +160,20 @@ mod tests {
         let delay = strategy.next_delay(&err).expect("jitter delay");
         assert!(delay >= Duration::from_millis(100));
         assert!(delay <= Duration::from_millis(300));
+    }
+
+    #[tokio::test]
+    async fn cloned_strategy_preserves_jitter_sequence() {
+        let mut policy = base_policy();
+        policy.jitter = true;
+        let mut strategy = policy.strategy();
+        let err = connect_error().await;
+        strategy.next_delay(&err).expect("first retry");
+        let mut cloned = strategy.clone();
+
+        for _ in 0..2 {
+            let delay = strategy.next_delay(&err).expect("remaining retry");
+            assert_eq!(cloned.next_delay(&err), Some(delay));
+        }
     }
 }

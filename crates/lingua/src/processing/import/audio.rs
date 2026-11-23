@@ -5,7 +5,7 @@
 use super::span::metadata_field;
 use crate::serde_json as json;
 use crate::universal::trajectory::{
-    AudioSource, Channel, Recording, RecordingSegment, SegmentState,
+    AttachmentReference, AudioSource, Channel, Recording, RecordingSegment, SegmentState,
 };
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};
@@ -18,6 +18,7 @@ pub struct VoiceContext {
     pub turn_id: Option<String>,
     pub reply_to: Option<String>,
     pub interrupted: Option<bool>,
+    pub delegation_id: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub errors: Vec<String>,
 }
@@ -65,14 +66,19 @@ struct Metadata {
     turn_id: Option<json::Value>,
     #[serde(rename = "turn.reply_to")]
     reply_to: Option<json::Value>,
+    #[serde(rename = "contrib.pipecat.live.delegation_id")]
+    delegation_id: Option<json::Value>,
     #[serde(rename = "audio.timeline")]
     timeline: Option<json::Value>,
     #[serde(rename = "audio.sources")]
     sources: Option<json::Value>,
     #[serde(rename = "audio.segments")]
     segments: Option<json::Value>,
-    #[serde(rename = "contrib.livekit.interrupted")]
     interrupted: Option<json::Value>,
+    #[serde(rename = "contrib.livekit.interrupted")]
+    livekit_interrupted: Option<json::Value>,
+    #[serde(rename = "contrib.pipecat.interrupted")]
+    pipecat_interrupted: Option<json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -82,6 +88,7 @@ struct Timeline {
 
 pub(super) fn parse(
     span_id: Option<&str>,
+    input: Option<&json::Value>,
     metadata: Option<&json::Value>,
 ) -> (VoiceContext, VoicePayload) {
     let mut header_errors = Vec::new();
@@ -101,8 +108,16 @@ pub(super) fn parse(
         turn_id: metadata_field(metadata.turn_id, "turn.id", &mut header_errors),
         reply_to: metadata_field(metadata.reply_to, "turn.reply_to", &mut header_errors),
         interrupted: metadata_field(
-            metadata.interrupted,
-            "contrib.livekit.interrupted",
+            metadata
+                .interrupted
+                .or(metadata.livekit_interrupted)
+                .or(metadata.pipecat_interrupted),
+            "interrupted",
+            &mut header_errors,
+        ),
+        delegation_id: metadata_field(
+            metadata.delegation_id,
+            "contrib.pipecat.live.delegation_id",
             &mut header_errors,
         ),
         errors: header_errors,
@@ -113,6 +128,7 @@ pub(super) fn parse(
             metadata.timeline,
             metadata.sources,
             metadata.segments,
+            input,
             &mut errors,
         ),
         _ => None,
@@ -126,6 +142,7 @@ fn recording(
     timeline: Option<json::Value>,
     sources: Option<json::Value>,
     segments: Option<json::Value>,
+    input: Option<&json::Value>,
     errors: &mut Vec<String>,
 ) -> Option<Recording> {
     let origin = metadata_field::<Timeline>(timeline, "audio.timeline", errors)
@@ -167,12 +184,16 @@ fn recording(
         if state == SegmentState::Ready && entry.attachment.is_none() {
             errors.push(format!("Ready audio segment {id} has no attachment"));
         }
+        let attachment = entry
+            .attachment
+            .and_then(|attachment| input?.pointer(attachment.reference.strip_prefix("/input")?))
+            .and_then(|target| AttachmentReference::deserialize(target).ok());
         segments.push(RecordingSegment {
             id,
             state,
             start_offset_ms: entry.start_offset_ms,
             duration_ms: entry.duration_ms,
-            attachment_ref: entry.attachment.map(|attachment| attachment.reference),
+            attachment,
             mime_type: entry.mime_type,
             channels,
             reason: entry.reason,

@@ -1,10 +1,23 @@
 //! Voice traces in audio trace schema v3: one `Turn` per exchange. A `user_turn` opens a
 //! turn, an `agent_turn` joins the one its `turn.reply_to` names, and other spans join their
 //! nearest `turn.id`. The last agent speech is the response; the rest is work.
+//!
+//! A turn merges into the previous one in its session when both have the same speaker, it
+//! starts within `MAX_TURN_GAP` of the previous turn's end, no tool or LLM work starts and no
+//! other-speaker speech runs between their starts, and nothing in the previous turn was
+//! interrupted. Tracers such as Pipecat live split one utterance into several turns on short
+//! pauses.
+//!
+//! Duplex frameworks such as Pipecat live log `transcript_received` spans inside the turns and
+//! work and speech beside them. A transcript under a `user_turn` supplies its request when the
+//! turn has no input, and one under an `agent_turn` is agent speech. Work without `turn.id`
+//! joins the first agent turn that starts after its delegation ends.
 
 use super::stream::Role;
 use super::*;
 use crate::universal::{UserContent, UserContentPart};
+
+const MAX_TURN_GAP: chrono::TimeDelta = chrono::TimeDelta::milliseconds(1200);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum VoiceRole {
@@ -63,11 +76,16 @@ enum SpanKind {
     AgentTurn,
     UserSpeech,
     AgentSpeech,
+    UserTranscript,
     Work(StepKind),
 }
 
-fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
-    if matches!(role, Role::Conversation | Role::Analysis | Role::Tool) {
+fn kind(span: &PreparedSpan, parent: Option<&PreparedSpan>, role: Role) -> Option<SpanKind> {
+    let role = match role {
+        Role::Conversation => Role::Analysis,
+        role => role,
+    };
+    if matches!(role, Role::Analysis | Role::Tool) {
         return Some(SpanKind::Work(StepKind::Chat(role)));
     }
     if span.kind() != "task" {
@@ -78,6 +96,11 @@ fn kind(span: &PreparedSpan, role: Role) -> Option<SpanKind> {
         "agent_turn" => Some(SpanKind::AgentTurn),
         "user_speech" => Some(SpanKind::UserSpeech),
         "agent_speech" => Some(SpanKind::AgentSpeech),
+        "transcript_received" => match parent?.source.name.as_deref()? {
+            "user_turn" => Some(SpanKind::UserTranscript),
+            "agent_turn" => Some(SpanKind::AgentSpeech),
+            _ => None,
+        },
         "stt" => Some(SpanKind::Work(StepKind::Heard)),
         "tts" => Some(SpanKind::Work(StepKind::Spoken)),
         _ => None,
@@ -112,7 +135,23 @@ fn joined<'a>(texts: impl Iterator<Item = &'a str>) -> Option<json::Value> {
     (!text.is_empty()).then_some(json::Value::String(text))
 }
 
-fn user_text(message: &Message) -> Vec<&str> {
+/// Joins transcript fragments. Fragments that carry their own spacing (" DMO", "1042") join
+/// as they are; others get a space between them unless one is already there.
+pub(super) fn join_fragments(fragments: &[&str]) -> String {
+    let spaced = fragments
+        .iter()
+        .any(|text| text.starts_with(char::is_whitespace));
+    let mut text = String::new();
+    for fragment in fragments {
+        if !spaced && !text.is_empty() && !text.ends_with(char::is_whitespace) {
+            text.push(' ');
+        }
+        text.push_str(fragment);
+    }
+    text
+}
+
+pub(super) fn user_text(message: &Message) -> Vec<&str> {
     match message {
         Message::User {
             content: UserContent::String(text),
@@ -190,6 +229,9 @@ pub(super) fn plan(
             ));
         }
     }
+    if plan.roots.is_empty() {
+        return plan;
+    }
     let session_of: Vec<Option<usize>> = (0..spans.len())
         .map(|index| {
             let mut current = Some(index);
@@ -216,26 +258,156 @@ pub(super) fn plan(
     };
     let kinds: Vec<_> = (0..spans.len())
         .map(|index| {
+            let parent = parents[index].map(|parent| &spans[parent]);
+            let span = &spans[index];
+            let duplicate =
+                by_span_id[&(span.root_span_id.as_str(), span.span_id.as_str())] != index;
             (in_scope(index) && !owners[&index].skipped && !plan.sessions.contains(&index))
-                .then(|| kind(&spans[index], roles[index]))
+                .then(|| kind(span, parent, roles[index]))
                 .flatten()
+                .filter(|kind| {
+                    !(duplicate && matches!(kind, SpanKind::UserTurn | SpanKind::AgentTurn))
+                })
         })
         .collect();
     let is_turn =
         |index: usize| matches!(kinds[index], Some(SpanKind::UserTurn | SpanKind::AgentTurn));
+    let by_start = |a: &usize, b: &usize| {
+        spans[*a]
+            .start
+            .cmp(&spans[*b].start)
+            .then(
+                spans[*a]
+                    .source
+                    .exec_counter
+                    .cmp(&spans[*b].source.exec_counter),
+            )
+            .then(spans[*a].id.cmp(&spans[*b].id))
+    };
+    let mut agent_turns: Vec<usize> = (0..spans.len())
+        .filter(|index| kinds[*index] == Some(SpanKind::AgentTurn))
+        .collect();
+    agent_turns.sort_by(by_start);
+    let ancestors = {
+        let session_of = &session_of;
+        move |index: usize| {
+            std::iter::successors(Some(index), move |at| parents[*at])
+                .take(spans.len())
+                .take_while(move |at| session_of[*at] == session_of[index])
+        }
+    };
+    let turn_above = |index: usize| ancestors(index).find(|at| is_turn(*at));
+    let delegation = |index: usize| {
+        ancestors(index).find_map(|at| spans[at].source.voice.delegation_id.as_deref())
+    };
+    let mut delegation_ends: HashMap<(Option<usize>, &str), DateTime<Utc>> = HashMap::new();
+    for index in 0..spans.len() {
+        if let (Some(id), Some(end)) = (delegation(index), spans[index].source.end) {
+            let latest = delegation_ends
+                .entry((session_of[index], id))
+                .or_insert(end);
+            *latest = (*latest).max(end);
+        }
+    }
+    let delegated = |index: usize| {
+        if !matches!(kinds[index], Some(SpanKind::Work(_))) {
+            return None;
+        }
+        let end = delegation_ends.get(&(session_of[index], delegation(index)?))?;
+        agent_turns
+            .iter()
+            .copied()
+            .find(|turn| session_of[*turn] == session_of[index] && spans[*turn].start >= *end)
+    };
     let resolve = |index: usize, id: &str| {
         by_span_id
             .get(&(spans[index].root_span_id.as_str(), id))
             .copied()
     };
+    let turn_of = |index: usize| {
+        turn_above(index).or_else(|| {
+            let turn = resolve(index, owners[&index].voice_turn.as_deref()?)?;
+            is_turn(turn).then_some(turn)
+        })
+    };
+    let interrupted_turns: HashSet<usize> = (0..spans.len())
+        .filter(|index| spans[*index].source.voice.interrupted == Some(true))
+        .filter_map(turn_of)
+        .collect();
+    let mut order: Vec<usize> = (0..spans.len()).collect();
+    order.sort_by(by_start);
+    let mut head: HashMap<usize, usize> = HashMap::new();
+    let mut previous: HashMap<Option<usize>, usize> = HashMap::new();
+    // Per session, the latest tool or LLM start and the latest end of each speaker's speech.
+    let mut latest: HashMap<(Option<usize>, &str), DateTime<Utc>> = HashMap::new();
+    for index in order {
+        let session = session_of[index];
+        if matches!(kinds[index], Some(SpanKind::Work(StepKind::Chat(_)))) {
+            latest.insert((session, "work"), spans[index].start);
+        }
+        if let Some(name @ ("user_speech" | "agent_speech")) = spans[index].source.name.as_deref() {
+            let end = spans[index].source.end.unwrap_or(DateTime::<Utc>::MAX_UTC);
+            let at = latest.entry((session, name)).or_insert(end);
+            *at = (*at).max(end);
+        }
+        if !is_turn(index) {
+            continue;
+        }
+        let turn = index;
+        let Some(prev) = previous.insert(session, turn) else {
+            continue;
+        };
+        let other = if kinds[turn] == Some(SpanKind::UserTurn) {
+            "agent_speech"
+        } else {
+            "user_speech"
+        };
+        let since_prev = |key| {
+            latest
+                .get(&(session, key))
+                .is_some_and(|at| *at > spans[prev].start)
+        };
+        let close = spans[prev]
+            .source
+            .end
+            .is_some_and(|end| spans[turn].start - end <= MAX_TURN_GAP);
+        if kinds[prev] == kinds[turn]
+            && spans[prev].source.voice.reply_to == spans[turn].source.voice.reply_to
+            && close
+            && !interrupted_turns.contains(&prev)
+            && !since_prev(other)
+            && !since_prev("work")
+        {
+            head.insert(turn, *head.get(&prev).unwrap_or(&prev));
+        }
+    }
+    let head_of = |turn: usize| *head.get(&turn).unwrap_or(&turn);
+    let mut origin: HashMap<usize, usize> = HashMap::new();
+    let user_sessions: HashSet<_> = (0..spans.len())
+        .filter(|index| kinds[*index] == Some(SpanKind::UserTurn))
+        .filter_map(|index| session_of[index])
+        .collect();
     let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     for index in 0..spans.len() {
+        if kinds[index] == Some(SpanKind::UserSpeech)
+            && (owners[&index].voice_turn.is_some()
+                || session_of[index].is_some_and(|session| user_sessions.contains(&session)))
+        {
+            plan.ignored.insert(index);
+            continue;
+        }
         if kinds[index].is_none() {
             continue;
         }
         let turn = match &owners[&index].voice_turn {
-            _ if is_turn(index) => Ok(index),
-            None => Err("Voice span has no turn".to_string()),
+            _ if is_turn(index) || kinds[index] == Some(SpanKind::UserSpeech) => Ok(index),
+            None => match turn_above(index).or_else(|| delegated(index)) {
+                Some(turn) => Ok(turn),
+                None => {
+                    plan.ignored.insert(index);
+                    continue;
+                }
+            },
             Some(turn_id) => match resolve(index, turn_id) {
                 Some(turn) if is_turn(turn) => Ok(turn),
                 Some(_) => Err(format!("turn.id {turn_id} is not a user or agent turn")),
@@ -250,6 +422,8 @@ pub(super) fn plan(
                 continue;
             }
         };
+        origin.insert(index, turn);
+        let turn = head_of(turn);
         let request = match (kinds[turn], &spans[turn].source.voice.reply_to) {
             (Some(SpanKind::AgentTurn), Some(reply_to)) => match resolve(turn, reply_to) {
                 Some(user_turn) if kinds[user_turn] == Some(SpanKind::UserTurn) => user_turn,
@@ -263,27 +437,33 @@ pub(super) fn plan(
             },
             _ => turn,
         };
-        groups.entry(request).or_default().push(index);
+        groups.entry(head_of(request)).or_default().push(index);
     }
     for (request, mut group) in groups {
-        group.sort_by(|a, b| {
-            spans[*a]
-                .start
-                .cmp(&spans[*b].start)
-                .then(
-                    spans[*a]
-                        .source
-                        .exec_counter
-                        .cmp(&spans[*b].source.exec_counter),
-                )
-                .then(spans[*a].id.cmp(&spans[*b].id))
-        });
+        group.sort_by(by_start);
         let turn = plan.turns.len();
         let response = group
             .iter()
             .rev()
             .copied()
             .find(|index| kinds[*index] == Some(SpanKind::AgentSpeech));
+        // Speech from earlier turns merged into the response's turn joins the response.
+        let mut responses = HashSet::new();
+        if let Some(last) = response {
+            for &index in group.iter().rev().skip_while(|index| **index != last) {
+                match kinds[index] {
+                    Some(SpanKind::AgentTurn) => {}
+                    Some(SpanKind::AgentSpeech)
+                        if index == last
+                            || (origin[&index] != origin[&last]
+                                && head_of(origin[&index]) == head_of(origin[&last])) =>
+                    {
+                        responses.insert(index);
+                    }
+                    _ => break,
+                }
+            }
+        }
         let end_time = group
             .iter()
             .map(|index| spans[*index].source.end)
@@ -291,9 +471,7 @@ pub(super) fn plan(
             .and_then(|ends| ends.into_iter().max());
         let model = group
             .iter()
-            .find(|index| {
-                kinds[**index] == Some(SpanKind::Work(StepKind::Chat(Role::Conversation)))
-            })
+            .find(|index| kinds[**index] == Some(SpanKind::Work(StepKind::Chat(Role::Analysis))))
             .and_then(|index| spans[*index].source.model.clone());
         // The exchange starts when its opener does; earlier STT streams are only work.
         let start_time = spans[request].start;
@@ -301,19 +479,16 @@ pub(super) fn plan(
         let mut span_count = 0;
         for &index in &group {
             let role = match kinds[index] {
-                Some(SpanKind::UserSpeech) => {
-                    plan.ignored.insert(index);
-                    continue;
-                }
                 _ if index == request => VoiceRole::Request,
-                Some(SpanKind::UserTurn | SpanKind::AgentTurn) => VoiceRole::Reply,
-                _ if Some(index) == response => VoiceRole::Response { position },
+                Some(SpanKind::UserTurn | SpanKind::UserTranscript) => VoiceRole::Request,
+                Some(SpanKind::AgentTurn) => VoiceRole::Reply,
+                _ if responses.contains(&index) => VoiceRole::Response { position },
                 Some(SpanKind::AgentSpeech) => VoiceRole::Work {
                     kind: StepKind::Chat(Role::Conversation),
                     position,
                 },
                 Some(SpanKind::Work(kind)) => VoiceRole::Work { kind, position },
-                None => continue,
+                Some(SpanKind::UserSpeech) | None => continue,
             };
             if matches!(role, VoiceRole::Work { .. } | VoiceRole::Response { .. }) {
                 position += 1;
@@ -347,6 +522,26 @@ pub(super) fn plan(
         }
     }
     plan
+}
+
+/// Joins a later fragment of the same spoken response onto an earlier one.
+pub(super) fn fold(mut response: AgentResponse, next: AgentResponse) -> AgentResponse {
+    if let (Some(AssistantContent::Array(parts)), Some(AssistantContent::Array(more))) =
+        (&mut response.response, next.response)
+    {
+        for part in more {
+            match (parts.last_mut(), part) {
+                (Some(AssistantContentPart::Text(last)), AssistantContentPart::Text(part)) => {
+                    last.text = join_fragments(&[&last.text, &part.text])
+                }
+                (_, part) => parts.push(part),
+            }
+        }
+    }
+    response.opaque_input.extend(next.opaque_input);
+    response.opaque_output.extend(next.opaque_output);
+    response.end_time = next.end_time;
+    response
 }
 
 pub(super) fn response(span: &PreparedSpan) -> Option<AgentResponse> {
