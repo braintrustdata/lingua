@@ -1,0 +1,14 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "user"],
+  "expectedAssistantContentPartTypes": null,
+  "expectedReasoningEncryptedContent": null,
+  "mustContainText": [
+    "gs://example/note.pdf",
+    "application/pdf",
+    "Read the note.",
+    "https://generativelanguage.googleapis.com/v1beta/files/sample",
+    "image/png",
+    "Describe the image."
+  ]
+}

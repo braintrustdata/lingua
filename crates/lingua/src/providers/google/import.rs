@@ -77,6 +77,16 @@ struct TraceFileData {
     mime_type: Option<String>,
 }
 
+impl From<TraceFileData> for FileData {
+    fn from(file: TraceFileData) -> Self {
+        Self {
+            display_name: file.display_name,
+            file_uri: file.file_uri,
+            mime_type: file.mime_type,
+        }
+    }
+}
+
 impl TracePart {
     fn into_parts(self) -> Option<(Part, Option<UserContentPart>)> {
         let attachment = match self.image_url {
@@ -99,11 +109,7 @@ impl TracePart {
             audio_transcription: self.audio_transcription,
             code_execution_result: self.code_execution_result,
             executable_code: self.executable_code,
-            file_data: self.file_data.map(|file| FileData {
-                display_name: file.display_name,
-                file_uri: file.file_uri,
-                mime_type: file.mime_type,
-            }),
+            file_data: self.file_data.map(FileData::from),
             function_call: self.function_call,
             function_response: self.function_response,
             inline_data: self.inline_data.map(|blob| Blob {
@@ -137,7 +143,7 @@ impl TraceContent {
         let role = self.role.as_deref().or(envelope_role)?;
         let parts = match self.parts {
             Some(parts) => parts,
-            None if self.role.as_deref() == Some("model") => Vec::new(),
+            None if role == "model" => Vec::new(),
             None => return None,
         };
         let parts = parts
@@ -168,7 +174,7 @@ enum RequestEntry {
 #[serde(untagged)]
 enum RequestPart {
     Text(String),
-    Object(Box<TracePart>),
+    Object(Box<RequestPartObject>),
 }
 
 impl RequestPart {
@@ -181,22 +187,30 @@ impl RequestPart {
                 },
                 None,
             )),
-            Self::Object(part) => decode_request_part(*part),
+            Self::Object(part) => part.into_parts(),
         }
     }
 }
 
-fn decode_request_part(part: TracePart) -> Option<(Part, Option<UserContentPart>)> {
-    let (part, attachment) = part.into_parts()?;
-    (part != Part::default() || attachment.is_some()).then_some((part, attachment))
+#[derive(Deserialize)]
+struct RequestPartObject {
+    #[serde(flatten)]
+    part: TracePart,
+    #[serde(flatten)]
+    file: TraceFileData,
+    uri: Option<String>,
 }
 
-fn message_from_request_parts(parts: Vec<RequestPart>) -> Option<Message> {
-    let parts = parts
-        .into_iter()
-        .map(RequestPart::into_parts)
-        .collect::<Option<Vec<_>>>()?;
-    Content::message_from_parts("user", parts).ok()
+impl RequestPartObject {
+    fn into_parts(self) -> Option<(Part, Option<UserContentPart>)> {
+        let (mut part, attachment) = self.part.into_parts()?;
+        if part == Part::default() && attachment.is_none() {
+            let mut file = self.file;
+            file.file_uri = Some(file.file_uri.or(self.uri)?);
+            part.file_data = Some(file.into());
+        }
+        Some((part, attachment))
+    }
 }
 
 #[derive(Deserialize)]
@@ -204,7 +218,7 @@ struct RequestObject {
     #[serde(flatten)]
     content: TraceContent,
     #[serde(flatten)]
-    part: TracePart,
+    part: RequestPartObject,
 }
 
 impl RequestObject {
@@ -244,13 +258,28 @@ fn flush_request_parts(
     Some(())
 }
 
+fn push_request_part(
+    messages: &mut Vec<Message>,
+    pending: &mut Vec<(Part, Option<UserContentPart>)>,
+    part: (Part, Option<UserContentPart>),
+) -> Option<()> {
+    if pending
+        .first()
+        .is_some_and(|(previous, _)| request_part_kind(previous) != request_part_kind(&part.0))
+    {
+        flush_request_parts(messages, pending)?;
+    }
+    pending.push(part);
+    Some(())
+}
+
 fn messages_from_request_entries(
     entries: impl IntoIterator<Item = RequestEntry>,
 ) -> Option<Vec<Message>> {
     let mut messages = Vec::new();
     let mut pending = Vec::new();
     for entry in entries {
-        let (part, attachment) = match entry {
+        let part = match entry {
             RequestEntry::Text(text) => RequestPart::Text(text).into_parts()?,
             RequestEntry::Object(object) => {
                 if object.is_content() {
@@ -258,21 +287,18 @@ fn messages_from_request_entries(
                     messages.push(object.content.into_message(Some("user"))?);
                     continue;
                 }
-                decode_request_part(object.part)?
+                object.part.into_parts()?
             }
             RequestEntry::Parts(parts) => {
                 flush_request_parts(&mut messages, &mut pending)?;
-                messages.push(message_from_request_parts(parts)?);
+                for part in parts {
+                    push_request_part(&mut messages, &mut pending, part.into_parts()?)?;
+                }
+                flush_request_parts(&mut messages, &mut pending)?;
                 continue;
             }
         };
-        if pending
-            .first()
-            .is_some_and(|(previous, _)| request_part_kind(previous) != request_part_kind(&part))
-        {
-            flush_request_parts(&mut messages, &mut pending)?;
-        }
-        pending.push((part, attachment));
+        push_request_part(&mut messages, &mut pending, part)?;
     }
     flush_request_parts(&mut messages, &mut pending)?;
     Some(messages)
@@ -298,10 +324,16 @@ impl SystemInstruction {
                 object.content.into_message(Some("user"))?
             }
             Self::Object(object) => {
-                let part = decode_request_part(object.part)?;
+                let part = object.part.into_parts()?;
                 Content::message_from_parts("user", [part]).ok()?
             }
-            Self::Parts(parts) => message_from_request_parts(parts)?,
+            Self::Parts(parts) => {
+                let parts = parts
+                    .into_iter()
+                    .map(RequestPart::into_parts)
+                    .collect::<Option<Vec<_>>>()?;
+                Content::message_from_parts("user", parts).ok()?
+            }
         };
         match message {
             Message::User { content } => Some(Message::System { content }),

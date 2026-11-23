@@ -1,0 +1,7 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": ["assistant"],
+  "expectedAssistantContentPartTypes": null,
+  "expectedReasoningEncryptedContent": null,
+  "mustContainText": []
+}

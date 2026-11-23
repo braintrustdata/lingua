@@ -1,0 +1,9 @@
+[
+  {
+    "output": {
+      "candidates": [
+        { "content": {}, "finishReason": "MAX_TOKENS" }
+      ]
+    }
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "input": {
+      "contents": [
+        { "file_uri": "gs://example/note.pdf", "mime_type": "application/pdf" },
+        "Read the note."
+      ]
+    }
+  },
+  {
+    "input": {
+      "contents": [
+        [
+          {
+            "uri": "https://generativelanguage.googleapis.com/v1beta/files/sample",
+            "mime_type": "image/png"
+          },
+          "Describe the image."
+        ]
+      ]
+    }
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "expectedMessageCount": 4,
+  "expectedRolesInOrder": ["user", "tool", "user", "user"],
+  "expectedAssistantContentPartTypes": null,
+  "expectedReasoningEncryptedContent": null,
+  "mustContainText": [
+    "Before the nested list.",
+    "forecast",
+    "sunny",
+    "Summarize the result.",
+    "Keep it short.",
+    "After the nested list."
+  ]
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "input": {
+      "contents": [
+        "Before the nested list.",
+        [
+          {
+            "function_response": {
+              "name": "weather",
+              "response": { "forecast": "sunny" }
+            }
+          },
+          "Summarize the result.",
+          { "text": "Keep it short." }
+        ],
+        "After the nested list."
+      ]
+    }
+  }
+]
