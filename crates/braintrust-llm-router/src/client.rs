@@ -60,10 +60,6 @@ impl Default for ClientSettings {
 }
 
 /// Starts a reqwest builder pinned to rustls.
-///
-/// reqwest defaults to native-tls whenever any crate in the build enables its
-/// `default-tls` feature, and native-tls loads the full system CA bundle into a
-/// separate OpenSSL store for every client.
 pub fn rustls_client_builder() -> ClientBuilder {
     ClientBuilder::new().use_rustls_tls()
 }
@@ -559,10 +555,13 @@ mod tests {
             .expect("server certificate");
         let private_key =
             PrivateKeyDer::from_pem_slice(TEST_SERVER_KEY.as_bytes()).expect("server private key");
-        let config = ServerConfig::builder()
-            .with_no_client_auth()
-            .with_single_cert(certificates, private_key)
-            .expect("TLS server config");
+        let config =
+            ServerConfig::builder_with_provider(Arc::new(rustls::crypto::ring::default_provider()))
+                .with_safe_default_protocol_versions()
+                .expect("TLS protocol versions")
+                .with_no_client_auth()
+                .with_single_cert(certificates, private_key)
+                .expect("TLS server config");
         let listener = TcpListener::bind(("127.0.0.1", 0)).expect("bind TLS server");
         let address = listener.local_addr().expect("TLS server address");
 
