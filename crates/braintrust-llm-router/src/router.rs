@@ -24,12 +24,13 @@ use crate::providers::{
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{
-    transform_provider_stream, RawStreamChunkCapture, ResponseObservationCapture, ResponseStream,
+    transform_provider_stream, RawStreamChunkCapture, ResponseStream, ServedInfoCapture,
 };
 use lingua::serde_json::Value;
 use lingua::universal::decision::{DecisionParams, TypeSafeDecisionOptions};
+use lingua::universal::ServedInfo;
+use lingua::ProviderFormat;
 use lingua::{DecisionResponseContext, ParsableResponseInfo, TransformError, TransformResult};
-use lingua::{ProviderFormat, ResponseObservation};
 use serde::Deserialize;
 
 // Re-export for convenience in dependent crates
@@ -42,7 +43,9 @@ pub struct CompleteResponseWithRaw {
     pub raw_response: Bytes,
     pub parsable_info: ParsableResponseInfo,
     pub requires_json_response: bool,
-    pub observation: ResponseObservation,
+    /// How the provider served the response. Empty when the response was not
+    /// converted (same-format passthrough and decisions).
+    pub served: ServedInfo,
 }
 
 /// Optional observers for a streamed completion.
@@ -50,7 +53,9 @@ pub struct CompleteResponseWithRaw {
 pub struct StreamCaptures {
     /// Called with each raw provider chunk before conversion.
     pub raw_chunk: Option<RawStreamChunkCapture>,
-    pub observation: Option<ResponseObservationCapture>,
+    /// Called when a converted provider chunk reports how it was served. Same-format
+    /// passthrough streams are not converted, so this is not called for them.
+    pub served: Option<ServedInfoCapture>,
 }
 
 use crate::providers::{
@@ -687,7 +692,6 @@ impl Router {
         if passthrough {
             return Ok(CompleteResponseWithRaw {
                 response: response_bytes.clone(),
-                observation: lingua::observe_response(response_bytes.clone()),
                 raw_response: response_bytes,
                 parsable_info: ParsableResponseInfo {
                     complete: false,
@@ -695,6 +699,7 @@ impl Router {
                     saw_terminal_finish: false,
                 },
                 requires_json_response,
+                served: ServedInfo::default(),
             });
         }
         let result = lingua::transform_response(response_bytes.clone(), output_format).map_err(
@@ -714,7 +719,7 @@ impl Router {
             raw_response: response_bytes,
             parsable_info: result.parsable_info,
             requires_json_response,
-            observation: result.observation,
+            served: result.served,
         })
     }
 
@@ -816,7 +821,6 @@ impl Router {
             })?;
         Ok(CompleteResponseWithRaw {
             response,
-            observation: lingua::observe_response(raw_response.clone()),
             raw_response,
             parsable_info: ParsableResponseInfo {
                 complete: true,
@@ -824,6 +828,7 @@ impl Router {
                 saw_terminal_finish: true,
             },
             requires_json_response: false,
+            served: ServedInfo::default(),
         })
     }
 
@@ -911,7 +916,7 @@ impl Router {
             gateway_request_id,
             StreamCaptures {
                 raw_chunk: Some(raw_chunk_capture),
-                observation: None,
+                served: None,
             },
         )
         .await
@@ -945,7 +950,7 @@ impl Router {
     ) -> Result<ResponseStream> {
         let StreamCaptures {
             raw_chunk: raw_chunk_capture,
-            observation: observation_capture,
+            served: served_capture,
         } = captures;
         let PreparedRequestInner {
             provider,
@@ -967,13 +972,6 @@ impl Router {
                 if let Some(capture) = &raw_chunk_capture {
                     capture(chunk);
                 }
-                if let Some(capture) = &observation_capture {
-                    capture(&lingua::observe_stream_event(
-                        chunk.data.clone(),
-                        output_format,
-                        chunk.event_type.as_deref(),
-                    ));
-                }
             })));
         }
         Ok(transform_provider_stream(
@@ -981,7 +979,7 @@ impl Router {
             output_format,
             gateway_request_id,
             raw_chunk_capture,
-            observation_capture,
+            served_capture,
         ))
     }
 

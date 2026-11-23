@@ -9,8 +9,8 @@ use futures::Stream;
 use reqwest::Response;
 
 use crate::error::{Error, Result};
+use lingua::universal::ServedInfo;
 use lingua::ProviderFormat;
-use lingua::ResponseObservation;
 
 #[cfg(feature = "tracing")]
 fn log_stream_transform_detection_failure(
@@ -80,8 +80,8 @@ pub type RawResponseStream = Pin<Box<dyn Stream<Item = Result<StreamChunk>> + Se
 
 pub type RawStreamChunkCapture = Arc<dyn Fn(&StreamChunk) + Send + Sync>;
 
-/// Called with normalized observations of provider response events.
-pub type ResponseObservationCapture = Arc<dyn Fn(&ResponseObservation) + Send + Sync>;
+/// Called when a converted provider chunk reports how it was served.
+pub type ServedInfoCapture = Arc<dyn Fn(&ServedInfo) + Send + Sync>;
 
 /// Create a raw SSE stream that yields JSON bytes without transformation.
 ///
@@ -103,7 +103,7 @@ pub fn transform_provider_stream(
         String,
     >,
     raw_chunk_capture: Option<RawStreamChunkCapture>,
-    observation_capture: Option<ResponseObservationCapture>,
+    served_capture: Option<ServedInfoCapture>,
 ) -> ResponseStream {
     Box::pin(SessionTransformStream {
         raw,
@@ -111,7 +111,7 @@ pub fn transform_provider_stream(
         #[cfg(feature = "tracing")]
         gateway_request_id,
         raw_chunk_capture,
-        observation_capture,
+        served_capture,
         pending: Vec::new(),
         done: false,
     })
@@ -123,7 +123,7 @@ struct SessionTransformStream {
     #[cfg(feature = "tracing")]
     gateway_request_id: Option<String>,
     raw_chunk_capture: Option<RawStreamChunkCapture>,
-    observation_capture: Option<ResponseObservationCapture>,
+    served_capture: Option<ServedInfoCapture>,
     pending: Vec<Result<StreamChunk>>,
     done: bool,
 }
@@ -154,13 +154,15 @@ impl Stream for SessionTransformStream {
                         continue;
                     }
 
-                    match this.session.push_observing(
-                        data.clone(),
-                        chunk.event_type.as_deref(),
-                        this.observation_capture.as_ref().map(|capture| {
-                            move |observation: &ResponseObservation| capture(observation)
-                        }),
-                    ) {
+                    let served_capture = this.served_capture.as_ref();
+                    match this.session.push_observing(data.clone(), |universal| {
+                        if let Some(capture) = served_capture {
+                            let served = universal.served();
+                            if !served.is_empty() {
+                                capture(&served);
+                            }
+                        }
+                    }) {
                         Ok(chunks) => {
                             this.pending.extend(chunks.into_iter().map(|chunk| {
                                 Ok(StreamChunk {
@@ -564,17 +566,26 @@ mod tests {
     }
 
     #[test]
-    fn transform_provider_stream_observes_converted_and_passthrough_chunks() {
+    fn transform_provider_stream_reports_served_info_for_converted_chunks() {
         let message_start = Bytes::from_static(
             br#"{"type":"message_start","message":{"id":"msg_1","type":"message","role":"assistant","model":"claude","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":3,"output_tokens":0,"service_tier":"priority","speed":"fast","inference_geo":"us"}}}"#,
         );
-        for output_format in [ProviderFormat::ChatCompletions, ProviderFormat::Anthropic] {
+        for (output_format, expected) in [
+            (
+                ProviderFormat::ChatCompletions,
+                vec![ServedInfo {
+                    service_tier: Some(lingua::universal::ServedServiceTier::Priority),
+                    speed: Some(lingua::universal::ServedSpeed::Fast),
+                    inference_geo: Some("us".to_string()),
+                }],
+            ),
+            // Same-format chunks pass through unconverted, so nothing is reported.
+            (ProviderFormat::Anthropic, Vec::new()),
+        ] {
             let captured = Arc::new(std::sync::Mutex::new(Vec::new()));
-            let capture: ResponseObservationCapture = Arc::new({
+            let capture: ServedInfoCapture = Arc::new({
                 let captured = Arc::clone(&captured);
-                move |observation: &ResponseObservation| {
-                    captured.lock().unwrap().push(observation.clone())
-                }
+                move |served: &ServedInfo| captured.lock().unwrap().push(served.clone())
             });
             let raw: RawResponseStream = Box::pin(futures::stream::once({
                 let message_start = message_start.clone();
@@ -585,14 +596,7 @@ mod tests {
             futures::executor::block_on(stream.next())
                 .expect("stream should yield a chunk")
                 .expect("chunk should be ok");
-            let captured = captured.lock().unwrap();
-            assert_eq!(captured.len(), 1, "{output_format:?}");
-            assert_eq!(captured[0].usage.as_ref().unwrap().prompt_tokens, Some(3));
-            assert_eq!(
-                captured[0].served.speed,
-                Some(lingua::universal::ServedSpeed::Fast)
-            );
-            assert_eq!(captured[0].served.inference_geo.as_deref(), Some("us"));
+            assert_eq!(*captured.lock().unwrap(), expected, "{output_format:?}");
         }
     }
 

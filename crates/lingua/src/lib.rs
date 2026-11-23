@@ -12,6 +12,7 @@ mod extraction;
 mod import_parse;
 mod import_value;
 pub mod processing;
+pub mod provider_metadata;
 pub mod providers;
 pub mod universal;
 pub mod util;
@@ -45,9 +46,6 @@ pub use processing::{
     sanitize_payload, transform_request, transform_response, transform_stream_chunk,
     ParsedJsonBody, ParsedStreamEvent, RequestTransformResult, ResponseTransformResult,
     StreamOutputChunk, StreamTransformSession, TransformError, TransformResult,
-};
-pub use processing::{
-    observe_response, observe_stream_event, GenerationEvidence, ResponseObservation,
 };
 pub use processing::{
     transform_decision_request, transform_decision_response, DecisionRequestTransform,
