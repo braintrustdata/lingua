@@ -1213,6 +1213,7 @@ impl UniversalUsage {
     pub fn extract_from_response(payload: &Value, provider: ProviderFormat) -> Option<Self> {
         payload
             .get("usage")
+            .filter(|usage| !usage.is_null())
             .map(|u| Self::from_provider_value(u, provider))
     }
 

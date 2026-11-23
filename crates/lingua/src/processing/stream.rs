@@ -2116,6 +2116,63 @@ mod tests {
         assert_eq!(second_delta.index, 2);
     }
 
+    // Chat Completions starts with null usage; the translated Anthropic start
+    // must still be parseable by Gateway telemetry to recover the served model.
+    #[test]
+    #[cfg(all(feature = "anthropic", feature = "openai"))]
+    fn test_chat_null_usage_preserves_model_in_anthropic_stream() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let chat_chunk = |choices: Value, usage: Value| {
+            to_bytes(&json!({
+                "id": "chatcmpl-123",
+                "object": "chat.completion.chunk",
+                "created": 123,
+                "model": "gpt-5-mini-2025-08-07",
+                "choices": choices,
+                "usage": usage,
+            }))
+        };
+        let parse_anthropic = |event: &StreamOutputChunk| {
+            parse_stream_event(
+                event.data.clone(),
+                ProviderFormat::Anthropic,
+                ProviderFormat::Anthropic,
+            )
+            .unwrap()
+            .universal
+            .unwrap()
+        };
+
+        let start = session
+            .push(chat_chunk(
+                json!([{"index": 0, "delta": {"role": "assistant", "content": ""}, "finish_reason": null}]),
+                Value::Null,
+            ))
+            .unwrap();
+        assert_eq!(start.len(), 1);
+        assert_eq!(start[0].event_type.as_deref(), Some("message_start"));
+        let start = parse_anthropic(&start[0]);
+        assert_eq!(start.model.as_deref(), Some("gpt-5-mini-2025-08-07"));
+
+        let finish = session
+            .push(chat_chunk(
+                json!([{"index": 0, "delta": {}, "finish_reason": "stop"}]),
+                Value::Null,
+            ))
+            .unwrap();
+        assert!(finish.is_empty());
+        let terminal = session
+            .push(chat_chunk(
+                json!([]),
+                json!({"prompt_tokens": 17, "completion_tokens": 74, "total_tokens": 91}),
+            ))
+            .unwrap();
+        assert_eq!(terminal[0].event_type.as_deref(), Some("message_delta"));
+        let usage = parse_anthropic(&terminal[0]).usage.unwrap();
+        assert_eq!(usage.prompt_tokens, Some(17));
+        assert_eq!(usage.completion_tokens, Some(74));
+    }
+
     #[test]
     #[cfg(feature = "anthropic")]
     fn test_stream_session_merges_anthropic_finish_and_usage_deltas() {
