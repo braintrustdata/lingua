@@ -1,0 +1,15 @@
+{
+  "expectedMessageCount": 6,
+  "expectedRolesInOrder": ["user", "user", "user", "user", "assistant", "user"],
+  "expectedAssistantContentPartTypes": [["tool_call"]],
+  "mustContainText": [
+    "Single part.",
+    "First part.",
+    "Second part.",
+    "First string.",
+    "Second string.",
+    "Earlier message.",
+    "Next prompt.",
+    "More details."
+  ]
+}

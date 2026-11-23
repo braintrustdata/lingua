@@ -1,0 +1,21 @@
+[
+  {
+    "input": { "contents": { "text": "Single part." } }
+  },
+  {
+    "input": { "contents": [{ "text": "First part." }, { "text": "Second part." }] }
+  },
+  {
+    "input": { "contents": ["First string.", "Second string."] }
+  },
+  {
+    "input": {
+      "contents": [
+        { "role": "user", "parts": [{ "text": "Earlier message." }] },
+        { "function_call": { "name": "weather", "args": { "city_name": "Paris" } } },
+        "Next prompt.",
+        { "text": "More details." }
+      ]
+    }
+  }
+]

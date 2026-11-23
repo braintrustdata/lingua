@@ -77,8 +77,81 @@ impl TraceContent {
 #[serde(untagged)]
 enum RequestContents {
     Text(String),
-    Content(TraceContent),
-    Conversation(Vec<TraceContent>),
+    Entry(Box<RequestObject>),
+    Entries(Vec<RequestEntry>),
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum RequestEntry {
+    Text(String),
+    Object(Box<RequestObject>),
+}
+
+#[derive(Deserialize)]
+struct RequestObject {
+    #[serde(flatten)]
+    content: TraceContent,
+    #[serde(flatten)]
+    part: TracePart,
+}
+
+fn request_part_role(part: &Part) -> &'static str {
+    if part.function_call.is_some() {
+        "model"
+    } else {
+        "user"
+    }
+}
+
+fn flush_request_parts(
+    messages: &mut Vec<Message>,
+    pending: &mut Vec<(Part, Option<UserContentPart>)>,
+) -> Option<()> {
+    if let Some((part, _)) = pending.first() {
+        let role = request_part_role(part);
+        messages.push(Content::message_from_parts(role, pending.drain(..)).ok()?);
+    }
+    Some(())
+}
+
+fn messages_from_request_entries(
+    entries: impl IntoIterator<Item = RequestEntry>,
+) -> Option<Vec<Message>> {
+    let mut messages = Vec::new();
+    let mut pending = Vec::new();
+    for entry in entries {
+        let (part, attachment) = match entry {
+            RequestEntry::Text(text) => (
+                Part {
+                    text: Some(text),
+                    ..Default::default()
+                },
+                None,
+            ),
+            RequestEntry::Object(object) => {
+                if object.content.parts.is_some() || object.content.role.is_some() {
+                    flush_request_parts(&mut messages, &mut pending)?;
+                    messages.push(object.content.into_message(Some("user"))?);
+                    continue;
+                }
+                let (part, attachment) = object.part.into_parts()?;
+                if part == Part::default() && attachment.is_none() {
+                    return None;
+                }
+                (part, attachment)
+            }
+        };
+        if pending
+            .first()
+            .is_some_and(|(previous, _)| request_part_role(previous) != request_part_role(&part))
+        {
+            flush_request_parts(&mut messages, &mut pending)?;
+        }
+        pending.push((part, attachment));
+    }
+    flush_request_parts(&mut messages, &mut pending)?;
+    Some(messages)
 }
 
 #[derive(Deserialize)]
@@ -163,12 +236,10 @@ fn try_parse_request<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
         RequestContents::Text(text) => vec![Message::User {
             content: UserContent::String(text),
         }],
-        // The Google request schema permits an omitted role for user content.
-        RequestContents::Content(content) => vec![content.into_message(Some("user"))?],
-        RequestContents::Conversation(contents) => contents
-            .into_iter()
-            .map(|content| content.into_message(Some("user")))
-            .collect::<Option<Vec<_>>>()?,
+        RequestContents::Entry(object) => {
+            messages_from_request_entries([RequestEntry::Object(object)])?
+        }
+        RequestContents::Entries(entries) => messages_from_request_entries(entries)?,
     };
     let system_instruction = request
         .system_instruction
