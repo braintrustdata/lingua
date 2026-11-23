@@ -171,11 +171,20 @@ struct RequestObject {
     part: TracePart,
 }
 
-fn request_part_role(part: &Part) -> &'static str {
+#[derive(PartialEq)]
+enum RequestPartKind {
+    Model,
+    ToolResult,
+    User,
+}
+
+fn request_part_kind(part: &Part) -> RequestPartKind {
     if part.function_call.is_some() {
-        "model"
+        RequestPartKind::Model
+    } else if part.function_response.is_some() {
+        RequestPartKind::ToolResult
     } else {
-        "user"
+        RequestPartKind::User
     }
 }
 
@@ -184,7 +193,10 @@ fn flush_request_parts(
     pending: &mut Vec<(Part, Option<UserContentPart>)>,
 ) -> Option<()> {
     if let Some((part, _)) = pending.first() {
-        let role = request_part_role(part);
+        let role = match request_part_kind(part) {
+            RequestPartKind::Model => "model",
+            RequestPartKind::ToolResult | RequestPartKind::User => "user",
+        };
         messages.push(Content::message_from_parts(role, pending.drain(..)).ok()?);
     }
     Some(())
@@ -219,7 +231,7 @@ fn messages_from_request_entries(
         };
         if pending
             .first()
-            .is_some_and(|(previous, _)| request_part_role(previous) != request_part_role(&part))
+            .is_some_and(|(previous, _)| request_part_kind(previous) != request_part_kind(&part))
         {
             flush_request_parts(&mut messages, &mut pending)?;
         }

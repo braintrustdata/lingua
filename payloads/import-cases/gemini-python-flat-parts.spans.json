@@ -13,6 +13,7 @@
       "contents": [
         { "role": "user", "parts": [{ "text": "Earlier message." }] },
         { "function_call": { "name": "weather", "args": { "city_name": "Paris" } } },
+        { "function_response": { "name": "weather", "response": { "forecast": "sunny" } } },
         "Next prompt.",
         { "text": "More details." }
       ]
