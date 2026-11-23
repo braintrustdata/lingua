@@ -1,3 +1,5 @@
+use serde::de::IgnoredAny;
+
 use crate::serde_json;
 
 #[derive(serde::Deserialize)]
@@ -16,22 +18,22 @@ impl ProviderUsage {
 }
 
 #[derive(serde::Deserialize)]
-struct ProviderUsageEnvelope {
-    usage: Option<ProviderUsage>,
+struct UsageField<T> {
+    usage: Option<T>,
 }
 
 #[derive(serde::Deserialize)]
 struct ProviderResponse {
     usage: Option<ProviderUsage>,
     error: Option<ProviderValue<ProviderError>>,
-    output: Option<Vec<serde::de::IgnoredAny>>,
+    output: Option<Vec<IgnoredAny>>,
 }
 
 #[derive(serde::Deserialize)]
 #[serde(untagged)]
 enum ProviderValue<T> {
     Typed(T),
-    Other(serde::de::IgnoredAny),
+    Other(IgnoredAny),
 }
 
 impl<T> ProviderValue<T> {
@@ -55,7 +57,7 @@ struct ProviderError {
 enum ErrorCode {
     Text(String),
     Number(u64),
-    Other(serde::de::IgnoredAny),
+    Other(IgnoredAny),
     #[default]
     #[serde(skip)]
     Missing,
@@ -67,7 +69,12 @@ pub struct ProviderFrame<'a> {
     kind: Option<&'a str>,
     usage: Option<ProviderUsage>,
     response: Option<ProviderResponse>,
-    message: Option<ProviderValue<ProviderUsageEnvelope>>,
+    message: Option<ProviderValue<UsageField<ProviderUsage>>>,
+    metadata: Option<UsageField<IgnoredAny>>,
+    #[serde(rename = "usageMetadata")]
+    usage_metadata: Option<IgnoredAny>,
+    #[serde(rename = "amazon-bedrock-invocationMetrics")]
+    invocation_metrics: Option<IgnoredAny>,
     error: Option<ProviderValue<ProviderError>>,
     code: Option<ErrorCode>,
 }
@@ -90,10 +97,20 @@ impl ProviderFrame<'_> {
         self.usage()?.cost()
     }
 
+    pub fn has_usage(&self) -> bool {
+        self.usage().is_some()
+            || self
+                .metadata
+                .as_ref()
+                .is_some_and(|metadata| metadata.usage.is_some())
+            || self.usage_metadata.is_some()
+            || self.invocation_metrics.is_some()
+    }
+
     pub fn stream_evidence(&self, event_type: Option<&str>) -> Option<StreamEvidence> {
         use StreamEvidence::*;
         let response = self.response.as_ref();
-        if self.usage().is_some()
+        if self.has_usage()
             || response
                 .and_then(|response| response.output.as_ref())
                 .is_some_and(|output| !output.is_empty())
@@ -139,12 +156,12 @@ impl ProviderFrame<'_> {
     }
 }
 
-pub fn provider_cost(body: &[u8]) -> Option<f64> {
+fn provider_cost(body: &[u8]) -> Option<f64> {
     #[derive(serde::Deserialize)]
     struct CostEnvelope {
         usage: Option<ProviderUsage>,
-        response: Option<ProviderUsageEnvelope>,
-        message: Option<ProviderValue<ProviderUsageEnvelope>>,
+        response: Option<UsageField<ProviderUsage>>,
+        message: Option<ProviderValue<UsageField<ProviderUsage>>>,
     }
 
     let envelope: CostEnvelope = serde_json::from_slice(body).ok()?;
@@ -156,9 +173,82 @@ pub fn provider_cost(body: &[u8]) -> Option<f64> {
         .cost()
 }
 
+pub struct UpstreamUsage {
+    pub seen: bool,
+    pub cost: Option<f64>,
+}
+
+pub fn inspect_upstream_usage(body: &[u8]) -> UpstreamUsage {
+    match serde_json::from_slice::<ProviderFrame>(body) {
+        Ok(frame) => UpstreamUsage {
+            seen: frame.has_usage(),
+            cost: frame.cost(),
+        },
+        Err(_) => inspect_unrecognized_usage(body),
+    }
+}
+
+pub fn inspect_unrecognized_usage(body: &[u8]) -> UpstreamUsage {
+    #[derive(serde::Deserialize)]
+    struct UsagePresence {
+        usage: Option<IgnoredAny>,
+        response: Option<ProviderValue<UsageField<IgnoredAny>>>,
+        message: Option<ProviderValue<UsageField<IgnoredAny>>>,
+        metadata: Option<ProviderValue<UsageField<IgnoredAny>>>,
+        #[serde(rename = "usageMetadata")]
+        usage_metadata: Option<IgnoredAny>,
+        #[serde(rename = "amazon-bedrock-invocationMetrics")]
+        invocation_metrics: Option<IgnoredAny>,
+    }
+
+    let cost = provider_cost(body);
+    let seen = serde_json::from_slice::<UsagePresence>(body).is_ok_and(|frame| {
+        frame.usage.is_some()
+            || [frame.response, frame.message, frame.metadata]
+                .iter()
+                .any(|container| {
+                    container
+                        .as_ref()
+                        .and_then(ProviderValue::typed)
+                        .is_some_and(|usage| usage.usage.is_some())
+                })
+            || frame.usage_metadata.is_some()
+            || frame.invocation_metrics.is_some()
+    });
+    UpstreamUsage {
+        seen: seen || cost.is_some(),
+        cost,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Usage diagnostics must survive even when the provider's frame cannot be decoded.
+    #[test]
+    fn sees_usage_in_unrecognized_frames() {
+        for (body, seen, cost) in [
+            (
+                r#"{"response":{"output":"extension","usage":{"cost":0.25}}}"#,
+                true,
+                Some(0.25),
+            ),
+            (r#"{"usage":"extension"}"#, true, None),
+            (r#"{"type":1,"metadata":{"usage":{}}}"#, true, None),
+            (r#"{"type":1,"usageMetadata":{}}"#, true, None),
+            (
+                r#"{"type":1,"amazon-bedrock-invocationMetrics":{}}"#,
+                true,
+                None,
+            ),
+            (r#"{"type":1,"usageMetadata":null}"#, false, None),
+        ] {
+            let usage = inspect_upstream_usage(body.as_bytes());
+            assert_eq!(usage.seen, seen, "{body}");
+            assert_eq!(usage.cost, cost, "{body}");
+        }
+    }
 
     // Partial provider fields must keep the existing cost and error-code precedence rules.
     #[test]
