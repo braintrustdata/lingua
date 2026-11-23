@@ -70,8 +70,8 @@ struct MessageImport {
     google_tools: TraceToolCalls,
 }
 
-#[cfg(feature = "google")]
 impl MessageImport {
+    #[cfg(feature = "google")]
     fn finish_google_import(
         &mut self,
         result: Result<Vec<Message>, crate::error::ConvertError>,
@@ -80,6 +80,21 @@ impl MessageImport {
             self.errors.push(error.to_string());
             Vec::new()
         })
+    }
+
+    fn try_message_batch(
+        &mut self,
+        parse: impl FnOnce(&mut Self) -> Option<Vec<Message>>,
+    ) -> Option<Vec<Message>> {
+        #[cfg(feature = "google")]
+        let previous_tools = self.google_tools.clone();
+
+        let messages = parse(self);
+        #[cfg(feature = "google")]
+        if messages.as_ref().is_none_or(Vec::is_empty) {
+            self.google_tools = previous_tools;
+        }
+        messages
     }
 }
 
@@ -304,20 +319,20 @@ fn try_parse_mixed_messages_for_import(
     import: &mut MessageImport,
 ) -> Option<Vec<Message>> {
     let items = data.array()?;
-    let mut messages = Vec::new();
-    let errors_before = import.errors.len();
+    import.try_message_batch(|import| {
+        let mut messages = Vec::new();
+        let errors_before = import.errors.len();
 
-    for (index, item) in items.enumerate() {
-        messages.extend(import_mixed_message_item(&item, index, import));
-    }
+        for (index, item) in items.enumerate() {
+            messages.extend(import_mixed_message_item(&item, index, import));
+        }
 
-    if import.errors.len() != errors_before && !import.options.preserve_unsupported {
-        Some(Vec::new())
-    } else if messages.is_empty() {
-        None
-    } else {
-        Some(messages)
-    }
+        if import.errors.len() != errors_before && !import.options.preserve_unsupported {
+            Some(Vec::new())
+        } else {
+            crate::import_parse::non_empty_messages(messages)
+        }
+    })
 }
 
 /// Imports one role-bearing item using the mixed role-array parser.
@@ -1020,21 +1035,23 @@ fn try_choices_array_parsing(
         return None;
     }
     let choices = data.parse::<Vec<ChoiceMessageCompat>>()?;
-    let mut messages = Vec::new();
-    for choice in choices {
-        if !choice.message.is_present() && !choice.finish_reason.is_present() {
-            return None;
-        }
-        if let Field::Present(message) = choice.message {
-            let wrapped = Value::Array(vec![message]);
-            let nested = try_converting_to_messages(&wrapped, import);
-            if nested.is_empty() {
+    import.try_message_batch(|import| {
+        let mut messages = Vec::new();
+        for choice in choices {
+            if !choice.message.is_present() && !choice.finish_reason.is_present() {
                 return None;
             }
-            messages.extend(nested);
+            if let Field::Present(message) = choice.message {
+                let wrapped = Value::Array(vec![message]);
+                let nested = try_converting_to_messages(&wrapped, import);
+                if nested.is_empty() {
+                    return None;
+                }
+                messages.extend(nested);
+            }
         }
-    }
-    crate::import_parse::non_empty_messages(messages)
+        crate::import_parse::non_empty_messages(messages)
+    })
 }
 
 struct SpanMessages {
@@ -1357,6 +1374,65 @@ mod tests {
         assert_eq!(
             super::super::dedup::deduplicate_messages_iter(messages.iter()).len(),
             9
+        );
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_keeps_tool_state_after_rejecting_message_array() {
+        let candidate = crate::serde_json::json!({
+            "role": "user",
+            "content": {"role": "model", "parts": [{"functionCall": {"name": "weather"}}]}
+        });
+        let unsupported = crate::serde_json::json!({
+            "role": "model",
+            "parts": [{"audioTranscription": {"text": "Unsupported"}}]
+        });
+        let output = crate::serde_json::json!({
+            "candidates": [{"content": {"role": "model", "parts": [
+                {"functionCall": {"name": "weather"}}
+            ]}}]
+        });
+        let import_with_input = |input| {
+            import_span(Span {
+                input,
+                output: Some(output.clone()),
+                other: Default::default(),
+            })
+            .unwrap()
+        };
+        let clean = import_with_input(None);
+        let expected_output = serde_json::to_value(&clean.output).unwrap();
+        let mixed = crate::serde_json::json!([candidate, unsupported]);
+        let outputs = [
+            mixed.clone(),
+            crate::serde_json::json!([{"message": candidate}, {"message": unsupported}]),
+        ]
+        .map(|input| {
+            let imported = import_with_input(Some(input));
+            assert!(imported.input.is_empty());
+            assert!(!imported.errors.is_empty());
+            serde_json::to_value(imported.output).unwrap()
+        });
+        assert_eq!(outputs, [expected_output.clone(), expected_output]);
+
+        let supported = import_with_input(Some(crate::serde_json::json!([candidate])));
+        let preserved = import_span_with_options(
+            Span {
+                input: Some(mixed),
+                output: Some(output),
+                other: Default::default(),
+            },
+            ImportOptions {
+                preserve_unsupported: true,
+            },
+        )
+        .unwrap();
+        assert_eq!(preserved.input.len(), 1);
+        assert_eq!(preserved.opaque_input.len(), 1);
+        assert_eq!(
+            serde_json::to_value(preserved.output).unwrap(),
+            serde_json::to_value(supported.output).unwrap()
         );
     }
 
