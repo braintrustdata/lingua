@@ -1,15 +1,13 @@
 {
-  "expectedMessageCount": 2,
-  "expectedRolesInOrder": ["user", "assistant"],
-  "expectedAssistantContentPartTypes": [["text", "text"]],
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": ["user"],
   "mustContainText": [
     "\"type\":\"image\"",
     "aW1hZ2U=",
     "image/png",
     "\"type\":\"file\"",
     "https://example.com/report.pdf",
-    "application/pdf",
-    "print(42)",
-    "OUTCOME_OK"
-  ]
+    "application/pdf"
+  ],
+  "mustNotContainText": ["print(42)", "OUTCOME_OK"]
 }
