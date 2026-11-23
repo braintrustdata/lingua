@@ -143,8 +143,12 @@ impl From<TraceFileData> for FileData {
 }
 
 impl TracePart {
-    fn validate_metadata(&self) -> Result<(), ConvertError> {
-        let unsupported_field = if self.tool_response.is_some() {
+    fn validate_for_import(&self) -> Result<(), ConvertError> {
+        let unsupported_field = if self.executable_code.is_some() {
+            "executableCode"
+        } else if self.code_execution_result.is_some() {
+            "codeExecutionResult"
+        } else if self.tool_response.is_some() {
             "toolResponse"
         } else if self
             .media_resolution
@@ -175,7 +179,7 @@ impl TracePart {
     }
 
     fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
-        self.validate_metadata()?;
+        self.validate_for_import()?;
         let attachment = match self.image_url {
             Some(TraceAttachmentUrl { url }) => {
                 let media_type = match &url {
@@ -199,8 +203,6 @@ impl TracePart {
         };
         let part = Part {
             audio_transcription: self.audio_transcription,
-            code_execution_result: self.code_execution_result,
-            executable_code: self.executable_code,
             file_data: self.file_data.map(FileData::from),
             function_call: self.function_call,
             function_response: self

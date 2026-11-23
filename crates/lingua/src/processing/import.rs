@@ -1475,6 +1475,41 @@ mod tests {
 
     #[cfg(feature = "google")]
     #[test]
+    fn gemini_import_reports_unsupported_code_execution() {
+        for (part, field) in [
+            (
+                crate::serde_json::json!({
+                    "executable_code": {"language": "PYTHON", "code": "print(1 + 1)"}
+                }),
+                "executableCode",
+            ),
+            (
+                crate::serde_json::json!({
+                    "code_execution_result": {"outcome": "OUTCOME_OK", "output": "2"}
+                }),
+                "codeExecutionResult",
+            ),
+        ] {
+            let span: Span = serde_json::from_value(crate::serde_json::json!({
+                "output": {"candidates": [{"content": {"role": "model", "parts": [
+                    {"text": "Computing the result."},
+                    part
+                ]}}]}
+            }))
+            .unwrap();
+            let imported = import_span(span).unwrap();
+            assert!(imported.output.is_empty(), "{field}");
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains(field)
+                }),
+                "{field}"
+            );
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
     fn gemini_import_keeps_text_between_explicit_content_tool_results() {
         let span: Span = serde_json::from_value(crate::serde_json::json!({
             "input": {"contents": [
