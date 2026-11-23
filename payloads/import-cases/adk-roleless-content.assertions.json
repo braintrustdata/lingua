@@ -1,0 +1,7 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": ["assistant"],
+  "expectedAssistantContentPartTypes": [["text"]],
+  "expectedReasoningEncryptedContent": null,
+  "mustContainText": ["\"text\":\"Paris\""]
+}

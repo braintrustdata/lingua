@@ -1,0 +1,8 @@
+[
+  {
+    "output": {
+      "content": { "parts": [{ "text": "Paris" }] },
+      "finishReason": "STOP"
+    }
+  }
+]

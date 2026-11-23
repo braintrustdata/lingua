@@ -1,0 +1,11 @@
+[
+  {
+    "output": {
+      "content": {
+        "role": "model",
+        "parts": [{ "toolCall": { "tool_type": "GOOGLE_MAPS" } }]
+      },
+      "finishReason": "STOP"
+    }
+  }
+]

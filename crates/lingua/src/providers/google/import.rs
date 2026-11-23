@@ -4,6 +4,7 @@ use super::generated::{
     FunctionCall, FunctionResponse, MediaProcessing, MediaResolution, Part, SpeechMetadata,
     ToolCall, ToolResponse, UsageMetadata, VideoMetadata,
 };
+use crate::error::ConvertError;
 use crate::import_parse::{
     non_empty_messages, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
@@ -142,24 +143,36 @@ struct TraceContent {
 impl TraceContent {
     fn into_message(self, envelope_role: Option<&str>) -> Option<Message> {
         self.into_message_with_tool_positions(envelope_role, &mut ToolCallPositions::default())
+            .ok()
     }
 
     fn into_message_with_tool_positions(
         self,
         envelope_role: Option<&str>,
         tool_positions: &mut ToolCallPositions,
-    ) -> Option<Message> {
-        let role = self.role.as_deref().or(envelope_role)?;
+    ) -> Result<Message, ConvertError> {
+        let role = self.role.as_deref().or(envelope_role).ok_or_else(|| {
+            ConvertError::MissingRequiredField {
+                field: "Google content role".to_string(),
+            }
+        })?;
         let parts = match self.parts {
             Some(parts) => parts,
             None if role == "model" => Vec::new(),
-            None => return None,
+            None => {
+                return Err(ConvertError::MissingRequiredField {
+                    field: "Google content parts".to_string(),
+                });
+            }
         };
         let parts = parts
             .into_iter()
             .map(TracePart::into_parts)
-            .collect::<Option<Vec<_>>>()?;
-        Content::message_from_parts_with_tool_positions(role, parts, tool_positions).ok()
+            .collect::<Option<Vec<_>>>()
+            .ok_or_else(|| ConvertError::ContentConversionFailed {
+                reason: "invalid Google content part".to_string(),
+            })?;
+        Content::message_from_parts_with_tool_positions(role, parts, tool_positions)
     }
 }
 
@@ -294,7 +307,9 @@ impl RequestMessages {
     fn push_content(&mut self, content: TraceContent) -> Option<()> {
         self.flush()?;
         self.messages.push(
-            content.into_message_with_tool_positions(Some("user"), &mut self.tool_positions)?,
+            content
+                .into_message_with_tool_positions(Some("user"), &mut self.tool_positions)
+                .ok()?,
         );
         Some(())
     }
@@ -407,8 +422,17 @@ struct TraceCandidate {
 }
 
 impl TraceCandidate {
+    fn has_roleless_finished_content(&self) -> bool {
+        self.finish_reason.is_some()
+            && self
+                .content
+                .as_ref()
+                .is_some_and(|content| content.role.is_none() && content.parts.is_some())
+    }
+
     fn is_finished(&self, in_candidates: bool) -> bool {
-        self.finish_reason.is_some() && (in_candidates || self.usage_metadata.is_some())
+        self.has_roleless_finished_content()
+            || (self.finish_reason.is_some() && (in_candidates || self.usage_metadata.is_some()))
     }
 
     fn is_adk_error(&self) -> bool {
@@ -446,13 +470,16 @@ fn try_parse_request<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
 fn messages_from_candidates(
     candidates: Vec<TraceCandidate>,
     in_candidates: bool,
-) -> Option<Vec<Message>> {
+) -> Result<Vec<Message>, ConvertError> {
     let mut messages = Vec::new();
     for candidate in candidates {
         let finished = candidate.is_finished(in_candidates);
         if let Some(content) = candidate.content {
             let envelope_role = (in_candidates || finished).then_some("model");
-            messages.push(content.into_message(envelope_role)?);
+            messages.push(content.into_message_with_tool_positions(
+                envelope_role,
+                &mut ToolCallPositions::default(),
+            )?);
         } else if finished || candidate.is_adk_error() {
             messages.push(Message::Assistant {
                 content: AssistantContent::String(String::new()),
@@ -460,19 +487,21 @@ fn messages_from_candidates(
             });
         }
     }
-    Some(messages)
+    Ok(messages)
 }
 
 fn try_parse_response<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
     let response: TraceResponse = try_parse(data)?;
-    messages_from_candidates(response.candidates, true)
+    messages_from_candidates(response.candidates, true).ok()
 }
 
 fn try_parse_candidates<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    messages_from_candidates(try_parse_vec_or_single(data)?, false)
+    messages_from_candidates(try_parse_vec_or_single(data)?, false).ok()
 }
 
-pub(crate) fn try_parse_adk_for_import(data: &impl ImportValue) -> Option<Vec<Message>> {
+pub(crate) fn try_parse_adk_for_import(
+    data: &impl ImportValue,
+) -> Option<Result<Vec<Message>, ConvertError>> {
     if data.kind() != InputKind::Object {
         return None;
     }
@@ -481,10 +510,17 @@ pub(crate) fn try_parse_adk_for_import(data: &impl ImportValue) -> Option<Vec<Me
         content.role.as_deref() == Some("model")
             && (content.parts.is_some() || candidate.finish_reason.is_some())
     });
-    if candidate.usage_metadata.is_none() && !has_google_content && !candidate.is_adk_error() {
+    if candidate.usage_metadata.is_none()
+        && !has_google_content
+        && !candidate.has_roleless_finished_content()
+        && !candidate.is_adk_error()
+    {
         return None;
     }
-    non_empty_messages(messages_from_candidates(vec![candidate], false)?)
+    match messages_from_candidates(vec![candidate], false) {
+        Ok(messages) => non_empty_messages(messages).map(Ok),
+        Err(error) => Some(Err(error)),
+    }
 }
 
 pub(crate) fn try_parse_google_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {

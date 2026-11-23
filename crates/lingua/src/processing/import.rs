@@ -104,8 +104,14 @@ fn try_converting_to_messages<V: ImportValue>(
     // ADK and the AI SDK both log finishReason and content. Prefer the typed
     // ADK envelope before interpreting its content object as AI SDK JSON text.
     #[cfg(feature = "google")]
-    if let Some(messages) = try_parse_adk_for_import(data) {
-        return messages;
+    if let Some(result) = try_parse_adk_for_import(data) {
+        return match result {
+            Ok(messages) => messages,
+            Err(error) => {
+                import.errors.push(error.to_string());
+                Vec::new()
+            }
+        };
     }
 
     if let Some(messages) = try_parse_ai_sdk_for_import(data) {
@@ -1244,6 +1250,30 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn adk_unsupported_part_keeps_the_google_mapping_error() {
+        let span: Span = serde_json::from_str(
+            r#"{
+                "output": {
+                    "content": {
+                        "role": "model",
+                        "parts": [{"toolCall": {"tool_type": "GOOGLE_MAPS"}}]
+                    },
+                    "finishReason": "STOP"
+                }
+            }"#,
+        )
+        .unwrap();
+
+        let imported = import_span(span).unwrap();
+        assert!(imported.output.is_empty());
+        assert!(imported
+            .errors
+            .iter()
+            .any(|error| error.contains("Unsupported mapping") && error.contains("toolCall")));
+    }
 
     #[test]
     fn imported_span_accepts_integral_float_metrics() {
