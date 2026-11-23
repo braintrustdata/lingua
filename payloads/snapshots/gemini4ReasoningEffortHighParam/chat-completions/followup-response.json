@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EnXB9OTSKIBa59t7liGRSMZ6xpsnZ",
+  "object": "chat.completion",
+  "created": 1795474319,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure—what would you like to do next? If you’re not sure, here are quick paths you can choose from. Tell me your goal and any constraints (deadline, time you can commit), and I’ll tailor a concrete plan.\n\n- Plan a project or make a decision\n  1) State the outcome in one sentence.\n  2) List 2–3 options.\n  3) Pick the best option with quick pros/cons.\n  4) Break into 3 concrete actions with rough time estimates.\n  5) Do the first action now and set a review.\n\n- Learn something quickly\n  1) Define the objective and scope.\n  2) Pick 2–3 sources.\n  3) Do a focused 25-minute study block.\n  4) Self-test with 5 questions.\n  5) Review and plan the next session.\n\n- Write or create something\n  1) Identify audience and purpose.\n  2) Create a simple outline (Intro, 3 sections, conclusion).\n  3) Draft quickly.\n  4) Revise for clarity and flow.\n\n- Plan your day or boost productivity\n  1) List your top 3 tasks.\n  2) Time-block a 60–90 minute focus session.\n  3) Do the first task.\n  4) Quick end-of-day review and prep for tomorrow.\n\n- Solve a problem\n  1) Restate the problem in one line.\n  2) Brainstorm 5 possible solutions.\n  3) Choose a viable approach.\n  4) Implement and learn from the result.\n\nIf you share your goal right now, I’ll give you a ready-to-follow step-by-step plan. Or say “start with X” and I’ll tailor accordingly.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 26,
+    "completion_tokens": 3453,
+    "total_tokens": 3479,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 3072,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

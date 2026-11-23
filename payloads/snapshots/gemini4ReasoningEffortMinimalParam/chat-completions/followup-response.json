@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EnXB3obg9O5789fp34hfW5qTKQhBn",
+  "object": "chat.completion",
+  "created": 1795474313,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure—happy to help. What context are you asking about? For example:\n- Are you looking for steps on a project, a study plan, or a decision you need to make?\n- Any constraints (time, tools, goals) I should know about?\n\nIf you want a quick starter, tell me your goal and I'll outline 3–5 concrete next steps.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 26,
+    "completion_tokens": 84,
+    "total_tokens": 110,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
