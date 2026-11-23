@@ -39,12 +39,14 @@ use crate::universal::reasoning::effort_to_budget;
 use crate::universal::request::{
     ReasoningConfig, ReasoningEffort, TokenBudget, UniversalMetadataUserView,
 };
+use crate::universal::response::OpenAIChatUsageView;
 use crate::universal::tools::{tools_to_openai_chat_value, BuiltinToolProvider, UniversalTool};
 use crate::universal::{
     parse_stop_sequences, ServedServiceTier, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
 };
 use serde::{de::IgnoredAny, Deserialize};
+use serde_with::{serde_as, DefaultOnError};
 use std::collections::BTreeMap;
 use std::convert::TryInto;
 
@@ -64,21 +66,12 @@ enum OpenAICompatibleServiceTierExtension {
     Standard,
 }
 
-fn attach_stream_service_tier(
-    payload: &Value,
-    mut chunk: UniversalStreamChunk,
-) -> Result<UniversalStreamChunk, TransformError> {
-    #[derive(Deserialize)]
-    struct OpenAIStreamServiceTierView {
-        service_tier: Option<OpenAICompatibleServiceTier>,
-    }
-
-    chunk.served_service_tier =
-        serde_json::from_value::<OpenAIStreamServiceTierView>(payload.clone())
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
-            .service_tier
-            .map(served_service_tier_from_openai_compatible);
-    Ok(chunk)
+#[serde_as]
+#[derive(Deserialize)]
+struct OpenAIChatStreamMetadata {
+    service_tier: Option<OpenAICompatibleServiceTier>,
+    #[serde_as(as = "Option<DefaultOnError>")]
+    usage: Option<OpenAIChatUsageView>,
 }
 
 fn served_service_tier_from_openai_compatible(
@@ -855,10 +848,9 @@ impl ProviderAdapter for OpenAIAdapter {
             })
             .unwrap_or_default();
 
-        // Extract usage if present (usually only on final chunk)
-        let usage = UniversalUsage::extract_from_response(&payload, self.format());
-
-        let result = Ok(Some(UniversalStreamChunk::new(
+        let metadata = OpenAIChatStreamMetadata::deserialize(&payload)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let mut chunk = UniversalStreamChunk::new(
             payload.get("id").and_then(Value::as_str).map(String::from),
             payload
                 .get("model")
@@ -866,14 +858,12 @@ impl ProviderAdapter for OpenAIAdapter {
                 .map(String::from),
             choices,
             payload.get("created").and_then(Value::as_u64),
-            usage,
-        )));
-
-        result.and_then(|chunk| {
-            chunk
-                .map(|chunk| attach_stream_service_tier(&payload, chunk))
-                .transpose()
-        })
+            metadata.usage.map(UniversalUsage::from),
+        );
+        chunk.served_service_tier = metadata
+            .service_tier
+            .map(served_service_tier_from_openai_compatible);
+        Ok(Some(chunk))
     }
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
@@ -1107,6 +1097,26 @@ mod tests {
         };
         let request = adapter.request_from_universal(&supported).unwrap();
         assert_eq!(request["messages"][0]["content"][0]["type"], "input_audio");
+    }
+
+    // Compatible providers may omit total_tokens or send malformed usage; retain the existing tolerance.
+    #[test]
+    fn test_openai_chat_stream_accepts_compatible_usage() {
+        let adapter = OpenAIAdapter;
+        let partial = adapter
+            .stream_to_universal(json!({
+                "choices": [],
+                "usage": {"prompt_tokens": 5, "completion_tokens": 1}
+            }))
+            .unwrap()
+            .unwrap();
+        assert_eq!(partial.usage.unwrap().total_tokens, Some(6));
+
+        let malformed = adapter
+            .stream_to_universal(json!({"choices": [], "usage": "invalid"}))
+            .unwrap()
+            .unwrap();
+        assert_eq!(malformed.usage.unwrap().total_tokens, None);
     }
 
     #[test]

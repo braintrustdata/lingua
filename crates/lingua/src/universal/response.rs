@@ -735,7 +735,7 @@ enum TypedUsageDetails<T> {
 }
 
 #[derive(Debug, Default, Deserialize)]
-struct OpenAIChatUsageView {
+pub(crate) struct OpenAIChatUsageView {
     #[serde(default, deserialize_with = "deserialize_optional_i64")]
     prompt_tokens: Option<i64>,
     #[serde(default, deserialize_with = "deserialize_optional_i64")]
@@ -746,8 +746,59 @@ struct OpenAIChatUsageView {
     completion_tokens_details: Option<TypedUsageDetails<OpenAIChatUsageDetailsView>>,
 }
 
-fn openai_chat_usage_view(usage: &Value) -> OpenAIChatUsageView {
-    serde_json::from_value::<OpenAIChatUsageView>(usage.clone()).unwrap_or_default()
+impl From<OpenAIChatUsageView> for UniversalUsage {
+    fn from(usage: OpenAIChatUsageView) -> Self {
+        let prompt_details = match usage.prompt_tokens_details {
+            Some(TypedUsageDetails::Valid(details)) => details,
+            Some(TypedUsageDetails::Malformed(value)) => {
+                drop(value);
+                OpenAIChatUsageDetailsView::default()
+            }
+            None => OpenAIChatUsageDetailsView::default(),
+        };
+        let completion_details = match usage.completion_tokens_details {
+            Some(TypedUsageDetails::Valid(details)) => details,
+            Some(TypedUsageDetails::Malformed(value)) => {
+                drop(value);
+                OpenAIChatUsageDetailsView::default()
+            }
+            None => OpenAIChatUsageDetailsView::default(),
+        };
+        let reasoning_tokens = completion_details.reasoning_tokens.filter(|&v| v > 0);
+        let total_tokens = usage
+            .total_tokens
+            .or_else(|| sum_usage_counts(usage.prompt_tokens, usage.completion_tokens));
+        Self {
+            prompt_tokens: usage.prompt_tokens,
+            completion_tokens: usage.completion_tokens,
+            total_tokens,
+            prompt_cached_tokens: prompt_details.cached_tokens,
+            prompt_cache_creation_tokens: None,
+            prompt_cache_creation_5m_tokens: None,
+            prompt_cache_creation_1h_tokens: None,
+            prompt_cache_creation_30m_tokens: None,
+            prompt_cache_creation_12h_tokens: None,
+            // OpenAI's prompt_tokens already includes cached tokens
+            prompt_tokens_exclude_cache: false,
+            completion_reasoning_tokens: reasoning_tokens,
+            input_details: optional_input_details(InputTokenDetails {
+                content_by_modality: single_modality_count(
+                    TokenModality::Audio,
+                    prompt_details.audio_tokens,
+                ),
+                cached: usage_token_breakdown(prompt_details.cached_tokens, None),
+                cache_creation: None,
+                tool_prompt: None,
+            }),
+            output_details: optional_output_details(OutputTokenDetails {
+                content_by_modality: single_modality_count(
+                    TokenModality::Audio,
+                    completion_details.audio_tokens,
+                ),
+                reasoning: usage_token_breakdown(reasoning_tokens, None),
+            }),
+        }
+    }
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -913,57 +964,9 @@ impl UniversalUsage {
         match provider {
             // OpenAI, Mistral, and Unknown use OpenAI format
             ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
-                let usage = openai_chat_usage_view(usage);
-                let prompt_details = match usage.prompt_tokens_details {
-                    Some(TypedUsageDetails::Valid(details)) => details,
-                    Some(TypedUsageDetails::Malformed(value)) => {
-                        drop(value);
-                        OpenAIChatUsageDetailsView::default()
-                    }
-                    None => OpenAIChatUsageDetailsView::default(),
-                };
-                let completion_details = match usage.completion_tokens_details {
-                    Some(TypedUsageDetails::Valid(details)) => details,
-                    Some(TypedUsageDetails::Malformed(value)) => {
-                        drop(value);
-                        OpenAIChatUsageDetailsView::default()
-                    }
-                    None => OpenAIChatUsageDetailsView::default(),
-                };
-                let reasoning_tokens = completion_details.reasoning_tokens.filter(|&v| v > 0);
-                let total_tokens = usage
-                    .total_tokens
-                    .or_else(|| sum_usage_counts(usage.prompt_tokens, usage.completion_tokens));
-                Self {
-                    prompt_tokens: usage.prompt_tokens,
-                    completion_tokens: usage.completion_tokens,
-                    total_tokens,
-                    prompt_cached_tokens: prompt_details.cached_tokens,
-                    prompt_cache_creation_tokens: None,
-                    prompt_cache_creation_5m_tokens: None,
-                    prompt_cache_creation_1h_tokens: None,
-                    prompt_cache_creation_30m_tokens: None,
-                    prompt_cache_creation_12h_tokens: None,
-                    // OpenAI's prompt_tokens already includes cached tokens
-                    prompt_tokens_exclude_cache: false,
-                    completion_reasoning_tokens: reasoning_tokens,
-                    input_details: optional_input_details(InputTokenDetails {
-                        content_by_modality: single_modality_count(
-                            TokenModality::Audio,
-                            prompt_details.audio_tokens,
-                        ),
-                        cached: usage_token_breakdown(prompt_details.cached_tokens, None),
-                        cache_creation: None,
-                        tool_prompt: None,
-                    }),
-                    output_details: optional_output_details(OutputTokenDetails {
-                        content_by_modality: single_modality_count(
-                            TokenModality::Audio,
-                            completion_details.audio_tokens,
-                        ),
-                        reasoning: usage_token_breakdown(reasoning_tokens, None),
-                    }),
-                }
+                serde_json::from_value::<OpenAIChatUsageView>(usage.clone())
+                    .unwrap_or_default()
+                    .into()
             }
             ProviderFormat::Responses | ProviderFormat::Decisions | ProviderFormat::TypeSafe => {
                 let usage = openai_responses_usage_view(usage);
@@ -1213,7 +1216,6 @@ impl UniversalUsage {
     pub fn extract_from_response(payload: &Value, provider: ProviderFormat) -> Option<Self> {
         payload
             .get("usage")
-            .filter(|usage| !usage.is_null())
             .map(|u| Self::from_provider_value(u, provider))
     }
 
