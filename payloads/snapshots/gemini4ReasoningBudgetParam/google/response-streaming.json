@@ -1,0 +1,74 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Ok."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 34,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 36,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 34
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 2
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "2sgEa4m9Mbn4-sAPhpWh4Aw"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EpkBCpYBAWkUfRPZddoLvQTvLch9R8M73iaPXaGElA+YbK1KJiY27M0Vy7EsQcQRBKtAiVGAByKsuln+CfikpoWYSGSbchBSN4BNsZdBzFYjUa00lbeREf519tsIVbcYCPkRphCBQBA2WU5ssfceOMYSHsocpmRLRBCnt3dwpPQ56/wq6A0UPN6qTRPBNLHbJA0XL3UjfbXdklsD"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 34,
+      "candidatesTokenCount": 6,
+      "totalTokenCount": 40,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 34
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "2sgEa4m9Mbn4-sAPhpWh4Aw"
+  }
+]

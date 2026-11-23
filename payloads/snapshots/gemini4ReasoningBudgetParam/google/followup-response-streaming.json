@@ -1,0 +1,179 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 58,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 2
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa4-bFOaRytMPq7yxsQk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "! What were you working on, or what is your goal? \n\nGive me a little context"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 22,
+      "totalTokenCount": 78,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 22
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa4-bFOaRytMPq7yxsQk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "—whether it's a project, a game, a life decision, or just boredom—and I can help you figure out"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 48,
+      "totalTokenCount": 104,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 48
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa4-bFOaRytMPq7yxsQk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " the next step."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 52,
+      "totalTokenCount": 108,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 52
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa4-bFOaRytMPq7yxsQk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EpkBCpYBAWkUfROcYLIaH7D0NmGa5KEtNVhZX6CShFt71Kxxq5zpVqOurByXR+Cgxm1gvNm2XcsvdJlpPz5B2+uTcFMlz0FqDQe2hfsKG1NeJPSNCKU9D/yZCfV1dif4tw5l4F25OKInxvUABSGpmr22wK0gAx9XEe9vk3LJg2SAApYEsRvWXPbj99xgwjxMI+9bZ/jk4lcdlEvj"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 56,
+      "totalTokenCount": 112,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa4-bFOaRytMPq7yxsQk"
+  }
+]

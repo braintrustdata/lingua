@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Since I don't know what you are working on, you have a few options! \n\nIf you want to keep using this chat, you could:\n* **Tell me about a project or goal** you're working on, and we can break it down into next steps.\n* **Ask me a question** about something you've been curious about.\n* **Give me a task**, like writing an email, brainstorming ideas, or summarizing an article.\n\nIf you are just looking for something to do in real life right now, you could:\n* **Drink a glass of water** and do a quick stretch.\n* **Cross one small thing off your to-do list** that takes less than 5 minutes.\n* **Take a break** and step away from your screen for a few minutes.\n\nWhat's on your mind?",
+            "thoughtSignature": "EpkBCpYBAWkUfRN2Ni0aCE0nDXgLJz5mVK7iJiFngl65v3W2srPaIUkreK6u7827ciMmkj57I8JV4dD8qPwpCts4Ix3rFpX0Ddh1n/z0QkUJeyxRwfVuIsYQgllElJGcacKYdRqv7LC+Yjh4/NGxfKI2fA7DmquSJR62Md2LW2mlu1udFnrSokHNON9C/+12VQ14eQKoedFv0dS8"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 56,
+    "candidatesTokenCount": 183,
+    "totalTokenCount": 239,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 56
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 183
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-4-argon",
+  "responseId": "4MgEa77YE4bJ-8YP9_ii8Ac"
+}
