@@ -61,14 +61,14 @@ impl GoogleServiceAccountConfig {
         }
     }
 
-    fn cache_key(&self) -> String {
+    fn cache_key(&self) -> [u8; 32] {
         let mut hasher = Sha256::new();
         hasher.update(self.key.client_email.as_bytes());
         hasher.update(b"|");
         hasher.update(self.key.private_key.as_bytes());
         hasher.update(b"|");
         hasher.update(self.scope_string().as_bytes());
-        format!("{:x}", hasher.finalize())
+        hasher.finalize().into()
     }
 }
 
@@ -80,7 +80,7 @@ struct CachedToken {
 
 #[derive(Debug, Default)]
 pub struct GoogleTokenManager {
-    cache: DashMap<String, CachedToken>,
+    cache: DashMap<[u8; 32], CachedToken>,
 }
 
 impl GoogleTokenManager {
