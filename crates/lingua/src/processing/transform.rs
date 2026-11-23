@@ -648,33 +648,39 @@ pub fn transform_response(
     })
 }
 
-pub fn observe_response(input: Bytes) -> Result<ResponseObservation, TransformError> {
-    let response = parse_json_body(input)?.value;
+pub fn observe_response(input: Bytes) -> ResponseObservation {
+    let Ok(parsed) = parse_json_body(input) else {
+        return ResponseObservation::unparsed();
+    };
+    let response = parsed.value;
     let mut observation = ResponseObservation::from_value(&response, None);
     if let Ok(adapter) = detect_adapter(&response, DetectKind::Response) {
         if let Ok(response) = adapter.response_to_universal(response) {
             observation.record_response(&response);
         }
     }
-    Ok(observation)
+    observation
 }
 
 pub fn observe_stream_event(
     input: Bytes,
     source_format: ProviderFormat,
     event_type: Option<&str>,
-) -> Result<ResponseObservation, TransformError> {
+) -> ResponseObservation {
     if input.trim_ascii().is_empty() || input.trim_ascii() == b"[DONE]" {
-        return Ok(ResponseObservation::default());
+        return ResponseObservation::default();
     }
-    let chunk = parse_json_body(input)?.value;
+    let Ok(parsed) = parse_json_body(input) else {
+        return ResponseObservation::unparsed();
+    };
+    let chunk = parsed.value;
     let mut observation = ResponseObservation::from_value(&chunk, event_type);
     if let Some(adapter) = adapter_for_format(source_format) {
         if let Ok(Some(chunk)) = adapter.stream_to_universal(chunk) {
             observation.record_stream(&chunk);
         }
     }
-    Ok(observation)
+    observation
 }
 
 /// Parse a response to UniversalResponse without re-serializing.
@@ -720,7 +726,15 @@ pub fn transform_stream_chunk(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<TransformResult, TransformError> {
-    Ok(transform_stream_chunk_step(input, target_format, true, |_, _| {}, None, None)?.result)
+    Ok(transform_stream_chunk_step(
+        input,
+        target_format,
+        true,
+        |_, _| {},
+        None,
+        None::<fn(&ResponseObservation)>,
+    )?
+    .result)
 }
 
 fn extract_event_type(value: &Value) -> Option<String> {
@@ -908,22 +922,25 @@ pub(crate) fn transform_stream_chunk_step(
     allow_full_response_fallback: bool,
     normalize_native: impl FnOnce(ProviderFormat, &mut UniversalStreamChunk),
     source_event_type: Option<&str>,
-    mut observe: Option<&mut dyn FnMut(&ResponseObservation)>,
+    observe: Option<impl FnOnce(&ResponseObservation)>,
 ) -> Result<StreamTransformStep, TransformError> {
     let parsed = parse_json_body(input)?;
     let chunk = parsed.value;
     let chunk_bytes = parsed.bytes;
     let event_type = extract_event_type(&chunk);
-    let mut observation = observe
-        .as_ref()
-        .map(|_| ResponseObservation::from_value(&chunk, source_event_type));
+    let observation = observe.map(|observe| {
+        (
+            ResponseObservation::from_value(&chunk, source_event_type),
+            observe,
+        )
+    });
 
     let detection =
         match detect_adapter_with_kind(&chunk, DetectKind::Stream, allow_full_response_fallback) {
             Ok(detection) => detection,
             Err(error) => {
-                if let (Some(observe), Some(observation)) = (observe, observation.as_ref()) {
-                    observe(observation);
+                if let Some((observation, observe)) = observation {
+                    observe(&observation);
                 }
                 return Err(error);
             }
@@ -943,12 +960,12 @@ pub(crate) fn transform_stream_chunk_step(
     // Same-format native chunks pass through without universal conversion, so
     // provider-only fields that cannot cross providers stay byte-preserved.
     if source_format == target_format && source_is_native_stream {
-        if let (Some(observe), Some(observation)) = (observe, observation.as_mut()) {
+        if let Some((mut observation, observe)) = observation {
             if let Ok(Some(mut universal)) = source_adapter.stream_to_universal(chunk) {
                 normalize_native(source_format, &mut universal);
                 observation.record_stream(&universal);
             }
-            observe(observation);
+            observe(&observation);
         }
         return Ok(StreamTransformStep {
             result: TransformResult::PassThrough(chunk_bytes),
@@ -978,11 +995,11 @@ pub(crate) fn transform_stream_chunk_step(
         }
     };
 
-    if let (Some(observe), Some(observation)) = (observe.as_mut(), observation.as_mut()) {
+    if let Some((mut observation, observe)) = observation {
         if let Ok(Some(universal)) = &universal {
             observation.record_stream(universal);
         }
-        observe(observation);
+        observe(&observation);
     }
     let universal = universal?;
 

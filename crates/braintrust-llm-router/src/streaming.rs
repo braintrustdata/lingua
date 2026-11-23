@@ -154,15 +154,13 @@ impl Stream for SessionTransformStream {
                         continue;
                     }
 
-                    let result = match &this.observation_capture {
-                        Some(capture) => this.session.push_observing(
-                            data.clone(),
-                            chunk.event_type.as_deref(),
-                            |observation| capture(observation),
-                        ),
-                        None => this.session.push(data.clone()),
-                    };
-                    match result {
+                    match this.session.push_observing(
+                        data.clone(),
+                        chunk.event_type.as_deref(),
+                        this.observation_capture.as_ref().map(|capture| {
+                            move |observation: &ResponseObservation| capture(observation)
+                        }),
+                    ) {
                         Ok(chunks) => {
                             this.pending.extend(chunks.into_iter().map(|chunk| {
                                 Ok(StreamChunk {

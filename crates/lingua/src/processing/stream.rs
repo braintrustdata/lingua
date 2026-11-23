@@ -162,7 +162,7 @@ impl StreamTransformSession {
     }
 
     pub fn push(&mut self, input: Bytes) -> Result<Vec<StreamOutputChunk>, TransformError> {
-        self.push_internal(input, None, None)
+        self.push_observing(input, None, None::<fn(&ResponseObservation)>)
     }
 
     /// Like [`push`](Self::push), also observing the provider response before conversion.
@@ -170,16 +170,7 @@ impl StreamTransformSession {
         &mut self,
         input: Bytes,
         event_type: Option<&str>,
-        mut observe: impl FnMut(&ResponseObservation),
-    ) -> Result<Vec<StreamOutputChunk>, TransformError> {
-        self.push_internal(input, event_type, Some(&mut observe))
-    }
-
-    fn push_internal(
-        &mut self,
-        input: Bytes,
-        event_type: Option<&str>,
-        observe: Option<&mut dyn FnMut(&ResponseObservation)>,
+        observe: Option<impl FnOnce(&ResponseObservation)>,
     ) -> Result<Vec<StreamOutputChunk>, TransformError> {
         let step = transform_stream_chunk_step(
             input,
@@ -2232,6 +2223,7 @@ mod tests {
         assert_eq!(out[1].event_type.as_deref(), Some("message_stop"));
     }
 
+    // Observations retain split provider usage and serving details while native bytes stay intact.
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_stream_session_observes_converted_and_passthrough_chunks() {
@@ -2240,59 +2232,42 @@ mod tests {
             "message": {
                 "id": "msg_1", "type": "message", "role": "assistant", "model": "claude",
                 "content": [], "stop_reason": null, "stop_sequence": null,
-                "usage": {"input_tokens": 3, "output_tokens": 0, "speed": "fast", "inference_geo": "us"}
+                "usage": {"input_tokens": 3, "output_tokens": 0, "speed": "fast", "inference_geo": "us", "cache_read_input_tokens": 7, "cost": 0.25}
             }
         }));
-        let mut observed = None;
-        StreamTransformSession::new(ProviderFormat::ChatCompletions)
-            .push_observing(message_start.clone(), None, |observation| {
-                observed = Some(observation.served.clone())
-            })
-            .unwrap();
-        let observed = observed.expect("converted chunks are observed");
-        assert_eq!(observed.speed, Some(crate::universal::ServedSpeed::Fast));
-        assert_eq!(observed.inference_geo.as_deref(), Some("us"));
-
-        let mut called = false;
-        StreamTransformSession::new(ProviderFormat::Anthropic)
-            .push_observing(message_start, None, |_| called = true)
-            .unwrap();
-        assert!(called, "same-format chunks must also be observed");
-    }
-
-    #[test]
-    #[cfg(feature = "anthropic")]
-    fn observes_split_anthropic_usage_without_rewriting_passthrough() {
-        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
         let events = [
-            to_bytes(&json!({
-                "type":"message_start", "message":{
-                    "id":"msg_usage", "type":"message", "role":"assistant", "model":"claude",
-                    "content":[], "stop_reason":null, "stop_sequence":null,
-                    "usage":{"input_tokens":3,"output_tokens":0,"cache_read_input_tokens":7,"cost":0.25}
-                }
-            })),
+            message_start,
             to_bytes(
                 &json!({"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":4}}),
             ),
         ];
-        let mut observed = Vec::new();
-        for event in events {
-            let output = session
-                .push_observing(event.clone(), None, |observation| {
-                    observed.push(observation.clone());
-                })
-                .unwrap();
-            assert_eq!(output.len(), 1);
-            assert_eq!(output[0].data, event);
+        for format in [ProviderFormat::ChatCompletions, ProviderFormat::Anthropic] {
+            let mut session = StreamTransformSession::new(format);
+            let mut observed = Vec::new();
+            let mut observe =
+                |observation: &ResponseObservation| observed.push(observation.clone());
+            for event in &events {
+                let output = session
+                    .push_observing(event.clone(), None, Some(&mut observe))
+                    .unwrap();
+                if format == ProviderFormat::Anthropic {
+                    assert_eq!(output.len(), 1);
+                    assert_eq!(output[0].data, *event);
+                }
+            }
+            assert_eq!(observed.len(), 2);
+            assert_eq!(observed[0].provider_cost_usd, Some(0.25));
+            assert_eq!(
+                observed[0].served.speed,
+                Some(crate::universal::ServedSpeed::Fast)
+            );
+            assert_eq!(observed[0].served.inference_geo.as_deref(), Some("us"));
+            let usage = observed[1].usage.as_ref().unwrap();
+            assert_eq!(usage.prompt_tokens, Some(3));
+            assert_eq!(usage.prompt_cached_tokens, Some(7));
+            assert_eq!(usage.completion_tokens, Some(4));
+            assert_eq!(usage.inclusive_prompt_tokens(), Some(10));
         }
-        assert_eq!(observed.len(), 2);
-        assert_eq!(observed[0].provider_cost_usd, Some(0.25));
-        let usage = observed[1].usage.as_ref().unwrap();
-        assert_eq!(usage.prompt_tokens, Some(3));
-        assert_eq!(usage.prompt_cached_tokens, Some(7));
-        assert_eq!(usage.completion_tokens, Some(4));
-        assert_eq!(usage.inclusive_prompt_tokens(), Some(10));
     }
 
     #[test]

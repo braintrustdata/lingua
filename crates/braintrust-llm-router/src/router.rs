@@ -687,13 +687,7 @@ impl Router {
         if passthrough {
             return Ok(CompleteResponseWithRaw {
                 response: response_bytes.clone(),
-                observation: match lingua::observe_response(response_bytes.clone()) {
-                    Ok(observation) => observation,
-                    Err(_) => ResponseObservation {
-                        generation: Some(lingua::GenerationEvidence::UsagePossible),
-                        ..Default::default()
-                    },
-                },
+                observation: lingua::observe_response(response_bytes.clone()),
                 raw_response: response_bytes,
                 parsable_info: ParsableResponseInfo {
                     complete: false,
@@ -822,7 +816,7 @@ impl Router {
             })?;
         Ok(CompleteResponseWithRaw {
             response,
-            observation: lingua::observe_response(raw_response.clone())?,
+            observation: lingua::observe_response(raw_response.clone()),
             raw_response,
             parsable_info: ParsableResponseInfo {
                 complete: true,
@@ -974,17 +968,11 @@ impl Router {
                     capture(chunk);
                 }
                 if let Some(capture) = &observation_capture {
-                    match lingua::observe_stream_event(
+                    capture(&lingua::observe_stream_event(
                         chunk.data.clone(),
                         output_format,
                         chunk.event_type.as_deref(),
-                    ) {
-                        Ok(observation) => capture(&observation),
-                        Err(_) => capture(&ResponseObservation {
-                            generation: Some(lingua::GenerationEvidence::UsagePossible),
-                            ..Default::default()
-                        }),
-                    }
+                    ));
                 }
             })));
         }
