@@ -1,0 +1,24 @@
+[
+  {
+    "input": {
+      "Model": "gemini-2.5-flash",
+      "Config": {
+        "systemInstruction": {
+          "parts": [{"text": "Give short answers."}],
+          "role": "user"
+        }
+      },
+      "Contents": [
+        {"role": "user", "parts": [{"text": "What is the capital of France?"}]}
+      ]
+    },
+    "output": {
+      "Content": {
+        "role": "model",
+        "parts": [{"text": "Paris."}]
+      },
+      "FinishReason": "STOP",
+      "UsageMetadata": {"totalTokenCount": 12}
+    }
+  }
+]

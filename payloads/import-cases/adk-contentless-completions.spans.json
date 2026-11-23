@@ -1,0 +1,24 @@
+[
+  {
+    "output": {"finishReason": "STOP", "usageMetadata": {"totalTokenCount": 5}}
+  },
+  {
+    "output": {
+      "finish_reason": "MAX_TOKENS",
+      "error_code": "MAX_TOKENS",
+      "usage_metadata": {"total_token_count": 80}
+    }
+  },
+  {
+    "output": {
+      "errorCode": "UNKNOWN_ERROR",
+      "errorMessage": "An unknown error occurred"
+    }
+  },
+  {
+    "output": {"finishReason": "STOP"}
+  },
+  {
+    "output": {"usageMetadata": {"totalTokenCount": 5}}
+  }
+]

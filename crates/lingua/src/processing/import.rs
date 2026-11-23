@@ -19,7 +19,7 @@ use crate::providers::anthropic::generated as anthropic;
 #[cfg(feature = "bedrock")]
 use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
 #[cfg(feature = "google")]
-use crate::providers::google::convert::try_parse_google_for_import;
+use crate::providers::google::import::{try_parse_adk_for_import, try_parse_google_for_import};
 #[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
     assistant_content_parts_from_openai_tool_calls, try_parse_openai_for_import,
@@ -99,6 +99,13 @@ fn try_converting_to_messages<V: ImportValue>(
         InputKind::Null | InputKind::Other | InputKind::String
     ) {
         return Vec::new();
+    }
+
+    // ADK and the AI SDK both log finishReason and content. Prefer the typed
+    // ADK envelope before interpreting its content object as AI SDK JSON text.
+    #[cfg(feature = "google")]
+    if let Some(messages) = try_parse_adk_for_import(data) {
+        return messages;
     }
 
     if let Some(messages) = try_parse_ai_sdk_for_import(data) {

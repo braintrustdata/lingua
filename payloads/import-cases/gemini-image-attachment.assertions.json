@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": ["user"],
+  "mustContainText": ["\"type\":\"image\"", "braintrust_attachment", "test-attachment", "sample.png", "image/png", "What color is this image?"]
+}

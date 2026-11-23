@@ -6,6 +6,7 @@ pub mod capabilities;
 pub mod convert;
 pub mod detect;
 pub mod generated;
+pub(crate) mod import;
 pub mod params;
 
 #[cfg(test)]

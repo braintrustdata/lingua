@@ -7,18 +7,14 @@ Google's GenerateContent API format and Lingua's universal message format.
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
-use crate::import_parse::{
-    try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
-};
-use crate::import_value::ImportValue;
 use crate::providers::google::generated::{
-    Blob as GoogleBlob, Candidate as GoogleCandidate, CodeExecutionResult,
-    Content as GoogleContent, ExecutableCode, FileData as GoogleFileData,
-    FinishReason as GoogleFinishReason, FunctionCall as GoogleFunctionCall, FunctionCallingConfig,
-    FunctionCallingConfigMode, FunctionDeclaration, FunctionResponse as GoogleFunctionResponse,
-    GenerateContentRequest, GenerateContentResponse, GenerationConfig,
-    Modality as GoogleTokenModality, ModalityTokenCount as GoogleModalityTokenCount,
-    Part as GooglePart, Tool as GoogleTool, ToolConfig, UsageMetadata,
+    Blob as GoogleBlob, CodeExecutionResult, Content as GoogleContent, ExecutableCode,
+    FileData as GoogleFileData, FinishReason as GoogleFinishReason,
+    FunctionCall as GoogleFunctionCall, FunctionCallingConfig, FunctionCallingConfigMode,
+    FunctionDeclaration, FunctionResponse as GoogleFunctionResponse, GenerateContentRequest,
+    GenerationConfig, Modality as GoogleTokenModality,
+    ModalityTokenCount as GoogleModalityTokenCount, Part as GooglePart, Tool as GoogleTool,
+    ToolConfig, UsageMetadata,
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -253,11 +249,27 @@ impl TryFromLLM<GoogleContent> for Message {
             })?
         };
 
+        GoogleContent::message_from_parts(role, parts.into_iter().map(|part| (part, None)))
+    }
+}
+
+impl GoogleContent {
+    pub(super) fn message_from_parts(
+        role: &str,
+        parts: impl IntoIterator<Item = (GooglePart, Option<UserContentPart>)>,
+    ) -> Result<Message, ConvertError> {
         match role {
             "model" => {
                 let mut assistant_parts: Vec<AssistantContentPart> = Vec::new();
 
-                for part in &parts {
+                for (part, attachment) in parts {
+                    if attachment.is_some() {
+                        return Err(ConvertError::UnsupportedMapping {
+                            from: "Google attachment reference".to_string(),
+                            to: "Lingua assistant image",
+                        });
+                    }
+                    let part = &part;
                     reject_google_provider_only_part(part)?;
                     if let Some(t) = &part.text {
                         if part.thought == Some(true) {
@@ -367,9 +379,12 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut user_parts: Vec<UserContentPart> = Vec::new();
                 let mut tool_parts: Vec<ToolContentPart> = Vec::new();
 
-                for part in &parts {
+                for (part, attachment) in parts {
+                    let part = &part;
                     reject_google_provider_only_part(part)?;
-                    if let Some(t) = &part.text {
+                    if let Some(attachment) = attachment {
+                        user_parts.push(attachment);
+                    } else if let Some(t) = &part.text {
                         user_parts.push(UserContentPart::Text(TextContentPart {
                             text: t.clone(),
                             encrypted_content: None,
@@ -766,55 +781,6 @@ pub fn universal_to_google(messages: &[Message]) -> Result<Value, ConvertError> 
         field: "contents".to_string(),
         error: e.to_string(),
     })
-}
-
-fn try_messages_from_google_contents(contents: Vec<GoogleContent>) -> Option<Vec<Message>> {
-    try_convert_non_empty(contents)
-}
-
-fn try_messages_from_google_candidates(candidates: Vec<GoogleCandidate>) -> Option<Vec<Message>> {
-    let contents: Vec<GoogleContent> = candidates
-        .into_iter()
-        .filter_map(|candidate| candidate.content)
-        .collect();
-
-    if contents.is_empty() {
-        None
-    } else {
-        try_messages_from_google_contents(contents)
-    }
-}
-
-fn try_parse_google_content_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let contents = try_parse_vec_or_single::<GoogleContent>(data)?;
-    try_messages_from_google_contents(contents)
-}
-
-fn try_parse_google_request_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let request = try_parse::<GenerateContentRequest>(data)?;
-    let contents = request.contents?;
-    try_messages_from_google_contents(contents)
-}
-
-fn try_parse_google_response_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let response = try_parse::<GenerateContentResponse>(data)?;
-    let candidates = response.candidates?;
-    try_messages_from_google_candidates(candidates)
-}
-
-fn try_parse_google_candidate_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let candidates = try_parse_vec_or_single::<GoogleCandidate>(data)?;
-    try_messages_from_google_candidates(candidates)
-}
-
-pub(crate) fn try_parse_google_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let parsers: &[MessageParser<V>] = &[
-        try_parse_google_content_for_import,
-        try_parse_google_request_for_import,
-        try_parse_google_response_for_import,
-        try_parse_google_candidate_for_import,
-    ];
-    try_parsers_in_order(data, parsers)
 }
 
 impl From<&FunctionDeclaration> for UniversalTool {

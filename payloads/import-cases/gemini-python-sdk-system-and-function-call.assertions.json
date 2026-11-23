@@ -1,0 +1,7 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": ["system", "user", "assistant"],
+  "expectedAssistantContentPartTypes": [["tool_call"]],
+  "mustContainText": ["Use the weather tool.", "What is the weather in Paris?", "get_weather", "city_and_state", "Paris, France"],
+  "mustNotContainText": ["cityAndState"]
+}

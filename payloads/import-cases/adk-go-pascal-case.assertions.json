@@ -1,0 +1,6 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": ["system", "user", "assistant"],
+  "expectedAssistantContentPartTypes": [["text"]],
+  "mustContainText": ["Give short answers.", "What is the capital of France?", "Paris."]
+}

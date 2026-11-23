@@ -1,0 +1,30 @@
+[
+  {
+    "input": {
+      "model": "gemini-2.5-flash",
+      "contents": "What is the weather in Paris?",
+      "config": {
+        "system_instruction": "Use the weather tool.",
+        "max_output_tokens": 150
+      }
+    },
+    "output": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "function_call": {
+                  "name": "get_weather",
+                  "args": {"city_and_state": "Paris, France"}
+                }
+              }
+            ]
+          },
+          "finish_reason": "STOP"
+        }
+      ]
+    }
+  }
+]

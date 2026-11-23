@@ -1,0 +1,24 @@
+[
+  {
+    "input": {
+      "model": "gemini-2.5-flash",
+      "contents": [
+        {
+          "parts": [
+            {
+              "image_url": {
+                "url": {
+                  "type": "braintrust_attachment",
+                  "key": "test-attachment",
+                  "filename": "sample.png",
+                  "content_type": "image/png"
+                }
+              }
+            },
+            {"text": "What color is this image?"}
+          ]
+        }
+      ]
+    }
+  }
+]

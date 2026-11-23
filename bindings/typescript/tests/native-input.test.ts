@@ -112,6 +112,49 @@ describe.each([
     expect(reads).toBe(1);
   });
 
+  test("imports Python Gemini prompts and ADK function calls", () => {
+    expect(
+      importMessages([
+        {
+          input: {
+            model: "gemini-2.5-flash",
+            contents: "What's the weather?",
+            config: { system_instruction: "Use the weather tool." },
+          },
+          output: {
+            content: {
+              role: "model",
+              parts: [
+                {
+                  functionCall: {
+                    name: "get_weather",
+                    args: { city_name: "Paris" },
+                  },
+                },
+              ],
+            },
+            finishReason: "STOP",
+            usageMetadata: { totalTokenCount: 10 },
+          },
+        },
+      ])
+    ).toEqual([
+      { role: "system", content: "Use the weather tool." },
+      { role: "user", content: "What's the weather?" },
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "tool_call",
+            tool_call_id: "call_0",
+            tool_name: "get_weather",
+            arguments: { type: "valid", value: { city_name: "Paris" } },
+          },
+        ],
+      },
+    ]);
+  });
+
   test("reads proxied array elements once", () => {
     let reads = 0;
     const input = new Proxy([{ role: "user", content: "Hello" }], {
