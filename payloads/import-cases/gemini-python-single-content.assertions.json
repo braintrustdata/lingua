@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "user"],
+  "mustContainText": ["Describe the moon.", "What causes tides?"]
+}

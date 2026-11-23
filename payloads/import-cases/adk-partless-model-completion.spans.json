@@ -1,0 +1,8 @@
+[
+  {
+    "output": {
+      "content": {"role": "model"},
+      "finishReason": "MAX_TOKENS"
+    }
+  }
+]

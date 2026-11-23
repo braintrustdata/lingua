@@ -1,0 +1,6 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": ["assistant"],
+  "expectedAssistantContentPartTypes": [[]],
+  "mustContainText": ["\"content\":[]"]
+}

@@ -77,6 +77,7 @@ impl TraceContent {
 #[serde(untagged)]
 enum RequestContents {
     Text(String),
+    Content(TraceContent),
     Conversation(Vec<TraceContent>),
 }
 
@@ -163,6 +164,7 @@ fn try_parse_request<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
             content: UserContent::String(text),
         }],
         // The Google request schema permits an omitted role for user content.
+        RequestContents::Content(content) => vec![content.into_message(Some("user"))?],
         RequestContents::Conversation(contents) => contents
             .into_iter()
             .map(|content| content.into_message(Some("user")))
@@ -211,10 +213,10 @@ pub(crate) fn try_parse_adk_for_import(data: &impl ImportValue) -> Option<Vec<Me
         return None;
     }
     let candidate: TraceCandidate = try_parse(data)?;
-    let has_google_content = candidate
-        .content
-        .as_ref()
-        .is_some_and(|content| content.role.as_deref() == Some("model") && content.parts.is_some());
+    let has_google_content = candidate.content.as_ref().is_some_and(|content| {
+        content.role.as_deref() == Some("model")
+            && (content.parts.is_some() || candidate.finish_reason.is_some())
+    });
     if candidate.usage_metadata.is_none() && !has_google_content && !candidate.is_adk_error() {
         return None;
     }

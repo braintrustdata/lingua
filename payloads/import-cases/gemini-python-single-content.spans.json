@@ -1,0 +1,19 @@
+[
+  {
+    "input": {
+      "model": "gemini-2.5-flash",
+      "contents": {
+        "role": "user",
+        "parts": [{"text": "Describe the moon."}]
+      }
+    }
+  },
+  {
+    "input": {
+      "model": "gemini-2.5-flash",
+      "contents": {
+        "parts": [{"text": "What causes tides?"}]
+      }
+    }
+  }
+]
