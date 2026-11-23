@@ -2,7 +2,7 @@
 
 exports[`streaming: anthropic → chat-completions > anthropicMessageWithSystemMessage > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-DoyJh5CptPU5m81A5YGIeULvSezar","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-DoyJh5CptPU5m81A5YGIeULvSezar","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
 
 event: content_block_start
 data: {"content_block":{"text":"","type":"text"},"index":0,"type":"content_block_start"}
@@ -423,7 +423,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → chat-completions > anthropicMidConversationSystemMessage > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-DmKoKHtVYgdxqBqvTor9wW6MsS9pY","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-DmKoKHtVYgdxqBqvTor9wW6MsS9pY","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
 
 event: message_delta
 data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":51,"output_tokens":16,"output_tokens_details":{"thinking_tokens":16}}}
@@ -436,7 +436,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → chat-completions > anthropicMixedToolResultWithText > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-Dp4RF3MuIGYlGOoQIJBvJ6q7UDIo9","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-Dp4RF3MuIGYlGOoQIJBvJ6q7UDIo9","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
 
 event: message_delta
 data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":176,"output_tokens":1024,"output_tokens_details":{"thinking_tokens":1024}}}
@@ -449,7 +449,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → chat-completions > anthropicOpus5AdaptiveThinkingMaxEffortParam > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-E6KEHp0Cx1rdhcOdU0fV9Cdtx3Snb","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-E6KEHp0Cx1rdhcOdU0fV9Cdtx3Snb","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
 
 event: content_block_start
 data: {"content_block":{"text":"","type":"text"},"index":0,"type":"content_block_start"}
@@ -2527,7 +2527,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → chat-completions > haiku55SamplingParams > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-EWjljjObJMV24vphO35qcBsmULtpW","model":"gpt-4o-mini-2024-07-18","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-EWjljjObJMV24vphO35qcBsmULtpW","model":"gpt-4o-mini-2024-07-18","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
 
 event: content_block_start
 data: {"content_block":{"text":"","type":"text"},"index":0,"type":"content_block_start"}
@@ -3509,7 +3509,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → chat-completions > simpleRequestTruncated > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-DSQdxzW4LeTU2buaGgT2o0rexbRw2","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-DSQdxzW4LeTU2buaGgT2o0rexbRw2","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
 
 event: message_delta
 data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":15,"output_tokens":16,"output_tokens_details":{"thinking_tokens":16}}}
@@ -3522,7 +3522,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → chat-completions > streamParam > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-E6KDyCqtGp0k22p21ICruiyl3YizP","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-E6KDyCqtGp0k22p21ICruiyl3YizP","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
 
 event: content_block_start
 data: {"content_block":{"text":"","type":"text"},"index":0,"type":"content_block_start"}
@@ -3581,7 +3581,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → chat-completions > toolCallRequest > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-DcYHRmYExqQbSmtvww8lLbztLhoBq","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-DcYHRmYExqQbSmtvww8lLbztLhoBq","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
 
 event: content_block_start
 data: {"content_block":{"id":"call_SiDfZ3oGHIRYQXk72bYPiNUy","input":{},"name":"get_weather","type":"tool_use"},"index":0,"type":"content_block_start"}
