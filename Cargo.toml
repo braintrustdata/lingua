@@ -82,7 +82,7 @@ http = "1.1"
 hyper = { version = "1.3" }
 
 # Utilities
-rand = { version = "0.9.3", features = ["std"] }
+rand = { version = "0.10.4", features = ["std"] }
 once_cell = "1.19"
 parking_lot = "0.12"
 arc-swap = "1.7"
