@@ -1,8 +1,8 @@
 pub(crate) use super::convert::TraceToolCalls;
 use super::generated::{
     AudioTranscription, Blob, CodeExecutionResult, Content, ExecutableCode, FileData, FinishReason,
-    FunctionCall, FunctionResponse, MediaProcessing, MediaResolution, Part, SpeechMetadata,
-    ToolCall, ToolResponse, UsageMetadata,
+    FunctionCall, FunctionResponse, Level, MediaProcessing, MediaResolution, Part, Scheduling,
+    SpeechMetadata, ToolCall, ToolResponse, UsageMetadata,
 };
 use crate::error::ConvertError;
 use crate::import_parse::{non_empty_messages, try_parse, try_parse_vec_or_single};
@@ -85,24 +85,29 @@ struct TraceFunctionResponse {
 
 impl TraceFunctionResponse {
     fn into_response(self) -> Result<FunctionResponse, ConvertError> {
-        if self.will_continue == Some(true) {
-            return Err(ConvertError::UnsupportedMapping {
-                from: "Google functionResponse.willContinue".to_string(),
-                to: "Lingua universal message",
-            });
-        }
-        if self
+        let unsupported_field = if self.will_continue == Some(true) {
+            "willContinue"
+        } else if self
+            .response
+            .scheduling
+            .as_ref()
+            .is_some_and(|scheduling| *scheduling != Scheduling::SchedulingUnspecified)
+        {
+            "scheduling"
+        } else if self
             .response
             .parts
             .as_ref()
             .is_some_and(|parts| !parts.is_empty())
         {
-            return Err(ConvertError::UnsupportedMapping {
-                from: "Google functionResponse.parts".to_string(),
-                to: "Lingua universal message",
-            });
-        }
-        Ok(self.response)
+            "parts"
+        } else {
+            return Ok(self.response);
+        };
+        Err(ConvertError::UnsupportedMapping {
+            from: format!("Google functionResponse.{unsupported_field}"),
+            to: "Lingua universal message",
+        })
     }
 }
 
@@ -138,17 +143,39 @@ impl From<TraceFileData> for FileData {
 }
 
 impl TracePart {
-    fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
-        if self
+    fn validate_metadata(&self) -> Result<(), ConvertError> {
+        let unsupported_field = if self.tool_response.is_some() {
+            "toolResponse"
+        } else if self
+            .media_resolution
+            .as_ref()
+            .and_then(|resolution| resolution.level.as_ref())
+            .is_some_and(|level| *level != Level::MediaResolutionUnspecified)
+        {
+            "mediaResolution"
+        } else if self
+            .part_metadata
+            .as_ref()
+            .is_some_and(|metadata| !metadata.is_empty())
+        {
+            "partMetadata"
+        } else if self
             .video_metadata
             .as_ref()
             .is_some_and(TraceVideoMetadata::has_preprocessing)
         {
-            return Err(ConvertError::UnsupportedMapping {
-                from: "Google Part.videoMetadata preprocessing".to_string(),
-                to: "Lingua universal message",
-            });
-        }
+            "videoMetadata preprocessing"
+        } else {
+            return Ok(());
+        };
+        Err(ConvertError::UnsupportedMapping {
+            from: format!("Google part {unsupported_field}"),
+            to: "Lingua universal message",
+        })
+    }
+
+    fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
+        self.validate_metadata()?;
         let attachment = match self.image_url {
             Some(TraceAttachmentUrl { url }) => {
                 let media_type = match &url {
@@ -186,15 +213,12 @@ impl TracePart {
                 mime_type: blob.mime_type,
             }),
             media_processing: self.media_processing,
-            media_resolution: self.media_resolution,
-            part_metadata: self.part_metadata,
             speech_metadata: self.speech_metadata,
             text: self.text,
             thought: self.thought,
             thought_signature: self.thought_signature,
             tool_call: self.tool_call,
-            tool_response: self.tool_response,
-            video_metadata: None,
+            ..Default::default()
         };
         Ok((part, attachment))
     }

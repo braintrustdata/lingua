@@ -1388,7 +1388,8 @@ mod tests {
             "input": {"contents": [{
                 "uri": "https://generativelanguage.googleapis.com/v1beta/files/video",
                 "mime_type": "video/mp4",
-                "video_metadata": {}
+                "video_metadata": {},
+                "mediaResolution": {"level": "MEDIA_RESOLUTION_UNSPECIFIED"}
             }]}
         }))
         .unwrap();
@@ -1429,6 +1430,43 @@ mod tests {
             assert!(
                 imported.errors.iter().any(|error| {
                     error.contains("Unsupported mapping") && error.contains("videoMetadata")
+                }),
+                "{field}"
+            );
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_reports_unsupported_trace_part_fields() {
+        for (part, field) in [
+            (
+                crate::serde_json::json!({
+                    "toolResponse": {"id": "x", "toolType": "GOOGLE_MAPS", "response": {"ok": true}}
+                }),
+                "toolResponse",
+            ),
+            (
+                crate::serde_json::json!({
+                    "inlineData": {"mimeType": "image/png", "data": "AA=="},
+                    "media_resolution": {"level": "MEDIA_RESOLUTION_HIGH"}
+                }),
+                "mediaResolution",
+            ),
+            (
+                crate::serde_json::json!({"text": "source", "part_metadata": {"stream": "a"}}),
+                "partMetadata",
+            ),
+        ] {
+            let span: Span = serde_json::from_value(crate::serde_json::json!({
+                "input": {"contents": [{"role": "user", "parts": [part]}]}
+            }))
+            .unwrap();
+            let imported = import_span(span).unwrap();
+            assert!(imported.input.is_empty(), "{field}");
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains(field)
                 }),
                 "{field}"
             );
@@ -1580,7 +1618,7 @@ mod tests {
         for continuation in ["will_continue", "willContinue"] {
             let span: Span = serde_json::from_value(crate::serde_json::json!({
                 "input": {"contents": [
-                    "Run the tool.",
+                    {"text": "Run the tool.", "partMetadata": {}},
                     {"role": "model", "parts": [{"functionCall": {"name": "work", "id": "call_a"}}]},
                     {"role": "user", "parts": [{
                         "function_response": {
@@ -1588,6 +1626,7 @@ mod tests {
                             "id": "call_a",
                             "response": {"value": 1},
                             "parts": [],
+                            "scheduling": "SCHEDULING_UNSPECIFIED",
                             (continuation): false
                         }
                     }]}
@@ -1630,6 +1669,33 @@ mod tests {
         assert!(imported.errors.iter().any(|error| {
             error.contains("Unsupported mapping") && error.contains("functionResponse.parts")
         }));
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_reports_unsupported_function_response_scheduling() {
+        for scheduling in ["SILENT", "INTERRUPT", "WHEN_IDLE"] {
+            let span: Span = serde_json::from_value(crate::serde_json::json!({
+                "input": {"contents": [{"role": "user", "parts": [{
+                    "function_response": {
+                        "name": "update",
+                        "response": {},
+                        "will_continue": false,
+                        "scheduling": scheduling
+                    }
+                }]}]}
+            }))
+            .unwrap();
+            let imported = import_span(span).unwrap();
+            assert!(imported.input.is_empty(), "{scheduling}");
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping")
+                        && error.contains("functionResponse.scheduling")
+                }),
+                "{scheduling}"
+            );
+        }
     }
 
     #[test]
