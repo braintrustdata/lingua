@@ -1,13 +1,11 @@
-use super::convert::TraceToolCalls;
+pub(crate) use super::convert::TraceToolCalls;
 use super::generated::{
     AudioTranscription, Blob, CodeExecutionResult, Content, ExecutableCode, FileData, FinishReason,
     FunctionCall, FunctionResponse, MediaProcessing, MediaResolution, Part, SpeechMetadata,
     ToolCall, ToolResponse, UsageMetadata, VideoMetadata,
 };
 use crate::error::ConvertError;
-use crate::import_parse::{
-    non_empty_messages, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
-};
+use crate::import_parse::{non_empty_messages, try_parse, try_parse_vec_or_single};
 use crate::import_value::{ImportValue, InputKind};
 use crate::serde_json;
 use crate::universal::message::{AssistantContent, Message, UserContent, UserContentPart};
@@ -312,7 +310,7 @@ impl RequestMessages {
 
 fn messages_from_request_entries(
     entries: impl IntoIterator<Item = RequestEntry>,
-) -> Option<Vec<Message>> {
+) -> Option<RequestMessages> {
     let mut request = RequestMessages::default();
     for entry in entries {
         let part = match entry {
@@ -336,7 +334,7 @@ fn messages_from_request_entries(
         request.push_part(part)?;
     }
     request.flush()?;
-    Some(request.messages)
+    Some(request)
 }
 
 #[derive(Deserialize)]
@@ -442,12 +440,18 @@ fn try_parse_content<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
         .collect()
 }
 
-fn try_parse_request<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
+fn try_parse_request(
+    data: &impl ImportValue,
+    trace_tools: &mut TraceToolCalls,
+) -> Option<Vec<Message>> {
     let request: TraceRequest = try_parse(data)?;
-    let mut messages = match request.contents {
-        RequestContents::Text(text) => vec![Message::User {
-            content: UserContent::String(text),
-        }],
+    let mut parsed = match request.contents {
+        RequestContents::Text(text) => RequestMessages {
+            messages: vec![Message::User {
+                content: UserContent::String(text),
+            }],
+            ..Default::default()
+        },
         RequestContents::Entry(object) => {
             messages_from_request_entries([RequestEntry::Object(object)])?
         }
@@ -457,22 +461,24 @@ fn try_parse_request<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
         .system_instruction
         .or_else(|| request.config?.system_instruction);
     if let Some(instruction) = system_instruction {
-        messages.insert(0, instruction.into_message()?);
+        parsed.messages.insert(0, instruction.into_message()?);
     }
+    let messages = non_empty_messages(parsed.messages)?;
+    *trace_tools = parsed.trace_tools;
     Some(messages)
 }
 
 fn messages_from_candidates(
     candidates: Vec<TraceCandidate>,
     in_candidates: bool,
+    trace_tools: &mut TraceToolCalls,
 ) -> Result<Vec<Message>, ConvertError> {
     let mut messages = Vec::new();
     for candidate in candidates {
         let finished = candidate.is_finished(in_candidates);
         if let Some(content) = candidate.content {
             let envelope_role = (in_candidates || finished).then_some("model");
-            messages
-                .push(content.into_message(envelope_role, Some(&mut TraceToolCalls::default()))?);
+            messages.push(content.into_message(envelope_role, Some(trace_tools))?);
         } else if finished || candidate.is_adk_error() {
             messages.push(Message::Assistant {
                 content: AssistantContent::String(String::new()),
@@ -483,17 +489,26 @@ fn messages_from_candidates(
     Ok(messages)
 }
 
-fn try_parse_response<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
+fn try_parse_response(
+    data: &impl ImportValue,
+    trace_tools: &mut TraceToolCalls,
+) -> Option<Vec<Message>> {
     let response: TraceResponse = try_parse(data)?;
-    messages_from_candidates(response.candidates, true).ok()
+    non_empty_messages(messages_from_candidates(response.candidates, true, trace_tools).ok()?)
 }
 
-fn try_parse_candidates<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    messages_from_candidates(try_parse_vec_or_single(data)?, false).ok()
+fn try_parse_candidates(
+    data: &impl ImportValue,
+    trace_tools: &mut TraceToolCalls,
+) -> Option<Vec<Message>> {
+    non_empty_messages(
+        messages_from_candidates(try_parse_vec_or_single(data)?, false, trace_tools).ok()?,
+    )
 }
 
 pub(crate) fn try_parse_adk_for_import(
     data: &impl ImportValue,
+    trace_tools: &mut TraceToolCalls,
 ) -> Option<Result<Vec<Message>, ConvertError>> {
     if data.kind() != InputKind::Object {
         return None;
@@ -510,18 +525,19 @@ pub(crate) fn try_parse_adk_for_import(
     {
         return None;
     }
-    match messages_from_candidates(vec![candidate], false) {
+    match messages_from_candidates(vec![candidate], false, trace_tools) {
         Ok(messages) => non_empty_messages(messages).map(Ok),
         Err(error) => Some(Err(error)),
     }
 }
 
-pub(crate) fn try_parse_google_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    let parsers: &[MessageParser<V>] = &[
-        try_parse_content,
-        try_parse_request,
-        try_parse_response,
-        try_parse_candidates,
-    ];
-    try_parsers_in_order(data, parsers)
+pub(crate) fn try_parse_google_for_import(
+    data: &impl ImportValue,
+    trace_tools: &mut TraceToolCalls,
+) -> Option<Vec<Message>> {
+    try_parse_content(data)
+        .and_then(non_empty_messages)
+        .or_else(|| try_parse_request(data, trace_tools))
+        .or_else(|| try_parse_response(data, trace_tools))
+        .or_else(|| try_parse_candidates(data, trace_tools))
 }

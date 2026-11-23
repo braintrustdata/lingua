@@ -41,7 +41,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
 
 #[derive(Default)]
-pub(super) struct TraceToolCalls {
+pub(crate) struct TraceToolCalls {
     pending_calls: HashMap<String, VecDeque<String>>,
     occurrences: HashMap<u64, usize>,
     unmatched_results: usize,

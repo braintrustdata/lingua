@@ -1,4 +1,4 @@
-use crate::import_parse::{try_parsers_in_order, MessageParser};
+use crate::import_parse::try_parsers_in_order;
 use crate::import_value::Field;
 pub use crate::import_value::{ImportValue, InputKind};
 mod ai_sdk;
@@ -19,7 +19,9 @@ use crate::providers::anthropic::generated as anthropic;
 #[cfg(feature = "bedrock")]
 use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
 #[cfg(feature = "google")]
-use crate::providers::google::import::{try_parse_adk_for_import, try_parse_google_for_import};
+use crate::providers::google::import::{
+    try_parse_adk_for_import, try_parse_google_for_import, TraceToolCalls,
+};
 #[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
     assistant_content_parts_from_openai_tool_calls, try_parse_openai_for_import,
@@ -64,6 +66,8 @@ struct MessageImport {
     warnings: Vec<String>,
     opaque: Vec<OpaqueItem>,
     discard_opaque: bool,
+    #[cfg(feature = "google")]
+    google_tools: TraceToolCalls,
 }
 
 fn opaque_item_kind(data: &impl ImportValue) -> Option<OpaqueItemKind> {
@@ -104,7 +108,7 @@ fn try_converting_to_messages<V: ImportValue>(
     // ADK and the AI SDK both log finishReason and content. Prefer the typed
     // ADK envelope before interpreting its content object as AI SDK JSON text.
     #[cfg(feature = "google")]
-    if let Some(result) = try_parse_adk_for_import(data) {
+    if let Some(result) = try_parse_adk_for_import(data, &mut import.google_tools) {
         return match result {
             Ok(messages) => messages,
             Err(error) => {
@@ -131,7 +135,7 @@ fn try_converting_to_messages<V: ImportValue>(
         return messages;
     }
 
-    if let Some(messages) = try_parse_provider_messages_for_import(data) {
+    if let Some(messages) = try_parse_provider_messages_for_import(data, import) {
         return messages;
     }
 
@@ -288,39 +292,16 @@ fn is_role_message_array(data: &impl ImportValue) -> bool {
     })
 }
 
-fn provider_parsers_for_import<'a, V: ImportValue + 'a>() -> &'a [MessageParser<V>] {
-    &[
-        #[cfg(feature = "openai")]
-        try_parse_openai_for_import,
-        #[cfg(feature = "anthropic")]
-        try_parse_anthropic_for_import,
-        #[cfg(feature = "google")]
-        try_parse_google_for_import,
-        #[cfg(feature = "bedrock")]
-        bedrock::try_parse_bedrock_trace_for_import,
-        #[cfg(feature = "bedrock")]
-        try_parse_bedrock_for_import,
-    ]
-}
-
 fn try_parse_mixed_messages_for_import(
     data: &impl ImportValue,
     import: &mut MessageImport,
 ) -> Option<Vec<Message>> {
     let items = data.array()?;
-    let provider_parsers = provider_parsers_for_import();
-    let wrapped_provider_parsers = provider_parsers_for_import::<Value>();
     let mut messages = Vec::new();
     let errors_before = import.errors.len();
 
     for (index, item) in items.enumerate() {
-        messages.extend(import_mixed_message_item(
-            &item,
-            index,
-            import,
-            provider_parsers,
-            wrapped_provider_parsers,
-        ));
+        messages.extend(import_mixed_message_item(&item, index, import));
     }
 
     if import.errors.len() != errors_before && !import.options.preserve_unsupported {
@@ -348,21 +329,13 @@ pub fn import_role_message_from_value(data: &impl ImportValue) -> Vec<Message> {
         discard_opaque: true,
         ..Default::default()
     };
-    import_mixed_message_item(
-        data,
-        0,
-        &mut import,
-        provider_parsers_for_import(),
-        provider_parsers_for_import::<Value>(),
-    )
+    import_mixed_message_item(data, 0, &mut import)
 }
 
 fn import_mixed_message_item<V: ImportValue>(
     item: &V,
     index: usize,
     import: &mut MessageImport,
-    provider_parsers: &[MessageParser<V>],
-    wrapped_provider_parsers: &[MessageParser<Value>],
 ) -> Vec<Message> {
     let kind = if import.options.preserve_unsupported {
         opaque_item_kind(item)
@@ -405,9 +378,9 @@ fn import_mixed_message_item<V: ImportValue>(
     }
 
     if parsed_messages.is_none() {
-        parsed_messages = try_parsers_in_order(item, provider_parsers).or_else(|| {
+        parsed_messages = try_parse_provider_messages_for_import(item, import).or_else(|| {
             let wrapped_item = Value::Array(vec![item.to_value().into_owned()]);
-            try_parsers_in_order(&wrapped_item, wrapped_provider_parsers)
+            try_parse_provider_messages_for_import(&wrapped_item, import)
         });
     }
 
@@ -451,8 +424,33 @@ fn import_mixed_message_item<V: ImportValue>(
     parsed_messages
 }
 
-fn try_parse_provider_messages_for_import<V: ImportValue>(data: &V) -> Option<Vec<Message>> {
-    try_parsers_in_order(data, provider_parsers_for_import())
+fn try_parse_provider_messages_for_import<V: ImportValue>(
+    data: &V,
+    _import: &mut MessageImport,
+) -> Option<Vec<Message>> {
+    let messages = try_parsers_in_order(
+        data,
+        &[
+            #[cfg(feature = "openai")]
+            try_parse_openai_for_import,
+            #[cfg(feature = "anthropic")]
+            try_parse_anthropic_for_import,
+        ],
+    );
+    #[cfg(feature = "google")]
+    let messages =
+        messages.or_else(|| try_parse_google_for_import(data, &mut _import.google_tools));
+    #[cfg(feature = "bedrock")]
+    let messages = messages.or_else(|| {
+        try_parsers_in_order(
+            data,
+            &[
+                bedrock::try_parse_bedrock_trace_for_import,
+                try_parse_bedrock_for_import,
+            ],
+        )
+    });
+    messages
 }
 
 #[cfg(feature = "anthropic")]
@@ -1294,14 +1292,44 @@ mod tests {
                             "And check the weather again.",
                             {"functionResponse": {"name": "clock"}}
                         ]
+                    ]},
+                    "output": {
+                        "candidates": [{"content": {"parts": [
+                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                        ]}}]
+                    }
+                },
+                {
+                    "input": {"contents": [
+                        {"role": "model", "parts": [
+                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                        ]},
+                        {"role": "user", "parts": [{"functionResponse": {"name": "clock"}}]},
+                        {"role": "model", "parts": [
+                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                        ]}
                     ]}
                 }
             ]"#,
         )
         .unwrap();
 
+        let borrowed_messages: Vec<_> = spans
+            .iter()
+            .flat_map(|span| {
+                import_messages_from_values(
+                    span.input.as_ref().unwrap_or(&Value::Null),
+                    span.output.as_ref().unwrap_or(&Value::Null),
+                    None,
+                )
+            })
+            .collect();
         let messages = import_messages_from_spans(spans);
-        let [original, weather, copied, repeated_weather, weather_result, _, repeated_weather_result, _, clock_result] =
+        assert_eq!(
+            serde_json::to_value(borrowed_messages).unwrap(),
+            serde_json::to_value(&messages).unwrap()
+        );
+        let [original, weather, copied, repeated_weather, weather_result, _, repeated_weather_result, _, clock_result, new_clock, _, _, copied_new_clock] =
             &messages[..]
         else {
             panic!("expected all calls and results with intervening text");
@@ -1312,9 +1340,11 @@ mod tests {
         assert_ne!(tool_id(weather), tool_id(copied));
         assert_ne!(tool_id(weather), tool_id(repeated_weather));
         assert_eq!(tool_id(original), tool_id(clock_result));
+        assert_ne!(tool_id(new_clock), tool_id(clock_result));
+        assert_eq!(tool_id(new_clock), tool_id(copied_new_clock));
         assert_eq!(
             super::super::dedup::deduplicate_messages_iter(messages.iter()).len(),
-            8
+            9
         );
     }
 
