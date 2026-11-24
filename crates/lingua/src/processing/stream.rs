@@ -1826,6 +1826,274 @@ pub struct ParsedStreamEvent {
     pub is_final: bool,
 }
 
+impl ParsedStreamEvent {
+    /// Whether an unconverted provider event contains generated text, reasoning, refusal, or tool input.
+    /// Returns false for converted events.
+    pub fn has_native_generated_output(&self) -> bool {
+        if self.source_format != self.target_format {
+            return false;
+        }
+
+        let nonempty = |text: &Option<String>| text.as_ref().is_some_and(|text| !text.is_empty());
+        if self.universal.as_ref().is_some_and(|chunk| {
+            chunk
+                .choices
+                .iter()
+                .filter_map(|choice| choice.delta_view())
+                .any(|delta| {
+                    nonempty(&delta.content)
+                        || delta.reasoning.iter().any(|part| nonempty(&part.content))
+                        || delta.tool_calls.iter().any(|call| {
+                            call.function.as_ref().is_some_and(|function| {
+                                nonempty(&function.name) || nonempty(&function.arguments)
+                            })
+                        })
+                })
+        }) {
+            return true;
+        }
+
+        #[cfg(feature = "openai")]
+        if self.target_format == ProviderFormat::ChatCompletions {
+            use crate::providers::openai::convert::ChatCompletionRequestReasoning;
+            use crate::providers::openai::generated::{
+                ChatCompletionMessageToolCallChunk, ChatCompletionStreamResponseDelta,
+            };
+
+            #[derive(Deserialize)]
+            struct Chunk {
+                choices: Vec<Choice>,
+            }
+            #[derive(Deserialize)]
+            struct Choice {
+                text: Option<String>,
+                delta: Option<Delta>,
+            }
+            #[derive(Deserialize)]
+            struct Delta {
+                #[serde(flatten)]
+                base: ChatCompletionStreamResponseDelta,
+                reasoning: Option<ChatCompletionRequestReasoning>,
+                reasoning_content: Option<String>,
+                tool_calls: Option<Vec<ToolCall>>,
+            }
+            #[derive(Deserialize)]
+            #[serde(untagged)]
+            enum ToolCall {
+                Custom { custom: CustomInput },
+                Canonical(ChatCompletionMessageToolCallChunk),
+                Other(serde::de::IgnoredAny),
+            }
+            #[derive(Deserialize)]
+            struct CustomInput {
+                name: Option<String>,
+                input: Option<String>,
+            }
+
+            return crate::serde_json::from_slice::<Chunk>(&self.bytes).is_ok_and(|chunk| {
+                chunk.choices.into_iter().any(|choice| {
+                    nonempty(&choice.text)
+                        || choice.delta.is_some_and(|delta| {
+                            nonempty(&delta.base.content)
+                                || nonempty(&delta.base.refusal)
+                                || delta.base.function_call.as_ref().is_some_and(|function| {
+                                    nonempty(&function.name) || nonempty(&function.arguments)
+                                })
+                                || nonempty(&delta.reasoning_content)
+                                || delta.tool_calls.is_some_and(|calls| {
+                                    calls.iter().any(|call| match call {
+                                        ToolCall::Custom { custom } => {
+                                            nonempty(&custom.name) || nonempty(&custom.input)
+                                        }
+                                        ToolCall::Canonical(call) => {
+                                            call.function.as_ref().is_some_and(|function| {
+                                                nonempty(&function.name)
+                                                    || nonempty(&function.arguments)
+                                            })
+                                        }
+                                        ToolCall::Other(_) => false,
+                                    })
+                                })
+                                || delta.reasoning.is_some_and(|reasoning| match reasoning {
+                                    ChatCompletionRequestReasoning::String(text) => {
+                                        !text.is_empty()
+                                    }
+                                    ChatCompletionRequestReasoning::Parts(parts) => {
+                                        parts.iter().any(|part| nonempty(&part.content))
+                                    }
+                                })
+                        })
+                })
+            });
+        }
+
+        #[cfg(feature = "openai")]
+        if self.target_format == ProviderFormat::Responses {
+            use crate::providers::openai::generated::{OutputItem, OutputItemType};
+
+            #[derive(Deserialize)]
+            #[serde(tag = "type")]
+            enum NativeOutput {
+                #[serde(
+                    rename = "response.refusal.delta",
+                    alias = "response.code_interpreter_call_code.delta"
+                )]
+                Delta { delta: String },
+                #[serde(rename = "response.refusal.done")]
+                Refusal { refusal: String },
+                #[serde(
+                    rename = "response.output_text.done",
+                    alias = "response.reasoning_text.done",
+                    alias = "response.reasoning_summary_text.done"
+                )]
+                Text { text: String },
+                #[serde(rename = "response.code_interpreter_call_code.done")]
+                Code { code: String },
+                #[serde(rename = "response.output_item.done")]
+                ItemDone { item: Box<OutputItem> },
+                #[serde(rename = "response.output_item.added")]
+                ItemAdded { item: Box<OutputItem> },
+                #[serde(other)]
+                Other,
+            }
+
+            return crate::serde_json::from_slice::<NativeOutput>(&self.bytes).is_ok_and(|event| {
+                let item_done = matches!(&event, NativeOutput::ItemDone { .. });
+                match event {
+                    NativeOutput::Delta { delta } => !delta.is_empty(),
+                    NativeOutput::Refusal { refusal } => !refusal.is_empty(),
+                    NativeOutput::Text { text } => !text.is_empty(),
+                    NativeOutput::Code { code } => !code.is_empty(),
+                    NativeOutput::ItemDone { item } | NativeOutput::ItemAdded { item } => {
+                        nonempty(&item.code)
+                            || nonempty(&item.name)
+                            || nonempty(&item.input)
+                            || (item_done
+                                && item.output_item_type == Some(OutputItemType::Reasoning)
+                                && nonempty(&item.encrypted_content))
+                            || match item.output_item_type.as_ref() {
+                                Some(OutputItemType::ComputerCall) => {
+                                    item.action
+                                        .as_ref()
+                                        .is_some_and(|action| action.computer_action_type.is_some())
+                                        || item
+                                            .actions
+                                            .as_ref()
+                                            .is_some_and(|actions| !actions.is_empty())
+                                }
+                                Some(OutputItemType::LocalShellCall) => {
+                                    item.action.as_ref().is_some_and(|action| {
+                                        action.command.iter().flatten().any(|part| !part.is_empty())
+                                    })
+                                }
+                                Some(OutputItemType::ShellCall) => {
+                                    item.action.as_ref().is_some_and(|action| {
+                                        action
+                                            .commands
+                                            .iter()
+                                            .flatten()
+                                            .any(|command| !command.is_empty())
+                                    })
+                                }
+                                Some(OutputItemType::ApplyPatchCall) => item
+                                    .operation
+                                    .as_ref()
+                                    .is_some_and(|operation| !operation.path.is_empty()),
+                                Some(OutputItemType::ToolSearchCall) => {
+                                    item.arguments.as_ref().is_some_and(|arguments| {
+                                        item_done
+                                        || BTreeMap::<String, serde::de::IgnoredAny>::deserialize(
+                                            arguments,
+                                        )
+                                        .is_ok_and(|arguments| !arguments.is_empty())
+                                    })
+                                }
+                                None
+                                | Some(
+                                    OutputItemType::AdditionalTools
+                                    | OutputItemType::ApplyPatchCallOutput
+                                    | OutputItemType::CodeInterpreterCall
+                                    | OutputItemType::Compaction
+                                    | OutputItemType::ComputerCallOutput
+                                    | OutputItemType::CustomToolCall
+                                    | OutputItemType::CustomToolCallOutput
+                                    | OutputItemType::FileSearchCall
+                                    | OutputItemType::FunctionCall
+                                    | OutputItemType::FunctionCallOutput
+                                    | OutputItemType::ImageGenerationCall
+                                    | OutputItemType::LocalShellCallOutput
+                                    | OutputItemType::McpApprovalRequest
+                                    | OutputItemType::McpApprovalResponse
+                                    | OutputItemType::McpCall
+                                    | OutputItemType::McpListTools
+                                    | OutputItemType::Message
+                                    | OutputItemType::Program
+                                    | OutputItemType::ProgramOutput
+                                    | OutputItemType::Reasoning
+                                    | OutputItemType::ShellCallOutput
+                                    | OutputItemType::ToolSearchOutput
+                                    | OutputItemType::WebSearchCall,
+                                ) => false,
+                            }
+                            || item
+                                .content
+                                .iter()
+                                .flatten()
+                                .any(|part| nonempty(&part.text) || nonempty(&part.refusal))
+                            || item
+                                .summary
+                                .iter()
+                                .flatten()
+                                .any(|part| !part.text.is_empty())
+                            || item.queries.iter().flatten().any(|query| !query.is_empty())
+                            || item.action.as_ref().is_some_and(|action| {
+                                nonempty(&action.query)
+                                    || nonempty(&action.url)
+                                    || nonempty(&action.pattern)
+                                    || action
+                                        .queries
+                                        .iter()
+                                        .flatten()
+                                        .any(|query| !query.is_empty())
+                            })
+                    }
+                    NativeOutput::Other => false,
+                }
+            });
+        }
+
+        #[cfg(feature = "anthropic")]
+        if matches!(
+            self.target_format,
+            ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
+        ) {
+            use crate::providers::anthropic::generated::{ContentBlock, ContentBlockType};
+
+            #[derive(Deserialize)]
+            struct NativeOutput {
+                #[serde(rename = "type")]
+                event_type: AnthropicStreamEventTypeView,
+                content_block: ContentBlock,
+            }
+
+            return crate::serde_json::from_slice::<NativeOutput>(&self.bytes).is_ok_and(|event| {
+                matches!(
+                    event.event_type,
+                    AnthropicStreamEventTypeView::ContentBlockStart
+                ) && match event.content_block.content_block_type {
+                    ContentBlockType::ServerToolUse => nonempty(&event.content_block.name),
+                    ContentBlockType::RedactedThinking => nonempty(&event.content_block.data),
+                    _ => false,
+                }
+            });
+        }
+
+        false
+    }
+}
+
 /// Parse a streaming event, transforming if needed and extracting metadata.
 pub fn parse_stream_event(
     input: Bytes,
@@ -1887,6 +2155,187 @@ mod tests {
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
+    }
+
+    // Recovery must start only after payload output, including native fields absent from universal deltas.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn generated_output_chat_completions() {
+        let generated = [
+            r#"{"choices":[{"delta":{"content":" "}}]}"#,
+            r#"{"choices":[{"text":"hello"}]}"#,
+            r#"{"choices":[{"delta":{"refusal":"I cannot help.\n"}}]}"#,
+            r#"{"choices":[{"delta":{"function_call":{"name":"lookup"}}}]}"#,
+            r#"{"choices":[{"delta":{"function_call":{"arguments":"{"}}}]}"#,
+            r#"{"choices":[{"delta":{"reasoning":"thinking"}}]}"#,
+            r#"{"choices":[{"delta":{"reasoning":[{"content":"thinking"}]}}]}"#,
+            r#"{"choices":[{"delta":{"reasoning_content":"thinking"}}]}"#,
+            r#"{"choices":[{"delta":{"reasoning":"","reasoning_content":"thinking"}}]}"#,
+            r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"lookup"}}]}}]}"#,
+            r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{"}}]}}]}"#,
+            r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"type":"custom","custom":{"name":"code"}}]}}]}"#,
+            r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"type":"custom","custom":{"input":"print(1)"}}]}}]}"#,
+            r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"custom":{"input":"print(1)"}}]}}]}"#,
+            r#"{"choices":[{"delta":{"content":"hello","tool_calls":[{"index":0,"id":"call","type":"custom"}]}}]}"#,
+        ];
+        let metadata = [
+            r#"{"choices":[],"usage":{"prompt_tokens":10,"completion_tokens":1}}"#,
+            r#"{"id":"chat","choices":[{"delta":{"role":"assistant","content":""}}]}"#,
+            r#"{"choices":[{"delta":{},"finish_reason":"stop"}]}"#,
+            r#"{"choices":[{"text":"","finish_reason":"stop"}]}"#,
+            r#"{"choices":[{"delta":{"refusal":""}}]}"#,
+            r#"{"choices":[{"delta":{"function_call":{"name":"","arguments":""}}}]}"#,
+            r#"{"choices":[{"delta":{"reasoning":[{"content":""}],"reasoning_content":""}}]}"#,
+            r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call","type":"function"}]}}]}"#,
+            r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call","type":"custom","custom":{"name":"","input":""}}]}}]}"#,
+            r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call","type":"custom"}]}}]}"#,
+        ];
+        for (cases, expected) in [(generated.as_slice(), true), (metadata.as_slice(), false)] {
+            for &data in cases {
+                let event = parse_stream_event(
+                    Bytes::from_static(data.as_bytes()),
+                    ProviderFormat::ChatCompletions,
+                    ProviderFormat::ChatCompletions,
+                )
+                .unwrap();
+                assert_eq!(event.has_native_generated_output(), expected, "{data}");
+                assert_eq!(event.bytes.as_ref(), data.as_bytes());
+            }
+        }
+    }
+
+    // Native Responses payloads remain output evidence when translation omits provider-specific content.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn generated_output_responses() {
+        let generated = [
+            r#"{"type":"response.output_text.delta","delta":"hello"}"#,
+            r#"{"type":"response.reasoning_text.delta","delta":"thinking"}"#,
+            r#"{"type":"response.reasoning_summary_text.delta","delta":"thinking"}"#,
+            r#"{"type":"response.refusal.delta","delta":"I cannot help.\n"}"#,
+            r#"{"type":"response.refusal.done","refusal":"I cannot help.\n"}"#,
+            r#"{"type":"response.output_item.added","output_index":0,"item":{"type":"function_call","call_id":"call","name":"lookup"}}"#,
+            r#"{"type":"response.function_call_arguments.delta","output_index":0,"delta":"{"}"#,
+            r#"{"type":"response.custom_tool_call_input.delta","output_index":0,"item_id":"call","sequence_number":1,"delta":"print(1)"}"#,
+            r#"{"type":"response.code_interpreter_call_code.delta","delta":"import"}"#,
+            r#"{"type":"response.code_interpreter_call_code.done","code":"print(1)"}"#,
+            r#"{"type":"response.output_text.done","text":"hello"}"#,
+            r#"{"type":"response.reasoning_summary_text.done","text":"thinking"}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"code_interpreter_call","code":"print(1)","status":"completed"}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"web_search_call","status":"completed","action":{"type":"search","queries":["","weather"]}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"web_search_call","action":{"type":"search","query":"weather"}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"web_search_call","action":{"type":"open_page","url":"https://example.com"}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"web_search_call","action":{"type":"find_in_page","pattern":"weather"}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"reasoning","content":[],"summary":[],"encrypted_content":"encrypted-reasoning"}}"#,
+            r#"{"type":"response.output_item.added","item":{"type":"computer_call","action":{"type":"click","button":"left","x":100,"y":200}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"computer_call","action":{"type":"screenshot"}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"computer_call","action":{"type":"wait"}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"computer_call","actions":[{"type":"screenshot"}]}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"local_shell_call","action":{"type":"exec","command":["bash","-lc","echo ok"]}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"shell_call","action":{"commands":["echo ok"]}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"apply_patch_call","operation":{"type":"delete_file","path":"tmp.txt"}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"tool_search_call","arguments":{"query":"find tools"}}}"#,
+            r#"{"type":"response.output_item.added","item":{"type":"tool_search_call","arguments":{"paths":["catalog"]}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"message","content":[{"type":"output_text","text":"hello"}]}}"#,
+        ];
+        let metadata = [
+            r#"{"type":"response.created","response":{"id":"resp"}}"#,
+            r#"{"type":"response.in_progress","response":{"id":"resp"}}"#,
+            r#"{"type":"response.output_text.delta","delta":""}"#,
+            r#"{"type":"response.refusal.delta","delta":""}"#,
+            r#"{"type":"response.refusal.done","refusal":""}"#,
+            r#"{"type":"response.code_interpreter_call_code.delta","delta":""}"#,
+            r#"{"type":"response.code_interpreter_call_code.done","code":""}"#,
+            r#"{"type":"response.output_text.done","text":""}"#,
+            r#"{"type":"response.code_interpreter_call.in_progress","item_id":"ci_1"}"#,
+            r#"{"type":"response.output_item.added","item":{"type":"code_interpreter_call","id":"ci_1","code":"","status":"in_progress"}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"web_search_call","status":"completed","action":{"type":"search","queries":[""],"query":""}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"web_search_call","action":{"type":"find_in_page","url":"","pattern":""}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"reasoning","content":[],"summary":[],"encrypted_content":""}}"#,
+            r#"{"type":"response.output_item.added","item":{"type":"reasoning","content":[],"summary":[],"encrypted_content":"encrypted-placeholder"}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"message","content":[],"encrypted_content":"encrypted-placeholder"}}"#,
+            r#"{"type":"response.output_item.added","item":{"type":"computer_call","id":"call"}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"computer_call","action":{}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"computer_call","actions":[]}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"message","action":{"type":"wait"}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"local_shell_call","action":{"type":"exec","command":[]}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"shell_call","action":{"commands":[]}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"apply_patch_call","operation":{"type":"delete_file","path":""}}}"#,
+            r#"{"type":"response.output_item.added","item":{"type":"tool_search_call","arguments":{}}}"#,
+            r#"{"type":"response.output_item.done","item":{"type":"tool_search_call"}}"#,
+            r#"{"type":"response.output_item.added","item":{"type":"function_call","call_id":"call"}}"#,
+            r#"{"type":"response.function_call_arguments.delta","delta":""}"#,
+            r#"{"type":"response.completed","response":{"id":"resp","usage":{"input_tokens":10,"output_tokens":1}}}"#,
+        ];
+        for (cases, expected) in [(generated.as_slice(), true), (metadata.as_slice(), false)] {
+            for &data in cases {
+                let event = parse_stream_event(
+                    Bytes::from_static(data.as_bytes()),
+                    ProviderFormat::Responses,
+                    ProviderFormat::Responses,
+                )
+                .unwrap();
+                assert_eq!(event.has_native_generated_output(), expected, "{data}");
+                assert_eq!(event.bytes.as_ref(), data.as_bytes());
+            }
+        }
+    }
+
+    // Native Anthropic reasoning and tool payloads count as output while lifecycle frames stay false.
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn generated_output_anthropic() {
+        let generated = [
+            r#"{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hello"}}"#,
+            r#"{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"thinking"}}"#,
+            r#"{"type":"content_block_start","index":0,"content_block":{"type":"tool_use","id":"call","name":"lookup","input":{}}}"#,
+            r#"{"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srv_call","name":"web_search","input":{}}}"#,
+            r#"{"type":"content_block_start","index":0,"content_block":{"type":"redacted_thinking","data":"encrypted-reasoning"}}"#,
+            r#"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{"}}"#,
+        ];
+        let metadata = [
+            r#"{"type":"ping"}"#,
+            r#"{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}"#,
+            r#"{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":""}}"#,
+            r#"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":""}}"#,
+            r#"{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":1}}"#,
+            r#"{"type":"message_stop"}"#,
+            r#"{"type":"message_stop","amazon-bedrock-invocationMetrics":{"inputTokenCount":10,"outputTokenCount":1}}"#,
+            r#"{"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srv_call","name":"","input":{}}}"#,
+            r#"{"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srv_call"}}"#,
+            r#"{"type":"content_block_start","index":0,"content_block":{"type":"redacted_thinking","data":""}}"#,
+        ];
+        for (cases, expected) in [(generated.as_slice(), true), (metadata.as_slice(), false)] {
+            for &data in cases {
+                for format in [
+                    ProviderFormat::Anthropic,
+                    ProviderFormat::BedrockAnthropic,
+                    ProviderFormat::VertexAnthropic,
+                ] {
+                    let event =
+                        parse_stream_event(Bytes::from_static(data.as_bytes()), format, format)
+                            .unwrap();
+                    assert_eq!(
+                        event.has_native_generated_output(),
+                        expected,
+                        "{format:?}: {data}"
+                    );
+                }
+            }
+        }
+    }
+
+    // Native recovery excludes converted events even when their forwarded payload contains generated text.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn generated_output_excludes_converted_events() {
+        let event = parse_stream_event(
+            Bytes::from_static(br#"{"type":"response.output_text.delta","delta":"hello"}"#),
+            ProviderFormat::Responses,
+            ProviderFormat::ChatCompletions,
+        )
+        .unwrap();
+        assert!(!event.has_native_generated_output());
     }
 
     #[test]
