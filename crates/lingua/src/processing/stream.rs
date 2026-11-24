@@ -1826,6 +1826,125 @@ pub struct ParsedStreamEvent {
     pub is_final: bool,
 }
 
+impl ParsedStreamEvent {
+    /// Whether the forwarded event contains generated text, reasoning, refusal, or tool input.
+    pub fn has_generated_output(&self) -> bool {
+        use crate::universal::{UniversalStreamDelta, UniversalToolFunctionDelta};
+
+        let nonempty = |text: &Option<String>| text.as_ref().is_some_and(|text| !text.is_empty());
+        let function_has_output = |function: &UniversalToolFunctionDelta| {
+            nonempty(&function.name) || nonempty(&function.arguments)
+        };
+        let delta_has_output = |delta: UniversalStreamDelta| {
+            nonempty(&delta.content)
+                || delta.reasoning.iter().any(|part| nonempty(&part.content))
+                || delta
+                    .tool_calls
+                    .iter()
+                    .any(|call| call.function.as_ref().is_some_and(function_has_output))
+        };
+
+        #[cfg(feature = "openai")]
+        if self.target_format == ProviderFormat::ChatCompletions {
+            use crate::providers::openai::convert::ChatCompletionRequestReasoning;
+
+            #[derive(Deserialize)]
+            struct Chunk {
+                choices: Vec<Choice>,
+            }
+            #[derive(Deserialize)]
+            struct Choice {
+                text: Option<String>,
+                delta: Option<Delta>,
+            }
+            #[derive(Deserialize)]
+            struct Delta {
+                content: Option<String>,
+                refusal: Option<String>,
+                function_call: Option<UniversalToolFunctionDelta>,
+                reasoning: Option<ChatCompletionRequestReasoning>,
+                reasoning_content: Option<String>,
+                tool_calls: Option<Vec<ToolCall>>,
+            }
+            #[derive(Deserialize)]
+            struct ToolCall {
+                function: Option<UniversalToolFunctionDelta>,
+                custom: Option<CustomInput>,
+            }
+            #[derive(Deserialize)]
+            struct CustomInput {
+                name: Option<String>,
+                input: Option<String>,
+            }
+
+            return crate::serde_json::from_slice::<Chunk>(&self.bytes).is_ok_and(|chunk| {
+                chunk.choices.into_iter().any(|choice| {
+                    nonempty(&choice.text)
+                        || choice.delta.is_some_and(|delta| {
+                            nonempty(&delta.content)
+                                || nonempty(&delta.refusal)
+                                || delta
+                                    .function_call
+                                    .as_ref()
+                                    .is_some_and(function_has_output)
+                                || nonempty(&delta.reasoning_content)
+                                || delta.tool_calls.is_some_and(|calls| {
+                                    calls.iter().any(|call| {
+                                        call.function.as_ref().is_some_and(function_has_output)
+                                            || call.custom.as_ref().is_some_and(|custom| {
+                                                nonempty(&custom.name) || nonempty(&custom.input)
+                                            })
+                                    })
+                                })
+                                || delta.reasoning.is_some_and(|reasoning| match reasoning {
+                                    ChatCompletionRequestReasoning::String(text) => {
+                                        !text.is_empty()
+                                    }
+                                    ChatCompletionRequestReasoning::Parts(parts) => {
+                                        parts.iter().any(|part| nonempty(&part.content))
+                                    }
+                                })
+                        })
+                })
+            });
+        }
+
+        if self.universal.as_ref().is_some_and(|chunk| {
+            chunk
+                .choices
+                .iter()
+                .filter_map(|choice| choice.delta_view())
+                .any(delta_has_output)
+        }) {
+            return true;
+        }
+
+        #[cfg(feature = "openai")]
+        if self.target_format == ProviderFormat::Responses {
+            #[derive(Deserialize)]
+            #[serde(tag = "type")]
+            enum Refusal {
+                #[serde(rename = "response.refusal.delta")]
+                Delta { delta: String },
+                #[serde(rename = "response.refusal.done")]
+                Done { refusal: String },
+                #[serde(other)]
+                Other,
+            }
+
+            return crate::serde_json::from_slice::<Refusal>(&self.bytes).is_ok_and(|event| {
+                match event {
+                    Refusal::Delta { delta } => !delta.is_empty(),
+                    Refusal::Done { refusal } => !refusal.is_empty(),
+                    Refusal::Other => false,
+                }
+            });
+        }
+
+        false
+    }
+}
+
 /// Parse a streaming event, transforming if needed and extracting metadata.
 pub fn parse_stream_event(
     input: Bytes,
@@ -1887,6 +2006,230 @@ mod tests {
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
+    }
+
+    // Recovery must start only after payload output, including native fields absent from universal deltas.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn generated_output_chat_completions() {
+        let cases = [
+            (r#"{"choices":[{"delta":{"content":" "}}]}"#, true),
+            (r#"{"choices":[{"text":"hello"}]}"#, true),
+            (
+                r#"{"choices":[{"delta":{"refusal":"I cannot help.\n"}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"function_call":{"name":"lookup"}}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"function_call":{"arguments":"{"}}}]}"#,
+                true,
+            ),
+            (r#"{"choices":[{"delta":{"reasoning":"thinking"}}]}"#, true),
+            (
+                r#"{"choices":[{"delta":{"reasoning":[{"content":"thinking"}]}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"reasoning_content":"thinking"}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"reasoning":"","reasoning_content":"thinking"}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"lookup"}}]}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{"}}]}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"type":"custom","custom":{"name":"code"}}]}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"type":"custom","custom":{"input":"print(1)"}}]}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[],"usage":{"prompt_tokens":10,"completion_tokens":1}}"#,
+                false,
+            ),
+            (
+                r#"{"id":"chat","choices":[{"delta":{"role":"assistant","content":""}}]}"#,
+                false,
+            ),
+            (
+                r#"{"choices":[{"delta":{},"finish_reason":"stop"}]}"#,
+                false,
+            ),
+            (r#"{"choices":[{"text":"","finish_reason":"stop"}]}"#, false),
+            (r#"{"choices":[{"delta":{"refusal":""}}]}"#, false),
+            (
+                r#"{"choices":[{"delta":{"function_call":{"name":"","arguments":""}}}]}"#,
+                false,
+            ),
+            (
+                r#"{"choices":[{"delta":{"reasoning":[{"content":""}],"reasoning_content":""}}]}"#,
+                false,
+            ),
+            (
+                r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call","type":"function"}]}}]}"#,
+                false,
+            ),
+            (
+                r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call","type":"custom","custom":{"name":"","input":""}}]}}]}"#,
+                false,
+            ),
+        ];
+        for (data, expected) in cases {
+            let event = parse_stream_event(
+                Bytes::from_static(data.as_bytes()),
+                ProviderFormat::ChatCompletions,
+                ProviderFormat::ChatCompletions,
+            )
+            .unwrap();
+            assert_eq!(event.has_generated_output(), expected, "{data}");
+            assert_eq!(event.bytes.as_ref(), data.as_bytes());
+        }
+    }
+
+    // Responses refusals are generated output even though the adapter represents them as keep-alives.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn generated_output_responses() {
+        let cases = [
+            (
+                r#"{"type":"response.output_text.delta","delta":"hello"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.reasoning_text.delta","delta":"thinking"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.reasoning_summary_text.delta","delta":"thinking"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.refusal.delta","delta":"I cannot help.\n"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.refusal.done","refusal":"I cannot help.\n"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.added","output_index":0,"item":{"type":"function_call","call_id":"call","name":"lookup"}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.function_call_arguments.delta","output_index":0,"delta":"{"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.custom_tool_call_input.delta","output_index":0,"item_id":"call","sequence_number":1,"delta":"print(1)"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.created","response":{"id":"resp"}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.in_progress","response":{"id":"resp"}}"#,
+                false,
+            ),
+            (r#"{"type":"response.output_text.delta","delta":""}"#, false),
+            (r#"{"type":"response.refusal.delta","delta":""}"#, false),
+            (r#"{"type":"response.refusal.done","refusal":""}"#, false),
+            (
+                r#"{"type":"response.output_item.added","item":{"type":"function_call","call_id":"call"}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.function_call_arguments.delta","delta":""}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.completed","response":{"id":"resp","usage":{"input_tokens":10,"output_tokens":1}}}"#,
+                false,
+            ),
+        ];
+        for (data, expected) in cases {
+            let event = parse_stream_event(
+                Bytes::from_static(data.as_bytes()),
+                ProviderFormat::Responses,
+                ProviderFormat::Responses,
+            )
+            .unwrap();
+            assert_eq!(event.has_generated_output(), expected, "{data}");
+            assert_eq!(event.bytes.as_ref(), data.as_bytes());
+        }
+    }
+
+    // Non-OpenAI streams use their existing normalized deltas without treating lifecycle frames as output.
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn generated_output_anthropic() {
+        let cases = [
+            (
+                r#"{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hello"}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"thinking"}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"content_block_start","index":0,"content_block":{"type":"tool_use","id":"call","name":"lookup","input":{}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{"}}"#,
+                true,
+            ),
+            (r#"{"type":"ping"}"#, false),
+            (
+                r#"{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":""}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":1}}"#,
+                false,
+            ),
+            (r#"{"type":"message_stop"}"#, false),
+        ];
+        for (data, expected) in cases {
+            let event = parse_stream_event(
+                Bytes::from_static(data.as_bytes()),
+                ProviderFormat::Anthropic,
+                ProviderFormat::Anthropic,
+            )
+            .unwrap();
+            assert_eq!(event.has_generated_output(), expected, "{data}");
+        }
+    }
+
+    // The predicate must inspect forwarded Chat bytes rather than interpreting Responses bytes as Chat.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn generated_output_after_conversion() {
+        let event = parse_stream_event(
+            Bytes::from_static(br#"{"type":"response.output_text.delta","delta":"hello"}"#),
+            ProviderFormat::Responses,
+            ProviderFormat::ChatCompletions,
+        )
+        .unwrap();
+        assert!(event.has_generated_output());
     }
 
     #[test]
