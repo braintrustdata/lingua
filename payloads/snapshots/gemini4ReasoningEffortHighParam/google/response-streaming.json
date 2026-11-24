@@ -1,0 +1,76 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Ok."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 34,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 142,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 34
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 2
+        }
+      ],
+      "thoughtsTokenCount": 106,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "2sgEa9DrIv2h_PUPhpeQ-Qk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "ErUECrIEAWkUfRNCpgBZIqft1ULEBrU3dYjsjDn+Uim7A6vxaxVEAAEuEGfQGxt/sju6m8LZJo6HvGAXaEf61sXcNqADF4ixxiUBuLIZ0B9ssQ0A1dzzNwi1nks4vtaV9o4gtdNHTlcuSFxRmHYKDqhLTD99l4clCA5RyTlGx22yTPly+yfxMtEGcHTqKrnuYLq3opu8gwCOUSyrXJOTTBfOio2wmOZG7Y2OWVcytjAEjW1vUNISasVZQJzbDp56ztaTHJ4JXs7KgftDXuH1OVsciKmtqqlzHDc/hZ1oAwSJ4bxZX5S2rGAEzlsVDbVXuCRBt9tMk4+ucA6W3RTFPWEl5a0HODCUt5hjmPHUv0+UawpM7by9oMb22pRpAtNvo1n53TawT5HVL9xKkqGcss8Z3Yipc0lQXpOmCJc/jpExDd7oDDcL/yNDr80fA7smUrRYLpWWd/XKZ2qjTVl4TO/Dz+ALGCt/pqjq6UU1xDqLcXjCTHU2GXM7ucJ7vtFHfVKiBAfwR65hOWfzy8rL/BjkM+c1i53AFzXXRwViWdL8pncjv/Vhxt+ln3m4FhcyuS1V8p46bhJCfEL4GWA2mSeut3crSbQExiowqNQvJc2m0QNfzmRWxNau64q0/ClUQZldPfFSuNqCEw193j2W+cyQo/H9cXEbRVERqvpbQOXNzBt2YtYIyzYx0WFUMrFz8IHu4+mEu+t/j36f1s2KaW8gBKMQLbBa5VU7ICImBFBK/BROyCSM0w=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 34,
+      "candidatesTokenCount": 6,
+      "totalTokenCount": 146,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 34
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 106,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "2sgEa9DrIv2h_PUPhpeQ-Qk"
+  }
+]

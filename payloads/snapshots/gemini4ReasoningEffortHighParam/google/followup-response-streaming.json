@@ -1,0 +1,460 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Defining the Initial Scope**\n\nI'm currently breaking down the user's simple input, \"Say ok,\" and the following \"What should I do next?\". I'm trying to identify the bare-bones context to understand what the user might be looking for, recognizing this could be a test, a prompt for interaction, or even just idle curiosity. Establishing this frame will determine the best response.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "totalTokenCount": 227,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "thoughtsTokenCount": 100,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Refining Possible Responses**\n\nI've been working on crafting diverse response options. My goal is a helpful and engaging answer that opens interaction paths for the user. I've brainstormed categories of \"next steps,\" from interacting with me directly (questions, writing, games) to suggesting real-world actions like taking a break. I'm iterating on drafts, aiming for a balance between helpfulness and approachability to avoid sounding robotic or too casual.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "totalTokenCount": 500,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "thoughtsTokenCount": 373,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends!"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 3,
+      "totalTokenCount": 681,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 3
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " Since we are starting with a blank slate, here are a few options depending on what you’re in the mood for:\n\n**1"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 31,
+      "totalTokenCount": 709,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 31
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ". If you need a quick real-life reset right now:**\n* Drink a glass of water.\n* Un"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 55,
+      "totalTokenCount": 733,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 55
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "clench your jaw, drop your shoulders, and take one deep breath.\n* Look away from your screen for "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 79,
+      "totalTokenCount": 757,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 79
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "20 seconds to rest your eyes.\n\n**2. If you want to get something done:**\n* Tell me one"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 104,
+      "totalTokenCount": 782,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 104
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " task you’ve been procrastinating on, and I will break it down into tiny, painless steps for you.\n* Paste"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 130,
+      "totalTokenCount": 808,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 130
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " a messy email or text you need to send, and I’ll polish it up.\n\n**3. If you'"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 155,
+      "totalTokenCount": 833,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 155
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "re just bored and want to mess around:**\n* Ask me to tell you a bizarre historical fact.\n* Challenge"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 179,
+      "totalTokenCount": 857,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 179
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " me to a game of 20 Questions or a text-based adventure game.\n* Give me three random ingredients"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 203,
+      "totalTokenCount": 881,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 203
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " in your kitchen, and I'll tell you what to make with them.\n\nWhich direction are we heading?"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 226,
+      "totalTokenCount": 904,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 226
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "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"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 127,
+      "candidatesTokenCount": 230,
+      "totalTokenCount": 908,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 127
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 230
+        }
+      ],
+      "thoughtsTokenCount": 551,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa8i0Eo-j_uMPgZmokA8"
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EnXX8XJ9rFeRlGEa9D4DcLss1vOR7",
+  "object": "chat.completion",
+  "created": 1795475682,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Great—what would you like to do next? Here are some practical options. Tell me the number or describe your goal and I’ll tailor a plan:\n\n- Plan a project or task: define objective, deliverables, milestones, and a timeline.\n- Learn something new: a compact, 1-hour learning plan with core concepts and practice.\n- Draft or edit text: outline or a first draft, or summarize a document.\n- Code or troubleshoot: share the language/problem and I’ll propose an approach and example code.\n- Brainstorm ideas: generate a list of ideas with constraints or goals.\n- Decide between options: build a decision framework (criteria, weights, pros/cons).\n- Prepare for a meeting or presentation: agenda, talking points, slides outline.\n- Do quick research: list what you need to know and key sources.\n\nIf you want, tell me your goal, any deadline, and constraints, and I’ll give you a concrete 2–3 step plan right away. What are you trying to accomplish?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 27,
+    "completion_tokens": 2200,
+    "total_tokens": 2227,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1984,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
