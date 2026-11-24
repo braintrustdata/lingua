@@ -197,6 +197,22 @@
   ],
   "perTestCase": [
     {
+      "testCase": "gemini4ReasoningEffortHighParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google thought parts become separate Responses reasoning output items" }
+      ]
+    },
+    {
+      "testCase": "gemini4ReasoningBudgetParam",
+      "source": "ChatCompletions",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.reasoning.canonical", "reason": "Chat Completions requests carry reasoning as reasoning_effort, so a Braintrust reasoning_budget comes back with effort as its canonical form" }
+      ]
+    },
+    {
       "testCase": "chatCompletionsVertexLabelsParam",
       "source": "ChatCompletions",
       "target": "Google",

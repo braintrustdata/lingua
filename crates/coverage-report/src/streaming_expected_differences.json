@@ -188,6 +188,42 @@
   ],
   "perTestCase": [
     {
+      "testCase": "gemini4ReasoningEffortHighParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "gemini4ReasoningEffortHighParam", "source": "Google", "target": "Bedrock Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "gemini4ReasoningEffortHighParam", "source": "Google", "target": "Vertex Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "gemini4ReasoningEffortMinimalParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "gemini4ReasoningEffortMinimalParam", "source": "Google", "target": "Bedrock Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "gemini4ReasoningEffortMinimalParam", "source": "Google", "target": "Vertex Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "gemini4ReasoningBudgetParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "gemini4ReasoningBudgetParam", "source": "Google", "target": "Bedrock Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
+      "testCase": "gemini4ReasoningBudgetParam", "source": "Google", "target": "Vertex Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
+    },
+    {
       "testCase": "functionToolsWithReasoningEffortParam",
       "source": "Responses",
       "target": "Responses",

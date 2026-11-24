@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Ok.",
+            "thoughtSignature": "EpkBCpYBAWkUfRM9RSxU1knYBw9QC3WX+5mks6belwZyKvTJPQ086kFWXY/ktXQXAAjtqPss+3bgv2ZRzj64VmSo2457fHF8FpNweOItRXXHR1iBepeqcU4iLVy0DEGl/Rwmz4JkXQhtmhb2ZaTRctC7H1NO/iLsDyfAZV3kXyGIUI3fuzgj/hCoBdR9c4/f8wzmiR+AjxFNqv/A"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 34,
+    "candidatesTokenCount": 6,
+    "totalTokenCount": 40,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 34
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 6
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-4-argon",
+  "responseId": "8cgEa8bFO4mj_PUP-62AmAI"
+}

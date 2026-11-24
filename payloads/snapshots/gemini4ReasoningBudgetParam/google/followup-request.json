@@ -1,0 +1,36 @@
+{
+  "model": "gemini-4-argon",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say ok."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "Ok.",
+          "thoughtSignature": "EpkBCpYBAWkUfRNCmagtuEFZKHy1oQ2CQsqF7JoR67mM7aNa1MOK1xFW/bN0YHSC0ZNt2CV0/EnnO5DNf+fD7r6rXYr/cC0/+9euG+AKhYkY/lb6SntOjxo2lrrRKYFavQe+TTUno5cmpdkNErlcfNcY0J0ECI8+WxJvelEK9AdqrKhKGauBKooavY8FrqcvJtrVGPrtFkjKUFWf"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingLevel": "LOW",
+      "includeThoughts": true
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "model": "gemini-4-argon",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say ok."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingLevel": "LOW",
+      "includeThoughts": true
+    }
+  }
+}

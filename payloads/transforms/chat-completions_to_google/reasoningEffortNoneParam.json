@@ -4,7 +4,8 @@
       "content": {
         "parts": [
           {
-            "text": "2+2 = 4"
+            "text": "2 + 2 = 4",
+            "thoughtSignature": "Ep8BCpwBAWkUfRMAM3ICChO1IXVKMxiU/vScqT1W+eeA06s59Q/7GkDEPQqw152AAHMiOF/dCxbLBKBul9DsNm21ihsfKG/6JNu7qeN06iqD4345SdiVbLpBWEqBK6mpbKhhbQMdFiSF9PE6SCEqpXldMZRotJmuAWRU5UkW4v5Ufy35bdeCPW7s6dfItvpF03TiCW0rBgOsJn7N1B4ZQbFJ"
           }
         ],
         "role": "model"
@@ -15,15 +16,16 @@
   ],
   "usageMetadata": {
     "promptTokenCount": 8,
-    "candidatesTokenCount": 6,
-    "totalTokenCount": 14,
+    "candidatesTokenCount": 7,
+    "totalTokenCount": 15,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 8
       }
-    ]
+    ],
+    "serviceTier": "standard"
   },
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "Xy_6aYmmJKrqqtsPrubf-QM"
+  "modelVersion": "gemini-3.6-flash",
+  "responseId": "K8IEa8WFN-z4-sAPtZGGcQ"
 }

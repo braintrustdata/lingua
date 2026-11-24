@@ -1,0 +1,284 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Since"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 57,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 1
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa9TcHYS1ytMP7LKKsQg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " I'm not sure what you're working on, you can tell me! Here are a few"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 22,
+      "totalTokenCount": 78,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 22
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa9TcHYS1ytMP7LKKsQg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " ways we can proceed:\n\n*   **Give me a task:** Ask me to write, brainstorm, code, translate, or summarize something for you"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 52,
+      "totalTokenCount": 108,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 52
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa9TcHYS1ytMP7LKKsQg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ".\n*   **Ask a question:** Pick any topic you're curious about.\n*   **Tell me about"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 77,
+      "totalTokenCount": 133,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 77
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa9TcHYS1ytMP7LKKsQg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " your day:** If you're looking for actual life advice on what to do next today, tell me what's on your to-do list and"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 108,
+      "totalTokenCount": 164,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 108
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa9TcHYS1ytMP7LKKsQg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " I'll help you prioritize. \n*   **Play a game:** We could play trivia, 20"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 132,
+      "totalTokenCount": 188,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 132
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa9TcHYS1ytMP7LKKsQg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " questions, or a text-based adventure game.\n\nWhat sounds good to you?"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 149,
+      "totalTokenCount": 205,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 149
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa9TcHYS1ytMP7LKKsQg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EpkBCpYBAWkUfRPFNUSab3nHQJTz4Yi5VE7uK2PA0PrHMfpKPIVH5ICA3N7jbZ8bc3R5xu6a5PiJMyQZt3vAyHfv7o/GiJLkCnmW/a5HGKG8C3PBVrkHeEdFwWCUYk0bSCk6a+rT075jJ2IN+/tp3VzicVXxTvCqwp6AdUjdNvLd+UxKCsdY2+zssNgZV8HaHuBQ7i/E/b5Ze+Y9"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 56,
+      "candidatesTokenCount": 153,
+      "totalTokenCount": 209,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 56
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 153
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-argon",
+    "responseId": "4MgEa9TcHYS1ytMP7LKKsQg"
+  }
+]

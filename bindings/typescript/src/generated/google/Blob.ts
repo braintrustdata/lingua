@@ -25,7 +25,6 @@ displayName: string | null,
  * application/x-javascript, application/x-typescript, application/x-python-code,
  * application/json, application/x-ipynb+json, application/rtf, application/pdf For
  * additional context, see [Supported file
- * formats](https://ai.google.dev/gemini-api/docs/file-input-methods#supported-content-types).
- * //
+ * formats](https://aistudio.google.com/docs/file-input-methods#supported-content-types).
  */
 mimeType: string | null, };

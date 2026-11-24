@@ -1,0 +1,11 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say ok."
+    }
+  ],
+  "reasoning_enabled": true,
+  "reasoning_budget": 1024
+}
