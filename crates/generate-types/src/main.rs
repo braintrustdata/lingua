@@ -133,17 +133,10 @@ fn generate_openai_decisions_types(
     let spec: serde_json::Value =
         yaml_serde::from_str(&std::fs::read_to_string(OPENAI_DECISIONS_SPEC_PATH)?)?;
     let schemas = decisions_schema_closure(&spec)?;
-    let mut definitions: serde_json::Map<String, serde_json::Value> = schemas
+    let definitions: serde_json::Map<String, serde_json::Value> = schemas
         .into_iter()
         .map(|(name, schema)| (name, fix_openai_schema_refs(&schema)))
         .collect();
-    definitions
-        .get_mut("ResponseUsageResource")
-        .and_then(|schema| schema.get_mut("properties"))
-        .and_then(serde_json::Value::as_object_mut)
-        .ok_or("Decisions usage schema has no properties")?
-        .entry("cost")
-        .or_insert_with(|| serde_json::json!({"type": "number"}));
     let root_schema = serde_json::json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": "OpenaiDecisionsSchemas",
@@ -273,7 +266,12 @@ fn post_process_quicktype_output_for_openai_decisions(quicktype_output: &str) ->
         processed = processed.replace("use std::collections::HashMap;\n", "");
     }
     processed = add_serde_skip_if_none(&processed);
-    processed = processed.replace("pub struct ", "#[serde(deny_unknown_fields)]\npub struct ");
+    processed = processed
+        .replace("pub struct ", "#[serde(deny_unknown_fields)]\npub struct ")
+        .replace(
+            "#[serde(deny_unknown_fields)]\npub struct ResponseUsageResource {",
+            "pub struct ResponseUsageResource {",
+        );
     processed = processed.replace(
         "pub struct PromptCacheOptions {",
         "#[ts(optional_fields)]\npub struct PromptCacheOptions {",

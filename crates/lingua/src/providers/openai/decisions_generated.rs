@@ -525,10 +525,7 @@ pub enum ValueUnion {
 /// Token usage for the request.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-#[serde(deny_unknown_fields)]
 pub struct ResponseUsageResource {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cost: Option<f64>,
     pub input_tokens: i64,
     pub input_tokens_details: InputTokensDetailsResource,
     pub output_tokens: i64,

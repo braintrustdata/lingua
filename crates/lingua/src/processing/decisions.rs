@@ -238,9 +238,9 @@ mod tests {
         ));
     }
 
-    // Decisions responses can report a numeric cost alongside their token counts.
+    // Decisions responses can report extra usage fields alongside their token counts.
     #[test]
-    fn decisions_responses_preserve_token_usage_with_cost() {
+    fn decisions_responses_preserve_token_usage_with_extra_fields() {
         let body = Bytes::from_static(
             br#"{
             "model": "decision-model",
@@ -251,12 +251,12 @@ mod tests {
                 "output_tokens": 2,
                 "output_tokens_details": {"reasoning_tokens": 0},
                 "total_tokens": 42,
-                "cost": 0.00018
+                "cost": 0.00018,
+                "provider_metadata": {"version": 1}
             }
         }"#,
         );
         let parsed = crate::parse_decision_response(&body).unwrap();
-        assert_eq!(parsed.usage.cost, Some(0.00018));
         assert_eq!(parsed.usage.input_tokens, 40);
         assert_eq!(parsed.usage.input_tokens_details.cached_tokens, 4);
         assert_eq!(parsed.usage.output_tokens, 2);
