@@ -1,9 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-  optionalJsonSchemaAnthropicRequest,
-  paramsCases,
-} from "../../cases/params";
-import { OPENAI_RESPONSES_MODEL } from "../../cases/models";
+import { paramsCases } from "../../cases/params";
 import {
   STREAMING_PAIRS,
   TRANSFORM_PAIRS,
@@ -13,23 +9,6 @@ import {
   transformAndValidateRequest,
   type TransformPair,
 } from "./helpers";
-
-test("Anthropic optional JSON schema properties stay optional in Responses", () => {
-  const request = transformAndValidateRequest(
-    optionalJsonSchemaAnthropicRequest,
-    "Responses",
-    "responses",
-    OPENAI_RESPONSES_MODEL
-  );
-  expect(request).toMatchObject({
-    text: {
-      format: {
-        strict: false,
-        schema: optionalJsonSchemaAnthropicRequest.output_format.schema,
-      },
-    },
-  });
-});
 
 test("Haiku 5.5 Bedrock captures select Haiku 5.5 and omit sampling parameters", () => {
   const input = paramsCases.haiku55SamplingParams?.["chat-completions"];
