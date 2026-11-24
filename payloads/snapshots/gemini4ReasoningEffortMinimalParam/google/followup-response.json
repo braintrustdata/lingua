@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "What are we working on? Give me a little context or tell me what your goal is, and I'll help you figure out the next step! \n\nFor example, are we:\n* Working on a project or assignment?\n* Playing a game?\n* Troubleshooting a problem?\n* Just bored and looking for something fun to do?",
+            "thoughtSignature": "EpkBCpYBAWkUfROywyIjYh//36puPsPDM3DRAg0ldtnXYwfpqP7OzBHW+H5yPGz7O1rW676IXFYVAI8Ws6f0aXwUsS3CyKoN4rwwqdt2b9Sk+bBNDm2pODryyKiBFX3nfWhV/Vfc3TGHEFnEnJI6X82+zX+GCdaQuqVxKum9SBI5UuIp6JOMAquMxU0+GBH6dwXJ/Ndovxkg1S3g"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 56,
+    "candidatesTokenCount": 76,
+    "totalTokenCount": 132,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 56
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 76
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-4-argon",
+  "responseId": "4MgEa5OrGY2FjrEPsbO56QE"
+}

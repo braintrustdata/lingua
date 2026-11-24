@@ -26,6 +26,7 @@ import {
   ANTHROPIC_OPUS_MODEL,
   GOOGLE_MODEL,
   GOOGLE_GEMINI_3_MODEL,
+  GOOGLE_GEMINI_4_MODEL,
   GOOGLE_IMAGE_MODEL,
   GOOGLE_TTS_MODEL,
   BEDROCK_MODEL,
@@ -3446,6 +3447,79 @@ export const paramsCases: TestCaseCollection = {
   },
 
   // === Google-Specific Parameters ===
+
+  // GATE-123: Gemini 4 rejects thinkingBudget on Vertex and MINIMAL everywhere,
+  // so Chat Completions reasoning params must become a supported thinkingLevel.
+  gemini4ReasoningEffortHighParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      reasoning_effort: "high",
+    },
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_4_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.HIGH,
+          includeThoughts: true,
+        },
+      },
+    },
+    bedrock: null,
+    transformTargets: ["google"],
+  },
+
+  gemini4ReasoningEffortMinimalParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      reasoning_effort: "minimal",
+    },
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_4_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.LOW,
+          includeThoughts: true,
+        },
+      },
+    },
+    bedrock: null,
+    transformTargets: ["google"],
+  },
+
+  // The playground default (reasoning enabled + budget 1024) saved on a Gemini 4 prompt.
+  gemini4ReasoningBudgetParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      reasoning_enabled: true,
+      reasoning_budget: 1024,
+    } as OpenAI.Chat.Completions.ChatCompletionCreateParams & {
+      reasoning_enabled: boolean;
+      reasoning_budget: number;
+    },
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_GEMINI_4_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.LOW,
+          includeThoughts: true,
+        },
+      },
+    },
+    bedrock: null,
+    transformTargets: ["google"],
+  },
 
   thinkingLevelLowercaseLowParam: {
     "chat-completions": null,

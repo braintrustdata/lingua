@@ -9218,7 +9218,7 @@ data: {"choices":[],"object":"chat.completion.chunk"}
 
 data: {"choices":[],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_018dd53ca328f19c0069fb5b60fd3c8195a240f657d2d4ccb4","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","service_tier":"default","usage":{"completion_tokens":278,"completion_tokens_details":{"reasoning_tokens":192},"prompt_tokens":66,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":344}}
+data: {"choices":[{"delta":{},"finish_reason":"tool_calls","index":0}],"id":"resp_018dd53ca328f19c0069fb5b60fd3c8195a240f657d2d4ccb4","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","service_tier":"default","usage":{"completion_tokens":278,"completion_tokens_details":{"reasoning_tokens":192},"prompt_tokens":66,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":344}}
 
 data: [DONE]
 
@@ -11142,7 +11142,7 @@ data: {"choices":[],"object":"chat.completion.chunk"}
 
 data: {"choices":[],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_00310c0aff2db345016aeb90ceab7c87d2bf46ff4b7846f279","model":"gpt-5.4-mini-2026-03-17","object":"chat.completion.chunk","service_tier":"default","usage":{"completion_tokens":69,"prompt_tokens":204,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":273}}
+data: {"choices":[{"delta":{},"finish_reason":"tool_calls","index":0}],"id":"resp_00310c0aff2db345016aeb90ceab7c87d2bf46ff4b7846f279","model":"gpt-5.4-mini-2026-03-17","object":"chat.completion.chunk","service_tier":"default","usage":{"completion_tokens":69,"prompt_tokens":204,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":273}}
 
 data: [DONE]
 

@@ -4,7 +4,8 @@
       "content": {
         "parts": [
           {
-            "text": "2+2 equals 4."
+            "text": "2 + 2 = 4",
+            "thoughtSignature": "Ep8BCpwBAWkUfRPIaqdwYXXCIR/BwzKxk1ntdBP0zHLZ18MT1vTu5rBVaeQBJ3kTt3Fdoc3/8j8XTuEfY8FI+B7IAx/h9XQ7+sEW6TAex+tvCZWHps4ASLZo92SQ1O5i9Tk+JTruS7P7L0QvusByarS435rn5Q/+i2KjTtoiWfzfJGgZgwMd6gowDqb3WvjZ1EGcA1BbhFkKg52FgEAoM3yc"
           }
         ],
         "role": "model"
@@ -22,8 +23,9 @@
         "modality": "TEXT",
         "tokenCount": 8
       }
-    ]
+    ],
+    "serviceTier": "standard"
   },
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "Xy_6aff9I5iI6dkP8dOcwQM"
+  "modelVersion": "gemini-3.6-flash",
+  "responseId": "LcIEa8DKMMTIiLMP89LE6Qk"
 }

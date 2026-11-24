@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-EnXX2l0iMcAiw1eERM7Ve2sqLD9GM",
+  "object": "chat.completion",
+  "created": 1795475676,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure—I can help. A few quick questions to tailor the guidance:\n- What is your goal or task right now (e.g., learning something, solving a problem, planning a project, writing, coding, decision-making)?\n- Any constraints or deadlines?\n- Do you want concise steps or a detailed plan?\n\nIf you’re just looking for a starting point, here are general next steps you can pick from:\n- If you’re learning something new: define a specific objective, gather 3–5 key resources, and do a small practice task.\n- If you’re solving a problem: restate the problem, list possible approaches, pick one, implement a quick prototype, and test.\n- If you’re planning a project: outline scope, milestones, dependencies, and a timeline; identify risks and mitigation.\n- If you’re stuck writing: choose a target audience, draft a quick outline, write a first draft without perfectionism, then revise.\n- If you want code help: share the language, problem, and a minimal example; I can suggest a plan or provide code.\n\nTell me your context and I’ll give a tailored plan.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 26,
+    "completion_tokens": 239,
+    "total_tokens": 265,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
