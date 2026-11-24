@@ -97,18 +97,30 @@ const openAIMultipleReasoningSignaturesReplayAssistantMessage: ChatCompletionAss
     reasoning_signature: openAIMultipleReasoningSignatures,
   };
 
+const chatCompletionsVertexLabelsRequest = {
+  model: OPENAI_CHAT_COMPLETIONS_MODEL,
+  messages: [{ role: "user", content: "Hello" }],
+  labels: { bt_project: "openai-format", team: "cx" },
+} satisfies OpenAI.Chat.Completions.ChatCompletionCreateParams & {
+  labels: Record<string, string>;
+};
+
+const gemini4ReasoningBudgetRequest = {
+  model: OPENAI_CHAT_COMPLETIONS_MODEL,
+  messages: [{ role: "user", content: "Say ok." }],
+  reasoning_enabled: true,
+  reasoning_budget: 1024,
+} satisfies OpenAI.Chat.Completions.ChatCompletionCreateParams & {
+  reasoning_enabled: boolean;
+  reasoning_budget: number;
+};
+
 // OpenAI Responses API and Chat Completions API parameter test cases
 // Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
   chatCompletionsVertexLabelsParam: {
-    "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
-      messages: [{ role: "user", content: "Hello" }],
-      labels: { bt_project: "openai-format", team: "cx" },
-    } as OpenAI.Chat.Completions.ChatCompletionCreateParams & {
-      labels: Record<string, string>;
-    },
+    "chat-completions": chatCompletionsVertexLabelsRequest,
     responses: null,
     anthropic: null,
     google: null,
@@ -3496,15 +3508,7 @@ export const paramsCases: TestCaseCollection = {
 
   // The playground default (reasoning enabled + budget 1024) saved on a Gemini 4 prompt.
   gemini4ReasoningBudgetParam: {
-    "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
-      messages: [{ role: "user", content: "Say ok." }],
-      reasoning_enabled: true,
-      reasoning_budget: 1024,
-    } as OpenAI.Chat.Completions.ChatCompletionCreateParams & {
-      reasoning_enabled: boolean;
-      reasoning_budget: number;
-    },
+    "chat-completions": gemini4ReasoningBudgetRequest,
     responses: null,
     anthropic: null,
     google: {
