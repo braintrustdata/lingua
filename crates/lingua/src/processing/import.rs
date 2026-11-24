@@ -1732,6 +1732,63 @@ mod tests {
 
     #[cfg(feature = "google")]
     #[test]
+    fn gemini_import_accepts_standalone_tool_content() {
+        let tool_content = crate::serde_json::json!({
+            "role": "tool",
+            "parts": [{"function_response": {
+                "id": "weather_call",
+                "name": "weather",
+                "response": {"degrees": 20}
+            }}]
+        });
+        for input in [
+            tool_content.clone(),
+            crate::serde_json::json!([tool_content]),
+        ] {
+            let imported = import_span(Span {
+                input: Some(input),
+                output: None,
+                other: Default::default(),
+            })
+            .unwrap();
+            let [Message::Tool { content }] = imported.input.as_slice() else {
+                panic!("expected a standalone Google tool result");
+            };
+            let [ToolContentPart::ToolResult(result)] = content.as_slice() else {
+                panic!("expected one tool result");
+            };
+            assert_eq!(result.tool_call_id, "weather_call");
+            assert_eq!(result.tool_name, "weather");
+            assert_eq!(result.output, crate::serde_json::json!({"degrees": 20}));
+            assert!(imported.errors.is_empty());
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_rejects_function_calls_in_nested_user_parts() {
+        let span: Span = serde_json::from_value(crate::serde_json::json!({
+            "input": {"contents": [
+                "Before the user turn.",
+                [
+                    "Use this forecast.",
+                    {"function_call": {"name": "weather", "args": {"city": "Paris"}}}
+                ]
+            ]}
+        }))
+        .unwrap();
+
+        let imported = import_span(span).unwrap();
+        assert!(imported.input.is_empty());
+        assert!(imported.errors.iter().any(|error| {
+            error.contains("Unsupported mapping")
+                && error.contains("user")
+                && error.contains("functionCall")
+        }));
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
     fn gemini_import_keeps_text_between_explicit_content_tool_results() {
         let span: Span = serde_json::from_value(crate::serde_json::json!({
             "input": {"contents": [

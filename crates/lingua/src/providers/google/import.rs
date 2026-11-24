@@ -245,7 +245,7 @@ impl TraceContent {
     fn is_direct_content(&self) -> bool {
         match self.role.as_deref() {
             Some("model") => true,
-            Some("user") => self.parts.is_some(),
+            Some("user" | "tool") => self.parts.is_some(),
             _ => false,
         }
     }
@@ -418,9 +418,17 @@ impl RequestMessages {
         Ok(())
     }
 
-    fn push_content(&mut self, content: TraceContent) -> Result<(), ConvertError> {
-        self.flush()?;
-        let (role, parts) = content.into_role_and_parts(Some("user"))?;
+    fn push_content_parts(
+        &mut self,
+        role: &str,
+        parts: Vec<TraceMessagePart>,
+    ) -> Result<(), ConvertError> {
+        if role == "user" && parts.iter().any(|(part, _)| part.function_call.is_some()) {
+            return Err(ConvertError::UnsupportedMapping {
+                from: "Google user content with functionCall".to_string(),
+                to: "Lingua universal message",
+            });
+        }
         if role == "user"
             && parts
                 .iter()
@@ -434,7 +442,7 @@ impl RequestMessages {
                 });
                 self.messages
                     .push(Content::message_from_parts_with_trace_tools(
-                        &role,
+                        role,
                         std::iter::once(first).chain(rest),
                         Some(&mut self.trace_tools),
                     )?);
@@ -442,7 +450,7 @@ impl RequestMessages {
         } else {
             self.messages
                 .push(Content::message_from_parts_with_trace_tools(
-                    &role,
+                    role,
                     parts,
                     Some(&mut self.trace_tools),
                 )?);
@@ -460,17 +468,22 @@ fn messages_from_request_entries(
             RequestEntry::Text(text) => RequestPart::Text(text).into_parts()?,
             RequestEntry::Object(object) => {
                 if object.is_content() {
-                    request.push_content(object.content)?;
+                    request.flush()?;
+                    let (role, parts) = object.content.into_role_and_parts(Some("user"))?;
+                    request.push_content_parts(&role, parts)?;
                     continue;
                 }
                 object.part.into_parts()?
             }
             RequestEntry::Parts(parts) => {
                 request.flush()?;
-                for part in parts {
-                    request.push_part(part.into_parts()?)?;
+                if !parts.is_empty() {
+                    let parts = parts
+                        .into_iter()
+                        .map(RequestPart::into_parts)
+                        .collect::<Result<_, _>>()?;
+                    request.push_content_parts("user", parts)?;
                 }
-                request.flush()?;
                 continue;
             }
         };
