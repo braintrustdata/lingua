@@ -1977,6 +1977,64 @@ impl ParsedStreamEvent {
                             || (item_done
                                 && item.output_item_type == Some(OutputItemType::Reasoning)
                                 && nonempty(&item.encrypted_content))
+                            || match item.output_item_type.as_ref() {
+                                Some(OutputItemType::ComputerCall) => {
+                                    item.action
+                                        .as_ref()
+                                        .is_some_and(|action| action.computer_action_type.is_some())
+                                        || item
+                                            .actions
+                                            .as_ref()
+                                            .is_some_and(|actions| !actions.is_empty())
+                                }
+                                Some(OutputItemType::LocalShellCall) => {
+                                    item.action.as_ref().is_some_and(|action| {
+                                        action.command.iter().flatten().any(|part| !part.is_empty())
+                                    })
+                                }
+                                Some(OutputItemType::ShellCall) => {
+                                    item.action.as_ref().is_some_and(|action| {
+                                        action
+                                            .commands
+                                            .iter()
+                                            .flatten()
+                                            .any(|command| !command.is_empty())
+                                    })
+                                }
+                                Some(OutputItemType::ApplyPatchCall) => item
+                                    .operation
+                                    .as_ref()
+                                    .is_some_and(|operation| !operation.path.is_empty()),
+                                Some(OutputItemType::ToolSearchCall) => {
+                                    item_done && item.arguments.is_some()
+                                }
+                                None
+                                | Some(
+                                    OutputItemType::AdditionalTools
+                                    | OutputItemType::ApplyPatchCallOutput
+                                    | OutputItemType::CodeInterpreterCall
+                                    | OutputItemType::Compaction
+                                    | OutputItemType::ComputerCallOutput
+                                    | OutputItemType::CustomToolCall
+                                    | OutputItemType::CustomToolCallOutput
+                                    | OutputItemType::FileSearchCall
+                                    | OutputItemType::FunctionCall
+                                    | OutputItemType::FunctionCallOutput
+                                    | OutputItemType::ImageGenerationCall
+                                    | OutputItemType::LocalShellCallOutput
+                                    | OutputItemType::McpApprovalRequest
+                                    | OutputItemType::McpApprovalResponse
+                                    | OutputItemType::McpCall
+                                    | OutputItemType::McpListTools
+                                    | OutputItemType::Message
+                                    | OutputItemType::Program
+                                    | OutputItemType::ProgramOutput
+                                    | OutputItemType::Reasoning
+                                    | OutputItemType::ShellCallOutput
+                                    | OutputItemType::ToolSearchOutput
+                                    | OutputItemType::WebSearchCall,
+                                ) => false,
+                            }
                             || item
                                 .content
                                 .iter()
@@ -2284,6 +2342,38 @@ mod tests {
                 true,
             ),
             (
+                r#"{"type":"response.output_item.added","item":{"type":"computer_call","action":{"type":"click","button":"left","x":100,"y":200}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"computer_call","action":{"type":"screenshot"}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"computer_call","action":{"type":"wait"}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"computer_call","actions":[{"type":"screenshot"}]}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"local_shell_call","action":{"type":"exec","command":["bash","-lc","echo ok"]}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"shell_call","action":{"commands":["echo ok"]}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"apply_patch_call","operation":{"type":"delete_file","path":"tmp.txt"}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"tool_search_call","arguments":{"query":"find tools"}}}"#,
+                true,
+            ),
+            (
                 r#"{"type":"response.output_item.done","item":{"type":"message","content":[{"type":"output_text","text":"hello"}]}}"#,
                 true,
             ),
@@ -2333,6 +2423,42 @@ mod tests {
             ),
             (
                 r#"{"type":"response.output_item.done","item":{"type":"message","content":[],"encrypted_content":"encrypted-placeholder"}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.added","item":{"type":"computer_call","id":"call"}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"computer_call","action":{}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"computer_call","actions":[]}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"message","action":{"type":"wait"}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"local_shell_call","action":{"type":"exec","command":[]}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"shell_call","action":{"commands":[]}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"apply_patch_call","operation":{"type":"delete_file","path":""}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.added","item":{"type":"tool_search_call","arguments":{}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"tool_search_call"}}"#,
                 false,
             ),
             (
