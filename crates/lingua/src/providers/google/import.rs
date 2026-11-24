@@ -570,15 +570,31 @@ struct TraceCandidate {
     usage_metadata: Option<UsageMetadata>,
     #[serde(alias = "error_code", alias = "ErrorCode")]
     error_code: Option<String>,
+    #[serde(alias = "Partial")]
+    partial: Option<bool>,
+    #[serde(alias = "Interrupted")]
+    interrupted: Option<bool>,
+    #[serde(alias = "turn_complete", alias = "TurnComplete")]
+    turn_complete: Option<bool>,
 }
 
 impl TraceCandidate {
     fn has_roleless_finished_content(&self) -> bool {
-        self.finish_reason.is_some()
+        (self.finish_reason.is_some() || self.turn_complete == Some(true))
             && self
                 .content
                 .as_ref()
                 .is_some_and(|content| content.role.is_none() && content.parts.is_some())
+    }
+
+    fn has_adk_lifecycle(&self) -> bool {
+        (self.partial == Some(true)
+            || self.interrupted == Some(true)
+            || self.turn_complete == Some(true))
+            && self.content.as_ref().is_none_or(|content| {
+                content.role.as_deref() == Some("model")
+                    || (content.role.is_none() && content.parts.is_some())
+            })
     }
 
     fn is_finished(&self, in_candidates: bool) -> bool {
@@ -590,6 +606,26 @@ impl TraceCandidate {
         self.error_code
             .as_ref()
             .is_some_and(|code| !code.is_empty())
+    }
+
+    fn validate_lifecycle(&self, finished: bool) -> Result<(), ConvertError> {
+        let field = if self.partial == Some(true) {
+            "partial"
+        } else if self.interrupted == Some(true) {
+            "interrupted"
+        } else if self.turn_complete == Some(true)
+            && self.content.is_none()
+            && !finished
+            && !self.is_adk_error()
+        {
+            "turnComplete"
+        } else {
+            return Ok(());
+        };
+        Err(ConvertError::UnsupportedMapping {
+            from: format!("ADK LlmResponse.{field}"),
+            to: "Lingua universal message",
+        })
     }
 }
 
@@ -661,6 +697,7 @@ fn messages_from_candidates(
     let mut pending_tools = None;
     for candidate in candidates {
         let finished = candidate.is_finished(in_candidates);
+        candidate.validate_lifecycle(finished)?;
         if let Some(content) = candidate.content {
             let envelope_role = (in_candidates || finished).then_some("model");
             let tools = pending_tools.get_or_insert_with(|| trace_tools.clone());
@@ -696,7 +733,9 @@ fn try_parse_candidates(
     let candidates = try_parse_vec_or_single::<TraceCandidate>(data)?;
     if candidates.iter().any(|candidate| {
         candidate.content.as_ref().is_some_and(|content| {
-            !content.is_direct_content() && !candidate.has_roleless_finished_content()
+            !content.is_direct_content()
+                && !candidate.has_roleless_finished_content()
+                && !candidate.has_adk_lifecycle()
         })
     }) {
         return None;
@@ -720,6 +759,7 @@ pub(crate) fn try_parse_adk_for_import(
         && !has_google_content
         && !candidate.has_roleless_finished_content()
         && !candidate.is_adk_error()
+        && !candidate.has_adk_lifecycle()
     {
         return None;
     }

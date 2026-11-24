@@ -1493,6 +1493,74 @@ mod tests {
 
     #[cfg(feature = "google")]
     #[test]
+    fn adk_import_reports_unsupported_lifecycle_events() {
+        let content = crate::serde_json::json!({
+            "role": "model",
+            "parts": [{"functionCall": {"name": "weather"}}]
+        });
+        for (output, field) in [
+            (
+                crate::serde_json::json!({"content": content, "partial": true}),
+                "partial",
+            ),
+            (
+                crate::serde_json::json!({"content": content, "interrupted": true}),
+                "interrupted",
+            ),
+            (
+                crate::serde_json::json!({"turnComplete": true}),
+                "turnComplete",
+            ),
+            (
+                crate::serde_json::json!({"turn_complete": true}),
+                "turnComplete",
+            ),
+            (
+                crate::serde_json::json!({"TurnComplete": true}),
+                "turnComplete",
+            ),
+        ] {
+            let imported = import_span(Span {
+                output: Some(output),
+                input: None,
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(
+                imported.output.is_empty(),
+                "unexpected message from ADK {field}"
+            );
+            assert!(imported
+                .errors
+                .iter()
+                .any(|error| { error.contains("Unsupported mapping") && error.contains(field) }));
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn adk_import_keeps_completed_lifecycle_content() {
+        let imported = import_span(Span {
+            output: Some(crate::serde_json::json!({
+                "content": {"parts": [{"text": "Meal is ready."}]},
+                "partial": false,
+                "interrupted": false,
+                "turnComplete": true
+            })),
+            input: None,
+            other: Default::default(),
+        })
+        .unwrap();
+        assert!(matches!(
+            imported.output.as_slice(),
+            [Message::Assistant { content: AssistantContent::Array(parts), .. }]
+                if matches!(parts.as_slice(), [AssistantContentPart::Text(text)] if text.text == "Meal is ready.")
+        ));
+        assert!(imported.errors.is_empty());
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
     fn adk_error_only_output_imports_an_empty_assistant_turn() {
         for output in [
             crate::serde_json::json!({"errorCode": "PERMISSION_DENIED"}),
