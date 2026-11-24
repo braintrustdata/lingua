@@ -1827,9 +1827,14 @@ pub struct ParsedStreamEvent {
 }
 
 impl ParsedStreamEvent {
-    /// Whether the forwarded event contains generated text, reasoning, refusal, or tool input.
-    pub fn has_generated_output(&self) -> bool {
+    /// Whether an unconverted provider event contains generated text, reasoning, refusal, or tool input.
+    /// Returns false for converted events.
+    pub fn has_native_generated_output(&self) -> bool {
         use crate::universal::{UniversalStreamDelta, UniversalToolFunctionDelta};
+
+        if self.source_format != self.target_format {
+            return false;
+        }
 
         let nonempty = |text: &Option<String>| text.as_ref().is_some_and(|text| !text.is_empty());
         let function_has_output = |function: &UniversalToolFunctionDelta| {
@@ -1843,6 +1848,16 @@ impl ParsedStreamEvent {
                     .iter()
                     .any(|call| call.function.as_ref().is_some_and(function_has_output))
         };
+
+        if self.universal.as_ref().is_some_and(|chunk| {
+            chunk
+                .choices
+                .iter()
+                .filter_map(|choice| choice.delta_view())
+                .any(delta_has_output)
+        }) {
+            return true;
+        }
 
         #[cfg(feature = "openai")]
         if self.target_format == ProviderFormat::ChatCompletions {
@@ -1918,44 +1933,100 @@ impl ParsedStreamEvent {
             });
         }
 
-        let forwarded_event;
-        let universal = if self.source_format == self.target_format {
-            self.universal.as_ref()
-        } else {
-            forwarded_event =
-                parse_stream_event(self.bytes.clone(), self.target_format, self.target_format).ok();
-            forwarded_event
-                .as_ref()
-                .and_then(|event| event.universal.as_ref())
-        };
-        if universal.is_some_and(|chunk| {
-            chunk
-                .choices
-                .iter()
-                .filter_map(|choice| choice.delta_view())
-                .any(delta_has_output)
-        }) {
-            return true;
-        }
-
         #[cfg(feature = "openai")]
         if self.target_format == ProviderFormat::Responses {
+            use crate::providers::openai::generated::OutputItem;
+
             #[derive(Deserialize)]
             #[serde(tag = "type")]
-            enum Refusal {
-                #[serde(rename = "response.refusal.delta")]
+            enum NativeOutput {
+                #[serde(
+                    rename = "response.refusal.delta",
+                    alias = "response.code_interpreter_call_code.delta"
+                )]
                 Delta { delta: String },
                 #[serde(rename = "response.refusal.done")]
-                Done { refusal: String },
+                Refusal { refusal: String },
+                #[serde(
+                    rename = "response.output_text.done",
+                    alias = "response.reasoning_text.done",
+                    alias = "response.reasoning_summary_text.done"
+                )]
+                Text { text: String },
+                #[serde(rename = "response.code_interpreter_call_code.done")]
+                Code { code: String },
+                #[serde(
+                    rename = "response.output_item.done",
+                    alias = "response.output_item.added"
+                )]
+                Item { item: Box<OutputItem> },
                 #[serde(other)]
                 Other,
             }
 
-            return crate::serde_json::from_slice::<Refusal>(&self.bytes).is_ok_and(|event| {
+            return crate::serde_json::from_slice::<NativeOutput>(&self.bytes).is_ok_and(|event| {
                 match event {
-                    Refusal::Delta { delta } => !delta.is_empty(),
-                    Refusal::Done { refusal } => !refusal.is_empty(),
-                    Refusal::Other => false,
+                    NativeOutput::Delta { delta } => !delta.is_empty(),
+                    NativeOutput::Refusal { refusal } => !refusal.is_empty(),
+                    NativeOutput::Text { text } => !text.is_empty(),
+                    NativeOutput::Code { code } => !code.is_empty(),
+                    NativeOutput::Item { item } => {
+                        nonempty(&item.code)
+                            || nonempty(&item.name)
+                            || nonempty(&item.input)
+                            || item
+                                .content
+                                .iter()
+                                .flatten()
+                                .any(|part| nonempty(&part.text) || nonempty(&part.refusal))
+                            || item
+                                .summary
+                                .iter()
+                                .flatten()
+                                .any(|part| !part.text.is_empty())
+                            || item.queries.iter().flatten().any(|query| !query.is_empty())
+                            || item.action.as_ref().is_some_and(|action| {
+                                nonempty(&action.query)
+                                    || action
+                                        .queries
+                                        .iter()
+                                        .flatten()
+                                        .any(|query| !query.is_empty())
+                            })
+                    }
+                    NativeOutput::Other => false,
+                }
+            });
+        }
+
+        #[cfg(feature = "anthropic")]
+        if matches!(
+            self.target_format,
+            ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
+        ) {
+            use crate::providers::anthropic::generated::{ContentBlock, ContentBlockType};
+
+            #[derive(Deserialize)]
+            #[serde(tag = "type")]
+            enum NativeOutput {
+                #[serde(rename = "content_block_start")]
+                Start { content_block: Box<ContentBlock> },
+                #[serde(other)]
+                Other,
+            }
+
+            return crate::serde_json::from_slice::<NativeOutput>(&self.bytes).is_ok_and(|event| {
+                match event {
+                    NativeOutput::Start { content_block } => {
+                        (content_block.content_block_type == ContentBlockType::ServerToolUse
+                            && nonempty(&content_block.name))
+                            || (content_block.content_block_type
+                                == ContentBlockType::RedactedThinking
+                                && nonempty(&content_block.data))
+                    }
+                    NativeOutput::Other => false,
                 }
             });
         }
@@ -2125,12 +2196,12 @@ mod tests {
                 ProviderFormat::ChatCompletions,
             )
             .unwrap();
-            assert_eq!(event.has_generated_output(), expected, "{data}");
+            assert_eq!(event.has_native_generated_output(), expected, "{data}");
             assert_eq!(event.bytes.as_ref(), data.as_bytes());
         }
     }
 
-    // Responses refusals are generated output even though the adapter represents them as keep-alives.
+    // Native Responses payloads remain output evidence when translation omits provider-specific content.
     #[test]
     #[cfg(feature = "openai")]
     fn generated_output_responses() {
@@ -2168,6 +2239,38 @@ mod tests {
                 true,
             ),
             (
+                r#"{"type":"response.code_interpreter_call_code.delta","delta":"import"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.code_interpreter_call_code.done","code":"print(1)"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_text.done","text":"hello"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.reasoning_summary_text.done","text":"thinking"}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"code_interpreter_call","code":"print(1)","status":"completed"}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"web_search_call","status":"completed","action":{"type":"search","queries":["","weather"]}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"web_search_call","action":{"type":"search","query":"weather"}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"message","content":[{"type":"output_text","text":"hello"}]}}"#,
+                true,
+            ),
+            (
                 r#"{"type":"response.created","response":{"id":"resp"}}"#,
                 false,
             ),
@@ -2178,6 +2281,27 @@ mod tests {
             (r#"{"type":"response.output_text.delta","delta":""}"#, false),
             (r#"{"type":"response.refusal.delta","delta":""}"#, false),
             (r#"{"type":"response.refusal.done","refusal":""}"#, false),
+            (
+                r#"{"type":"response.code_interpreter_call_code.delta","delta":""}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.code_interpreter_call_code.done","code":""}"#,
+                false,
+            ),
+            (r#"{"type":"response.output_text.done","text":""}"#, false),
+            (
+                r#"{"type":"response.code_interpreter_call.in_progress","item_id":"ci_1"}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.added","item":{"type":"code_interpreter_call","id":"ci_1","code":"","status":"in_progress"}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"web_search_call","status":"completed","action":{"type":"search","queries":[""],"query":""}}}"#,
+                false,
+            ),
             (
                 r#"{"type":"response.output_item.added","item":{"type":"function_call","call_id":"call"}}"#,
                 false,
@@ -2198,12 +2322,12 @@ mod tests {
                 ProviderFormat::Responses,
             )
             .unwrap();
-            assert_eq!(event.has_generated_output(), expected, "{data}");
+            assert_eq!(event.has_native_generated_output(), expected, "{data}");
             assert_eq!(event.bytes.as_ref(), data.as_bytes());
         }
     }
 
-    // Non-OpenAI streams use their existing normalized deltas without treating lifecycle frames as output.
+    // Native Anthropic reasoning and tool payloads count as output while lifecycle frames stay false.
     #[test]
     #[cfg(feature = "anthropic")]
     fn generated_output_anthropic() {
@@ -2221,6 +2345,14 @@ mod tests {
                 true,
             ),
             (
+                r#"{"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srv_call","name":"web_search","input":{}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"content_block_start","index":0,"content_block":{"type":"redacted_thinking","data":"encrypted-reasoning"}}"#,
+                true,
+            ),
+            (
                 r#"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{"}}"#,
                 true,
             ),
@@ -2234,64 +2366,59 @@ mod tests {
                 false,
             ),
             (
+                r#"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":""}}"#,
+                false,
+            ),
+            (
                 r#"{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":1}}"#,
                 false,
             ),
             (r#"{"type":"message_stop"}"#, false),
+            (
+                r#"{"type":"message_stop","amazon-bedrock-invocationMetrics":{"inputTokenCount":10,"outputTokenCount":1}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srv_call","name":"","input":{}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srv_call"}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"content_block_start","index":0,"content_block":{"type":"redacted_thinking","data":""}}"#,
+                false,
+            ),
         ];
         for (data, expected) in cases {
-            let event = parse_stream_event(
-                Bytes::from_static(data.as_bytes()),
+            for format in [
                 ProviderFormat::Anthropic,
-                ProviderFormat::Anthropic,
-            )
-            .unwrap();
-            assert_eq!(event.has_generated_output(), expected, "{data}");
+                ProviderFormat::BedrockAnthropic,
+                ProviderFormat::VertexAnthropic,
+            ] {
+                let event = parse_stream_event(Bytes::from_static(data.as_bytes()), format, format)
+                    .unwrap();
+                assert_eq!(
+                    event.has_native_generated_output(),
+                    expected,
+                    "{format:?}: {data}"
+                );
+            }
         }
     }
 
-    // The predicate must inspect forwarded Chat bytes rather than interpreting Responses bytes as Chat.
+    // Native recovery excludes converted events even when their forwarded payload contains generated text.
     #[test]
     #[cfg(feature = "openai")]
-    fn generated_output_after_conversion() {
+    fn generated_output_excludes_converted_events() {
         let event = parse_stream_event(
             Bytes::from_static(br#"{"type":"response.output_text.delta","delta":"hello"}"#),
             ProviderFormat::Responses,
             ProviderFormat::ChatCompletions,
         )
         .unwrap();
-        assert!(event.has_generated_output());
-    }
-
-    // Conversion can replace a source content+finish chunk with a finish-only target event.
-    #[test]
-    #[cfg(all(feature = "openai", feature = "anthropic"))]
-    fn generated_output_excludes_content_dropped_by_conversion() {
-        let event = parse_stream_event(
-            Bytes::from_static(
-                br#"{"choices":[{"delta":{"content":"hello"},"finish_reason":"stop"}]}"#,
-            ),
-            ProviderFormat::ChatCompletions,
-            ProviderFormat::Anthropic,
-        )
-        .unwrap();
-        assert_eq!(
-            crate::serde_json::from_slice::<Value>(&event.bytes).unwrap(),
-            json!({
-                "type": "message_delta",
-                "delta": { "stop_reason": "end_turn" },
-                "usage": { "output_tokens": 0 }
-            })
-        );
-        assert!(!event.has_generated_output());
-
-        let event = parse_stream_event(
-            Bytes::from_static(br#"{"choices":[{"delta":{"content":"hello"}}]}"#),
-            ProviderFormat::ChatCompletions,
-            ProviderFormat::Anthropic,
-        )
-        .unwrap();
-        assert!(event.has_generated_output());
+        assert!(!event.has_native_generated_output());
     }
 
     #[test]
