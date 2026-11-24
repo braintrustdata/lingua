@@ -240,7 +240,7 @@ mod tests {
 
     // Gateway cost metadata must not prevent parsing or forwarding token usage.
     #[test]
-    fn decisions_usage_with_cost_passes_through() {
+    fn decisions_usage_with_cost_usd_passes_through() {
         let body = Bytes::from_static(
             br#"{
                 "model": "gpt-6-luna",
@@ -251,7 +251,7 @@ mod tests {
                     "output_tokens": 2,
                     "output_tokens_details": {"reasoning_tokens": 0},
                     "total_tokens": 42,
-                    "cost": 0.00018
+                    "cost_usd": 0.00018
                 }
             }"#,
         );
