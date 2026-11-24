@@ -78,7 +78,12 @@ impl ResponseFormatConfig {
     pub fn to_provider(&self, provider: ProviderFormat) -> Result<Option<Value>, TransformError> {
         match provider {
             ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)?),
-            ProviderFormat::Responses => Ok(to_openai_responses_text(self)?),
+            ProviderFormat::Responses => Ok(to_openai_responses_text(
+                self,
+                self.json_schema
+                    .as_ref()
+                    .is_some_and(|schema| schema.responses_strict(false)),
+            )?),
             ProviderFormat::Anthropic => {
                 let format = JsonOutputFormat::try_from(self).map_err(TransformError::from)?;
                 Ok(Some(serde_json::to_value(&format).map_err(|e| {
@@ -134,13 +139,11 @@ struct ResponsesStrictSchemaView {
     prefix_items: Option<Vec<Self>>,
     additional_items: Option<ResponsesStrictSubschemaView>,
     any_of: Option<Vec<Self>>,
-    pattern_properties: Option<BTreeMap<String, Self>>,
     #[serde(rename = "$defs")]
     defs: Option<BTreeMap<String, Self>>,
     definitions: Option<BTreeMap<String, Self>>,
     #[serde(rename = "$ref")]
     reference: Option<String>,
-    format: Option<String>,
     #[serde(flatten)]
     other_keywords: BTreeMap<String, serde::de::IgnoredAny>,
 }
@@ -180,6 +183,18 @@ impl ResponsesStrictSchemaView {
                         | "propertyNames"
                         | "unevaluatedItems"
                         | "unevaluatedProperties"
+                        | "minLength"
+                        | "maxLength"
+                        | "pattern"
+                        | "format"
+                        | "minimum"
+                        | "maximum"
+                        | "exclusiveMinimum"
+                        | "exclusiveMaximum"
+                        | "multipleOf"
+                        | "patternProperties"
+                        | "minItems"
+                        | "maxItems"
                 )
             })
         {
@@ -201,20 +216,7 @@ impl ResponsesStrictSchemaView {
             }
         }
 
-        self.format.as_deref().is_none_or(|format| {
-            matches!(
-                format,
-                "date-time"
-                    | "time"
-                    | "date"
-                    | "duration"
-                    | "email"
-                    | "hostname"
-                    | "ipv4"
-                    | "ipv6"
-                    | "uuid"
-            )
-        }) && self.items.as_deref().is_none_or(Self::is_compatible)
+        self.items.as_deref().is_none_or(Self::is_compatible)
             && match &self.additional_items {
                 Some(ResponsesStrictSubschemaView::Schema(schema)) => schema.is_compatible(),
                 Some(ResponsesStrictSubschemaView::Boolean(true | false)) | None => true,
@@ -223,7 +225,7 @@ impl ResponsesStrictSchemaView {
                 .into_iter()
                 .flatten()
                 .all(|schemas| schemas.iter().all(Self::is_compatible))
-            && [&self.defs, &self.definitions, &self.pattern_properties]
+            && [&self.defs, &self.definitions]
                 .into_iter()
                 .flatten()
                 .all(|definitions| definitions.values().all(Self::is_compatible))
@@ -231,14 +233,14 @@ impl ResponsesStrictSchemaView {
 }
 
 impl JsonSchemaConfig {
-    /// The explicit or inferred strictness used for OpenAI Responses.
-    pub fn responses_strict(&self) -> bool {
+    pub(crate) fn responses_strict(&self, infer_strict: bool) -> bool {
         self.strict.unwrap_or_else(|| {
-            ResponsesStrictSchemaView::deserialize(&self.schema).is_ok_and(|schema| {
-                (schema.is_object() || schema.reference.is_some())
-                    && schema.any_of.is_none()
-                    && schema.is_compatible()
-            })
+            infer_strict
+                && ResponsesStrictSchemaView::deserialize(&self.schema).is_ok_and(|schema| {
+                    (schema.is_object() || schema.reference.is_some())
+                        && schema.any_of.is_none()
+                        && schema.is_compatible()
+                })
         })
     }
 }
@@ -594,7 +596,10 @@ fn to_openai_chat(config: &ResponseFormatConfig) -> Result<Option<Value>, Conver
 /// - `{ format: { type: "json_schema", name, schema, strict, description? } }`
 ///
 /// Returns the full `text` object, not just the format.
-fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Value>, ConvertError> {
+pub(crate) fn to_openai_responses_text(
+    config: &ResponseFormatConfig,
+    strict: bool,
+) -> Result<Option<Value>, ConvertError> {
     let Some(format_type) = config.format_type else {
         return Ok(None);
     };
@@ -609,7 +614,6 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Valu
                         field: "json_schema".to_string(),
                     }
                 })?;
-                let strict = js.responses_strict();
                 let mut obj = Map::new();
                 obj.insert("type".into(), Value::String("json_schema".into()));
                 obj.insert("name".into(), Value::String(js.name.clone()));
@@ -1076,13 +1080,22 @@ mod tests {
             "required": [],
             "additionalProperties": false
         });
+        let mut with_format = schema.clone();
+        *with_format
+            .pointer_mut("/$defs/answer/properties/text")
+            .unwrap() = json!({ "type": "string", "format": "date-time" });
+        let mut with_array_limit = schema.clone();
+        with_array_limit.pointer_mut("/properties/answers").unwrap()["maxItems"] = json!(4);
 
         for (schema, strict, expected) in [
             (&schema, None, true),
             (&optional, None, false),
             (&optional_union, None, false),
+            (&with_format, None, false),
+            (&with_array_limit, None, false),
             (&schema, Some(false), false),
             (&optional, Some(true), true),
+            (&with_format, Some(true), true),
         ] {
             let config = ResponseFormatConfig {
                 format_type: Some(ResponseFormatType::JsonSchema),
@@ -1093,9 +1106,14 @@ mod tests {
                     description: None,
                 }),
             };
+            let mut params = crate::universal::request::UniversalParams {
+                response_format: Some(config),
+                ..Default::default()
+            };
+            params.extras.entry(ProviderFormat::Anthropic).or_default();
             let responses: OpenAiResponsesTextView = serde_json::from_value(
-                config
-                    .to_provider(ProviderFormat::Responses)
+                params
+                    .try_response_format_for(ProviderFormat::Responses)
                     .unwrap()
                     .unwrap(),
             )

@@ -41,6 +41,7 @@ use crate::error::ConvertError;
 use crate::processing::transform::TransformError;
 use crate::serde_json::{Map, Value};
 use crate::universal::message::Message;
+use crate::universal::response_format::to_openai_responses_text;
 use crate::universal::tools::UniversalTool;
 
 /// Universal request envelope for LLM API calls.
@@ -298,9 +299,22 @@ impl UniversalParams {
         &self,
         provider: ProviderFormat,
     ) -> Result<Option<Value>, TransformError> {
-        self.response_format
-            .as_ref()
-            .map_or(Ok(None), |rf| rf.to_provider(provider))
+        let Some(format) = &self.response_format else {
+            return Ok(None);
+        };
+        match provider {
+            ProviderFormat::Responses => Ok(to_openai_responses_text(
+                format,
+                self.responses_schema_strict().unwrap_or(false),
+            )?),
+            _ => format.to_provider(provider),
+        }
+    }
+
+    /// Effective Responses strictness, inferred only for Anthropic structured output.
+    pub fn responses_schema_strict(&self) -> Option<bool> {
+        let schema = self.response_format.as_ref()?.json_schema.as_ref()?;
+        Some(schema.responses_strict(self.extras.contains_key(&ProviderFormat::Anthropic)))
     }
 }
 
