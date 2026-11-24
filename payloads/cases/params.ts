@@ -40,6 +40,26 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
     reasoning_signature: string | string[];
   };
 
+export const optionalJsonSchemaAnthropicRequest = {
+  model: ANTHROPIC_MODEL,
+  max_tokens: 1024,
+  messages: [
+    { role: "user", content: "Return JSON with answer set to hello." },
+  ],
+  output_format: {
+    type: "json_schema",
+    schema: {
+      type: "object",
+      properties: {
+        answer: { type: "string" },
+        reasoning: { type: "string" },
+      },
+      required: ["answer"],
+      additionalProperties: false,
+    },
+  },
+} satisfies AnthropicMessageCreateParams;
+
 const chatCompletionCacheControlTextPart = {
   type: "text",
   text: "Use this stable reference text as cacheable context.",
