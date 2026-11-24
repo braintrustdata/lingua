@@ -238,7 +238,7 @@ mod tests {
         ));
     }
 
-    // Decisions responses can report extra usage fields alongside their token counts.
+    // Decisions usage retains reported cost in typed responses and extra fields in passthrough.
     #[test]
     fn decisions_responses_preserve_token_usage_with_extra_fields() {
         let body = Bytes::from_static(
@@ -260,6 +260,14 @@ mod tests {
         assert_eq!(parsed.usage.input_tokens, 40);
         assert_eq!(parsed.usage.input_tokens_details.cached_tokens, 4);
         assert_eq!(parsed.usage.output_tokens, 2);
+        let serialized = serde_json::to_vec(&parsed).unwrap();
+        assert_eq!(
+            crate::parse_decision_response(&serialized)
+                .unwrap()
+                .usage
+                .cost,
+            Some(0.00018)
+        );
         let response = transform_decision_response(
             body.clone(),
             &DecisionResponseContext::PassThrough {

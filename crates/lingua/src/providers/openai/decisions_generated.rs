@@ -526,6 +526,8 @@ pub enum ValueUnion {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct ResponseUsageResource {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cost: Option<f64>,
     pub input_tokens: i64,
     pub input_tokens_details: InputTokensDetailsResource,
     pub output_tokens: i64,
