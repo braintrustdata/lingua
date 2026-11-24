@@ -335,6 +335,17 @@ struct ResponsesStatusView {
     status: Option<String>,
 }
 
+#[derive(Deserialize)]
+struct ResponsesCompletedEventView {
+    response: Option<ResponsesCompletedResponseView>,
+}
+
+#[derive(Deserialize)]
+struct ResponsesCompletedResponseView {
+    #[serde(default)]
+    output: Vec<ResponsesOutputItemAddedItem>,
+}
+
 #[derive(Debug, Deserialize, Default)]
 struct ResponsesOutputItemAddedEvent {
     item: Option<ResponsesOutputItemAddedItem>,
@@ -401,6 +412,8 @@ impl ResponsesOutputItemAddedItem {
     }
 }
 
+/// Typed classification of a native Responses stream event for the stateful
+/// Responses → Chat Completions text-message policy.
 #[derive(Debug)]
 pub(crate) enum ResponsesTextMessageEvent {
     MessageAdded {
@@ -414,6 +427,9 @@ pub(crate) enum ResponsesTextMessageEvent {
     TextDelta {
         output_index: u32,
     },
+    /// A `function_call` or `custom_tool_call` output item started. A turn that
+    /// ends on a tool call is complete without a final-answer message.
+    ToolCallAdded,
     Completed,
     Other,
 }
@@ -440,8 +456,13 @@ pub(crate) fn responses_text_message_event(
         TransformError::DeserializationFailed(format!("Responses stream event: {e}"))
     })?;
     let message_item = |added: ResponsesOutputItemAddedEvent, done: bool| {
-        let Some(ResponsesOutputItemAddedItem::Message { phase }) = added.item else {
-            return Ok(ResponsesTextMessageEvent::Other);
+        let phase = match added.item {
+            Some(ResponsesOutputItemAddedItem::Message { phase }) => phase,
+            Some(
+                ResponsesOutputItemAddedItem::FunctionCall { .. }
+                | ResponsesOutputItemAddedItem::CustomToolCall { .. },
+            ) if !done => return Ok(ResponsesTextMessageEvent::ToolCallAdded),
+            Some(_) | None => return Ok(ResponsesTextMessageEvent::Other),
         };
         let output_index = added.output_index.ok_or_else(|| {
             TransformError::DeserializationFailed(
@@ -1556,6 +1577,20 @@ impl ProviderAdapter for ResponsesAdapter {
 
             "response.completed" => {
                 // Final event with usage
+                let completed =
+                    ResponsesCompletedEventView::deserialize(&payload).map_err(|e| {
+                        TransformError::DeserializationFailed(format!("Responses completion: {e}"))
+                    })?;
+                let finish_reason = if completed.response.is_some_and(|response| {
+                    response
+                        .output
+                        .iter()
+                        .any(|item| item.tool_call_start().is_some())
+                }) {
+                    "tool_calls"
+                } else {
+                    "stop"
+                };
                 let response = payload.get("response");
                 let usage = response
                     .and_then(|r| r.get("usage"))
@@ -1580,7 +1615,7 @@ impl ProviderAdapter for ResponsesAdapter {
                         vec![UniversalStreamChoice {
                             index: 0,
                             delta: Some(serde_json::json!({})),
-                            finish_reason: Some("stop".to_string()),
+                            finish_reason: Some(finish_reason.to_string()),
                         }],
                         None,
                         usage,
@@ -3697,6 +3732,67 @@ mod tests {
         });
 
         assert!(adapter.detect_stream_response(&payload));
+    }
+
+    // Completed turns must distinguish client tool calls from text and provider-managed tools.
+    #[test]
+    fn test_responses_stream_completed_finish_reason() {
+        for (output, expected) in [
+            (
+                json!([{"type": "function_call", "name": "sql_query", "call_id": "call_sql"}]),
+                "tool_calls",
+            ),
+            (
+                json!([{"type": "custom_tool_call", "name": "write_release_note", "call_id": "call_note"}]),
+                "tool_calls",
+            ),
+            (
+                json!([{"type": "message", "phase": "final_answer"}]),
+                "stop",
+            ),
+            (
+                json!([{"type": "web_search_call"}, {"type": "message"}]),
+                "stop",
+            ),
+            (json!([{"type": "code_interpreter_call"}]), "stop"),
+            (json!([]), "stop"),
+        ] {
+            let chunk = ResponsesAdapter
+                .stream_to_universal(json!({
+                    "type": "response.completed",
+                    "response": {"output": output}
+                }))
+                .unwrap()
+                .unwrap();
+            assert_eq!(chunk.choices[0].finish_reason.as_deref(), Some(expected));
+        }
+    }
+
+    // Minimal completion events must retain their existing normal-stop behavior.
+    #[test]
+    fn test_responses_stream_completed_without_output() {
+        for payload in [
+            json!({"type": "response.completed"}),
+            json!({"type": "response.completed", "response": null}),
+            json!({"type": "response.completed", "response": {}}),
+        ] {
+            let chunk = ResponsesAdapter
+                .stream_to_universal(payload)
+                .unwrap()
+                .unwrap();
+            assert_eq!(chunk.choices[0].finish_reason.as_deref(), Some("stop"));
+        }
+    }
+
+    // Invalid completed output must surface a typed parse error instead of a normal stop.
+    #[test]
+    fn test_responses_stream_completed_rejects_invalid_output() {
+        assert!(ResponsesAdapter
+            .stream_to_universal(json!({
+                "type": "response.completed",
+                "response": {"output": "not an output array"}
+            }))
+            .is_err());
     }
 
     #[test]
