@@ -1935,7 +1935,7 @@ impl ParsedStreamEvent {
 
         #[cfg(feature = "openai")]
         if self.target_format == ProviderFormat::Responses {
-            use crate::providers::openai::generated::OutputItem;
+            use crate::providers::openai::generated::{OutputItem, OutputItemType};
 
             #[derive(Deserialize)]
             #[serde(tag = "type")]
@@ -1955,25 +1955,28 @@ impl ParsedStreamEvent {
                 Text { text: String },
                 #[serde(rename = "response.code_interpreter_call_code.done")]
                 Code { code: String },
-                #[serde(
-                    rename = "response.output_item.done",
-                    alias = "response.output_item.added"
-                )]
-                Item { item: Box<OutputItem> },
+                #[serde(rename = "response.output_item.done")]
+                ItemDone { item: Box<OutputItem> },
+                #[serde(rename = "response.output_item.added")]
+                ItemAdded { item: Box<OutputItem> },
                 #[serde(other)]
                 Other,
             }
 
             return crate::serde_json::from_slice::<NativeOutput>(&self.bytes).is_ok_and(|event| {
+                let item_done = matches!(&event, NativeOutput::ItemDone { .. });
                 match event {
                     NativeOutput::Delta { delta } => !delta.is_empty(),
                     NativeOutput::Refusal { refusal } => !refusal.is_empty(),
                     NativeOutput::Text { text } => !text.is_empty(),
                     NativeOutput::Code { code } => !code.is_empty(),
-                    NativeOutput::Item { item } => {
+                    NativeOutput::ItemDone { item } | NativeOutput::ItemAdded { item } => {
                         nonempty(&item.code)
                             || nonempty(&item.name)
                             || nonempty(&item.input)
+                            || (item_done
+                                && item.output_item_type == Some(OutputItemType::Reasoning)
+                                && nonempty(&item.encrypted_content))
                             || item
                                 .content
                                 .iter()
@@ -1987,6 +1990,8 @@ impl ParsedStreamEvent {
                             || item.queries.iter().flatten().any(|query| !query.is_empty())
                             || item.action.as_ref().is_some_and(|action| {
                                 nonempty(&action.query)
+                                    || nonempty(&action.url)
+                                    || nonempty(&action.pattern)
                                     || action
                                         .queries
                                         .iter()
@@ -2267,6 +2272,18 @@ mod tests {
                 true,
             ),
             (
+                r#"{"type":"response.output_item.done","item":{"type":"web_search_call","action":{"type":"open_page","url":"https://example.com"}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"web_search_call","action":{"type":"find_in_page","pattern":"weather"}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"reasoning","content":[],"summary":[],"encrypted_content":"encrypted-reasoning"}}"#,
+                true,
+            ),
+            (
                 r#"{"type":"response.output_item.done","item":{"type":"message","content":[{"type":"output_text","text":"hello"}]}}"#,
                 true,
             ),
@@ -2300,6 +2317,22 @@ mod tests {
             ),
             (
                 r#"{"type":"response.output_item.done","item":{"type":"web_search_call","status":"completed","action":{"type":"search","queries":[""],"query":""}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"web_search_call","action":{"type":"find_in_page","url":"","pattern":""}}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"reasoning","content":[],"summary":[],"encrypted_content":""}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.added","item":{"type":"reasoning","content":[],"summary":[],"encrypted_content":"encrypted-placeholder"}}"#,
+                false,
+            ),
+            (
+                r#"{"type":"response.output_item.done","item":{"type":"message","content":[],"encrypted_content":"encrypted-placeholder"}}"#,
                 false,
             ),
             (
