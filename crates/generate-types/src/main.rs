@@ -266,7 +266,6 @@ fn post_process_quicktype_output_for_openai_decisions(quicktype_output: &str) ->
         processed = processed.replace("use std::collections::HashMap;\n", "");
     }
     processed = add_serde_skip_if_none(&processed);
-    processed = processed.replace("pub struct ", "#[serde(deny_unknown_fields)]\npub struct ");
     processed = processed.replace(
         "pub struct PromptCacheOptions {",
         "#[ts(optional_fields)]\npub struct PromptCacheOptions {",

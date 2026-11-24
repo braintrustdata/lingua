@@ -238,6 +238,38 @@ mod tests {
         ));
     }
 
+    // Gateway cost metadata must not prevent parsing or forwarding token usage.
+    #[test]
+    fn decisions_usage_with_cost_passes_through() {
+        let body = Bytes::from_static(
+            br#"{
+                "model": "gpt-6-luna",
+                "answers": [],
+                "usage": {
+                    "input_tokens": 40,
+                    "input_tokens_details": {"cached_tokens": 4, "cache_write_tokens": 0},
+                    "output_tokens": 2,
+                    "output_tokens_details": {"reasoning_tokens": 0},
+                    "total_tokens": 42,
+                    "cost": 0.00018
+                }
+            }"#,
+        );
+        let response = crate::parse_decision_response(&body).unwrap();
+        assert_eq!(response.usage.input_tokens, 40);
+        assert_eq!(response.usage.output_tokens, 2);
+        assert_eq!(
+            transform_decision_response(
+                body.clone(),
+                &DecisionResponseContext::PassThrough {
+                    format: ProviderFormat::Decisions,
+                },
+            )
+            .unwrap(),
+            body
+        );
+    }
+
     #[cfg(feature = "typesafe")]
     #[test]
     fn converts_decisions_through_system_one() {
