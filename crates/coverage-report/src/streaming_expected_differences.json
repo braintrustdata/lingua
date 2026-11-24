@@ -188,6 +188,78 @@
   ],
   "perTestCase": [
     {
+      "testCase": "functionToolsWithReasoningEffortParam",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
+      "testCase": "parallelToolCallsDisabledParam",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
+      "testCase": "parallelToolCallsRequest",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
+      "testCase": "responsesCommentaryToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
+      "testCase": "toolCallRequest",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredParam",
+      "source": "Responses",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "choices[*].finish_reason", "reason": "The event-only roundtrip synthesizes response.completed with empty output, so tool-call context from earlier events is unavailable. Full stream sessions reconstruct completed output and preserve tool_calls." }
+      ]
+    },
+    {
       "testCase": "thinkingLevelLowercaseLowParam", "source": "Google", "target": "Anthropic",
       "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-family content stream events do not preserve Google's served service tier metadata in the current adapter." }]
     },
