@@ -554,6 +554,7 @@ struct TraceRequest {
 
 #[derive(Deserialize)]
 struct TraceResponse {
+    #[serde(alias = "Candidates")]
     candidates: Vec<TraceCandidate>,
 }
 

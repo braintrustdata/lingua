@@ -1732,6 +1732,36 @@ mod tests {
 
     #[cfg(feature = "google")]
     #[test]
+    fn gemini_import_accepts_pascal_case_response_wrapper() {
+        let output = crate::serde_json::json!({
+            "Candidates": [{
+                "Content": {"parts": [{"text": "Go candidate reply."}]},
+                "FinishReason": "STOP"
+            }]
+        });
+        let imported = import_span(Span {
+            input: None,
+            output: Some(output),
+            other: Default::default(),
+        })
+        .unwrap();
+
+        let [Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        }] = imported.output.as_slice()
+        else {
+            panic!("expected a Gemini assistant message");
+        };
+        assert!(matches!(
+            parts.as_slice(),
+            [AssistantContentPart::Text(text)] if text.text == "Go candidate reply."
+        ));
+        assert!(imported.errors.is_empty());
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
     fn gemini_import_accepts_standalone_tool_content() {
         let tool_content = crate::serde_json::json!({
             "role": "tool",
