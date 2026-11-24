@@ -566,6 +566,8 @@ struct TraceCandidate {
     content: Option<TraceContent>,
     #[serde(alias = "finish_reason", alias = "FinishReason")]
     finish_reason: Option<FinishReason>,
+    #[serde(alias = "continuation_token", alias = "ContinuationToken")]
+    continuation_token: Option<String>,
     #[serde(alias = "usage_metadata", alias = "UsageMetadata")]
     usage_metadata: Option<UsageMetadata>,
     #[serde(alias = "error_code", alias = "ErrorCode")]
@@ -606,6 +608,20 @@ impl TraceCandidate {
         self.error_code
             .as_ref()
             .is_some_and(|code| !code.is_empty())
+    }
+
+    fn validate_continuation(&self, is_candidate: bool) -> Result<(), ConvertError> {
+        let field = if is_candidate && self.continuation_token.is_some() {
+            "continuationToken"
+        } else if self.finish_reason == Some(FinishReason::Continuation) {
+            "finishReason CONTINUATION"
+        } else {
+            return Ok(());
+        };
+        Err(ConvertError::UnsupportedMapping {
+            from: format!("Google candidate.{field}"),
+            to: "Lingua universal message",
+        })
     }
 
     fn validate_lifecycle(&self, finished: bool) -> Result<(), ConvertError> {
@@ -697,6 +713,8 @@ fn messages_from_candidates(
     let mut pending_tools = None;
     for candidate in candidates {
         let finished = candidate.is_finished(in_candidates);
+        candidate
+            .validate_continuation(in_candidates || finished || candidate.content.is_some())?;
         candidate.validate_lifecycle(finished)?;
         if let Some(content) = candidate.content {
             let envelope_role = (in_candidates || finished).then_some("model");

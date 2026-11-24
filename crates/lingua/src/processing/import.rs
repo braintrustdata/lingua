@@ -1537,6 +1537,49 @@ mod tests {
         }
     }
 
+    // Continuation state cannot be carried by a replayable assistant message.
+    #[cfg(feature = "google")]
+    #[test]
+    fn google_import_rejects_candidate_continuation_state() {
+        let content = crate::serde_json::json!({"parts": [{"text": "Checking your order."}]});
+        for (output, field) in [
+            (
+                crate::serde_json::json!({
+                    "content": content,
+                    "finishReason": "CONTINUATION",
+                    "continuationToken": "opaque-token"
+                }),
+                "continuationToken",
+            ),
+            (
+                crate::serde_json::json!({
+                    "Content": content,
+                    "FinishReason": "CONTINUATION"
+                }),
+                "finishReason CONTINUATION",
+            ),
+            (
+                crate::serde_json::json!({"candidates": [{
+                    "content": content,
+                    "continuation_token": "opaque-token"
+                }]}),
+                "continuationToken",
+            ),
+        ] {
+            let imported = import_span(Span {
+                input: None,
+                output: Some(output),
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.output.is_empty());
+            assert!(imported
+                .errors
+                .iter()
+                .any(|error| { error.contains("Unsupported mapping") && error.contains(field) }));
+        }
+    }
+
     #[cfg(feature = "google")]
     #[test]
     fn adk_import_keeps_completed_lifecycle_content() {
