@@ -2635,6 +2635,38 @@ mod tests {
     }
 
     #[test]
+    fn test_chat_schema_without_strict_preserves_non_strict_semantics() {
+        let chat = crate::providers::openai::adapter::OpenAIAdapter;
+        let responses = ResponsesAdapter;
+        let response_format = json!({
+            "type": "json_schema",
+            "json_schema": {
+                "name": "answer",
+                "schema": {
+                    "type": "object",
+                    "properties": { "text": { "type": "string" } },
+                    "required": ["text"],
+                    "additionalProperties": false
+                }
+            }
+        });
+        let universal = chat
+            .request_to_universal(json!({
+                "model": "gpt-5-nano",
+                "messages": [{"role": "user", "content": "Hello"}],
+                "response_format": response_format
+            }))
+            .unwrap();
+        let responses_request = responses.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            responses_request.pointer("/text/format/strict"),
+            Some(&json!(false))
+        );
+        let chat_request = chat.request_from_universal(&universal).unwrap();
+        assert_eq!(chat_request["response_format"], response_format);
+    }
+
+    #[test]
     fn test_responses_moderation_preserved_when_exporting_to_chat() {
         let responses_adapter = ResponsesAdapter;
         let chat_adapter = crate::providers::openai::adapter::OpenAIAdapter;
