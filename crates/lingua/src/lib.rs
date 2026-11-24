@@ -12,6 +12,7 @@ mod extraction;
 mod import_parse;
 mod import_value;
 pub mod processing;
+pub mod provider_metadata;
 pub mod providers;
 pub mod universal;
 pub mod util;
