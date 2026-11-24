@@ -146,7 +146,6 @@ pub fn test_request_transformation(
 
     target_adapter.apply_defaults(&mut expected_universal);
     let same_provider = source_adapter.format() == target_adapter.format();
-    let expected_universal_value = universal_request_to_value(&expected_universal, same_provider);
 
     let provider_value = match target_adapter.request_from_universal(&expected_universal) {
         Ok(v) => v,
@@ -177,6 +176,18 @@ pub fn test_request_transformation(
             };
         }
     };
+
+    if !same_provider && target_adapter.format() == ProviderFormat::Responses {
+        if let Some(schema) = expected_universal
+            .params
+            .response_format
+            .as_mut()
+            .and_then(|format| format.json_schema.as_mut())
+        {
+            schema.strict.get_or_insert(false);
+        }
+    }
+    let expected_universal_value = universal_request_to_value(&expected_universal, same_provider);
 
     let transformed: Value = match lingua::serde_json::to_value(&provider_value) {
         Ok(v) => v,

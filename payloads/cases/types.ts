@@ -153,7 +153,7 @@ export type DecisionsInputItem =
       role: "assistant";
       content: string | DecisionsOutputText[];
     }
-  | { type: "function_call"; call_id: string; name: string; arguments: string }
+  | OpenAI.Responses.ResponseFunctionToolCall
   | {
       type: "function_call_output";
       call_id: string;
@@ -211,6 +211,15 @@ export type SystemOneQuestion =
 export interface SystemOneRequest {
   model: string;
   state: SystemOneEntry;
+  assets?: Record<
+    string,
+    {
+      type?: "image";
+      format?: "png" | "jpg" | "jpeg";
+      data_base64?: string;
+      part?: string;
+    }
+  >;
   questions: Record<string, SystemOneQuestion>;
 }
 
