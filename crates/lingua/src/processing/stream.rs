@@ -1847,6 +1847,9 @@ impl ParsedStreamEvent {
         #[cfg(feature = "openai")]
         if self.target_format == ProviderFormat::ChatCompletions {
             use crate::providers::openai::convert::ChatCompletionRequestReasoning;
+            use crate::providers::openai::generated::{
+                ChatCompletionMessageToolCallChunk, ChatCompletionStreamResponseDelta,
+            };
 
             #[derive(Deserialize)]
             struct Chunk {
@@ -1859,17 +1862,18 @@ impl ParsedStreamEvent {
             }
             #[derive(Deserialize)]
             struct Delta {
-                content: Option<String>,
-                refusal: Option<String>,
-                function_call: Option<UniversalToolFunctionDelta>,
+                #[serde(flatten)]
+                base: ChatCompletionStreamResponseDelta,
                 reasoning: Option<ChatCompletionRequestReasoning>,
                 reasoning_content: Option<String>,
                 tool_calls: Option<Vec<ToolCall>>,
             }
             #[derive(Deserialize)]
-            struct ToolCall {
-                function: Option<UniversalToolFunctionDelta>,
-                custom: Option<CustomInput>,
+            #[serde(untagged)]
+            enum ToolCall {
+                Custom { custom: CustomInput },
+                Canonical(ChatCompletionMessageToolCallChunk),
+                Other(serde::de::IgnoredAny),
             }
             #[derive(Deserialize)]
             struct CustomInput {
@@ -1881,19 +1885,24 @@ impl ParsedStreamEvent {
                 chunk.choices.into_iter().any(|choice| {
                     nonempty(&choice.text)
                         || choice.delta.is_some_and(|delta| {
-                            nonempty(&delta.content)
-                                || nonempty(&delta.refusal)
-                                || delta
-                                    .function_call
-                                    .as_ref()
-                                    .is_some_and(function_has_output)
+                            nonempty(&delta.base.content)
+                                || nonempty(&delta.base.refusal)
+                                || delta.base.function_call.as_ref().is_some_and(|function| {
+                                    nonempty(&function.name) || nonempty(&function.arguments)
+                                })
                                 || nonempty(&delta.reasoning_content)
                                 || delta.tool_calls.is_some_and(|calls| {
-                                    calls.iter().any(|call| {
-                                        call.function.as_ref().is_some_and(function_has_output)
-                                            || call.custom.as_ref().is_some_and(|custom| {
-                                                nonempty(&custom.name) || nonempty(&custom.input)
+                                    calls.iter().any(|call| match call {
+                                        ToolCall::Custom { custom } => {
+                                            nonempty(&custom.name) || nonempty(&custom.input)
+                                        }
+                                        ToolCall::Canonical(call) => {
+                                            call.function.as_ref().is_some_and(|function| {
+                                                nonempty(&function.name)
+                                                    || nonempty(&function.arguments)
                                             })
+                                        }
+                                        ToolCall::Other(_) => false,
                                     })
                                 })
                                 || delta.reasoning.is_some_and(|reasoning| match reasoning {
@@ -1909,7 +1918,17 @@ impl ParsedStreamEvent {
             });
         }
 
-        if self.universal.as_ref().is_some_and(|chunk| {
+        let forwarded_event;
+        let universal = if self.source_format == self.target_format {
+            self.universal.as_ref()
+        } else {
+            forwarded_event =
+                parse_stream_event(self.bytes.clone(), self.target_format, self.target_format).ok();
+            forwarded_event
+                .as_ref()
+                .and_then(|event| event.universal.as_ref())
+        };
+        if universal.is_some_and(|chunk| {
             chunk
                 .choices
                 .iter()
@@ -2057,6 +2076,14 @@ mod tests {
                 true,
             ),
             (
+                r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"custom":{"input":"print(1)"}}]}}]}"#,
+                true,
+            ),
+            (
+                r#"{"choices":[{"delta":{"content":"hello","tool_calls":[{"index":0,"id":"call","type":"custom"}]}}]}"#,
+                true,
+            ),
+            (
                 r#"{"choices":[],"usage":{"prompt_tokens":10,"completion_tokens":1}}"#,
                 false,
             ),
@@ -2084,6 +2111,10 @@ mod tests {
             ),
             (
                 r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call","type":"custom","custom":{"name":"","input":""}}]}}]}"#,
+                false,
+            ),
+            (
+                r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call","type":"custom"}]}}]}"#,
                 false,
             ),
         ];
@@ -2227,6 +2258,37 @@ mod tests {
             Bytes::from_static(br#"{"type":"response.output_text.delta","delta":"hello"}"#),
             ProviderFormat::Responses,
             ProviderFormat::ChatCompletions,
+        )
+        .unwrap();
+        assert!(event.has_generated_output());
+    }
+
+    // Conversion can replace a source content+finish chunk with a finish-only target event.
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn generated_output_excludes_content_dropped_by_conversion() {
+        let event = parse_stream_event(
+            Bytes::from_static(
+                br#"{"choices":[{"delta":{"content":"hello"},"finish_reason":"stop"}]}"#,
+            ),
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Anthropic,
+        )
+        .unwrap();
+        assert_eq!(
+            crate::serde_json::from_slice::<Value>(&event.bytes).unwrap(),
+            json!({
+                "type": "message_delta",
+                "delta": { "stop_reason": "end_turn" },
+                "usage": { "output_tokens": 0 }
+            })
+        );
+        assert!(!event.has_generated_output());
+
+        let event = parse_stream_event(
+            Bytes::from_static(br#"{"choices":[{"delta":{"content":"hello"}}]}"#),
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Anthropic,
         )
         .unwrap();
         assert!(event.has_generated_output());
