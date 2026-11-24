@@ -238,6 +238,38 @@ mod tests {
         ));
     }
 
+    // Decisions responses can report a numeric cost alongside their token counts.
+    #[test]
+    fn decisions_responses_preserve_token_usage_with_cost() {
+        let body = Bytes::from_static(
+            br#"{
+            "model": "decision-model",
+            "answers": [{"name": "match", "type": "predicate", "probability": 0.75}],
+            "usage": {
+                "input_tokens": 40,
+                "input_tokens_details": {"cached_tokens": 4, "cache_write_tokens": 0},
+                "output_tokens": 2,
+                "output_tokens_details": {"reasoning_tokens": 0},
+                "total_tokens": 42,
+                "cost": 0.00018
+            }
+        }"#,
+        );
+        let parsed = crate::parse_decision_response(&body).unwrap();
+        assert_eq!(parsed.usage.cost, Some(0.00018));
+        assert_eq!(parsed.usage.input_tokens, 40);
+        assert_eq!(parsed.usage.input_tokens_details.cached_tokens, 4);
+        assert_eq!(parsed.usage.output_tokens, 2);
+        let response = transform_decision_response(
+            body.clone(),
+            &DecisionResponseContext::PassThrough {
+                format: ProviderFormat::Decisions,
+            },
+        )
+        .unwrap();
+        assert_eq!(response, body);
+    }
+
     #[cfg(feature = "typesafe")]
     #[test]
     fn converts_decisions_through_system_one() {
