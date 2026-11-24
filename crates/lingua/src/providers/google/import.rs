@@ -581,7 +581,7 @@ struct TraceCandidate {
 }
 
 impl TraceCandidate {
-    fn has_roleless_finished_content(&self) -> bool {
+    fn has_roleless_candidate_content(&self) -> bool {
         (self.finish_reason.is_some() || self.turn_complete == Some(true))
             && self
                 .content
@@ -592,16 +592,24 @@ impl TraceCandidate {
     fn has_adk_lifecycle(&self) -> bool {
         (self.partial == Some(true)
             || self.interrupted == Some(true)
-            || self.turn_complete == Some(true))
+            || self.turn_complete.is_some())
             && self.content.as_ref().is_none_or(|content| {
                 content.role.as_deref() == Some("model")
                     || (content.role.is_none() && content.parts.is_some())
             })
     }
 
+    fn has_terminal_finish_reason(&self) -> bool {
+        !matches!(
+            self.finish_reason,
+            None | Some(FinishReason::FinishReasonUnspecified | FinishReason::Continuation)
+        )
+    }
+
     fn is_finished(&self, in_candidates: bool) -> bool {
-        self.has_roleless_finished_content()
-            || (self.finish_reason.is_some() && (in_candidates || self.usage_metadata.is_some()))
+        let terminal = self.has_terminal_finish_reason();
+        ((terminal || self.turn_complete == Some(true)) && self.has_roleless_candidate_content())
+            || (terminal && (in_candidates || self.usage_metadata.is_some()))
     }
 
     fn is_adk_error(&self) -> bool {
@@ -610,11 +618,16 @@ impl TraceCandidate {
             .is_some_and(|code| !code.is_empty())
     }
 
-    fn validate_continuation(&self, is_candidate: bool) -> Result<(), ConvertError> {
+    fn validate_candidate_state(&self, is_candidate: bool) -> Result<(), ConvertError> {
         let field = if is_candidate && self.continuation_token.is_some() {
             "continuationToken"
         } else if self.finish_reason == Some(FinishReason::Continuation) {
             "finishReason CONTINUATION"
+        } else if self.finish_reason == Some(FinishReason::FinishReasonUnspecified)
+            && !(self.turn_complete == Some(true) && self.content.is_some())
+            && !self.is_adk_error()
+        {
+            "finishReason FINISH_REASON_UNSPECIFIED"
         } else {
             return Ok(());
         };
@@ -629,10 +642,9 @@ impl TraceCandidate {
             "partial"
         } else if self.interrupted == Some(true) {
             "interrupted"
-        } else if self.turn_complete == Some(true)
-            && self.content.is_none()
-            && !finished
-            && !self.is_adk_error()
+        } else if !self.is_adk_error()
+            && ((self.turn_complete == Some(false) && !self.has_terminal_finish_reason())
+                || (self.turn_complete == Some(true) && self.content.is_none() && !finished))
         {
             "turnComplete"
         } else {
@@ -714,7 +726,7 @@ fn messages_from_candidates(
     for candidate in candidates {
         let finished = candidate.is_finished(in_candidates);
         candidate
-            .validate_continuation(in_candidates || finished || candidate.content.is_some())?;
+            .validate_candidate_state(in_candidates || finished || candidate.content.is_some())?;
         candidate.validate_lifecycle(finished)?;
         if let Some(content) = candidate.content {
             let envelope_role = (in_candidates || finished).then_some("model");
@@ -752,7 +764,7 @@ fn try_parse_candidates(
     if candidates.iter().any(|candidate| {
         candidate.content.as_ref().is_some_and(|content| {
             !content.is_direct_content()
-                && !candidate.has_roleless_finished_content()
+                && !candidate.has_roleless_candidate_content()
                 && !candidate.has_adk_lifecycle()
         })
     }) {
@@ -775,7 +787,7 @@ pub(crate) fn try_parse_adk_for_import(
     });
     if candidate.usage_metadata.is_none()
         && !has_google_content
-        && !candidate.has_roleless_finished_content()
+        && !candidate.has_roleless_candidate_content()
         && !candidate.is_adk_error()
         && !candidate.has_adk_lifecycle()
     {

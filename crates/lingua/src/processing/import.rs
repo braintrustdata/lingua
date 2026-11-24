@@ -1491,6 +1491,7 @@ mod tests {
         }
     }
 
+    // Unfinished ADK chunks and standalone completion signals cannot be replayed as messages.
     #[cfg(feature = "google")]
     #[test]
     fn adk_import_reports_unsupported_lifecycle_events() {
@@ -1506,6 +1507,17 @@ mod tests {
             (
                 crate::serde_json::json!({"content": content, "interrupted": true}),
                 "interrupted",
+            ),
+            (
+                crate::serde_json::json!({"content": content, "turnComplete": false}),
+                "turnComplete",
+            ),
+            (
+                crate::serde_json::json!({
+                    "Content": {"parts": [{"text": "Par"}]},
+                    "TurnComplete": false
+                }),
+                "turnComplete",
             ),
             (
                 crate::serde_json::json!({"turnComplete": true}),
@@ -1534,6 +1546,32 @@ mod tests {
                 .errors
                 .iter()
                 .any(|error| { error.contains("Unsupported mapping") && error.contains(field) }));
+        }
+    }
+
+    // An unspecified finish reason alone cannot create a completed message.
+    #[cfg(feature = "google")]
+    #[test]
+    fn google_import_rejects_unspecified_finish_reason_without_completion() {
+        for output in [
+            crate::serde_json::json!({
+                "content": {"parts": [{"text": "Par"}]},
+                "finishReason": "FINISH_REASON_UNSPECIFIED"
+            }),
+            crate::serde_json::json!({
+                "candidates": [{"finishReason": "FINISH_REASON_UNSPECIFIED"}]
+            }),
+        ] {
+            let imported = import_span(Span {
+                input: None,
+                output: Some(output),
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.output.is_empty());
+            assert!(imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("FINISH_REASON_UNSPECIFIED")
+            }));
         }
     }
 
@@ -1580,26 +1618,42 @@ mod tests {
         }
     }
 
+    // An explicit completion signal or terminal finish reason can establish a completed ADK turn.
     #[cfg(feature = "google")]
     #[test]
     fn adk_import_keeps_completed_lifecycle_content() {
-        let imported = import_span(Span {
-            output: Some(crate::serde_json::json!({
-                "content": {"parts": [{"text": "Meal is ready."}]},
+        let parts = crate::serde_json::json!([{"text": "Meal is ready."}]);
+        for output in [
+            crate::serde_json::json!({
+                "content": {"parts": parts},
                 "partial": false,
                 "interrupted": false,
                 "turnComplete": true
-            })),
-            input: None,
-            other: Default::default(),
-        })
-        .unwrap();
-        assert!(matches!(
-            imported.output.as_slice(),
-            [Message::Assistant { content: AssistantContent::Array(parts), .. }]
-                if matches!(parts.as_slice(), [AssistantContentPart::Text(text)] if text.text == "Meal is ready.")
-        ));
-        assert!(imported.errors.is_empty());
+            }),
+            crate::serde_json::json!({
+                "content": {"parts": parts},
+                "finishReason": "FINISH_REASON_UNSPECIFIED",
+                "turnComplete": true
+            }),
+            crate::serde_json::json!({
+                "Content": {"role": "model", "parts": parts},
+                "FinishReason": "STOP",
+                "TurnComplete": false
+            }),
+        ] {
+            let imported = import_span(Span {
+                output: Some(output),
+                input: None,
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(matches!(
+                imported.output.as_slice(),
+                [Message::Assistant { content: AssistantContent::Array(parts), .. }]
+                    if matches!(parts.as_slice(), [AssistantContentPart::Text(text)] if text.text == "Meal is ready.")
+            ));
+            assert!(imported.errors.is_empty());
+        }
     }
 
     #[cfg(feature = "google")]
