@@ -2006,7 +2006,16 @@ impl ParsedStreamEvent {
                                     .as_ref()
                                     .is_some_and(|operation| !operation.path.is_empty()),
                                 Some(OutputItemType::ToolSearchCall) => {
-                                    item_done && item.arguments.is_some()
+                                    item.arguments.as_ref().is_some_and(|arguments| {
+                                        item_done
+                                            || std::collections::BTreeMap::<
+                                                String,
+                                                serde::de::IgnoredAny,
+                                            >::deserialize(
+                                                arguments
+                                            )
+                                            .is_ok_and(|arguments| !arguments.is_empty())
+                                    })
                                 }
                                 None
                                 | Some(
@@ -2371,6 +2380,10 @@ mod tests {
             ),
             (
                 r#"{"type":"response.output_item.done","item":{"type":"tool_search_call","arguments":{"query":"find tools"}}}"#,
+                true,
+            ),
+            (
+                r#"{"type":"response.output_item.added","item":{"type":"tool_search_call","arguments":{"paths":["catalog"]}}}"#,
                 true,
             ),
             (
