@@ -469,7 +469,7 @@ fn to_openai_chat(config: &ResponseFormatConfig) -> Result<Option<Value>, Conver
 ///
 /// Output format (flattened, wrapped in text object):
 /// - `{ format: { type: "text" } }`
-/// - `{ format: { type: "json_schema", name, schema, strict?, description? } }`
+/// - `{ format: { type: "json_schema", name, schema, strict, description? } }`
 ///
 /// Returns the full `text` object, not just the format.
 fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Value>, ConvertError> {
@@ -487,6 +487,7 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Valu
                         field: "json_schema".to_string(),
                     }
                 })?;
+                let strict = js.strict.unwrap_or(false);
                 let mut obj = Map::new();
                 obj.insert("type".into(), Value::String("json_schema".into()));
                 obj.insert("name".into(), Value::String(js.name.clone()));
@@ -495,12 +496,10 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Valu
                     normalize_response_schema_for_strict_target(
                         &js.schema,
                         ProviderFormat::Responses,
-                        js.strict == Some(true),
+                        strict,
                     )?,
                 );
-                if let Some(strict) = js.strict {
-                    obj.insert("strict".into(), Value::Bool(strict));
-                }
+                obj.insert("strict".into(), Value::Bool(strict));
                 if let Some(ref desc) = js.description {
                     obj.insert("description".into(), Value::String(desc.clone()));
                 }
@@ -572,6 +571,7 @@ mod tests {
         format_type: String,
         name: String,
         schema: Value,
+        strict: Option<bool>,
     }
 
     #[derive(Debug, Deserialize)]
@@ -953,6 +953,7 @@ mod tests {
                 .unwrap();
             let responses: OpenAiResponsesTextView = serde_json::from_value(responses_value)
                 .expect("responses text config should deserialize");
+            assert_eq!(responses.format.strict, Some(false));
             assert_eq!(
                 responses.format.schema.pointer("/required"),
                 Some(&json!(["answer"])),

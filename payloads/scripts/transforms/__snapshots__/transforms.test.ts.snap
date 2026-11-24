@@ -7002,6 +7002,7 @@ exports[`anthropic → responses > jsonSchemaFormatParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -7253,6 +7254,7 @@ exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > reque
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -7318,6 +7320,7 @@ exports[`anthropic → responses > outputConfigJsonSchemaParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -7383,6 +7386,7 @@ exports[`anthropic → responses > outputFormatJsonSchemaParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -7414,6 +7418,65 @@ exports[`anthropic → responses > outputFormatJsonSchemaParam > response 1`] = 
     "output_tokens_details": {
       "thinking_tokens": 320,
     },
+  },
+}
+`;
+
+exports[`anthropic → responses > outputFormatOptionalJsonSchemaParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with answer set to hello.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5.6-terra",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string",
+          },
+          "reasoning": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "answer",
+        ],
+        "type": "object",
+      },
+      "strict": false,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`anthropic → responses > outputFormatOptionalJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "{"answer":"hello"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_044a2f7a9fb891ac016b05c9dd009c87d1bf730da54c4e07bd",
+  "model": "gpt-5.6-terra",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 43,
+    "output_tokens": 12,
   },
 }
 `;
@@ -8360,6 +8423,7 @@ exports[`anthropic → responses > textFormatJsonSchemaParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -8425,6 +8489,7 @@ exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > re
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -29255,6 +29320,7 @@ exports[`google → responses > googleResponseSchemaPropertyOrderingParam > requ
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -29328,6 +29394,7 @@ Return exactly {"topic": "...", "recommendation": "...", "confidence": 0.0}.",
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -29630,6 +29697,7 @@ exports[`google → responses > jsonSchemaFormatParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -29695,6 +29763,7 @@ exports[`google → responses > jsonSchemaMinMaxItemsParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -29757,6 +29826,7 @@ exports[`google → responses > jsonSchemaMinimumMaximumParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -29837,6 +29907,7 @@ exports[`google → responses > jsonSchemaPrefixItemsParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -30768,6 +30839,7 @@ exports[`google → responses > textFormatJsonSchemaParam > request 1`] = `
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
@@ -30834,6 +30906,7 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > reque
         ],
         "type": "object",
       },
+      "strict": false,
       "type": "json_schema",
     },
   },
