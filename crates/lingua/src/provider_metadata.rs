@@ -133,7 +133,10 @@ impl ProviderFrame<'_> {
             Some(ErrorCode::Text(code)) => match code.as_str() {
                 "context_length_exceeded" => "context_length_exceeded",
                 "billing_not_active" => "billing_not_active",
-                "insufficient_quota" | "credit_balance_exhausted" => "insufficient_credits",
+                "insufficient_quota"
+                | "organization_spend_limit_exceeded"
+                | "credit_balance_exhausted" => "insufficient_credits",
+                "bio_policy" => "bio_policy",
                 "server_is_overloaded" => "provider_at_capacity",
                 "server_error"
                     if error
@@ -283,6 +286,21 @@ mod tests {
             ),
             (
                 r#"{"type":"error","error":{"code":402.0}}"#,
+                None,
+                UsagePossible,
+            ),
+            (
+                r#"{"type":"response.failed","response":{"output":[],"usage":null,"error":{"code":"organization_spend_limit_exceeded","type":"insufficient_quota"}}}"#,
+                None,
+                Rejected("insufficient_credits"),
+            ),
+            (
+                r#"{"type":"response.failed","response":{"output":[],"usage":null,"error":{"code":"bio_policy","type":"invalid_request_error"}}}"#,
+                None,
+                Rejected("bio_policy"),
+            ),
+            (
+                r#"{"type":"response.failed","response":{"output":[],"usage":null,"error":{"code":"server_error"}}}"#,
                 None,
                 UsagePossible,
             ),
