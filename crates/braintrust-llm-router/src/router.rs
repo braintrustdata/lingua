@@ -8,7 +8,7 @@ use tokio::time::sleep;
 use tracing::Instrument;
 
 use bytes::Bytes;
-use futures::TryStreamExt;
+use futures::{StreamExt, TryStreamExt};
 
 use crate::auth::AuthConfig;
 use crate::catalog::{
@@ -24,7 +24,8 @@ use crate::providers::{
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{
-    transform_provider_stream, RawStreamChunkCapture, ResponseStream, ServedInfoCapture,
+    transform_provider_stream, RawResponseStream, RawStreamChunkCapture, RawStreamChunkGuard,
+    ResponseStream, ServedInfoCapture,
 };
 use lingua::serde_json::Value;
 use lingua::universal::decision::{DecisionParams, TypeSafeDecisionOptions};
@@ -259,6 +260,15 @@ pub struct PreparedRequest {
 /// Streaming request prepared by the router and ready for execution.
 pub struct PreparedStreamRequest {
     inner: PreparedRequestInner,
+    raw_chunk_guard: Option<RawStreamChunkGuard>,
+}
+
+impl PreparedStreamRequest {
+    /// Check each provider event before observers or conversion, propagating any error.
+    pub fn with_raw_chunk_guard(mut self, guard: RawStreamChunkGuard) -> Self {
+        self.raw_chunk_guard = Some(guard);
+        self
+    }
 }
 
 struct PreparedRequestInner {
@@ -868,7 +878,13 @@ impl Router {
                 },
             )
             .await?;
-        Ok((PreparedStreamRequest { inner }, metadata))
+        Ok((
+            PreparedStreamRequest {
+                inner,
+                raw_chunk_guard: None,
+            },
+            metadata,
+        ))
     }
 
     /// Execute a prepared streaming request.
@@ -967,6 +983,16 @@ impl Router {
             .clone()
             .complete_stream(payload, &auth, spec.as_ref(), format, client_headers)
             .await?;
+        let raw_stream: RawResponseStream = if let Some(guard) = request.raw_chunk_guard {
+            Box::pin(raw_stream.map(move |result| {
+                result.and_then(|chunk| {
+                    guard(&chunk)?;
+                    Ok(chunk)
+                })
+            }))
+        } else {
+            raw_stream
+        };
         if passthrough {
             return Ok(Box::pin(raw_stream.inspect_ok(move |chunk| {
                 if let Some(capture) = &raw_chunk_capture {
@@ -2915,6 +2941,118 @@ mod tests {
             captured.lock().expect("capture lock poisoned").as_slice(),
             &[raw_chunk]
         );
+    }
+
+    // A raw-event guard must stop suppressed events before capture or conversion consumes more input.
+    #[tokio::test]
+    async fn raw_stream_guard_precedes_capture_and_suppressed_output() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        for passthrough in [false, true] {
+            let router = router_with_static_provider(StaticProvider {
+                response: Bytes::new(),
+                stream_chunks: vec![Bytes::from_static(b"   "); 8],
+            });
+            let (mut prepared, _) = create_test_stream_request(
+                &router,
+                chat_request_body(),
+                "gpt-5-mini",
+                ProviderFormat::ChatCompletions,
+            )
+            .await
+            .unwrap();
+            prepared.inner.passthrough = passthrough;
+            let observed = Arc::new(AtomicUsize::new(0));
+            let guarded = Arc::clone(&observed);
+            let prepared = prepared.with_raw_chunk_guard(Arc::new(move |chunk| {
+                let bytes = guarded.fetch_add(chunk.data.len(), Ordering::Relaxed);
+                if bytes + chunk.data.len() > 6 {
+                    return Err(Error::Io(std::io::Error::other("stream byte limit")));
+                }
+                Ok(())
+            }));
+            let captured = Arc::new(Mutex::new(Vec::new()));
+            let raw_capture = Arc::clone(&captured);
+            let stream = router
+                .complete_stream_with_raw_response_capture(
+                    prepared,
+                    &ClientHeaders::default(),
+                    None,
+                    Arc::new(move |chunk| raw_capture.lock().unwrap().push(chunk.data.clone())),
+                )
+                .await
+                .unwrap();
+
+            let result = stream.try_collect::<Vec<_>>().await;
+            assert!(
+                matches!(result, Err(Error::Io(ref error)) if error.to_string() == "stream byte limit")
+            );
+            assert_eq!(observed.load(Ordering::Relaxed), 9);
+            assert_eq!(
+                *captured.lock().unwrap(),
+                vec![Bytes::from_static(b"   "); 2]
+            );
+        }
+    }
+
+    // Optional guards preserve connected payloads and EOF for converted and passthrough streams.
+    #[tokio::test]
+    async fn raw_stream_guard_preserves_output_and_eof() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        for passthrough in [false, true] {
+            for guarded in [false, true] {
+                for chunks in [Vec::new(), vec![chat_stream_chunk_body()]] {
+                    let router = router_with_static_provider(StaticProvider {
+                        response: Bytes::new(),
+                        stream_chunks: chunks.clone(),
+                    });
+                    let (mut prepared, _) = create_test_stream_request(
+                        &router,
+                        chat_request_body(),
+                        "gpt-5-mini",
+                        ProviderFormat::ChatCompletions,
+                    )
+                    .await
+                    .unwrap();
+                    prepared.inner.passthrough = passthrough;
+                    let calls = Arc::new(AtomicUsize::new(0));
+                    if guarded {
+                        let calls = Arc::clone(&calls);
+                        prepared = prepared.with_raw_chunk_guard(Arc::new(move |_| {
+                            calls.fetch_add(1, Ordering::Relaxed);
+                            Ok(())
+                        }));
+                    }
+                    let captured = Arc::new(Mutex::new(Vec::new()));
+                    let raw_capture = Arc::clone(&captured);
+                    let mut stream = router
+                        .complete_stream_with_raw_response_capture(
+                            prepared,
+                            &ClientHeaders::default(),
+                            None,
+                            Arc::new(move |chunk| {
+                                raw_capture.lock().unwrap().push(chunk.data.clone())
+                            }),
+                        )
+                        .await
+                        .unwrap();
+                    let output = stream
+                        .by_ref()
+                        .map_ok(|chunk| chunk.data)
+                        .try_collect::<Vec<_>>()
+                        .await
+                        .unwrap();
+                    assert_eq!(output, chunks);
+                    assert_eq!(*captured.lock().unwrap(), chunks);
+                    assert!(stream.next().await.is_none());
+                    assert_eq!(
+                        calls.load(Ordering::Relaxed),
+                        if guarded { chunks.len() } else { 0 }
+                    );
+                }
+            }
+        }
     }
 
     #[tokio::test]

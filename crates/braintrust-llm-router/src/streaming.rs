@@ -80,6 +80,8 @@ pub type RawResponseStream = Pin<Box<dyn Stream<Item = Result<StreamChunk>> + Se
 
 pub type RawStreamChunkCapture = Arc<dyn Fn(&StreamChunk) + Send + Sync>;
 
+pub type RawStreamChunkGuard = Arc<dyn Fn(&StreamChunk) -> Result<()> + Send + Sync>;
+
 /// Called when a converted provider chunk reports how it was served.
 pub type ServedInfoCapture = Arc<dyn Fn(&ServedInfo) + Send + Sync>;
 

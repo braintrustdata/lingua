@@ -42,7 +42,7 @@ pub use router::{
 };
 pub use streaming::{
     sse_stream, transform_provider_stream, RawResponseStream, RawStreamChunkCapture,
-    ResponseStream, ServedInfoCapture, StreamChunk,
+    RawStreamChunkGuard, ResponseStream, ServedInfoCapture, StreamChunk,
 };
 
 // Provider trait requirement (for custom provider implementations)
