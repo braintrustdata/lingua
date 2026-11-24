@@ -1288,10 +1288,22 @@ mod tests {
         assert!(error.to_string().contains("media_type"), "{error}");
     }
 
+    // Extra cache options do not prevent converting the known fields.
     #[test]
-    fn rejects_unknown_nested_cache_options() {
-        let error = serde_json::from_value::<UniversalDecisionRequest>(json!({"model":"gpt-6-luna","input":"x","questions":[],"params":{"extras":{"decisions":{"prompt_cache_options":{"mod":"explicit"}}}}})).unwrap_err();
-        assert!(error.to_string().contains("mod"), "{error}");
+    fn accepts_extra_nested_cache_options() {
+        let request = serde_json::from_value(json!({
+            "model": "gpt-6-luna",
+            "input": "x",
+            "questions": [],
+            "params": {"extras": {"decisions": {
+                "prompt_cache_options": {"mode": "explicit", "future_option": true}
+            }}}
+        }))
+        .unwrap();
+        assert_eq!(
+            from_universal(request).unwrap()["prompt_cache_options"],
+            json!({"mode": "explicit"})
+        );
     }
 
     #[test]
