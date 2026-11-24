@@ -44,6 +44,7 @@ for (const pair of STREAMING_PAIRS) {
         continue;
       }
 
+      // Captured streams must preserve tool-call termination and their transformed wire output.
       test(caseName, () => {
         const pairKey = `${pair.source}_to_${pair.target}_streaming`;
 
@@ -77,6 +78,13 @@ for (const pair of STREAMING_PAIRS) {
               )}`;
             }
           );
+          if (
+            pair.source === "responses" &&
+            pair.target === "chat-completions" &&
+            caseName === "responsesCommentaryToolCallStreamingParam"
+          ) {
+            expect(normalizedSse).toMatch(/"finish_reason":"tool_calls"/);
+          }
           expect(normalizedSse).toMatchSnapshot("streaming");
         } catch (e) {
           const errorReason = transformErrors[pairKey]?.[caseName];

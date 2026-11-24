@@ -4126,6 +4126,44 @@ mod tests {
         );
     }
 
+    // Stateful roundtrips must retain tool arguments and termination across complete streams.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_responses_tool_call_finish_reason_survives_stream_roundtrip() {
+        let events: Vec<Value> = crate::serde_json::from_str(include_str!(
+            "../../../../payloads/snapshots/responsesCommentaryToolCallStreamingParam/responses/response-streaming.json"
+        ))
+        .unwrap();
+        let original_tool = &events.last().unwrap()["response"]["output"][1];
+        let mut chat = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+        let mut responses = StreamTransformSession::new(ProviderFormat::Responses);
+        let mut roundtripped: Vec<Value> = Vec::new();
+        for event in &events {
+            for chunk in chat.push(to_bytes(event)).unwrap() {
+                for output in responses.push(chunk.data).unwrap() {
+                    roundtripped.push(crate::serde_json::from_slice(&output.data).unwrap());
+                }
+            }
+        }
+        let completed = roundtripped
+            .iter()
+            .find(|event| event["type"] == "response.completed")
+            .unwrap();
+        let tool = &completed["response"]["output"][0];
+        assert_eq!(tool["call_id"], original_tool["call_id"]);
+        assert_eq!(tool["arguments"], original_tool["arguments"]);
+        let universal = adapter_for_format(ProviderFormat::Responses)
+            .unwrap()
+            .stream_to_universal(completed.clone())
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            universal.choices[0].finish_reason.as_deref(),
+            Some("tool_calls")
+        );
+    }
+
+    // Tool-call turns must finish with the tool_calls reason so clients can dispatch them.
     #[test]
     #[cfg(feature = "openai")]
     fn test_stream_session_responses_commentary_tool_call_turn_completes_without_final_answer() {
@@ -4285,13 +4323,7 @@ mod tests {
 
         // The turn ends with a terminal finish chunk, usage, and the [DONE] marker.
         let terminal = chunks.last().expect("terminal chunk");
-        assert!(
-            terminal
-                .pointer("/choices/0/finish_reason")
-                .and_then(Value::as_str)
-                .is_some(),
-            "terminal chunk has no finish_reason: {terminal}"
-        );
+        assert_eq!(terminal["choices"][0]["finish_reason"], json!("tool_calls"));
         assert_eq!(terminal["usage"]["total_tokens"], json!(160));
         assert_eq!(
             trailer.last().map(Bytes::as_ref),
@@ -4310,24 +4342,35 @@ mod tests {
             "type": "response.custom_tool_call_input.delta", "output_index": 1, "item_id": "ctc_1",
             "sequence_number": 7, "delta": "Streaming fix shipped."
         });
+        let custom_completed = json!({
+            "type": "response.completed",
+            "response": {
+                "status": "completed",
+                "output": [commentary_item, {
+                    "id": "ctc_1", "type": "custom_tool_call", "status": "completed",
+                    "call_id": "call_note", "name": "write_release_note", "input": "Streaming fix shipped."
+                }]
+            }
+        });
         let (chunks, _) = run_chat(&[
             commentary_added.clone(),
             commentary_delta.clone(),
             commentary_done.clone(),
             custom_added,
             custom_input,
-            completed.clone(),
+            custom_completed,
         ])
         .expect("commentary followed by a custom tool call is a complete turn");
         assert!(chunks
             .iter()
             .any(|chunk| chunk.pointer("/choices/0/delta/tool_calls/0/id")
                 == Some(&json!("call_note"))));
-        assert!(chunks
-            .last()
-            .and_then(|chunk| chunk.pointer("/choices/0/finish_reason"))
-            .and_then(Value::as_str)
-            .is_some());
+        assert_eq!(
+            chunks
+                .last()
+                .and_then(|chunk| chunk.pointer("/choices/0/finish_reason")),
+            Some(&json!("tool_calls"))
+        );
 
         // Without any tool call, a commentary-only turn still has no answer to emit.
         let error = run_chat(&[
