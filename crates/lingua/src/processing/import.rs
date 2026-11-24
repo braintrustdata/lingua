@@ -1404,17 +1404,22 @@ mod tests {
         let clean = import_with_input(None);
         let expected_output = serde_json::to_value(&clean.output).unwrap();
         let mixed = crate::serde_json::json!([candidate, unsupported]);
-        let outputs = [
+        for input in [
             mixed.clone(),
             crate::serde_json::json!([{"message": candidate}, {"message": unsupported}]),
-        ]
-        .map(|input| {
+            crate::serde_json::json!([
+                {"role": "model", "parts": [{"functionCall": {"name": "weather"}}]},
+                unsupported
+            ]),
+        ] {
             let imported = import_with_input(Some(input));
             assert!(imported.input.is_empty());
             assert!(!imported.errors.is_empty());
-            serde_json::to_value(imported.output).unwrap()
-        });
-        assert_eq!(outputs, [expected_output.clone(), expected_output]);
+            assert_eq!(
+                serde_json::to_value(imported.output).unwrap(),
+                expected_output
+            );
+        }
 
         let supported = import_with_input(Some(crate::serde_json::json!([candidate])));
         let preserved = import_span_with_options(
@@ -1728,6 +1733,55 @@ mod tests {
                 "{field}"
             );
         }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_matches_idless_calls_and_results_in_direct_content() {
+        let call = crate::serde_json::json!({
+            "role": "model",
+            "parts": [{"function_call": {"name": "weather", "args": {"city": "Paris"}}}]
+        });
+        let result = crate::serde_json::json!({
+            "role": "tool",
+            "parts": [{"function_response": {"name": "weather", "response": {"degrees": 20}}}]
+        });
+        let imported = import_span(Span {
+            input: Some(crate::serde_json::json!([call, call])),
+            output: Some(crate::serde_json::json!([result, result])),
+            other: Default::default(),
+        })
+        .unwrap();
+
+        assert!(imported.errors.is_empty());
+        assert_eq!(imported.input.len(), 2);
+        assert_eq!(imported.output.len(), 2);
+        let call_ids: Vec<_> = imported
+            .input
+            .iter()
+            .zip(&imported.output)
+            .map(|(call, result)| {
+                let (
+                    Message::Assistant {
+                        content: AssistantContent::Array(call),
+                        ..
+                    },
+                    Message::Tool { content: result },
+                ) = (call, result)
+                else {
+                    panic!("expected an assistant call and tool result");
+                };
+                let [AssistantContentPart::ToolCall { tool_call_id, .. }] = call.as_slice() else {
+                    panic!("expected one tool call");
+                };
+                let [ToolContentPart::ToolResult(result)] = result.as_slice() else {
+                    panic!("expected one tool result");
+                };
+                assert_eq!(tool_call_id, &result.tool_call_id);
+                tool_call_id
+            })
+            .collect();
+        assert_ne!(call_ids[0], call_ids[1]);
     }
 
     #[cfg(feature = "google")]

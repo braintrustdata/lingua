@@ -593,17 +593,23 @@ impl TraceCandidate {
     }
 }
 
-fn try_parse_content(data: &impl ImportValue) -> Option<Result<Vec<Message>, ConvertError>> {
+fn try_parse_content(
+    data: &impl ImportValue,
+    trace_tools: &mut TraceToolCalls,
+) -> Option<Result<Vec<Message>, ConvertError>> {
     let contents = try_parse_vec_or_single::<TraceContent>(data)?;
     if contents.is_empty() || !contents.iter().all(TraceContent::is_direct_content) {
         return None;
     }
-    Some(
-        contents
-            .into_iter()
-            .map(|content| content.into_message(None, None))
-            .collect(),
-    )
+    let mut pending_tools = trace_tools.clone();
+    let messages: Result<Vec<_>, _> = contents
+        .into_iter()
+        .map(|content| content.into_message(None, Some(&mut pending_tools)))
+        .collect();
+    if messages.is_ok() {
+        *trace_tools = pending_tools;
+    }
+    Some(messages)
 }
 
 fn try_parse_request(
@@ -724,7 +730,7 @@ pub(crate) fn try_parse_google_for_import(
     data: &impl ImportValue,
     trace_tools: &mut TraceToolCalls,
 ) -> Option<Result<Vec<Message>, ConvertError>> {
-    try_parse_content(data)
+    try_parse_content(data, trace_tools)
         .or_else(|| try_parse_request(data, trace_tools))
         .or_else(|| try_parse_response(data, trace_tools))
         .or_else(|| try_parse_candidates(data, trace_tools))
