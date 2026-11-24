@@ -184,7 +184,7 @@ pub fn test_request_transformation(
             .as_mut()
             .and_then(|format| format.json_schema.as_mut())
         {
-            schema.strict.get_or_insert(false);
+            schema.strict = Some(schema.responses_strict());
         }
     }
     let expected_universal_value = universal_request_to_value(&expected_universal, same_provider);
