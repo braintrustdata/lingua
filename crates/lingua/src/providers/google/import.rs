@@ -652,6 +652,8 @@ struct TraceCandidate {
     interrupted: Option<bool>,
     #[serde(alias = "turn_complete", alias = "TurnComplete")]
     turn_complete: Option<bool>,
+    #[serde(alias = "turn_complete_reason", alias = "TurnCompleteReason")]
+    turn_complete_reason: Option<String>,
     #[serde(alias = "interaction_status", alias = "InteractionStatus")]
     interaction_status: Option<TraceInteractionStatus>,
 }
@@ -671,6 +673,7 @@ impl TraceCandidate {
         (self.partial == Some(true)
             || self.interrupted == Some(true)
             || self.turn_complete.is_some()
+            || self.turn_complete_reason.is_some()
             || self.interaction_status.is_some())
             && self
                 .content
@@ -725,6 +728,15 @@ impl TraceCandidate {
     }
 
     fn validate_lifecycle(&self, finished: bool) -> Result<(), ConvertError> {
+        if let Some(reason) = self.turn_complete_reason.as_deref()
+            && reason != "TURN_COMPLETE_REASON_UNSPECIFIED"
+        {
+            return Err(ConvertError::UnsupportedMapping {
+                from: format!("ADK LlmResponse.turnCompleteReason {reason}"),
+                to: "Lingua universal message",
+            });
+        }
+
         let field = if self.partial == Some(true) {
             "partial"
         } else if self.interrupted == Some(true) {

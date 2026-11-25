@@ -1570,6 +1570,26 @@ mod tests {
                 }),
                 "interactionStatus",
             ),
+            (
+                crate::serde_json::json!({
+                    "content": content,
+                    "turnComplete": true,
+                    "turnCompleteReason": "NEED_MORE_INPUT"
+                }),
+                "turnCompleteReason NEED_MORE_INPUT",
+            ),
+            (
+                crate::serde_json::json!({"turn_complete_reason": "RESPONSE_REJECTED"}),
+                "turnCompleteReason RESPONSE_REJECTED",
+            ),
+            (
+                crate::serde_json::json!({
+                    "Content": {"parts": [{"text": "Par"}]},
+                    "TurnComplete": true,
+                    "TurnCompleteReason": "MALFORMED_FUNCTION_CALL"
+                }),
+                "turnCompleteReason MALFORMED_FUNCTION_CALL",
+            ),
         ] {
             let imported = import_span(Span {
                 output: Some(output),
@@ -1678,6 +1698,7 @@ mod tests {
                 "partial": false,
                 "interrupted": false,
                 "turn_complete": true,
+                "turn_complete_reason": "TURN_COMPLETE_REASON_UNSPECIFIED",
                 "interaction_status": "IDLE"
             }),
             crate::serde_json::json!({
