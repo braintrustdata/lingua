@@ -712,8 +712,14 @@ impl TraceCandidate {
             .is_some_and(|code| !code.is_empty())
     }
 
-    fn validate_candidate_state(&self, is_candidate: bool) -> Result<(), ConvertError> {
-        let field = if is_candidate && self.continuation_token.is_some() {
+    fn validate_candidate_state(
+        &self,
+        in_candidates: bool,
+        finished: bool,
+    ) -> Result<(), ConvertError> {
+        let field = if self.continuation_token.is_some()
+            && (in_candidates || finished || self.content.is_some())
+        {
             "continuationToken"
         } else if self.finish_reason == Some(FinishReason::Continuation) {
             "finishReason CONTINUATION"
@@ -722,6 +728,13 @@ impl TraceCandidate {
             && !self.is_adk_error()
         {
             "finishReason FINISH_REASON_UNSPECIFIED"
+        } else if in_candidates
+            && self.content.is_some()
+            && self.finish_reason.is_none()
+            && self.turn_complete != Some(true)
+            && self.partial != Some(false)
+        {
+            "finishReason (missing from unfinished generation)"
         } else {
             return Ok(());
         };
@@ -849,8 +862,7 @@ fn messages_from_candidates(
     let mut pending_tools = None;
     for candidate in candidates {
         let finished = candidate.is_finished(in_candidates);
-        candidate
-            .validate_candidate_state(in_candidates || finished || candidate.content.is_some())?;
+        candidate.validate_candidate_state(in_candidates, finished)?;
         candidate.validate_lifecycle(finished)?;
         if let Some(content) = candidate.content {
             let envelope_role = (in_candidates || finished).then_some("model");

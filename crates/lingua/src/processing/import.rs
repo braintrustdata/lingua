@@ -1297,7 +1297,7 @@ mod tests {
                             {"functionCall": {"name": "clock", "args": {
                                 "zone": "UTC", "options": {"hour12": false, "precision": "minutes"}
                             }}}
-                        ]}}]
+                        ]}, "finishReason": "STOP"}]
                     }
                 },
                 {
@@ -1322,7 +1322,7 @@ mod tests {
                             {"functionCall": {"name": "clock", "args": {
                                 "zone": "UTC", "options": {"hour12": false, "precision": "minutes"}
                             }}}
-                        ]}}]
+                        ]}, "finishReason": "STOP"}]
                     }
                 },
                 {
@@ -1405,7 +1405,7 @@ mod tests {
         let output = crate::serde_json::json!({
             "candidates": [{"content": {"role": "model", "parts": [
                 {"functionCall": {"name": "weather"}}
-            ]}}]
+            ]}, "finishReason": "STOP"}]
         });
         let import_with_input = |input| {
             import_span(Span {
@@ -1462,12 +1462,12 @@ mod tests {
             "candidates": [{"content": {"role": "model", "parts": [
                 {"functionCall": {"name": "weather"}},
                 {"audioTranscription": {"text": "Unsupported"}}
-            ]}}]
+            ]}, "finishReason": "STOP"}]
         });
         let success = crate::serde_json::json!({
             "candidates": [{"content": {"role": "model", "parts": [
                 {"functionCall": {"name": "weather"}}
-            ]}}]
+            ]}, "finishReason": "STOP"}]
         });
         let history = crate::serde_json::json!({
             "contents": [{"role": "model", "parts": [{"functionCall": {"name": "weather"}}]}]
@@ -1632,6 +1632,46 @@ mod tests {
             assert!(imported.errors.iter().any(|error| {
                 error.contains("Unsupported mapping") && error.contains("FINISH_REASON_UNSPECIFIED")
             }));
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn google_import_requires_completion_for_enveloped_candidate_content() {
+        let content = crate::serde_json::json!({
+            "role": "model", "parts": [{"text": "Checking your order."}]
+        });
+        for output in [
+            crate::serde_json::json!({"candidates": [{"content": content}]}),
+            crate::serde_json::json!({"Candidates": [{"Content": content}]}),
+        ] {
+            let imported = import_span(Span {
+                input: None,
+                output: Some(output),
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.output.is_empty());
+            assert!(imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("finishReason")
+            }));
+        }
+
+        for candidate in [
+            crate::serde_json::json!({"content": content, "turnComplete": true}),
+            crate::serde_json::json!({"content": content, "partial": false}),
+        ] {
+            let imported = import_span(Span {
+                input: None,
+                output: Some(crate::serde_json::json!({"candidates": [candidate]})),
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(matches!(
+                imported.output.as_slice(),
+                [Message::Assistant { .. }]
+            ));
+            assert!(imported.errors.is_empty());
         }
     }
 
@@ -2033,7 +2073,10 @@ mod tests {
         ] {
             let imported = import_span(Span {
                 output: Some(crate::serde_json::json!({
-                    "candidates": [{"content": {"role": "model", "parts": [part]}}]
+                    "candidates": [{
+                        "content": {"role": "model", "parts": [part]},
+                        "finishReason": "STOP"
+                    }]
                 })),
                 input: None,
                 other: Default::default(),
@@ -2147,7 +2190,7 @@ mod tests {
                 "output": {"candidates": [{"content": {"role": "model", "parts": [
                     {"text": "Computing the result."},
                     part
-                ]}}]}
+                ]}, "finishReason": "STOP"}]}
             }))
             .unwrap();
             let imported = import_span(span).unwrap();
@@ -2501,10 +2544,13 @@ mod tests {
     fn gemini_import_reports_unsupported_candidate_part() {
         let span: Span = serde_json::from_value(crate::serde_json::json!({
             "output": {"candidates": [
-                {"content": {"role": "model", "parts": [{"text": "A plain candidate"}]}},
+                {
+                    "content": {"role": "model", "parts": [{"text": "A plain candidate"}]},
+                    "finishReason": "STOP"
+                },
                 {"content": {"role": "model", "parts": [
                     {"toolCall": {"tool_type": "GOOGLE_MAPS"}}
-                ]}}
+                ]}, "finishReason": "STOP"}
             ]}
         }))
         .unwrap();
@@ -2557,7 +2603,9 @@ mod tests {
         for input in [
             content.clone(),
             crate::serde_json::json!({"content": content}),
-            crate::serde_json::json!({"candidates": [{"content": content}]}),
+            crate::serde_json::json!({
+                "candidates": [{"content": content, "finishReason": "STOP"}]
+            }),
             crate::serde_json::json!({"contents": [content]}),
         ] {
             let imported = import_span(Span {
@@ -2607,7 +2655,7 @@ mod tests {
                 output: Some(crate::serde_json::json!({"candidates": [{"content": {
                     "role": "model",
                     "parts": [{"function_call": {"name": "weather", (field): value}}]
-                }}]})),
+                }, "finishReason": "STOP"}]})),
                 other: Default::default(),
             })
             .unwrap();
