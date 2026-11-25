@@ -229,7 +229,10 @@ impl TracePart {
         })
     }
 
-    fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
+    fn into_parts(
+        self,
+        shorthand_file: Option<TraceFileData>,
+    ) -> Result<TraceMessagePart, ConvertError> {
         self.validate_for_import()?;
         let attachment = match self.image_url {
             Some(TraceAttachmentUrl { url }) => {
@@ -254,7 +257,7 @@ impl TracePart {
         };
         let part = Part {
             audio_transcription: self.audio_transcription,
-            file_data: self.file_data.map(FileData::from),
+            file_data: self.file_data.or(shorthand_file).map(FileData::from),
             function_call: self
                 .function_call
                 .map(TraceFunctionCall::into_call)
@@ -276,6 +279,11 @@ impl TracePart {
             tool_call: self.tool_call,
             ..Default::default()
         };
+        if part == Part::default() && attachment.is_none() {
+            return Err(ConvertError::ContentConversionFailed {
+                reason: "unrecognized Google content part".to_string(),
+            });
+        }
         Ok((part, attachment))
     }
 }
@@ -317,7 +325,7 @@ impl TraceContent {
         };
         let parts = parts
             .into_iter()
-            .map(TracePart::into_parts)
+            .map(|part| part.into_parts(None))
             .collect::<Result<_, _>>()?;
         Ok((role, parts))
     }
@@ -381,18 +389,10 @@ struct RequestPartObject {
 
 impl RequestPartObject {
     fn into_parts(self) -> Result<TraceMessagePart, ConvertError> {
-        let (mut part, attachment) = self.part.into_parts()?;
         let mut file = self.file;
         file.file_uri = file.file_uri.or(self.uri);
-        if part.file_data.is_none() && file.file_uri.is_some() {
-            part.file_data = Some(file.into());
-        }
-        if part == Part::default() && attachment.is_none() {
-            return Err(ConvertError::ContentConversionFailed {
-                reason: "unrecognized Google request part".to_string(),
-            });
-        }
-        Ok((part, attachment))
+        self.part
+            .into_parts(file.file_uri.is_some().then_some(file))
     }
 }
 

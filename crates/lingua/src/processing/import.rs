@@ -2386,6 +2386,36 @@ mod tests {
         }
     }
 
+    // An unrecognized part must not become an empty message in a trace.
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_rejects_unrecognized_content_parts() {
+        let content = crate::serde_json::json!({
+            "role": "model",
+            "parts": [{"unknownPayload": {"value": "opaque"}}]
+        });
+        for input in [
+            content.clone(),
+            crate::serde_json::json!({"content": content}),
+            crate::serde_json::json!({"candidates": [{"content": content}]}),
+            crate::serde_json::json!({"contents": [content]}),
+        ] {
+            let imported = import_span(Span {
+                input: Some(input),
+                output: None,
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.input.is_empty());
+            assert!(
+                imported
+                    .errors
+                    .iter()
+                    .any(|error| { error.contains("unrecognized Google content part") })
+            );
+        }
+    }
+
     // Streaming call state can contain unfinished arguments and cannot be replayed as a completed call.
     #[cfg(feature = "google")]
     #[test]
