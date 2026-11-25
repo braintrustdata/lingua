@@ -2032,6 +2032,51 @@ mod tests {
         assert_ne!(call_ids[0], call_ids[1]);
     }
 
+    // A blocked Gemini prompt has an assistant turn even when no candidate was generated.
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_preserves_prompt_blocked_response() {
+        for output in [
+            crate::serde_json::json!({
+                "candidates": [],
+                "promptFeedback": {"blockReason": "SAFETY"}
+            }),
+            crate::serde_json::json!({
+                "prompt_feedback": {"block_reason": "PROHIBITED_CONTENT"}
+            }),
+            crate::serde_json::json!({
+                "Candidates": null,
+                "PromptFeedback": {"BlockReason": "BLOCKLIST"}
+            }),
+        ] {
+            let imported = import_span(Span {
+                input: None,
+                output: Some(output),
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(matches!(
+                imported.output.as_slice(),
+                [Message::Assistant {
+                    content: AssistantContent::Array(parts),
+                    id: None,
+                }] if parts.is_empty()
+            ));
+            assert!(imported.errors.is_empty(), "{:?}", imported.errors);
+        }
+
+        let unblocked = import_span(Span {
+            input: None,
+            output: Some(crate::serde_json::json!({
+                "candidates": [],
+                "promptFeedback": {"blockReason": "BLOCK_REASON_UNSPECIFIED"}
+            })),
+            other: Default::default(),
+        })
+        .unwrap();
+        assert!(unblocked.output.is_empty());
+    }
+
     #[cfg(feature = "google")]
     #[test]
     fn gemini_import_accepts_pascal_case_response_wrapper() {

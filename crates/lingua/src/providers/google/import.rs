@@ -1,8 +1,8 @@
 pub(crate) use super::convert::TraceToolCalls;
 use super::generated::{
-    AudioTranscription, Blob, CodeExecutionResult, Content, ExecutableCode, FileData, FinishReason,
-    FunctionCall, FunctionResponse, Level, MediaProcessing, Part, Scheduling, SpeechMetadata,
-    ToolCall, ToolResponse, UsageMetadata,
+    AudioTranscription, Blob, BlockReason, CodeExecutionResult, Content, ExecutableCode, FileData,
+    FinishReason, FunctionCall, FunctionResponse, Level, MediaProcessing, Part, Scheduling,
+    SpeechMetadata, ToolCall, ToolResponse, UsageMetadata,
 };
 use crate::error::ConvertError;
 use crate::import_parse::{non_empty_messages, try_parse, try_parse_vec_or_single};
@@ -608,9 +608,19 @@ struct TraceRequest {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct TraceResponse {
     #[serde(alias = "Candidates")]
-    candidates: Vec<TraceCandidate>,
+    candidates: Option<Vec<TraceCandidate>>,
+    #[serde(alias = "prompt_feedback", alias = "PromptFeedback")]
+    prompt_feedback: Option<TracePromptFeedback>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TracePromptFeedback {
+    #[serde(alias = "block_reason", alias = "BlockReason")]
+    block_reason: Option<BlockReason>,
 }
 
 // ADK logs a single result at the top level instead of a GenerateContent candidates array.
@@ -813,7 +823,18 @@ fn try_parse_response(
         return None;
     }
     let response: TraceResponse = try_parse(data)?;
-    messages_from_candidates(response.candidates, true, trace_tools).transpose()
+    let candidates = response.candidates.unwrap_or_default();
+    let prompt_was_blocked = response
+        .prompt_feedback
+        .and_then(|feedback| feedback.block_reason)
+        .is_some_and(|reason| reason != BlockReason::BlockReasonUnspecified);
+    if candidates.is_empty() && prompt_was_blocked {
+        return Some(Ok(vec![Message::Assistant {
+            content: AssistantContent::Array(vec![]),
+            id: None,
+        }]));
+    }
+    messages_from_candidates(candidates, true, trace_tools).transpose()
 }
 
 fn try_parse_candidates(
