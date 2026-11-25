@@ -191,11 +191,10 @@ impl StreamTransformSession {
         }
 
         #[cfg(feature = "openai")]
-        if let Some(event) = &step.responses_text_message_event {
-            if self.skip_responses_text_message_event(event)? {
+        if let Some(event) = &step.responses_text_message_event
+            && self.skip_responses_text_message_event(event)? {
                 return Ok(Vec::new());
             }
-        }
 
         if step.is_passthrough {
             return Ok(vec![StreamOutputChunk {
@@ -629,8 +628,8 @@ impl StreamTransformSession {
                     .insert((delta_kind, delta_index), new_index);
                 prefix.push(anthropic_content_block_stop_chunk(open_index)?);
                 prefix.push(anthropic_content_block_start_chunk(new_index, delta_kind));
-            } else if open_kind == delta_kind {
-                if let Some(mapped_index) = self
+            } else if open_kind == delta_kind
+                && let Some(mapped_index) = self
                     .anthropic_content_block_index_map
                     .get(&(delta_kind, delta_index))
                     .copied()
@@ -638,16 +637,13 @@ impl StreamTransformSession {
                 {
                     chunk = with_anthropic_content_block_delta_index(chunk, mapped_index);
                 }
-            }
         }
         if self.anthropic_open_content_block_index.is_none()
             && self.anthropic_message_started
             && !is_content_block_start
-        {
-            if let (Some(delta_index), Some(delta_kind)) =
+            && let (Some(delta_index), Some(delta_kind)) =
                 (content_block_delta_index, content_block_delta_kind)
-            {
-                if delta_kind.can_synthesize_start() {
+                && delta_kind.can_synthesize_start() {
                     let target_index = self
                         .anthropic_content_block_index_map
                         .get(&(delta_kind, delta_index))
@@ -669,19 +665,15 @@ impl StreamTransformSession {
                         delta_kind,
                     ));
                 }
-            }
-        }
         // This closes blocks before explicit block starts and terminal message
         // deltas. Content-block deltas, including synthesized kind switches
         // above, must stay inside their open block until the delta is emitted.
         if (is_content_block_start || is_message_delta || is_stop)
             && self.anthropic_open_content_block_index.is_some()
-        {
-            if let Some(index) = self.anthropic_open_content_block_index.take() {
+            && let Some(index) = self.anthropic_open_content_block_index.take() {
                 prefix.push(anthropic_content_block_stop_chunk(index)?);
                 self.anthropic_open_content_block_kind = None;
             }
-        }
         if is_content_block_start {
             self.anthropic_open_content_block_index = content_block_start_index;
             self.anthropic_open_content_block_kind = content_block_start_kind;
@@ -1263,11 +1255,10 @@ fn expand_responses_session_chunks(
         insert_responses_reasoning_item_added(&mut events, output_index);
     }
 
-    if let Some(item_id) = &text_item_id {
-        if text_just_started {
+    if let Some(item_id) = &text_item_id
+        && text_just_started {
             insert_responses_message_item_added(&mut events, item_id, text_output_index);
         }
-    }
 
     if has_finish {
         let finish_message = text_item_id
@@ -1466,12 +1457,11 @@ fn insert_responses_finish_items(
             for (offset, event) in inserts.into_iter().enumerate() {
                 events.insert(position + offset, event);
             }
-            if let Some(terminal) = events.get_mut(terminal_position) {
-                if let Some(response) = terminal.get_mut("response").and_then(Value::as_object_mut)
+            if let Some(terminal) = events.get_mut(terminal_position)
+                && let Some(response) = terminal.get_mut("response").and_then(Value::as_object_mut)
                 {
                     response.insert("output".to_string(), Value::Array(outputs));
                 }
-            }
         }
         None => events.extend(inserts),
     }
@@ -1790,11 +1780,10 @@ fn merge_delta_usage(
         let mut finish: Value = crate::serde_json::from_slice(&finish_delta.data).ok()?;
         let usage_val: Value = crate::serde_json::from_slice(&usage_delta.data).ok()?;
 
-        if let Some(usage) = usage_val.get("usage") {
-            if let Some(obj) = finish.as_object_mut() {
+        if let Some(usage) = usage_val.get("usage")
+            && let Some(obj) = finish.as_object_mut() {
                 obj.insert("usage".into(), usage.clone());
             }
-        }
 
         let serialized = crate::serde_json::to_vec(&finish).ok()?;
         Some(StreamOutputChunk {

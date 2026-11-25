@@ -569,13 +569,11 @@ fn extract_schema_refs(value: &serde_json::Value, refs: &mut std::collections::H
     match value {
         serde_json::Value::Object(obj) => {
             // Check for $ref
-            if let Some(ref_value) = obj.get("$ref") {
-                if let Some(ref_str) = ref_value.as_str() {
-                    if let Some(type_name) = extract_type_name_from_ref(ref_str) {
+            if let Some(ref_value) = obj.get("$ref")
+                && let Some(ref_str) = ref_value.as_str()
+                    && let Some(type_name) = extract_type_name_from_ref(ref_str) {
                         refs.insert(type_name);
                     }
-                }
-            }
 
             // Recurse into all object values
             for (_, v) in obj {
@@ -779,47 +777,34 @@ fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<St
     let mut response_schemas = Vec::new();
 
     // Analyze the /v1/messages endpoint
-    if let Some(paths) = spec.get("paths") {
-        if let Some(messages_path) = paths.get("/v1/messages") {
-            if let Some(post_op) = messages_path.get("post") {
+    if let Some(paths) = spec.get("paths")
+        && let Some(messages_path) = paths.get("/v1/messages")
+            && let Some(post_op) = messages_path.get("post") {
                 // Extract request schema from requestBody
-                if let Some(request_body) = post_op.get("requestBody") {
-                    if let Some(content) = request_body.get("content") {
-                        if let Some(json_content) = content.get("application/json") {
-                            if let Some(schema) = json_content.get("schema") {
-                                if let Some(schema_ref) = schema.get("$ref") {
-                                    if let Some(schema_name) = extract_schema_name_from_ref(
+                if let Some(request_body) = post_op.get("requestBody")
+                    && let Some(content) = request_body.get("content")
+                        && let Some(json_content) = content.get("application/json")
+                            && let Some(schema) = json_content.get("schema")
+                                && let Some(schema_ref) = schema.get("$ref")
+                                    && let Some(schema_name) = extract_schema_name_from_ref(
                                         schema_ref.as_str().unwrap_or(""),
                                     ) {
                                         request_schemas.push(schema_name);
                                     }
-                                }
-                            }
-                        }
-                    }
-                }
 
                 // Extract response schemas from responses
-                if let Some(responses) = post_op.get("responses") {
-                    if let Some(success_response) = responses.get("200") {
-                        if let Some(content) = success_response.get("content") {
-                            if let Some(json_content) = content.get("application/json") {
-                                if let Some(schema) = json_content.get("schema") {
-                                    if let Some(schema_ref) = schema.get("$ref") {
-                                        if let Some(schema_name) = extract_schema_name_from_ref(
+                if let Some(responses) = post_op.get("responses")
+                    && let Some(success_response) = responses.get("200")
+                        && let Some(content) = success_response.get("content")
+                            && let Some(json_content) = content.get("application/json")
+                                && let Some(schema) = json_content.get("schema")
+                                    && let Some(schema_ref) = schema.get("$ref")
+                                        && let Some(schema_name) = extract_schema_name_from_ref(
                                             schema_ref.as_str().unwrap_or(""),
                                         ) {
                                             response_schemas.push(schema_name);
                                         }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
-        }
-    }
 
     println!("🔍 Found request schemas: {:?}", request_schemas);
     println!("🔍 Found response schemas: {:?}", response_schemas);
@@ -851,17 +836,16 @@ fn remove_response_fields_from_schema(schema: &serde_json::Value) -> serde_json:
         "type",
     ];
 
-    if let Some(properties) = cleaned_schema.get_mut("properties") {
-        if let Some(props_obj) = properties.as_object_mut() {
+    if let Some(properties) = cleaned_schema.get_mut("properties")
+        && let Some(props_obj) = properties.as_object_mut() {
             for field_name in &response_only_fields {
                 props_obj.remove(*field_name);
             }
         }
-    }
 
     // Remove response fields from required array
-    if let Some(required) = cleaned_schema.get_mut("required") {
-        if let Some(required_array) = required.as_array_mut() {
+    if let Some(required) = cleaned_schema.get_mut("required")
+        && let Some(required_array) = required.as_array_mut() {
             required_array.retain(|item| {
                 if let Some(field_name) = item.as_str() {
                     !response_only_fields.contains(&field_name)
@@ -870,7 +854,6 @@ fn remove_response_fields_from_schema(schema: &serde_json::Value) -> serde_json:
                 }
             });
         }
-    }
 
     cleaned_schema
 }
@@ -896,17 +879,16 @@ fn remove_request_fields_from_schema(schema: &serde_json::Value) -> serde_json::
         "user",
     ];
 
-    if let Some(properties) = cleaned_schema.get_mut("properties") {
-        if let Some(props_obj) = properties.as_object_mut() {
+    if let Some(properties) = cleaned_schema.get_mut("properties")
+        && let Some(props_obj) = properties.as_object_mut() {
             for field_name in &request_only_fields {
                 props_obj.remove(*field_name);
             }
         }
-    }
 
     // Remove request fields from required array
-    if let Some(required) = cleaned_schema.get_mut("required") {
-        if let Some(required_array) = required.as_array_mut() {
+    if let Some(required) = cleaned_schema.get_mut("required")
+        && let Some(required_array) = required.as_array_mut() {
             required_array.retain(|item| {
                 if let Some(field_name) = item.as_str() {
                     !request_only_fields.contains(&field_name)
@@ -915,7 +897,6 @@ fn remove_request_fields_from_schema(schema: &serde_json::Value) -> serde_json::
                 }
             });
         }
-    }
 
     cleaned_schema
 }
@@ -1431,8 +1412,8 @@ fn add_openai_compatibility_aliases(processed: &str) -> String {
         }
     }
 
-    if !contains_rust_type_definition(processed, "OutputItemType") {
-        if let Some(output_item_type) =
+    if !contains_rust_type_definition(processed, "OutputItemType")
+        && let Some(output_item_type) =
             find_struct_field_type(processed, "OutputItem", "output_item_type")
         {
             aliases.push(format!(
@@ -1440,7 +1421,6 @@ fn add_openai_compatibility_aliases(processed: &str) -> String {
                 strip_option_type(&output_item_type)
             ));
         }
-    }
 
     if !contains_rust_type_definition(processed, "Instructions") {
         aliases.push("pub type Instructions = InputParam;".to_string());
@@ -1457,15 +1437,14 @@ fn add_openai_compatibility_aliases(processed: &str) -> String {
             aliases.push(format!("pub type InputContent = {input_content};"));
         }
     }
-    if !contains_rust_type_definition(processed, "InputItemContentListType") {
-        if let Some(content_list_type_name) =
+    if !contains_rust_type_definition(processed, "InputItemContentListType")
+        && let Some(content_list_type_name) =
             find_enum_with_variants(processed, &["InputText", "OutputText"])
         {
             aliases.push(format!(
                 "pub type InputItemContentListType = {content_list_type_name};"
             ));
         }
-    }
     if !contains_rust_type_definition(processed, "FunctionCallItemStatus") {
         aliases.push("pub type FunctionCallItemStatus = Status;".to_string());
     }
@@ -1970,8 +1949,8 @@ fn rewrite_google_schema_refs(
 ) {
     match value {
         serde_json::Value::Object(object) => {
-            if let Some(reference) = object.get_mut("$ref") {
-                if let Some(reference_value) = reference.as_str() {
+            if let Some(reference) = object.get_mut("$ref")
+                && let Some(reference_value) = reference.as_str() {
                     let rewritten_reference = if reference_value.starts_with('#') {
                         extract_type_name_from_ref(reference_value).and_then(|source_name| {
                             public_names
@@ -1985,7 +1964,6 @@ fn rewrite_google_schema_refs(
                         *reference = serde_json::Value::String(rewritten_reference);
                     }
                 }
-            }
             for child in object.values_mut() {
                 rewrite_google_schema_refs(child, public_names);
             }
@@ -2079,8 +2057,8 @@ fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value>
 fn extract_discovery_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
     match value {
         serde_json::Value::Object(obj) => {
-            if let Some(ref_value) = obj.get("$ref") {
-                if let Some(ref_str) = ref_value.as_str() {
+            if let Some(ref_value) = obj.get("$ref")
+                && let Some(ref_str) = ref_value.as_str() {
                     // Discovery refs are bare type names (e.g., "Part", "Content")
                     // not paths like "#/components/schemas/Part"
                     if !ref_str.starts_with('#') {
@@ -2089,7 +2067,6 @@ fn extract_discovery_refs(value: &serde_json::Value, refs: &mut std::collections
                         refs.insert(type_name);
                     }
                 }
-            }
             for (_, v) in obj {
                 extract_discovery_refs(v, refs);
             }

@@ -226,14 +226,13 @@ fn remote_audio(body: &[u8], format: ProviderFormat) -> Result<Vec<RemoteAudio>>
             for (pointer, part) in
                 select::<PurpleContentPart>(body, &[Key("messages"), Each, Key("content"), Each])?
             {
-                if part.content_part_type == PurpleType::InputAudio {
-                    if let Some(remote) = part
+                if part.content_part_type == PurpleType::InputAudio
+                    && let Some(remote) = part
                         .input_audio
                         .and_then(|input| openai_audio(pointer, input))
                     {
                         audio.push(remote);
                     }
-                }
             }
         }
         ProviderFormat::Responses => {
@@ -241,22 +240,21 @@ fn remote_audio(body: &[u8], format: ProviderFormat) -> Result<Vec<RemoteAudio>>
                 body,
                 &[Key("input"), Each, Key("content"), Each],
             )? {
-                if part.input_content_type == HilariousType::InputAudio {
-                    if let Some(remote) = part
+                if part.input_content_type == HilariousType::InputAudio
+                    && let Some(remote) = part
                         .input_audio
                         .and_then(|input| openai_audio(pointer, input))
                     {
                         audio.push(remote);
                     }
-                }
             }
         }
         ProviderFormat::Google => {
             for (pointer, part) in
                 select::<Part>(body, &[Key("contents"), Each, Key("parts"), Each])?
             {
-                if let Some(blob) = part.inline_data {
-                    if let Some(url) = blob.data.filter(|data| is_remote_media_url(data)) {
+                if let Some(blob) = part.inline_data
+                    && let Some(url) = blob.data.filter(|data| is_remote_media_url(data)) {
                         let mime_type = blob.mime_type.ok_or_else(|| {
                             Error::InvalidRequest("remote inlineData requires mimeType".into())
                         })?;
@@ -266,7 +264,6 @@ fn remote_audio(body: &[u8], format: ProviderFormat) -> Result<Vec<RemoteAudio>>
                             mime_type,
                         });
                     }
-                }
             }
         }
         _ => {}
@@ -682,7 +679,7 @@ mod tests {
     impl LoopbackMediaFetch {
         fn allow() -> Self {
             let previous = std::env::var_os("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS");
-            std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", "127.0.0.1/32");
+            unsafe { std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", "127.0.0.1/32") };
             Self { previous }
         }
     }
@@ -691,9 +688,9 @@ mod tests {
         fn drop(&mut self) {
             match &self.previous {
                 Some(previous) => {
-                    std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", previous);
+                    unsafe { std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", previous) };
                 }
-                None => std::env::remove_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS"),
+                None => unsafe { std::env::remove_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS") },
             }
         }
     }

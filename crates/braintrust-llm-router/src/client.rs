@@ -346,8 +346,8 @@ fn chain_has_connection_io_error(err: &(dyn StdError + 'static)) -> bool {
     // inspect the source chain for concrete socket teardown errors as well.
     let mut current: Option<&(dyn StdError + 'static)> = Some(err);
     while let Some(source) = current {
-        if let Some(io_err) = source.downcast_ref::<std::io::Error>() {
-            if matches!(
+        if let Some(io_err) = source.downcast_ref::<std::io::Error>()
+            && matches!(
                 io_err.kind(),
                 ErrorKind::ConnectionReset
                     | ErrorKind::ConnectionAborted
@@ -356,7 +356,6 @@ fn chain_has_connection_io_error(err: &(dyn StdError + 'static)) -> bool {
             ) {
                 return true;
             }
-        }
         current = source.source();
     }
     false

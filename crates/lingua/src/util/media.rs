@@ -47,14 +47,13 @@ fn validate_media_type(
         .unwrap_or(content_type)
         .trim()
         .to_ascii_lowercase();
-    if let Some(allowed) = allowed_types {
-        if !allowed
+    if let Some(allowed) = allowed_types
+        && !allowed
             .iter()
             .any(|allowed| allowed.eq_ignore_ascii_case(&media_type))
         {
             return Err(MediaError::UnsupportedMediaType(media_type));
         }
-    }
     Ok(media_type)
 }
 
@@ -382,10 +381,10 @@ mod wasm_fetch {
         let bytes = uint8_array.to_vec();
 
         // Check size
-        if let Some(max) = max_bytes {
-            if bytes.len() > max {
-                return Err(MediaError::SizeExceeded(max / 1024 / 1024));
-            }
+        if let Some(max) = max_bytes
+            && bytes.len() > max
+        {
+            return Err(MediaError::SizeExceeded(max / 1024 / 1024));
         }
 
         // Encode to base64
@@ -702,11 +701,10 @@ mod native_fetch {
             .map_err(|e| MediaError::FetchError(e.to_string()))?
         {
             bytes.extend_from_slice(&chunk);
-            if let Some(max) = max_bytes {
-                if bytes.len() > max {
+            if let Some(max) = max_bytes
+                && bytes.len() > max {
                     return Err(MediaError::SizeExceeded(max / 1024 / 1024));
                 }
-            }
         }
 
         Ok(bytes)

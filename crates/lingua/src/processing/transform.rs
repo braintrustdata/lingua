@@ -989,14 +989,13 @@ fn detect_adapter_with_kind(
     }
 
     // Vertex will possibly respond with a response payload for streaming requests, so we need to detect that.
-    if matches!(kind, DetectKind::Stream) && allow_full_response_fallback {
-        if let Some(adapter) = detect_adapter_exact(payload, DetectKind::Response) {
+    if matches!(kind, DetectKind::Stream) && allow_full_response_fallback
+        && let Some(adapter) = detect_adapter_exact(payload, DetectKind::Response) {
             return Ok(AdapterDetection {
                 adapter,
                 kind: DetectKind::Response,
             });
         }
-    }
 
     Err(unable_to_detect_format_error(kind))
 }

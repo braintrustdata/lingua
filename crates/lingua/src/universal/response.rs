@@ -568,11 +568,10 @@ impl UniversalResponse {
                 _ => None,
             })
             .collect();
-        if contents.is_empty() {
-            if let Some(text) = self.messages.last().and_then(message_text) {
+        if contents.is_empty()
+            && let Some(text) = self.messages.last().and_then(message_text) {
                 contents.push(text);
             }
-        }
         contents
     }
 

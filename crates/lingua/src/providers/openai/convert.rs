@@ -1321,17 +1321,15 @@ fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Me
 }
 
 fn try_from_responses_items_candidate<V: ImportValue>(candidate: &V) -> Option<Vec<Message>> {
-    if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate) {
-        if let Some(messages) = try_convert_non_empty(provider_messages) {
+    if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate)
+        && let Some(messages) = try_convert_non_empty(provider_messages) {
             return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
         }
-    }
 
-    if let Some(provider_messages) = try_parse_vec_or_single::<openai::OutputItem>(candidate) {
-        if let Some(messages) = try_convert_non_empty(provider_messages) {
+    if let Some(provider_messages) = try_parse_vec_or_single::<openai::OutputItem>(candidate)
+        && let Some(messages) = try_convert_non_empty(provider_messages) {
             return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
         }
-    }
 
     None
 }
@@ -1451,19 +1449,17 @@ pub(crate) fn try_parse_openai_for_import<V: ImportValue>(data: &V) -> Option<Ve
     // assistant `tool_calls` arguments and is lossy for import.
     if let Some(provider_messages) =
         try_parse_vec_or_single::<ChatCompletionRequestMessageExt>(data)
-    {
-        if let Some(messages) = try_convert_non_empty(provider_messages) {
+        && let Some(messages) = try_convert_non_empty(provider_messages) {
             return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
         }
-    }
 
     if let Some(messages) = try_parse_responses_items_for_import(data) {
         return Some(messages);
     }
 
-    if let Some(request) = try_parse::<openai::CreateResponseClass>(data) {
-        if let Some(input) = request.input {
-            if let Some(mut messages) = try_messages_from_openai_instructions(input) {
+    if let Some(request) = try_parse::<openai::CreateResponseClass>(data)
+        && let Some(input) = request.input
+            && let Some(mut messages) = try_messages_from_openai_instructions(input) {
                 if let Some(instructions) = request.instructions.filter(|text| !text.is_empty()) {
                     messages.insert(
                         0,
@@ -1474,8 +1470,6 @@ pub(crate) fn try_parse_openai_for_import<V: ImportValue>(data: &V) -> Option<Ve
                 }
                 return non_empty_messages(messages);
             }
-        }
-    }
 
     if let Some(response) = try_parse::<openai::TheResponseObject>(data) {
         let messages = try_convert_non_empty(response.output)?;
@@ -2311,8 +2305,8 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
                 // Build provider_options to preserve annotations and logprobs
                 let provider_options = {
                     let mut options = serde_json::Map::new();
-                    if let Some(annotations) = &value.annotations {
-                        if !annotations.is_empty() {
+                    if let Some(annotations) = &value.annotations
+                        && !annotations.is_empty() {
                             options.insert(
                                 "annotations".to_string(),
                                 serde_json::to_value(annotations).map_err(|e| {
@@ -2323,9 +2317,8 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
                                 })?,
                             );
                         }
-                    }
-                    if let Some(logprobs) = &value.logprobs {
-                        if !logprobs.is_empty() {
+                    if let Some(logprobs) = &value.logprobs
+                        && !logprobs.is_empty() {
                             options.insert(
                                 "logprobs".to_string(),
                                 serde_json::to_value(logprobs).map_err(|e| {
@@ -2336,7 +2329,6 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
                                 })?,
                             );
                         }
-                    }
                     if options.is_empty() {
                         None
                     } else {
@@ -3693,23 +3685,20 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                                 // stored back to keep the universal representation clean.
                                 let non_empty_annotations = c.annotations.filter(|a| !a.is_empty());
                                 let mut options = serde_json::Map::new();
-                                if let Some(annotations) = non_empty_annotations {
-                                    if let Ok(value) = serde_json::to_value(&annotations) {
+                                if let Some(annotations) = non_empty_annotations
+                                    && let Ok(value) = serde_json::to_value(&annotations) {
                                         options.insert("annotations".to_string(), value);
                                     }
-                                }
-                                if let Some(logprobs) = c.logprobs {
-                                    if let Ok(value) = serde_json::to_value(&logprobs) {
+                                if let Some(logprobs) = c.logprobs
+                                    && let Ok(value) = serde_json::to_value(&logprobs) {
                                         options.insert("logprobs".to_string(), value);
                                     }
-                                }
                                 if !phase_stored {
                                     phase_stored = true;
-                                    if let Some(ref phase) = item_phase {
-                                        if let Ok(value) = serde_json::to_value(phase) {
+                                    if let Some(ref phase) = item_phase
+                                        && let Ok(value) = serde_json::to_value(phase) {
                                             options.insert("_output_item_phase".to_string(), value);
                                         }
-                                    }
                                 }
                                 let provider_options = if options.is_empty() {
                                     None
@@ -5712,8 +5701,8 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                 }
 
                 // Add text content if present
-                if let Some(text) = &msg.base.content {
-                    if !text.is_empty() {
+                if let Some(text) = &msg.base.content
+                    && !text.is_empty() {
                         content_parts.push(AssistantContentPart::Text(TextContentPart {
                             text: text.clone(),
                             encrypted_content: None,
@@ -5721,7 +5710,6 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                             provider_options: None,
                         }));
                     }
-                }
 
                 // Add tool calls if present
                 if let Some(tool_calls) = &msg.base.tool_calls {

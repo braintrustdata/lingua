@@ -228,11 +228,10 @@ where
         };
 
         // Apply test name filter if provided
-        if let Some(filter) = test_name_filter {
-            if !test_case_name.contains(filter) {
+        if let Some(filter) = test_name_filter
+            && !test_case_name.contains(filter) {
                 continue;
             }
-        }
 
         // Check if this test case has the requested provider directory
         let provider_dir = path.join(provider.directory_name());

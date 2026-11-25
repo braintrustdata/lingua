@@ -184,8 +184,8 @@ fn google_assistant_part_provider_options(
 pub fn denormalize_json_schema_types(schema: &mut Value) {
     match schema {
         Value::Object(map) => {
-            if let Some(type_value) = map.get_mut("type") {
-                if let Value::String(type_str) = type_value {
+            if let Some(type_value) = map.get_mut("type")
+                && let Value::String(type_str) = type_value {
                     *type_value = Value::String(
                         match type_str.as_ref() {
                             "STRING" => "string",
@@ -200,7 +200,6 @@ pub fn denormalize_json_schema_types(schema: &mut Value) {
                         .to_string(),
                     );
                 }
-            }
 
             if let Some(Value::Object(props)) = map.get_mut("properties") {
                 for prop_schema in props.values_mut() {
@@ -341,8 +340,8 @@ impl TryFromLLM<GoogleContent> for Message {
                                 provider_options: None,
                             });
                         }
-                    } else if let Some(file) = &part.file_data {
-                        if let Some(uri) = &file.file_uri {
+                    } else if let Some(file) = &part.file_data
+                        && let Some(uri) = &file.file_uri {
                             assistant_parts.push(AssistantContentPart::File {
                                 data: Value::String(uri.clone()),
                                 filename: file.display_name.clone(),
@@ -353,7 +352,6 @@ impl TryFromLLM<GoogleContent> for Message {
                                 provider_options: None,
                             });
                         }
-                    }
                 }
 
                 Ok(Message::Assistant {
@@ -436,8 +434,8 @@ impl TryFromLLM<GoogleContent> for Message {
                                 });
                             }
                         }
-                    } else if let Some(fr) = &part.function_response {
-                        if let Some(tool_name) = &fr.name {
+                    } else if let Some(fr) = &part.function_response
+                        && let Some(tool_name) = &fr.name {
                             let output = match fr.response.as_ref() {
                                 Some(map) => Value::Object(map.clone()),
                                 None => Value::Null,
@@ -456,7 +454,6 @@ impl TryFromLLM<GoogleContent> for Message {
                                 provider_options: None,
                             }));
                         }
-                    }
                 }
 
                 if !tool_parts.is_empty() {

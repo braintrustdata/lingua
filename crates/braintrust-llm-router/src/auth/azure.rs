@@ -76,13 +76,12 @@ impl AzureEntraTokenManager {
         let token_host = token_host(&token_url);
         let token_future = async {
             let key = credentials.cache_key();
-            if let Some(entry) = self.cache.get(&key) {
-                if entry.expires_at > Instant::now() + TOKEN_BUFFER {
+            if let Some(entry) = self.cache.get(&key)
+                && entry.expires_at > Instant::now() + TOKEN_BUFFER {
                     #[cfg(feature = "tracing")]
                     tracing::Span::current().record("cache.hit", true);
                     return Ok(entry.value.clone());
                 }
-            }
 
             #[cfg(feature = "tracing")]
             tracing::Span::current().record("cache.hit", false);

@@ -331,15 +331,12 @@ impl ProviderAdapter for BedrockAdapter {
                 if let UniversalToolType::Builtin {
                     provider, config, ..
                 } = &tool.tool_type
-                {
-                    if matches!(provider, BuiltinToolProvider::Converse) {
-                        if let Some(config_value) = config {
+                    && matches!(provider, BuiltinToolProvider::Converse)
+                        && let Some(config_value) = config {
                             obj.insert("toolConfig".into(), config_value.clone());
                             bedrock_builtin_found = true;
                             break;
                         }
-                    }
-                }
             }
 
             // If no Bedrock builtin, convert function tools to Bedrock format
@@ -674,6 +671,7 @@ impl ProviderAdapter for BedrockAdapter {
         }
     }
 
+    #[allow(clippy::collapsible_if)] // Keep the existing Value checks unchanged for the typed-boundary check
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         if chunk.is_keep_alive() {
             return Ok(serde_json::json!({

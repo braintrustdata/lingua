@@ -230,8 +230,8 @@ fn generate_tool_structs(
             client_schema
         };
 
-        if let Some(schema) = all_schemas.get(client_schema) {
-            if seen.insert(gen_name.to_string()) {
+        if let Some(schema) = all_schemas.get(client_schema)
+            && seen.insert(gen_name.to_string()) {
                 // Generate the struct with potentially renamed name
                 let mut code =
                     generate_tool_struct_direct(client_schema, schema, all_schemas, provider);
@@ -243,7 +243,6 @@ fn generate_tool_structs(
 
                 generated_structs.push(code);
             }
-        }
     }
 
     // Generate provider tool structs (e.g., WebSearchTool20250305, BashTool20250124)

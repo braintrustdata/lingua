@@ -497,22 +497,20 @@ impl ProviderAdapter for OpenAIAdapter {
         // Output stop sequences as array (OpenAI accepts both string and array)
         if let Some(raw_stop) = openai_extras_view.stop.as_ref() {
             obj.insert("stop".into(), raw_stop.clone());
-        } else if let Some(ref stop) = req.params.stop {
-            if !stop.is_empty() {
+        } else if let Some(ref stop) = req.params.stop
+            && !stop.is_empty() {
                 obj.insert(
                     "stop".into(),
                     Value::Array(stop.iter().map(|s| Value::String(s.clone())).collect()),
                 );
             }
-        }
         // Convert tools to OpenAI Chat format
         if let Some(raw_tools) = openai_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
-        } else if let Some(tools) = &req.params.tools {
-            if let Some(tools_value) = tools_to_openai_chat_value(tools)? {
+        } else if let Some(tools) = &req.params.tools
+            && let Some(tools_value) = tools_to_openai_chat_value(tools)? {
                 obj.insert("tools".into(), tools_value);
             }
-        }
         if let Some(raw_web_search_options) = openai_extras_view.web_search_options.as_ref() {
             obj.insert("web_search_options".into(), raw_web_search_options.clone());
         }
@@ -802,6 +800,7 @@ impl ProviderAdapter for OpenAIAdapter {
     // Streaming response handling
     // =========================================================================
 
+    #[allow(clippy::collapsible_if)] // Keep the existing Value checks unchanged for the typed-boundary check
     fn detect_stream_response(&self, payload: &Value) -> bool {
         // OpenAI streaming chunk has object="chat.completion.chunk"
         // or has choices array with delta field

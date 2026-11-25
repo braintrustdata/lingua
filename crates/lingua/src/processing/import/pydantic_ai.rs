@@ -154,8 +154,8 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                         provider_options: None,
                     })),
                     other => {
-                        if let Ok(binary) = PydanticAIBinaryContentCompat::deserialize(&other) {
-                            if binary.item_type == "binary" {
+                        if let Ok(binary) = PydanticAIBinaryContentCompat::deserialize(&other)
+                            && binary.item_type == "binary" {
                                 let attachment_value = serde_json::json!({
                                     "content_type": binary.attachment.content_type,
                                     "filename": binary.attachment.filename,
@@ -181,7 +181,6 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                                 }
                                 continue;
                             }
-                        }
 
                         if let Some(text) = value_to_string(&other) {
                             parts.push(UserContentPart::Text(TextContentPart {
@@ -379,11 +378,10 @@ fn has_pydantic_message_shape(data: &impl ImportValue) -> bool {
 }
 
 fn try_parse_internal_input(data: &impl ImportValue) -> Option<Vec<Message>> {
-    if data.kind() == InputKind::Object {
-        if let Some(wrapper) = data.parse::<PydanticAIMessagesWrapperCompat>() {
+    if data.kind() == InputKind::Object
+        && let Some(wrapper) = data.parse::<PydanticAIMessagesWrapperCompat>() {
             return try_parse_message_sequence(wrapper.messages);
         }
-    }
     let mut items = data.array()?;
     if items.len() == 0 || !items.all(|item| has_pydantic_message_shape(&item)) {
         return None;

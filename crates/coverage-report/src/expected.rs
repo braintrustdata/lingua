@@ -197,21 +197,18 @@ pub fn is_expected_field_with_scope(
         for rule in &diffs.per_test_case {
             if rule.test_case == test_name
                 && matches_source_target(&rule.source, &rule.target, source, target)
-            {
-                if let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern)) {
+                && let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern)) {
                     return Some(entry.reason.clone());
                 }
-            }
         }
     }
 
     if include_global {
         for rule in &diffs.global {
-            if matches_source_target(&rule.source, &rule.target, source, target) {
-                if let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern)) {
+            if matches_source_target(&rule.source, &rule.target, source, target)
+                && let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern)) {
                     return Some(entry.reason.clone());
                 }
-            }
         }
     }
 
@@ -238,21 +235,18 @@ pub fn is_expected_error(
         for rule in &diffs.per_test_case {
             if rule.test_case == test_name
                 && matches_source_target(&rule.source, &rule.target, source, target)
-            {
-                if let Some(entry) = rule.errors.iter().find(|e| pattern_matches(&e.pattern)) {
+                && let Some(entry) = rule.errors.iter().find(|e| pattern_matches(&e.pattern)) {
                     return Some(entry.reason.clone());
                 }
-            }
         }
     }
 
     // Check global rules
     for rule in &diffs.global {
-        if matches_source_target(&rule.source, &rule.target, source, target) {
-            if let Some(entry) = rule.errors.iter().find(|e| pattern_matches(&e.pattern)) {
+        if matches_source_target(&rule.source, &rule.target, source, target)
+            && let Some(entry) = rule.errors.iter().find(|e| pattern_matches(&e.pattern)) {
                 return Some(entry.reason.clone());
             }
-        }
     }
 
     None

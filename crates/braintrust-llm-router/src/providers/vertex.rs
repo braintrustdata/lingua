@@ -122,12 +122,11 @@ impl VertexProvider {
         // Precedence: model spec locations > secret metadata location > default.
         if let Ok(extra) = ::serde_json::from_value::<VertexModelExtra>(
             ::serde_json::Value::Object(spec.extra.clone()),
-        ) {
-            if !extra.locations.is_empty() {
+        )
+            && !extra.locations.is_empty() {
                 let idx = rand::rng().random_range(0..extra.locations.len());
                 return extra.locations[idx].clone();
             }
-        }
         if !self.config.location.is_empty() {
             return self.config.location.clone();
         }

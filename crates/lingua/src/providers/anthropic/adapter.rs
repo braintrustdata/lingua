@@ -631,14 +631,13 @@ impl ProviderAdapter for AnthropicAdapter {
         insert_opt_i64(&mut obj, "top_k", req.params.top_k);
 
         // Anthropic uses stop_sequences instead of stop
-        if let Some(ref stop) = req.params.stop {
-            if !stop.is_empty() {
+        if let Some(ref stop) = req.params.stop
+            && !stop.is_empty() {
                 obj.insert(
                     "stop_sequences".into(),
                     Value::Array(stop.iter().map(|s| Value::String(s.clone())).collect()),
                 );
             }
-        }
 
         let use_json_object_shim =
             is_json_object_response_format(req.params.response_format.as_ref())
@@ -731,11 +730,10 @@ impl ProviderAdapter for AnthropicAdapter {
             // reconstruct when there is no raw output_config.
             if let Some(raw_output_config) = raw_output_config {
                 let mut output_config = raw_output_config.clone();
-                if forced_tool_choice {
-                    if let Some(obj) = output_config.as_object_mut() {
+                if forced_tool_choice
+                    && let Some(obj) = output_config.as_object_mut() {
                         obj.remove("effort");
                     }
-                }
                 if let Some(format) = format {
                     let format_value = serde_json::to_value(&format)
                         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
@@ -777,22 +775,19 @@ impl ProviderAdapter for AnthropicAdapter {
 
         // Add thinking for legacy reasoning (non-Opus models)
         if use_adaptive_thinking {
-            if let Some(thinking) = thinking_val {
-                if !(forced_tool_choice && is_enabled_thinking(&thinking)) {
+            if let Some(thinking) = thinking_val
+                && !(forced_tool_choice && is_enabled_thinking(&thinking)) {
                     obj.insert("thinking".into(), thinking);
                 }
-            }
         } else if let Some(raw_thinking) = raw_thinking {
             if !(forced_tool_choice && is_enabled_thinking(raw_thinking)) {
                 obj.insert("thinking".into(), raw_thinking.clone());
             }
-        } else if raw_output_config.is_none() {
-            if let Some(thinking) = thinking_val {
-                if !(forced_tool_choice && is_enabled_thinking(&thinking)) {
+        } else if raw_output_config.is_none()
+            && let Some(thinking) = thinking_val
+                && !(forced_tool_choice && is_enabled_thinking(&thinking)) {
                     obj.insert("thinking".into(), thinking);
                 }
-            }
-        }
 
         // Add metadata from canonical params
         if let Some(raw_metadata) = anthropic_extras_view.metadata.as_ref() {
@@ -1432,9 +1427,9 @@ impl ProviderAdapter for AnthropicAdapter {
 
             // Check if this chunk also carries reasoning content — emit
             // content_block_start + content_block_delta for thinking alongside message_start
-            if let Some(choice) = chunk.choices.first() {
-                if let Some(delta_view) = choice.delta_view() {
-                    if !delta_view.reasoning.is_empty() {
+            if let Some(choice) = chunk.choices.first()
+                && let Some(delta_view) = choice.delta_view()
+                    && !delta_view.reasoning.is_empty() {
                         let thinking = delta_view
                             .reasoning
                             .iter()
@@ -1444,8 +1439,6 @@ impl ProviderAdapter for AnthropicAdapter {
                             return Ok(message_start);
                         }
                     }
-                }
-            }
 
             return Ok(message_start);
         }

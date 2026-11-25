@@ -433,11 +433,10 @@ pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
                 .into_iter()
                 .map(|block| {
                     let mut options = serde_json::Map::new();
-                    if let Some(citations) = block.citations {
-                        if let Ok(v) = serde_json::to_value(citations) {
+                    if let Some(citations) = block.citations
+                        && let Ok(v) = serde_json::to_value(citations) {
                             options.insert("citations".into(), v);
                         }
-                    }
 
                     let provider_options = if options.is_empty() {
                         None
@@ -463,8 +462,8 @@ impl TryFromLLM<generated::InputMessage> for Message {
     fn try_from(input_msg: generated::InputMessage) -> Result<Self, Self::Error> {
         // Check if this is a user message that contains only tool results
         // If so, convert it to a Tool message instead
-        if let generated::MessageRole::User = input_msg.role {
-            if let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content {
+        if let generated::MessageRole::User = input_msg.role
+            && let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content {
                 // Check if all blocks are tool results
                 let all_tool_results = blocks.iter().all(input_content_block_is_tool_result);
 
@@ -543,7 +542,6 @@ impl TryFromLLM<generated::InputMessage> for Message {
                     }
                 }
             }
-        }
 
         match input_msg.role {
             generated::MessageRole::System => Ok(Message::System {
@@ -820,11 +818,10 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 "web_search_tool_result".to_string(),
                                             ),
                                         );
-                                        if let Some(content) = &block.content {
-                                            if let Ok(v) = serde_json::to_value(content) {
+                                        if let Some(content) = &block.content
+                                            && let Ok(v) = serde_json::to_value(content) {
                                                 output.insert("content".into(), v);
                                             }
-                                        }
 
                                         content_parts.push(AssistantContentPart::ToolResult {
                                             tool_call_id: id.clone(),
@@ -966,14 +963,14 @@ impl TryFromLLM<Message> for generated::InputMessage {
 
                                         // Handle text content types - decode to text block instead of document
                                         // Anthropic's Document block only accepts PDFs, not text files
-                                        if !is_url {
-                                            if let Some(mt) = &media_type {
-                                                if mt.starts_with("text/") {
+                                        if !is_url
+                                            && let Some(mt) = &media_type
+                                                && mt.starts_with("text/") {
                                                     // Parse data URL and decode base64 to text
                                                     if let Some(media_block) = parse_base64_data_url(&image_data) {
                                                         use base64::Engine;
-                                                        if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(&media_block.data) {
-                                                            if let Ok(text) = String::from_utf8(bytes) {
+                                                        if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(&media_block.data)
+                                                            && let Ok(text) = String::from_utf8(bytes) {
                                                                 return Some(generated::InputContentBlock {
                                                                     cache_control: None,
                                                                     citations: None,
@@ -995,13 +992,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                                     file_id: None,
                                                                 });
                                                             }
-                                                        }
                                                     }
                                                     // Skip if can't decode text
                                                     return None;
                                                 }
-                                            }
-                                        }
 
                                         let (source_type, source_url, source_data, anthropic_media_type) = if is_url {
                                             (
@@ -2023,11 +2017,10 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                             "anthropic_type".into(),
                             serde_json::Value::String("web_search_tool_result".to_string()),
                         );
-                        if let Some(content) = &block.content {
-                            if let Ok(v) = serde_json::to_value(content) {
+                        if let Some(content) = &block.content
+                            && let Ok(v) = serde_json::to_value(content) {
                                 output.insert("content".into(), v);
                             }
-                        }
 
                         content_parts.push(AssistantContentPart::ToolResult {
                             tool_call_id: id,

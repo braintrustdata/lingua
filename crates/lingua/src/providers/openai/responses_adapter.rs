@@ -248,14 +248,13 @@ pub(crate) fn responses_created_stream_event_from_universal(
         "output": []
     });
 
-    if let Some(usage) = &chunk.usage {
-        if let Some(obj) = response.as_object_mut() {
+    if let Some(usage) = &chunk.usage
+        && let Some(obj) = response.as_object_mut() {
             obj.insert(
                 "usage".into(),
                 usage.to_provider_value(ProviderFormat::Responses),
             );
         }
-    }
 
     crate::serde_json::json!({
         "type": "response.created",
@@ -315,13 +314,11 @@ fn responses_terminal_stream_event(
                 | ServedServiceTier::Scale => Some(service_tier),
                 _ => None,
             })
-    {
-        if let Some(response) = response.as_object_mut() {
+        && let Some(response) = response.as_object_mut() {
             let value = serde_json::to_value(service_tier)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             response.insert("service_tier".into(), value);
         }
-    }
 
     Ok(serde_json::json!({
         "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
@@ -558,11 +555,10 @@ pub(crate) fn record_responses_output_items(
                 );
             }
             ResponsesToolStreamEvent::FunctionCallArgumentsDelta(delta) => {
-                if let (Some(output_index), Some(text)) = (delta.output_index, delta.delta) {
-                    if let Some(entry) = tool_items.get_mut(&output_index) {
+                if let (Some(output_index), Some(text)) = (delta.output_index, delta.delta)
+                    && let Some(entry) = tool_items.get_mut(&output_index) {
                         entry.arguments.push_str(&text);
                     }
-                }
             }
             ResponsesToolStreamEvent::CustomToolCallInputDelta(delta) => {
                 if let Some(entry) = tool_items.get_mut(&delta.output_index) {
@@ -980,13 +976,11 @@ impl ProviderAdapter for ResponsesAdapter {
         let chat_extras_view =
             parse_openai_chat_extras(req.params.extras.get(&ProviderFormat::ChatCompletions))?;
         let mut messages_for_input = req.messages.clone();
-        if let Some(instructions) = responses_extras_view.instructions.as_deref() {
-            if let Some(first_text) = messages_for_input.first().and_then(system_text) {
-                if first_text == instructions {
+        if let Some(instructions) = responses_extras_view.instructions.as_deref()
+            && let Some(first_text) = messages_for_input.first().and_then(system_text)
+                && first_text == instructions {
                     messages_for_input.remove(0);
                 }
-            }
-        }
 
         let mut input_items = req
             .params
@@ -1092,11 +1086,10 @@ impl ProviderAdapter for ResponsesAdapter {
         // Convert tools to Responses API format
         if let Some(raw_tools) = responses_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
-        } else if let Some(tools) = req.params.tools.as_ref() {
-            if let Some(tools_value) = tools_to_responses_value(tools)? {
+        } else if let Some(tools) = req.params.tools.as_ref()
+            && let Some(tools_value) = tools_to_responses_value(tools)? {
                 obj.insert("tools".into(), tools_value);
             }
-        }
 
         // Convert tool_choice using helper method
         if let Some(raw_tool_choice) = responses_extras_view.tool_choice.as_ref() {
@@ -1816,11 +1809,10 @@ impl ProviderAdapter for ResponsesAdapter {
                 "output": []
             });
 
-            if let Some(usage) = &chunk.usage {
-                if let Some(obj) = response.as_object_mut() {
+            if let Some(usage) = &chunk.usage
+                && let Some(obj) = response.as_object_mut() {
                     obj.insert("usage".into(), usage.to_provider_value(self.format()));
                 }
-            }
             if let Some(service_tier) =
                 chunk
                     .served_service_tier
@@ -1833,13 +1825,11 @@ impl ProviderAdapter for ResponsesAdapter {
                         | ServedServiceTier::Scale => Some(service_tier),
                         _ => None,
                     })
-            {
-                if let Some(obj) = response.as_object_mut() {
+                && let Some(obj) = response.as_object_mut() {
                     let value = serde_json::to_value(service_tier)
                         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
                     obj.insert("service_tier".into(), value);
                 }
-            }
 
             return Ok(serde_json::json!({
                 "type": "response.created",
@@ -1848,11 +1838,10 @@ impl ProviderAdapter for ResponsesAdapter {
         }
 
         let stream_events = responses_stream_events_from_universal(chunk)?;
-        if has_reasoning {
-            if let Some(event) = stream_events.first() {
+        if has_reasoning
+            && let Some(event) = stream_events.first() {
                 return Ok(event.clone());
             }
-        }
         if has_finish {
             return responses_terminal_stream_event(chunk, 0);
         }
@@ -1861,8 +1850,8 @@ impl ProviderAdapter for ResponsesAdapter {
         }
 
         // Check for content delta
-        if let Some(choice) = chunk.choices.first() {
-            if let Some(delta) = choice.delta_view() {
+        if let Some(choice) = chunk.choices.first()
+            && let Some(delta) = choice.delta_view() {
                 if let Some(tool_call) = delta.tool_calls.first() {
                     let output_index = tool_call.index.unwrap_or(0);
 
@@ -1920,7 +1909,6 @@ impl ProviderAdapter for ResponsesAdapter {
                     }));
                 }
             }
-        }
 
         // Fallback - return output_text.delta with empty content
         Ok(serde_json::json!({
@@ -3004,8 +2992,8 @@ mod tests {
                 .unwrap()
                 .starts_with("msg_transformed_item_"));
 
-            if item.output_item_type == Some(OutputItemType::Message) {
-                if let Some(content) = &item.content {
+            if item.output_item_type == Some(OutputItemType::Message)
+                && let Some(content) = &item.content {
                     for c in content {
                         assert!(
                             c.annotations.is_some(),
@@ -3015,7 +3003,6 @@ mod tests {
                         assert_eq!(c.annotations.as_ref().unwrap(), &vec![]);
                     }
                 }
-            }
         }
     }
 
@@ -3205,8 +3192,8 @@ mod tests {
                 .unwrap()
                 .starts_with("msg_transformed_item_"));
 
-            if item.output_item_type == Some(OutputItemType::Message) {
-                if let Some(content) = &item.content {
+            if item.output_item_type == Some(OutputItemType::Message)
+                && let Some(content) = &item.content {
                     for c in content {
                         assert!(
                             c.annotations.is_some(),
@@ -3216,7 +3203,6 @@ mod tests {
                         assert_eq!(c.annotations.as_ref().unwrap(), &vec![]);
                     }
                 }
-            }
         }
     }
 

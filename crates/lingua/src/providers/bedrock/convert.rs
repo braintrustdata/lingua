@@ -440,12 +440,11 @@ pub fn universal_to_bedrock_messages(
                 if blocks.is_empty() {
                     continue;
                 }
-                if let Some(last_message) = bedrock_messages.last_mut() {
-                    if is_tool_result_message(last_message) {
+                if let Some(last_message) = bedrock_messages.last_mut()
+                    && is_tool_result_message(last_message) {
                         last_message.content.extend(blocks);
                         continue;
                     }
-                }
 
                 bedrock_messages.push(BedrockMessage {
                     role: BedrockConversationRole::User,

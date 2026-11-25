@@ -437,8 +437,8 @@ fn decide_response(
     if boundary == BoundaryAction::NewTurn {
         return ResponseRule::ContinuedConversation;
     }
-    if evidence.resumed {
-        if let Some(previous) = previous.filter(|previous| previous.start > span.start) {
+    if evidence.resumed
+        && let Some(previous) = previous.filter(|previous| previous.start > span.start) {
             let reply = message_keys(&previous.output);
             let replays_reply = !reply.is_empty()
                 && span
@@ -449,7 +449,6 @@ fn decide_response(
                 return ResponseRule::OverlappingWork;
             }
         }
-    }
     ResponseRule::ContinuedConversation
 }
 
@@ -894,12 +893,11 @@ impl TrajectoryStream {
             let mut earliest_end: Option<DateTime<Utc>> = None;
             for group in llms.chunk_by(|a, b| self.spans[*a].start == self.spans[*b].start) {
                 for &index in group {
-                    if let Some(end) = self.spans[index].source.end {
-                        if earliest_end.is_some_and(|other| other < end) {
+                    if let Some(end) = self.spans[index].source.end
+                        && earliest_end.is_some_and(|other| other < end) {
                             order_times.insert(index, end);
                             self.resumed.insert(index);
                         }
-                    }
                 }
                 earliest_end = group
                     .iter()
@@ -1139,11 +1137,10 @@ impl TrajectoryStream {
             .candidate
             .filter(|(index, _)| key.compaction.is_none() && self.can_finish_turn(*index))
             .map(|(index, _)| index);
-        if response.is_none() {
-            if let Some((index, position)) = state.candidate {
+        if response.is_none()
+            && let Some((index, position)) = state.candidate {
                 events.extend(self.work(&scope, id, index, position, self.roles[index])?);
             }
-        }
         let completed = CompletedTurn {
             id: id.clone(),
             start: self.spans[self.by_id[id]].start,
@@ -1180,8 +1177,8 @@ impl TrajectoryStream {
         let scope = self.scope(&key);
         let mut state = self.states.remove(&key).unwrap_or_default();
         let previous_candidate = state.candidate.map(|(index, _)| index);
-        if self.resumed.contains(&index) {
-            if let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start) {
+        if self.resumed.contains(&index)
+            && let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start) {
                 events.extend(self.work(
                     &scope,
                     &target.id,
@@ -1209,7 +1206,6 @@ impl TrajectoryStream {
                 self.states.insert(key, state);
                 return Ok(());
             }
-        }
         let explicit = if self.task_boundaries.contains(&key) {
             if matches!(self.roles[index], Role::Task { .. }) {
                 span.source.turn.as_deref()
@@ -1236,14 +1232,13 @@ impl TrajectoryStream {
         if new_turn {
             self.end_turn(&key, &mut state, events)?;
             state.previous_id = state.id.take();
-            if key.compaction.is_none() && observation.interrupts {
-                if let Some(id) = &state.previous_id {
+            if key.compaction.is_none() && observation.interrupts
+                && let Some(id) = &state.previous_id {
                     events.push(TrajectoryEvent::Interrupted {
                         scope: scope.clone(),
                         id: id.clone(),
                     });
                 }
-            }
             state.id = Some(span.id.clone());
             state.request_found = observation.conversation.has_request();
             state.request_model = span.source.model.clone();
@@ -1285,14 +1280,13 @@ impl TrajectoryStream {
                 }),
             });
         } else if boundary == BoundaryAction::AttachRequest {
-            if key.compaction.is_none() && observation.interrupts {
-                if let Some(id) = &state.previous_id {
+            if key.compaction.is_none() && observation.interrupts
+                && let Some(id) = &state.previous_id {
                     events.push(TrajectoryEvent::Interrupted {
                         scope: scope.clone(),
                         id: id.clone(),
                     });
                 }
-            }
             state.request_found = true;
             state.request_model = span.source.model.clone();
             events.push(TrajectoryEvent::Request {
@@ -1361,11 +1355,10 @@ impl TrajectoryStream {
                 .push(voice::failure(span, span.voice.errors.join("; ")));
         }
         if self.voice.sessions.contains(&index) {
-            if loaded {
-                if let Some(recording) = self.spans[index].voice.recording.take() {
+            if loaded
+                && let Some(recording) = self.spans[index].voice.recording.take() {
                     events.push(TrajectoryEvent::Recording { scope, recording });
                 }
-            }
             self.spans[index].release_payload();
             return Ok(());
         }

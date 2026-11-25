@@ -91,11 +91,10 @@ async fn main() -> Result<()> {
                     Ok((request, _metadata)) => {
                         match router.complete(request, &ClientHeaders::default()).await {
                             Ok(bytes) => {
-                                if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
-                                    if let Some(text) = extract_assistant_text(&response) {
+                                if let Ok(response) = serde_json::from_slice::<Value>(&bytes)
+                                    && let Some(text) = extract_assistant_text(&response) {
                                         println!("   Response: {}\n", text.trim());
                                     }
-                                }
                             }
                             Err(e) => println!("   Error: {e}\n"),
                         }
@@ -128,11 +127,10 @@ async fn main() -> Result<()> {
                     Ok((request, _metadata)) => {
                         match router.complete(request, &ClientHeaders::default()).await {
                             Ok(bytes) => {
-                                if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
-                                    if let Some(text) = extract_assistant_text(&response) {
+                                if let Ok(response) = serde_json::from_slice::<Value>(&bytes)
+                                    && let Some(text) = extract_assistant_text(&response) {
                                         println!("   Response: {}\n", text.trim());
                                     }
-                                }
                             }
                             Err(e) => println!("   Error: {e}\n"),
                         }

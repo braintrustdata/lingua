@@ -165,11 +165,10 @@ async fn main() -> Result<()> {
         while let Some(chunk_result) = stream.next().await {
             match chunk_result {
                 Ok(stream_chunk) => {
-                    if let Ok(chunk) = serde_json::from_slice::<Value>(&stream_chunk.data) {
-                        if let Some(text) = extract_chunk_text(&chunk) {
+                    if let Ok(chunk) = serde_json::from_slice::<Value>(&stream_chunk.data)
+                        && let Some(text) = extract_chunk_text(&chunk) {
                             response.push_str(&text);
                         }
-                    }
                 }
                 Err(e) => {
                     eprintln!("❌ Stream error for {model}: {e}");

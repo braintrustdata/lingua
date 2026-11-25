@@ -131,7 +131,7 @@ impl ModelCatalog {
         self.by_format.get(&format).map(Vec::as_slice)
     }
 
-    pub fn child_models<'a>(&'a self, parent: &str) -> impl Iterator<Item = &'a String> + 'a {
+    pub fn child_models<'a>(&'a self, parent: &str) -> impl Iterator<Item = &'a String> + use<'a> {
         self.by_parent
             .get(parent)
             .map(|entries| entries.iter())

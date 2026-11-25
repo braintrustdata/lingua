@@ -10,11 +10,10 @@ pub(crate) fn try_parsers_in_order<V: ImportValue>(
     parsers: &[MessageParser<V>],
 ) -> Option<Vec<Message>> {
     for parser in parsers {
-        if let Some(messages) = parser(data) {
-            if !messages.is_empty() {
+        if let Some(messages) = parser(data)
+            && !messages.is_empty() {
                 return Some(messages);
             }
-        }
     }
     None
 }

@@ -201,42 +201,35 @@ fn try_converting_to_messages<V: ImportValue>(
     {
         if let Ok(provider_messages) =
             Vec::<ChatCompletionRequestMessageExt>::deserialize(data_to_parse)
-        {
-            if let Ok(messages) = <Vec<Message> as TryFromLLM<
+            && let Ok(messages) = <Vec<Message> as TryFromLLM<
                 Vec<ChatCompletionRequestMessageExt>,
             >>::try_from(provider_messages)
-            {
-                if !messages.is_empty() {
+                && !messages.is_empty() {
                     return messages;
                 }
-            }
-        }
     }
 
     // Try Anthropic format (including role-based system/developer messages).
     #[cfg(feature = "anthropic")]
     {
-        if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse) {
-            if !anthropic_messages.is_empty() {
+        if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse)
+            && !anthropic_messages.is_empty() {
                 return anthropic_messages;
             }
-        }
     }
 
     // Try lenient parsing for non-standard message formats
-    if let Some(lenient_messages) = try_lenient_message_parsing(data_to_parse) {
-        if !lenient_messages.is_empty() {
+    if let Some(lenient_messages) = try_lenient_message_parsing(data_to_parse)
+        && !lenient_messages.is_empty() {
             return lenient_messages;
         }
-    }
 
     // Try parsing as choices array (Chat Completions response format)
     // This handles [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
-    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse, import) {
-        if !choices_messages.is_empty() {
+    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse, import)
+        && !choices_messages.is_empty() {
             return choices_messages;
         }
-    }
 
     Vec::new()
 }
@@ -403,8 +396,8 @@ fn import_mixed_message_item<V: ImportValue>(
     }
 
     #[cfg(feature = "openai")]
-    if parsed_messages.is_none() && import.options.preserve_unsupported {
-        if let Some((messages, warning)) = try_parse_responses_with_opaque_metadata_for_import(item)
+    if parsed_messages.is_none() && import.options.preserve_unsupported
+        && let Some((messages, warning)) = try_parse_responses_with_opaque_metadata_for_import(item)
         {
             parsed_messages = Some(messages);
             import
@@ -419,7 +412,6 @@ fn import_mixed_message_item<V: ImportValue>(
                 });
             }
         }
-    }
 
     let Some(parsed_messages) = parsed_messages else {
         import
@@ -677,11 +669,9 @@ fn try_parse_reasoning_assistant_message(item: &impl ImportValue) -> Option<Mess
         if let AssistantContentPart::Reasoning {
             encrypted_content, ..
         } = content_part
-        {
-            if encrypted_content.is_none() {
+            && encrypted_content.is_none() {
                 *encrypted_content = reasoning_signature.clone();
             }
-        }
     }
     content_parts.extend(assistant_content_parts_from_openai_tool_calls(
         tool_calls,
@@ -1117,14 +1107,13 @@ fn import_span_messages(
         Some(output) => parse(output, "output", &mut import),
         None => Vec::new(),
     };
-    if let Some(message) = metadata.and_then(try_system_message_from_metadata) {
-        if !input
+    if let Some(message) = metadata.and_then(try_system_message_from_metadata)
+        && !input
             .iter()
             .any(|message| matches!(message, Message::System { .. }))
         {
             input.insert(0, message);
         }
-    }
     SpanMessages {
         input,
         output,
@@ -1181,14 +1170,13 @@ pub fn import_messages_from_values_with_metadata<I: ImportValue, O: ImportValue,
     } else {
         parse(input, &mut import)
     };
-    if let Some(message) = metadata.and_then(try_system_message_from_metadata) {
-        if !input
+    if let Some(message) = metadata.and_then(try_system_message_from_metadata)
+        && !input
             .iter()
             .any(|message| matches!(message, Message::System { .. }))
         {
             input.insert(0, message);
         }
-    }
     let output = if output.kind() == InputKind::String {
         match output.parse::<String>() {
             Some(text) if !text.is_empty() => vec![Message::Assistant {

@@ -202,9 +202,9 @@ impl<'filter> Walker<'filter> {
             return self.filter_value(Value::String(value), path, current_key);
         }
 
-        if is_tool_arguments {
-            if let Some(parsed_arguments) = try_parse_json_string(&value) {
-                if parsed_arguments.is_array() || parsed_arguments.is_object() {
+        if is_tool_arguments
+            && let Some(parsed_arguments) = try_parse_json_string(&value)
+                && (parsed_arguments.is_array() || parsed_arguments.is_object()) {
                     let mut parsed_path = path.to_vec();
                     parsed_path.push("<parsed_json>".to_string());
                     let mut parsed_scope = scope;
@@ -216,8 +216,6 @@ impl<'filter> Walker<'filter> {
                             .expect("serializing serde_json::Value to a string should not fail"),
                     );
                 }
-            }
-        }
 
         let (value, was_anonymized) = self.replace_string(value, current_key);
         if was_anonymized {
@@ -264,13 +262,11 @@ impl<'filter> Walker<'filter> {
             return (value, false);
         }
 
-        if !self.all_strings {
-            if let Some(current_key) = current_key {
-                if self.preserve_keys.contains(&current_key.to_lowercase()) {
+        if !self.all_strings
+            && let Some(current_key) = current_key
+                && self.preserve_keys.contains(&current_key.to_lowercase()) {
                     return (value, false);
                 }
-            }
-        }
 
         if let Some(token) = self.replacements.get(&value) {
             self.replaced_string_count += 1;

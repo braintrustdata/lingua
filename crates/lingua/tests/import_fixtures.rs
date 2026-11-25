@@ -437,11 +437,10 @@ fn test_import_cases_from_shared_fixtures() {
 
     for spans_path in case_paths {
         let case_name = case_name_from_fixture_path(&spans_path);
-        if let Some(filter) = &case_filter {
-            if !case_name.contains(filter) {
+        if let Some(filter) = &case_filter
+            && !case_name.contains(filter) {
                 continue;
             }
-        }
 
         let spans_json = fs::read_to_string(&spans_path).unwrap_or_else(|e| {
             panic!(

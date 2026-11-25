@@ -156,6 +156,7 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
         false
     }
 
+    #[allow(clippy::collapsible_if)] // Keep the existing Value checks unchanged for the typed-boundary check
     fn stream_to_universal(
         &self,
         payload: Value,

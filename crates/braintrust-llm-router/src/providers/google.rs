@@ -123,8 +123,8 @@ impl GoogleProvider {
         auth: &AuthConfig,
         format: ProviderFormat,
     ) -> Result<()> {
-        if format == ProviderFormat::ChatCompletions {
-            if let Some(key) = auth.api_key() {
+        if format == ProviderFormat::ChatCompletions
+            && let Some(key) = auth.api_key() {
                 headers.insert(
                     AUTHORIZATION,
                     HeaderValue::from_str(&format!("Bearer {key}"))
@@ -132,7 +132,6 @@ impl GoogleProvider {
                 );
                 return Ok(());
             }
-        }
 
         auth.apply_headers(headers)
     }

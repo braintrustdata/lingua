@@ -232,11 +232,10 @@ pub fn insert_opt_i64(obj: &mut Map<String, Value>, key: &str, value: Option<i64
 
 /// Insert an optional f64 into a map if present.
 pub fn insert_opt_f64(obj: &mut Map<String, Value>, key: &str, value: Option<f64>) {
-    if let Some(v) = value {
-        if let Some(n) = Number::from_f64(v) {
+    if let Some(v) = value
+        && let Some(n) = Number::from_f64(v) {
             obj.insert(key.into(), Value::Number(n));
         }
-    }
 }
 
 /// Insert an optional bool into a map if present.

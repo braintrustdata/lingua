@@ -858,8 +858,8 @@ fn run_fail_fast_suite(
         ..ProptestConfig::default()
     };
     proptest!(config, |(payload in strategy.clone())| {
-        if let Some(issues) = assert_fn(&payload) {
-            if !issues.is_empty() {
+        if let Some(issues) = assert_fn(&payload)
+            && !issues.is_empty() {
                 let snapshot_msg = match save_failing_snapshot_for_suite(
                     suite,
                     provider,
@@ -875,7 +875,6 @@ fn run_fail_fast_suite(
                     .unwrap_or_else(|| "roundtrip mismatch (verbose details unavailable)".to_string());
                 prop_assert!(false, "{}{}", verbose, snapshot_msg);
             }
-        }
     });
 }
 

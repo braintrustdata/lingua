@@ -56,27 +56,24 @@ pub fn strategy_from_schema(schema: &Value, ctx: &SchemaCtx, depth: usize) -> Bo
     }
 
     // Handle enum
-    if let Some(enum_vals) = schema.get("enum").and_then(|v| v.as_array()) {
-        if !enum_vals.is_empty() {
+    if let Some(enum_vals) = schema.get("enum").and_then(|v| v.as_array())
+        && !enum_vals.is_empty() {
             let vals: Vec<Value> = enum_vals.clone();
             return (0..vals.len()).prop_map(move |i| vals[i].clone()).boxed();
         }
-    }
 
     // Handle anyOf / oneOf (pick one variant)
     if let Some(variants) = schema
         .get("anyOf")
         .or_else(|| schema.get("oneOf"))
         .and_then(|v| v.as_array())
-    {
-        if !variants.is_empty() {
+        && !variants.is_empty() {
             let strategies: Vec<BoxedStrategy<Value>> = variants
                 .iter()
                 .map(|v| strategy_from_schema(v, ctx, depth + 1))
                 .collect();
             return proptest::strategy::Union::new(strategies).boxed();
         }
-    }
 
     // Handle allOf (merge all schemas - simplified: just use the first object-like one)
     if let Some(all_of) = schema.get("allOf").and_then(|v| v.as_array()) {
@@ -97,8 +94,8 @@ pub fn strategy_from_schema(schema: &Value, ctx: &SchemaCtx, depth: usize) -> Bo
                 }
             }
             // Also resolve $ref within allOf
-            if let Some(ref_str) = sub.get("$ref").and_then(|v| v.as_str()) {
-                if let Some(resolved) = ctx.resolve_ref(ref_str) {
+            if let Some(ref_str) = sub.get("$ref").and_then(|v| v.as_str())
+                && let Some(resolved) = ctx.resolve_ref(ref_str) {
                     if let Some(props) = resolved.get("properties").and_then(|p| p.as_object()) {
                         for (k, v) in props {
                             merged_props.insert(k.clone(), v.clone());
@@ -112,7 +109,6 @@ pub fn strategy_from_schema(schema: &Value, ctx: &SchemaCtx, depth: usize) -> Bo
                         }
                     }
                 }
-            }
         }
         if !merged_props.is_empty() {
             let merged = json!({
@@ -154,7 +150,7 @@ pub fn strategy_from_schema(schema: &Value, ctx: &SchemaCtx, depth: usize) -> Bo
     }
 }
 
-fn arb_string(schema: &Value) -> impl Strategy<Value = Value> {
+fn arb_string(schema: &Value) -> impl Strategy<Value = Value> + use<> {
     // If there are enum values, use those
     if let Some(enum_vals) = schema.get("enum").and_then(|v| v.as_array()) {
         let vals: Vec<String> = enum_vals
