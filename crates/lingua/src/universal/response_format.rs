@@ -29,6 +29,7 @@ let output = config.to_provider(ProviderFormat::ChatCompletions)?;
 ```
 */
 
+use std::collections::{BTreeMap, HashSet};
 use std::convert::TryFrom;
 
 use crate::capabilities::ProviderFormat;
@@ -77,7 +78,12 @@ impl ResponseFormatConfig {
     pub fn to_provider(&self, provider: ProviderFormat) -> Result<Option<Value>, TransformError> {
         match provider {
             ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)?),
-            ProviderFormat::Responses => Ok(to_openai_responses_text(self)?),
+            ProviderFormat::Responses => Ok(to_openai_responses_text(
+                self,
+                self.json_schema
+                    .as_ref()
+                    .is_some_and(|schema| schema.responses_strict(false)),
+            )?),
             ProviderFormat::Anthropic => {
                 let format = JsonOutputFormat::try_from(self).map_err(TransformError::from)?;
                 Ok(Some(serde_json::to_value(&format).map_err(|e| {
@@ -118,6 +124,124 @@ impl SchemaTypeView {
             Self::String(value) => value == expected,
             Self::Array(values) => values.iter().any(|value| value == expected),
         }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ResponsesStrictSchemaView {
+    #[serde(rename = "type")]
+    schema_type: Option<SchemaTypeView>,
+    properties: Option<BTreeMap<String, Self>>,
+    required: Option<Vec<String>>,
+    additional_properties: Option<bool>,
+    items: Option<Box<Self>>,
+    prefix_items: Option<Vec<Self>>,
+    additional_items: Option<ResponsesStrictSubschemaView>,
+    any_of: Option<Vec<Self>>,
+    #[serde(rename = "$defs")]
+    defs: Option<BTreeMap<String, Self>>,
+    definitions: Option<BTreeMap<String, Self>>,
+    #[serde(rename = "$ref")]
+    reference: Option<String>,
+    #[serde(flatten)]
+    other_keywords: BTreeMap<String, serde::de::IgnoredAny>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum ResponsesStrictSubschemaView {
+    Schema(Box<ResponsesStrictSchemaView>),
+    Boolean(bool),
+}
+
+impl ResponsesStrictSchemaView {
+    fn is_object(&self) -> bool {
+        self.schema_type
+            .as_ref()
+            .is_some_and(|schema_type| schema_type.contains("object"))
+    }
+
+    fn is_compatible(&self) -> bool {
+        if self
+            .other_keywords
+            .keys()
+            .map(String::as_str)
+            .any(|keyword| {
+                matches!(
+                    keyword,
+                    "allOf"
+                        | "oneOf"
+                        | "not"
+                        | "if"
+                        | "then"
+                        | "else"
+                        | "dependentRequired"
+                        | "dependentSchemas"
+                        | "dependencies"
+                        | "contains"
+                        | "propertyNames"
+                        | "unevaluatedItems"
+                        | "unevaluatedProperties"
+                        | "minLength"
+                        | "maxLength"
+                        | "pattern"
+                        | "format"
+                        | "minimum"
+                        | "maximum"
+                        | "exclusiveMinimum"
+                        | "exclusiveMaximum"
+                        | "multipleOf"
+                        | "patternProperties"
+                        | "minItems"
+                        | "maxItems"
+                )
+            })
+        {
+            return false;
+        }
+
+        if self.is_object() || self.properties.is_some() {
+            let Some(properties) = &self.properties else {
+                return false;
+            };
+            let required = self.required.as_deref().unwrap_or_default();
+            let required_names: HashSet<_> = required.iter().collect();
+            if self.additional_properties != Some(false)
+                || properties.len() != required.len()
+                || !properties.keys().all(|name| required_names.contains(name))
+                || !properties.values().all(Self::is_compatible)
+            {
+                return false;
+            }
+        }
+
+        self.items.as_deref().is_none_or(Self::is_compatible)
+            && match &self.additional_items {
+                Some(ResponsesStrictSubschemaView::Schema(schema)) => schema.is_compatible(),
+                Some(ResponsesStrictSubschemaView::Boolean(true | false)) | None => true,
+            }
+            && [&self.any_of, &self.prefix_items]
+                .into_iter()
+                .flatten()
+                .all(|schemas| schemas.iter().all(Self::is_compatible))
+            && [&self.defs, &self.definitions]
+                .into_iter()
+                .flatten()
+                .all(|definitions| definitions.values().all(Self::is_compatible))
+    }
+}
+
+impl JsonSchemaConfig {
+    pub(crate) fn responses_strict(&self, infer_strict: bool) -> bool {
+        self.strict.unwrap_or_else(|| {
+            infer_strict
+                && ResponsesStrictSchemaView::deserialize(&self.schema).is_ok_and(|schema| {
+                    (schema.is_object() || schema.reference.is_some())
+                        && schema.any_of.is_none()
+                        && schema.is_compatible()
+                })
+        })
     }
 }
 
@@ -472,7 +596,10 @@ fn to_openai_chat(config: &ResponseFormatConfig) -> Result<Option<Value>, Conver
 /// - `{ format: { type: "json_schema", name, schema, strict, description? } }`
 ///
 /// Returns the full `text` object, not just the format.
-fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Value>, ConvertError> {
+pub(crate) fn to_openai_responses_text(
+    config: &ResponseFormatConfig,
+    strict: bool,
+) -> Result<Option<Value>, ConvertError> {
     let Some(format_type) = config.format_type else {
         return Ok(None);
     };
@@ -487,7 +614,6 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Valu
                         field: "json_schema".to_string(),
                     }
                 })?;
-                let strict = js.strict.unwrap_or(false);
                 let mut obj = Map::new();
                 obj.insert("type".into(), Value::String("json_schema".into()));
                 obj.insert("name".into(), Value::String(js.name.clone()));
@@ -496,7 +622,7 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Valu
                     normalize_response_schema_for_strict_target(
                         &js.schema,
                         ProviderFormat::Responses,
-                        strict,
+                        js.strict == Some(true),
                     )?,
                 );
                 obj.insert("strict".into(), Value::Bool(strict));
@@ -915,6 +1041,86 @@ mod tests {
             normalized.pointer("/properties/outer/required"),
             Some(&json!(["inner", "details"]))
         );
+    }
+
+    #[test]
+    fn test_responses_infers_strict_only_for_compatible_schemas() {
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            { "$ref": "#/$defs/answer" },
+                            { "type": "null" }
+                        ]
+                    }
+                }
+            },
+            "required": ["answers"],
+            "additionalProperties": false,
+            "$defs": {
+                "answer": {
+                    "type": "object",
+                    "properties": { "text": { "type": "string" } },
+                    "required": ["text"],
+                    "additionalProperties": false
+                }
+            }
+        });
+        let mut optional = schema.clone();
+        *optional.pointer_mut("/$defs/answer/required").unwrap() = json!([]);
+        let mut optional_union = schema.clone();
+        *optional_union
+            .pointer_mut("/properties/answers/items/anyOf/1")
+            .unwrap() = json!({
+            "type": "object",
+            "properties": { "text": { "type": "string" } },
+            "required": [],
+            "additionalProperties": false
+        });
+        let mut with_format = schema.clone();
+        *with_format
+            .pointer_mut("/$defs/answer/properties/text")
+            .unwrap() = json!({ "type": "string", "format": "date-time" });
+        let mut with_array_limit = schema.clone();
+        with_array_limit.pointer_mut("/properties/answers").unwrap()["maxItems"] = json!(4);
+
+        for (schema, strict, expected) in [
+            (&schema, None, true),
+            (&optional, None, false),
+            (&optional_union, None, false),
+            (&with_format, None, false),
+            (&with_array_limit, None, false),
+            (&schema, Some(false), false),
+            (&optional, Some(true), true),
+            (&with_format, Some(true), true),
+        ] {
+            let config = ResponseFormatConfig {
+                format_type: Some(ResponseFormatType::JsonSchema),
+                json_schema: Some(JsonSchemaConfig {
+                    name: "answers".into(),
+                    schema: schema.clone(),
+                    strict,
+                    description: None,
+                }),
+            };
+            let mut params = crate::universal::request::UniversalParams {
+                response_format: Some(config),
+                ..Default::default()
+            };
+            params.extras.entry(ProviderFormat::Anthropic).or_default();
+            let responses: OpenAiResponsesTextView = serde_json::from_value(
+                params
+                    .try_response_format_for(ProviderFormat::Responses)
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+            assert_eq!(responses.format.strict, Some(expected), "{schema}");
+            assert_eq!(&responses.format.schema, schema);
+        }
     }
 
     #[test]

@@ -178,13 +178,14 @@ pub fn test_request_transformation(
     };
 
     if !same_provider && target_adapter.format() == ProviderFormat::Responses {
+        let strict = expected_universal.params.responses_schema_strict();
         if let Some(schema) = expected_universal
             .params
             .response_format
             .as_mut()
             .and_then(|format| format.json_schema.as_mut())
         {
-            schema.strict.get_or_insert(false);
+            schema.strict = strict;
         }
     }
     let expected_universal_value = universal_request_to_value(&expected_universal, same_provider);
