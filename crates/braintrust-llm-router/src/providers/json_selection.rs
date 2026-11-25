@@ -144,15 +144,17 @@ mod tests {
     #[test]
     fn selected_parts_are_validated_by_the_generated_type() {
         let body = br#"{"input":[{"content":[{"type":"input_audio","input_audio":{"data":"cmlm","format":"invalid"}}]}]}"#;
-        assert!(select::<ContentInputItemContentList>(
-            body,
-            &[
-                Segment::Key("input"),
-                Segment::Each,
-                Segment::Key("content"),
-                Segment::Each,
-            ]
-        )
-        .is_err());
+        assert!(
+            select::<ContentInputItemContentList>(
+                body,
+                &[
+                    Segment::Key("input"),
+                    Segment::Each,
+                    Segment::Key("content"),
+                    Segment::Each,
+                ]
+            )
+            .is_err()
+        );
     }
 }

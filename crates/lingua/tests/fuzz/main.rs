@@ -8,9 +8,9 @@
 //!   `make stats` - run all cases and report aggregated summary (for triage)
 
 use coverage_report::runner::diff_json;
+use lingua::ProviderFormat;
 use lingua::processing::adapter_for_format;
 use lingua::serde_json::{self, Value};
-use lingua::ProviderFormat;
 use proptest::prelude::*;
 use proptest::test_runner::TestRunner;
 use std::collections::{BTreeMap, BTreeSet};

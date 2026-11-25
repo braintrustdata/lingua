@@ -35,9 +35,10 @@ mod tests {
                 if path.is_dir() {
                     // Skip common directories that shouldn't contain test data
                     if let Some(dir_name) = path.file_name().and_then(|n| n.to_str())
-                        && matches!(dir_name, "target" | ".git" | "node_modules" | ".cargo") {
-                            continue;
-                        }
+                        && matches!(dir_name, "target" | ".git" | "node_modules" | ".cargo")
+                    {
+                        continue;
+                    }
 
                     // Recursively search subdirectories
                     if let Some(path_str) = path.to_str() {
@@ -47,9 +48,10 @@ mod tests {
                     // Check if this is an error.json file
                     if let Some(file_name) = path.file_name().and_then(|n| n.to_str())
                         && file_name == "error.json"
-                            && let Some(path_str) = path.to_str() {
-                                error_files.push(path_str.to_string());
-                            }
+                        && let Some(path_str) = path.to_str()
+                    {
+                        error_files.push(path_str.to_string());
+                    }
                 }
             }
         }
@@ -94,27 +96,29 @@ mod tests {
                         if matches!(
                             dir_name,
                             "tests" | "test_data" | "testdata" | "fixtures" | "snapshots"
-                        )
-                            && let Some(path_str) = path.to_str() {
-                                test_dirs.push(path_str.to_string());
-                            }
+                        ) && let Some(path_str) = path.to_str()
+                        {
+                            test_dirs.push(path_str.to_string());
+                        }
 
                         // Also check for provider-specific test directories
                         if (dir_name.contains("test") || dir_name.contains("case"))
-                            && let Some(path_str) = path.to_str() {
-                                // Check if this directory contains JSON files
-                                if directory_contains_json_files(&path) {
-                                    test_dirs.push(path_str.to_string());
-                                }
+                            && let Some(path_str) = path.to_str()
+                        {
+                            // Check if this directory contains JSON files
+                            if directory_contains_json_files(&path) {
+                                test_dirs.push(path_str.to_string());
                             }
+                        }
                     }
 
                     // Recursively search subdirectories (but not too deep to avoid performance issues)
                     if let Some(path_str) = path.to_str()
-                        && path_str.split('/').count() < 5 {
-                            // Limit recursion depth
-                            test_dirs.extend(find_test_data_directories(path_str));
-                        }
+                        && path_str.split('/').count() < 5
+                    {
+                        // Limit recursion depth
+                        test_dirs.extend(find_test_data_directories(path_str));
+                    }
                 }
             }
         }
@@ -129,9 +133,10 @@ mod tests {
                 let path = entry.path();
                 if path.is_file()
                     && let Some(ext) = path.extension()
-                        && ext == "json" {
-                            return true;
-                        }
+                    && ext == "json"
+                {
+                    return true;
+                }
             }
         }
         false

@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use base64::Engine as _;
 use dashmap::DashMap;
 use reqwest::{Client, Url};
@@ -61,11 +61,12 @@ impl DatabricksTokenManager {
         let token_future = async {
             let key = credentials.cache_key(api_base);
             if let Some(entry) = self.cache.get(&key)
-                && entry.expires_at > Instant::now() + TOKEN_BUFFER {
-                    #[cfg(feature = "tracing")]
-                    tracing::Span::current().record("cache.hit", true);
-                    return Ok((entry.value.clone(), entry.token_type.clone()));
-                }
+                && entry.expires_at > Instant::now() + TOKEN_BUFFER
+            {
+                #[cfg(feature = "tracing")]
+                tracing::Span::current().record("cache.hit", true);
+                return Ok((entry.value.clone(), entry.token_type.clone()));
+            }
 
             #[cfg(feature = "tracing")]
             tracing::Span::current().record("cache.hit", false);

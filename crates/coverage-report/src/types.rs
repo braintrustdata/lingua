@@ -58,21 +58,24 @@ impl TestFilter {
     pub fn matches_provider_pair(&self, source: ProviderFormat, target: ProviderFormat) -> bool {
         // Check providers filter (both must match)
         if let Some(ref providers) = self.providers
-            && (!providers.contains(&source) || !providers.contains(&target)) {
-                return false;
-            }
+            && (!providers.contains(&source) || !providers.contains(&target))
+        {
+            return false;
+        }
 
         // Check explicit source filter
         if let Some(ref sources) = self.sources
-            && !sources.contains(&source) {
-                return false;
-            }
+            && !sources.contains(&source)
+        {
+            return false;
+        }
 
         // Check explicit target filter
         if let Some(ref targets) = self.targets
-            && !targets.contains(&target) {
-                return false;
-            }
+            && !targets.contains(&target)
+        {
+            return false;
+        }
 
         true
     }

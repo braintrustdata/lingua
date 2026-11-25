@@ -1,14 +1,14 @@
+use lingua::Message;
 use lingua::processing::import::{
-    import_messages_from_values, import_messages_from_values_with_metadata,
-    import_span_with_options, ImportOptions, ImportValue, InputKind, OpaqueItem,
+    ImportOptions, ImportValue, InputKind, OpaqueItem, import_messages_from_values,
+    import_messages_from_values_with_metadata, import_span_with_options,
 };
 use lingua::processing::{
-    import_messages_from_spans, import_role_message_from_value, try_import_ai_sdk_prompt_message,
-    Span,
+    Span, import_messages_from_spans, import_role_message_from_value,
+    try_import_ai_sdk_prompt_message,
 };
 use lingua::serde_json;
 use lingua::universal::{AssistantContent, AssistantContentPart, UserContent};
-use lingua::Message;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::cell::Cell;
@@ -438,9 +438,10 @@ fn test_import_cases_from_shared_fixtures() {
     for spans_path in case_paths {
         let case_name = case_name_from_fixture_path(&spans_path);
         if let Some(filter) = &case_filter
-            && !case_name.contains(filter) {
-                continue;
-            }
+            && !case_name.contains(filter)
+        {
+            continue;
+        }
 
         let spans_json = fs::read_to_string(&spans_path).unwrap_or_else(|e| {
             panic!(

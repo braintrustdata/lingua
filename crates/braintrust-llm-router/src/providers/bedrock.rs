@@ -3,23 +3,23 @@ use std::time::{Duration, SystemTime};
 use async_trait::async_trait;
 use aws_credential_types::Credentials;
 use aws_sigv4::http_request::{
-    sign, SignableBody, SignableRequest, SigningParams, SigningSettings,
+    SignableBody, SignableRequest, SigningParams, SigningSettings, sign,
 };
 use aws_sigv4::sign::v4;
 use aws_smithy_runtime_api::client::identity::Identity;
 use bytes::Bytes;
 use http::Request as HttpRequest;
 use lingua::serde_json::Value;
-use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Url;
+use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderValue};
 use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{build_middleware_client, ClientSettings};
+use crate::client::{ClientSettings, build_middleware_client};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
+use crate::streaming::{RawResponseStream, bedrock_event_stream, sse_stream};
 use lingua::ProviderFormat;
 
 /// Percent-encode a Bedrock model identifier for use as a single URL path
@@ -487,13 +487,13 @@ mod tests {
     use super::*;
     use crate::catalog::{ModelFlavor, ModelSpec};
     use crate::providers::remote_media::{
-        inline_remote_media_with_fetch, prepare_request_with_remote_media_and_fetch,
-        RemoteMediaPolicy,
+        RemoteMediaPolicy, inline_remote_media_with_fetch,
+        prepare_request_with_remote_media_and_fetch,
     };
     use lingua::universal::message::Message;
     use lingua::util::media::MediaBlock;
-    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     fn provider() -> BedrockProvider {
         let config = BedrockConfig {
@@ -589,9 +589,11 @@ mod tests {
             .split(',')
             .next()
             .unwrap();
-        assert!(signed_headers
-            .split(';')
-            .any(|name| name == "x-amzn-bedrock-request-metadata"));
+        assert!(
+            signed_headers
+                .split(';')
+                .any(|name| name == "x-amzn-bedrock-request-metadata")
+        );
     }
 
     #[test]
@@ -1118,10 +1120,12 @@ mod tests {
                 .and_then(|v| v.as_str()),
             Some("base64")
         );
-        assert!(value
-            .pointer("/messages/0/content/1/source/data")
-            .and_then(|v| v.as_str())
-            .is_some_and(|v| !v.is_empty()));
+        assert!(
+            value
+                .pointer("/messages/0/content/1/source/data")
+                .and_then(|v| v.as_str())
+                .is_some_and(|v| !v.is_empty())
+        );
         assert_eq!(value.pointer("/messages/0/content/1/source/url"), None);
     }
 

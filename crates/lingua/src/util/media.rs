@@ -51,9 +51,9 @@ fn validate_media_type(
         && !allowed
             .iter()
             .any(|allowed| allowed.eq_ignore_ascii_case(&media_type))
-        {
-            return Err(MediaError::UnsupportedMediaType(media_type));
-        }
+    {
+        return Err(MediaError::UnsupportedMediaType(media_type));
+    }
     Ok(media_type)
 }
 
@@ -702,9 +702,10 @@ mod native_fetch {
         {
             bytes.extend_from_slice(&chunk);
             if let Some(max) = max_bytes
-                && bytes.len() > max {
-                    return Err(MediaError::SizeExceeded(max / 1024 / 1024));
-                }
+                && bytes.len() > max
+            {
+                return Err(MediaError::SizeExceeded(max / 1024 / 1024));
+            }
         }
 
         Ok(bytes)

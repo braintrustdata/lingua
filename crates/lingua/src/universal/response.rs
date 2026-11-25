@@ -569,9 +569,10 @@ impl UniversalResponse {
             })
             .collect();
         if contents.is_empty()
-            && let Some(text) = self.messages.last().and_then(message_text) {
-                contents.push(text);
-            }
+            && let Some(text) = self.messages.last().and_then(message_text)
+        {
+            contents.push(text);
+        }
         contents
     }
 
@@ -1416,9 +1417,11 @@ impl UniversalUsage {
                 if let Some(completion) = self.completion_tokens {
                     map.insert(
                         "candidatesTokenCount".into(),
-                        serde_json::json!(completion
-                            .saturating_sub(reasoning_tokens.unwrap_or(0))
-                            .max(0)),
+                        serde_json::json!(
+                            completion
+                                .saturating_sub(reasoning_tokens.unwrap_or(0))
+                                .max(0)
+                        ),
                     );
                 }
 

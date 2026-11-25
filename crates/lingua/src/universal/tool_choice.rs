@@ -31,7 +31,7 @@ use std::convert::TryFrom;
 use crate::capabilities::ProviderFormat;
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::generated::ToolChoice;
-use crate::serde_json::{self, json, Value};
+use crate::serde_json::{self, Value, json};
 use crate::universal::request::{ToolChoiceConfig, ToolChoiceMode};
 
 // =============================================================================
@@ -111,7 +111,7 @@ fn from_openai_chat(value: &Value) -> Result<ToolChoiceConfig, TransformError> {
                     return Err(TransformError::ToUniversalFailed(format!(
                         "unrecognized tool_choice type: '{}'",
                         other
-                    )))
+                    )));
                 }
             }
 
@@ -157,7 +157,7 @@ fn from_openai_responses(value: &Value) -> Result<ToolChoiceConfig, TransformErr
                     return Err(TransformError::ToUniversalFailed(format!(
                         "unrecognized tool_choice type: '{}'",
                         other
-                    )))
+                    )));
                 }
             };
 

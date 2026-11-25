@@ -22,11 +22,11 @@ use crate::universal::message::{
     UserContent, UserContentPart,
 };
 use crate::universal::{
-    decision::{DecisionExtras, DecisionParams, OpenAIDecisionOptions},
     DecisionAnswer, DecisionChoice, DecisionChoiceProbability, DecisionInput,
     DecisionLevelProbability, DecisionQuestion, DecisionQuestionKind, DecisionResult,
     DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
     UniversalUsage,
+    decision::{DecisionExtras, DecisionParams, OpenAIDecisionOptions},
 };
 use serde::Deserialize;
 
@@ -625,7 +625,7 @@ fn user_content_to_decision(
 ) -> Result<decisions::DecisionInputContent, ConvertError> {
     let parts = match content {
         UserContent::String(text) => {
-            return Ok(decisions::DecisionInputContent::PurpleString(text))
+            return Ok(decisions::DecisionInputContent::PurpleString(text));
         }
         UserContent::Array(parts) => parts,
     };
@@ -1141,7 +1141,7 @@ fn answer_to_resource(answer: DecisionAnswer) -> decisions::AnswerResource {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serde_json::{json, Value};
+    use crate::serde_json::{Value, json};
 
     fn to_universal(request: Value) -> Result<UniversalDecisionRequest, ConvertError> {
         let request: decisions::DecisionRequest = serde_json::from_value(request).unwrap();

@@ -2,7 +2,7 @@ use lingua::providers::openai::{
     generated::{InputItemContent, InputItemContentListType, InputItemType, InputParam},
     try_parse_responses,
 };
-use lingua::{serde_json, Bytes, ProviderFormat, TransformResult};
+use lingua::{Bytes, ProviderFormat, TransformResult, serde_json};
 
 const SNAPSHOT: &[u8] = include_bytes!("fixtures/codex-subagent-agent-message.json");
 

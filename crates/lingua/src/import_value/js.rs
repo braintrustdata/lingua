@@ -1,8 +1,8 @@
 use super::{ImportValue, InputKind};
 use crate::serde_json::{Error, Value};
 use js_sys::{Array, Map, Reflect};
-use serde::de::{self, DeserializeOwned, DeserializeSeed, Visitor};
 use serde::Deserializer;
+use serde::de::{self, DeserializeOwned, DeserializeSeed, Visitor};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -588,7 +588,7 @@ impl<'de> Deserializer<'de> for Input<'de> {
     ) -> Result<V::Value, Error> {
         let variant = match self {
             Self::Native(Value::String(tag)) => {
-                return visitor.visit_enum(de::value::StrDeserializer::<Error>::new(tag))
+                return visitor.visit_enum(de::value::StrDeserializer::<Error>::new(tag));
             }
             Self::Native(Value::Object(fields)) if fields.len() == 1 => {
                 let (key, value) = fields.iter().next().expect("one enum variant");

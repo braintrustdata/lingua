@@ -9,8 +9,8 @@ use futures::Stream;
 use reqwest::Response;
 
 use crate::error::{Error, Result};
-use lingua::universal::ServedInfo;
 use lingua::ProviderFormat;
+use lingua::universal::ServedInfo;
 
 #[cfg(feature = "tracing")]
 fn log_stream_transform_detection_failure(
@@ -440,9 +440,10 @@ where
                     }
 
                     if event_type.as_deref() == Some("chunk")
-                        && let Some(decoded_chunk) = decode_bedrock_chunk_payload(payload) {
-                            return Poll::Ready(Some(Ok(StreamChunk::data(decoded_chunk))));
-                        }
+                        && let Some(decoded_chunk) = decode_bedrock_chunk_payload(payload)
+                    {
+                        return Poll::Ready(Some(Ok(StreamChunk::data(decoded_chunk))));
+                    }
 
                     // Wrap the payload with event type as JSON bytes
                     // For Bedrock, we need to wrap: { "eventType": <payload> }

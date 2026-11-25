@@ -5,16 +5,16 @@ use std::collections::BTreeMap;
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::adapter_for_format;
 use crate::processing::transform::{
-    serialize_stream_value, transform_stream_chunk_step, TransformError, TransformResult,
+    TransformError, TransformResult, serialize_stream_value, transform_stream_chunk_step,
 };
 #[cfg(feature = "openai")]
 use crate::providers::openai::generated::MessagePhase;
 #[cfg(feature = "openai")]
 use crate::providers::openai::responses_adapter::{
-    record_responses_output_items, responses_created_stream_event_from_universal,
-    responses_message_item_id, responses_reasoning_item, responses_reasoning_item_id,
+    ResponsesTextMessageEvent, ResponsesToolItem, record_responses_output_items,
+    responses_created_stream_event_from_universal, responses_message_item_id,
+    responses_reasoning_item, responses_reasoning_item_id,
     responses_stream_events_from_universal_with_output_index_offset, responses_tool_call_item,
-    ResponsesTextMessageEvent, ResponsesToolItem,
 };
 use crate::serde_json::Value;
 use crate::universal::{UniversalReasoningSignature, UniversalStreamChunk, UniversalUsage};
@@ -192,9 +192,10 @@ impl StreamTransformSession {
 
         #[cfg(feature = "openai")]
         if let Some(event) = &step.responses_text_message_event
-            && self.skip_responses_text_message_event(event)? {
-                return Ok(Vec::new());
-            }
+            && self.skip_responses_text_message_event(event)?
+        {
+            return Ok(Vec::new());
+        }
 
         if step.is_passthrough {
             return Ok(vec![StreamOutputChunk {
@@ -634,46 +635,48 @@ impl StreamTransformSession {
                     .get(&(delta_kind, delta_index))
                     .copied()
                     .filter(|mapped_index| *mapped_index != delta_index)
-                {
-                    chunk = with_anthropic_content_block_delta_index(chunk, mapped_index);
-                }
+            {
+                chunk = with_anthropic_content_block_delta_index(chunk, mapped_index);
+            }
         }
         if self.anthropic_open_content_block_index.is_none()
             && self.anthropic_message_started
             && !is_content_block_start
             && let (Some(delta_index), Some(delta_kind)) =
                 (content_block_delta_index, content_block_delta_kind)
-                && delta_kind.can_synthesize_start() {
-                    let target_index = self
-                        .anthropic_content_block_index_map
-                        .get(&(delta_kind, delta_index))
-                        .copied()
-                        .unwrap_or_else(|| {
-                            let index = delta_index.max(self.anthropic_next_content_block_index);
-                            self.anthropic_content_block_index_map
-                                .insert((delta_kind, delta_index), index);
-                            self.anthropic_next_content_block_index = index + 1;
-                            index
-                        });
-                    if target_index != delta_index {
-                        chunk = with_anthropic_content_block_delta_index(chunk, target_index);
-                    }
-                    self.anthropic_open_content_block_index = Some(target_index);
-                    self.anthropic_open_content_block_kind = Some(delta_kind);
-                    prefix.push(anthropic_content_block_start_chunk(
-                        target_index,
-                        delta_kind,
-                    ));
-                }
+            && delta_kind.can_synthesize_start()
+        {
+            let target_index = self
+                .anthropic_content_block_index_map
+                .get(&(delta_kind, delta_index))
+                .copied()
+                .unwrap_or_else(|| {
+                    let index = delta_index.max(self.anthropic_next_content_block_index);
+                    self.anthropic_content_block_index_map
+                        .insert((delta_kind, delta_index), index);
+                    self.anthropic_next_content_block_index = index + 1;
+                    index
+                });
+            if target_index != delta_index {
+                chunk = with_anthropic_content_block_delta_index(chunk, target_index);
+            }
+            self.anthropic_open_content_block_index = Some(target_index);
+            self.anthropic_open_content_block_kind = Some(delta_kind);
+            prefix.push(anthropic_content_block_start_chunk(
+                target_index,
+                delta_kind,
+            ));
+        }
         // This closes blocks before explicit block starts and terminal message
         // deltas. Content-block deltas, including synthesized kind switches
         // above, must stay inside their open block until the delta is emitted.
         if (is_content_block_start || is_message_delta || is_stop)
             && self.anthropic_open_content_block_index.is_some()
-            && let Some(index) = self.anthropic_open_content_block_index.take() {
-                prefix.push(anthropic_content_block_stop_chunk(index)?);
-                self.anthropic_open_content_block_kind = None;
-            }
+            && let Some(index) = self.anthropic_open_content_block_index.take()
+        {
+            prefix.push(anthropic_content_block_stop_chunk(index)?);
+            self.anthropic_open_content_block_kind = None;
+        }
         if is_content_block_start {
             self.anthropic_open_content_block_index = content_block_start_index;
             self.anthropic_open_content_block_kind = content_block_start_kind;
@@ -1256,9 +1259,10 @@ fn expand_responses_session_chunks(
     }
 
     if let Some(item_id) = &text_item_id
-        && text_just_started {
-            insert_responses_message_item_added(&mut events, item_id, text_output_index);
-        }
+        && text_just_started
+    {
+        insert_responses_message_item_added(&mut events, item_id, text_output_index);
+    }
 
     if has_finish {
         let finish_message = text_item_id
@@ -1309,11 +1313,7 @@ fn expand_responses_session_chunks(
         })
         .collect::<Result<Vec<_>, TransformError>>()?;
 
-    if out.is_empty() {
-        Ok(chunks)
-    } else {
-        Ok(out)
-    }
+    if out.is_empty() { Ok(chunks) } else { Ok(out) }
 }
 
 fn responses_message_item(item_id: &str, status: &str, text: Option<&str>) -> Value {
@@ -1459,9 +1459,9 @@ fn insert_responses_finish_items(
             }
             if let Some(terminal) = events.get_mut(terminal_position)
                 && let Some(response) = terminal.get_mut("response").and_then(Value::as_object_mut)
-                {
-                    response.insert("output".to_string(), Value::Array(outputs));
-                }
+            {
+                response.insert("output".to_string(), Value::Array(outputs));
+            }
         }
         None => events.extend(inserts),
     }
@@ -1781,9 +1781,10 @@ fn merge_delta_usage(
         let usage_val: Value = crate::serde_json::from_slice(&usage_delta.data).ok()?;
 
         if let Some(usage) = usage_val.get("usage")
-            && let Some(obj) = finish.as_object_mut() {
-                obj.insert("usage".into(), usage.clone());
-            }
+            && let Some(obj) = finish.as_object_mut()
+        {
+            obj.insert("usage".into(), usage.clone());
+        }
 
         let serialized = crate::serde_json::to_vec(&finish).ok()?;
         Some(StreamOutputChunk {
@@ -4372,9 +4373,11 @@ mod tests {
         }));
 
         let error = session.push(full_response).unwrap_err();
-        assert!(error
-            .to_string()
-            .contains("multiple reasoning signatures cannot be represented"));
+        assert!(
+            error
+                .to_string()
+                .contains("multiple reasoning signatures cannot be represented")
+        );
     }
 
     #[test]
@@ -4799,10 +4802,12 @@ mod tests {
             custom_completed,
         ])
         .expect("commentary followed by a custom tool call is a complete turn");
-        assert!(chunks
-            .iter()
-            .any(|chunk| chunk.pointer("/choices/0/delta/tool_calls/0/id")
-                == Some(&json!("call_note"))));
+        assert!(
+            chunks
+                .iter()
+                .any(|chunk| chunk.pointer("/choices/0/delta/tool_calls/0/id")
+                    == Some(&json!("call_note")))
+        );
         assert_eq!(
             chunks
                 .last()

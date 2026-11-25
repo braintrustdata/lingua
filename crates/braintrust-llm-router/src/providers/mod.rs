@@ -21,11 +21,11 @@ pub use databricks::{DatabricksConfig, DatabricksProvider};
 pub use google::{GoogleConfig, GoogleProvider};
 pub use mistral::{MistralConfig, MistralProvider};
 pub use openai::{
-    is_openai_compatible, openai_compatible_endpoint, OpenAICompatibleEndpoint, OpenAIConfig,
-    OpenAIProvider,
+    OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, is_openai_compatible,
+    openai_compatible_endpoint,
 };
 pub(crate) use remote_media::{
-    prepare_request_with_remote_media, reject_remote_responses_audio, RemoteMediaPolicy,
+    RemoteMediaPolicy, prepare_request_with_remote_media, reject_remote_responses_audio,
 };
 pub(crate) use typesafe::typesafe_client_headers;
 pub use typesafe::{TypeSafeConfig, TypeSafeProvider};
@@ -34,7 +34,7 @@ pub use vertex::{VertexConfig, VertexProvider};
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::{self, Value};
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE};
+use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue};
 use std::collections::HashMap;
 use std::sync::Arc;
 

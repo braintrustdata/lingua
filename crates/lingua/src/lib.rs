@@ -31,7 +31,7 @@ pub mod python;
 // ============================================================================
 
 // Re-export extraction functions
-pub use extraction::{extract_request_hints, RequestHints};
+pub use extraction::{RequestHints, extract_request_hints};
 
 // Re-export capabilities
 pub use capabilities::ProviderFormat;
@@ -41,15 +41,15 @@ pub use capabilities::ProviderFormat;
 pub use providers::openai::parse_decision_response;
 
 pub use processing::{
-    extract_model, normalize_json_lone_surrogate_escapes, parse_json, parse_json_body,
-    parse_json_value, parse_stream_event, request_to_universal, response_to_universal,
-    sanitize_payload, transform_request, transform_response, transform_stream_chunk,
-    ParsedJsonBody, ParsedStreamEvent, RequestTransformResult, ResponseTransformResult,
-    StreamOutputChunk, StreamTransformSession, TransformError, TransformResult,
+    DecisionRequestTransform, DecisionResponseContext, transform_decision_request,
+    transform_decision_response,
 };
 pub use processing::{
-    transform_decision_request, transform_decision_response, DecisionRequestTransform,
-    DecisionResponseContext,
+    ParsedJsonBody, ParsedStreamEvent, RequestTransformResult, ResponseTransformResult,
+    StreamOutputChunk, StreamTransformSession, TransformError, TransformResult, extract_model,
+    normalize_json_lone_surrogate_escapes, parse_json, parse_json_body, parse_json_value,
+    parse_stream_event, request_to_universal, response_to_universal, sanitize_payload,
+    transform_request, transform_response, transform_stream_chunk,
 };
 
 // Re-export universal types

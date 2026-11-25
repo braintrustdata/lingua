@@ -1,5 +1,5 @@
 use crate::serde_json::Number;
-use serde::{de::Error, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, de::Error};
 
 pub(crate) fn deserialize_optional_integer<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
 where

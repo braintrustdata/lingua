@@ -1,5 +1,5 @@
 use lingua::universal::{Message, ToolContentPart};
-use lingua::{serde_json, serde_json::json, Bytes, ProviderFormat, TransformResult};
+use lingua::{Bytes, ProviderFormat, TransformResult, serde_json, serde_json::json};
 
 fn responses_response_with_function_call_output() -> Bytes {
     let response = json!({

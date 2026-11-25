@@ -7,8 +7,8 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    api_key_auth, serde_json::json, ClientHeaders, ModelCatalog, OpenAIConfig, OpenAIProvider,
-    ProviderFormat, Router,
+    ClientHeaders, ModelCatalog, OpenAIConfig, OpenAIProvider, ProviderFormat, Router,
+    api_key_auth, serde_json::json,
 };
 use bytes::Bytes;
 use serde_json::Value;

@@ -1,12 +1,12 @@
 use super::audio::{self, VoiceContext, VoicePayload};
-use super::{import_span_messages, is_instruction, ImportOptions, OpaqueItem, Span};
+use super::{ImportOptions, OpaqueItem, Span, import_span_messages, is_instruction};
+use crate::UniversalUsage;
 use crate::serde_json as json;
 use crate::universal::trajectory::{Compaction, ToolResult};
 use crate::universal::{
     Message, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::number::deserialize_optional_integer;
-use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;

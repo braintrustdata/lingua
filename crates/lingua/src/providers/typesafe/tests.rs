@@ -2,9 +2,9 @@ use super::generated::{Question, SystemOneRequest, SystemOneResponse};
 use super::system_one_response_to_universal;
 use crate::error::ConvertError;
 use crate::providers::openai::decisions_generated::{DecisionRequest, DecisionResponse};
-use crate::serde_json::{self, json, Value};
-use crate::universal::convert::TryFromLLM;
+use crate::serde_json::{self, Value, json};
 use crate::universal::UniversalDecisionRequest;
+use crate::universal::convert::TryFromLLM;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 

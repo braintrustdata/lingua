@@ -6,11 +6,11 @@ These rules apply only to Universal types and keep scope explicit and type-safe.
 
 use lingua::serde_json::Value;
 use lingua::universal::{
+    UniversalRequest, UniversalResponse, UniversalStreamChunk,
     message::{
         AssistantContent, AssistantContentPart, Message, TextContentPart, UserContent,
         UserContentPart,
     },
-    UniversalRequest, UniversalResponse, UniversalStreamChunk,
 };
 
 /// Normalize a UniversalRequest for semantic comparison.
@@ -42,9 +42,10 @@ pub fn normalize_stream_chunk_for_comparison(chunk: &UniversalStreamChunk) -> Un
     let mut normalized = chunk.clone();
     for choice in &mut normalized.choices {
         if let Some(Value::Object(map)) = choice.delta.as_mut()
-            && let Some(Value::String(text)) = map.get("content").cloned() {
-                map.insert("content".to_string(), text_part_value(text));
-            }
+            && let Some(Value::String(text)) = map.get("content").cloned()
+        {
+            map.insert("content".to_string(), text_part_value(text));
+        }
     }
     normalized
 }

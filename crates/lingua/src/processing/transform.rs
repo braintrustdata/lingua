@@ -15,13 +15,13 @@ use bytes::Bytes;
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
-use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
+use crate::processing::adapters::{ProviderAdapter, adapter_for_format, adapters};
 use crate::processing::normalize_json_lone_surrogate_escapes;
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
 #[cfg(feature = "openai")]
 use crate::providers::openai::responses_adapter::{
-    responses_text_message_event, ResponsesTextMessageEvent,
+    ResponsesTextMessageEvent, responses_text_message_event,
 };
 use crate::serde_json;
 use crate::serde_json::Value;
@@ -989,13 +989,15 @@ fn detect_adapter_with_kind(
     }
 
     // Vertex will possibly respond with a response payload for streaming requests, so we need to detect that.
-    if matches!(kind, DetectKind::Stream) && allow_full_response_fallback
-        && let Some(adapter) = detect_adapter_exact(payload, DetectKind::Response) {
-            return Ok(AdapterDetection {
-                adapter,
-                kind: DetectKind::Response,
-            });
-        }
+    if matches!(kind, DetectKind::Stream)
+        && allow_full_response_fallback
+        && let Some(adapter) = detect_adapter_exact(payload, DetectKind::Response)
+    {
+        return Ok(AdapterDetection {
+            adapter,
+            kind: DetectKind::Response,
+        });
+    }
 
     Err(unable_to_detect_format_error(kind))
 }
@@ -1798,9 +1800,11 @@ mod tests {
             tool.get("name").and_then(Value::as_str) == Some("search_code")
                 && tool.get("defer_loading").and_then(Value::as_bool) == Some(true)
         }));
-        assert!(!tools
-            .iter()
-            .any(|tool| tool.get("type").and_then(Value::as_str) == Some("namespace")));
+        assert!(
+            !tools
+                .iter()
+                .any(|tool| tool.get("type").and_then(Value::as_str) == Some("namespace"))
+        );
     }
 
     #[test]
@@ -2476,9 +2480,11 @@ mod tests {
         let error = transform_stream_chunk(to_bytes(&payload), ProviderFormat::ChatCompletions)
             .expect_err("shared reasoning and tool-call signatures should be rejected");
 
-        assert!(error
-            .to_string()
-            .contains("attached to both reasoning and tool-call parts"));
+        assert!(
+            error
+                .to_string()
+                .contains("attached to both reasoning and tool-call parts")
+        );
     }
 
     #[test]
@@ -2681,12 +2687,16 @@ mod tests {
         // Should be passthrough with same bytes
         assert!(result.is_passthrough());
         assert_eq!(result.into_bytes().as_ptr(), input_ptr);
-        assert!(transformed
-            .parsable_info
-            .reusable_for_request(ResponseRequirement::Any));
-        assert!(transformed
-            .parsable_info
-            .reusable_for_request(ResponseRequirement::Json));
+        assert!(
+            transformed
+                .parsable_info
+                .reusable_for_request(ResponseRequirement::Any)
+        );
+        assert!(
+            transformed
+                .parsable_info
+                .reusable_for_request(ResponseRequirement::Json)
+        );
     }
 
     #[test]
@@ -2708,9 +2718,11 @@ mod tests {
         let transformed = transform_response(input, ProviderFormat::Responses).unwrap();
 
         assert!(transformed.result.is_passthrough());
-        assert!(transformed
-            .parsable_info
-            .reusable_for_request(ResponseRequirement::Json));
+        assert!(
+            transformed
+                .parsable_info
+                .reusable_for_request(ResponseRequirement::Json)
+        );
     }
 
     #[test]
@@ -2740,12 +2752,16 @@ mod tests {
         assert!(!transformed.parsable_info.complete);
         assert!(!transformed.parsable_info.content_is_json);
         assert!(transformed.parsable_info.saw_terminal_finish);
-        assert!(!transformed
-            .parsable_info
-            .reusable_for_request(ResponseRequirement::Any));
-        assert!(!transformed
-            .parsable_info
-            .reusable_for_request(ResponseRequirement::Json));
+        assert!(
+            !transformed
+                .parsable_info
+                .reusable_for_request(ResponseRequirement::Any)
+        );
+        assert!(
+            !transformed
+                .parsable_info
+                .reusable_for_request(ResponseRequirement::Json)
+        );
     }
 
     #[test]

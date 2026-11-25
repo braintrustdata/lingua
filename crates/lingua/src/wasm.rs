@@ -10,10 +10,10 @@ use crate::providers::anthropic::convert::{
 };
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::google::generated as google;
+use crate::providers::openai::ChatCompletionRequestMessageExt;
 use crate::providers::openai::convert::messages_to_chat_completion_messages;
 use crate::providers::openai::generated as openai;
-use crate::providers::openai::ChatCompletionRequestMessageExt;
-use crate::universal::{convert::TryFromLLM, Message};
+use crate::universal::{Message, convert::TryFromLLM};
 use crate::wasm_serialize;
 
 fn serialize_to_js<T: Serialize + ?Sized>(value: &T, context: &str) -> Result<JsValue, JsValue> {
@@ -398,7 +398,7 @@ pub fn transform_request(
     model: Option<String>,
 ) -> Result<JsValue, JsValue> {
     use crate::capabilities::ProviderFormat;
-    use crate::processing::transform::{transform_request as transform, TransformResult};
+    use crate::processing::transform::{TransformResult, transform_request as transform};
     use bytes::Bytes;
 
     let target: ProviderFormat = target_format
@@ -450,7 +450,7 @@ pub fn transform_request(
 #[wasm_bindgen]
 pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, JsValue> {
     use crate::capabilities::ProviderFormat;
-    use crate::processing::transform::{transform_response as transform, TransformResult};
+    use crate::processing::transform::{TransformResult, transform_response as transform};
     use bytes::Bytes;
 
     let target: ProviderFormat = target_format
@@ -488,7 +488,7 @@ pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, J
 #[wasm_bindgen]
 pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValue, JsValue> {
     use crate::capabilities::ProviderFormat;
-    use crate::processing::transform::{transform_stream_chunk as transform, TransformResult};
+    use crate::processing::transform::{TransformResult, transform_stream_chunk as transform};
     use bytes::Bytes;
 
     let target: ProviderFormat = target_format
@@ -539,7 +539,7 @@ pub fn transform_decision_request(
     target_format: &str,
 ) -> Result<JsValue, JsValue> {
     use crate::processing::decisions::{
-        transform_decision_request as transform, DecisionResponseContext,
+        DecisionResponseContext, transform_decision_request as transform,
     };
 
     let source = parse_format(source_format)?;
@@ -576,8 +576,8 @@ pub fn transform_decision_response(
     target_format: &str,
 ) -> Result<JsValue, JsValue> {
     use crate::processing::decisions::{
-        transform_decision_request, transform_decision_response as transform,
-        DecisionResponseContext,
+        DecisionResponseContext, transform_decision_request,
+        transform_decision_response as transform,
     };
 
     let target = parse_format(target_format)?;

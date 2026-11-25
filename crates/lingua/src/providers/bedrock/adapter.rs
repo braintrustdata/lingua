@@ -332,11 +332,12 @@ impl ProviderAdapter for BedrockAdapter {
                     provider, config, ..
                 } = &tool.tool_type
                     && matches!(provider, BuiltinToolProvider::Converse)
-                        && let Some(config_value) = config {
-                            obj.insert("toolConfig".into(), config_value.clone());
-                            bedrock_builtin_found = true;
-                            break;
-                        }
+                    && let Some(config_value) = config
+                {
+                    obj.insert("toolConfig".into(), config_value.clone());
+                    bedrock_builtin_found = true;
+                    break;
+                }
             }
 
             // If no Bedrock builtin, convert function tools to Bedrock format

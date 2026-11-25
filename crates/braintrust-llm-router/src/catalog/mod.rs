@@ -3,8 +3,8 @@ mod resolver;
 pub mod spec;
 
 pub use fallback::OverlayModelCatalog;
-pub(crate) use resolver::is_gemini_api_model;
 pub use resolver::ModelResolver;
+pub(crate) use resolver::is_gemini_api_model;
 pub use spec::{ModelFlavor, ModelSpec, PricingRate, TierPricing};
 
 use lingua::ProviderFormat;

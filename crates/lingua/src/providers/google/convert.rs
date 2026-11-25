@@ -8,7 +8,7 @@ Google's GenerateContent API format and Lingua's universal message format.
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::import_parse::{
-    try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
+    MessageParser, try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order,
 };
 use crate::import_value::ImportValue;
 use crate::providers::google::generated::{
@@ -185,21 +185,22 @@ pub fn denormalize_json_schema_types(schema: &mut Value) {
     match schema {
         Value::Object(map) => {
             if let Some(type_value) = map.get_mut("type")
-                && let Value::String(type_str) = type_value {
-                    *type_value = Value::String(
-                        match type_str.as_ref() {
-                            "STRING" => "string",
-                            "NUMBER" => "number",
-                            "INTEGER" => "integer",
-                            "BOOLEAN" => "boolean",
-                            "ARRAY" => "array",
-                            "OBJECT" => "object",
-                            "NULL" => "null",
-                            _ => type_str.as_ref(),
-                        }
-                        .to_string(),
-                    );
-                }
+                && let Value::String(type_str) = type_value
+            {
+                *type_value = Value::String(
+                    match type_str.as_ref() {
+                        "STRING" => "string",
+                        "NUMBER" => "number",
+                        "INTEGER" => "integer",
+                        "BOOLEAN" => "boolean",
+                        "ARRAY" => "array",
+                        "OBJECT" => "object",
+                        "NULL" => "null",
+                        _ => type_str.as_ref(),
+                    }
+                    .to_string(),
+                );
+            }
 
             if let Some(Value::Object(props)) = map.get_mut("properties") {
                 for prop_schema in props.values_mut() {
@@ -341,17 +342,18 @@ impl TryFromLLM<GoogleContent> for Message {
                             });
                         }
                     } else if let Some(file) = &part.file_data
-                        && let Some(uri) = &file.file_uri {
-                            assistant_parts.push(AssistantContentPart::File {
-                                data: Value::String(uri.clone()),
-                                filename: file.display_name.clone(),
-                                media_type: file
-                                    .mime_type
-                                    .clone()
-                                    .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
-                                provider_options: None,
-                            });
-                        }
+                        && let Some(uri) = &file.file_uri
+                    {
+                        assistant_parts.push(AssistantContentPart::File {
+                            data: Value::String(uri.clone()),
+                            filename: file.display_name.clone(),
+                            media_type: file
+                                .mime_type
+                                .clone()
+                                .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
+                            provider_options: None,
+                        });
+                    }
                 }
 
                 Ok(Message::Assistant {
@@ -435,25 +437,26 @@ impl TryFromLLM<GoogleContent> for Message {
                             }
                         }
                     } else if let Some(fr) = &part.function_response
-                        && let Some(tool_name) = &fr.name {
-                            let output = match fr.response.as_ref() {
-                                Some(map) => Value::Object(map.clone()),
-                                None => Value::Null,
-                            };
-                            // Mirror the synthetic ID logic used for functionCall parts.
-                            let response_index = tool_parts.len();
-                            let tool_call_id = fr.id.clone().unwrap_or_else(|| {
-                                format!("{SYNTHETIC_CALL_ID_PREFIX}{response_index}")
-                            });
-                            tool_parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
-                                tool_call_id,
-                                tool_name: tool_name.clone(),
-                                output,
-                                custom_tool_call: None,
-                                caller: None,
-                                provider_options: None,
-                            }));
-                        }
+                        && let Some(tool_name) = &fr.name
+                    {
+                        let output = match fr.response.as_ref() {
+                            Some(map) => Value::Object(map.clone()),
+                            None => Value::Null,
+                        };
+                        // Mirror the synthetic ID logic used for functionCall parts.
+                        let response_index = tool_parts.len();
+                        let tool_call_id = fr.id.clone().unwrap_or_else(|| {
+                            format!("{SYNTHETIC_CALL_ID_PREFIX}{response_index}")
+                        });
+                        tool_parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
+                            tool_call_id,
+                            tool_name: tool_name.clone(),
+                            output,
+                            custom_tool_call: None,
+                            caller: None,
+                            provider_options: None,
+                        }));
+                    }
                 }
 
                 if !tool_parts.is_empty() {
@@ -1921,24 +1924,28 @@ mod tests {
                             Message::User {
                                 content: UserContent::Array(parts),
                             } => match &parts[..] {
-                                [UserContentPart::File {
-                                    data,
-                                    filename,
-                                    media_type,
-                                    ..
-                                }] => (data, filename, media_type),
+                                [
+                                    UserContentPart::File {
+                                        data,
+                                        filename,
+                                        media_type,
+                                        ..
+                                    },
+                                ] => (data, filename, media_type),
                                 other => panic!("Expected one named file, got {other:?}"),
                             },
                             Message::Assistant {
                                 content: AssistantContent::Array(parts),
                                 ..
                             } => match &parts[..] {
-                                [AssistantContentPart::File {
-                                    data,
-                                    filename,
-                                    media_type,
-                                    ..
-                                }] => (data, filename, media_type),
+                                [
+                                    AssistantContentPart::File {
+                                        data,
+                                        filename,
+                                        media_type,
+                                        ..
+                                    },
+                                ] => (data, filename, media_type),
                                 other => panic!("Expected one named file, got {other:?}"),
                             },
                             other => panic!("Expected file content, got {other:?}"),

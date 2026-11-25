@@ -9,7 +9,7 @@ converted to other decision formats.
 use super::convert::system_one_response_to_universal;
 use super::generated::{SystemOneRequest, SystemOneResponse};
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::{parse_payload, serialize_payload, DecisionAdapter};
+use crate::processing::adapters::{DecisionAdapter, parse_payload, serialize_payload};
 use crate::processing::transform::TransformError;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;

@@ -197,18 +197,20 @@ pub fn is_expected_field_with_scope(
         for rule in &diffs.per_test_case {
             if rule.test_case == test_name
                 && matches_source_target(&rule.source, &rule.target, source, target)
-                && let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern)) {
-                    return Some(entry.reason.clone());
-                }
+                && let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern))
+            {
+                return Some(entry.reason.clone());
+            }
         }
     }
 
     if include_global {
         for rule in &diffs.global {
             if matches_source_target(&rule.source, &rule.target, source, target)
-                && let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern)) {
-                    return Some(entry.reason.clone());
-                }
+                && let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern))
+            {
+                return Some(entry.reason.clone());
+            }
         }
     }
 
@@ -235,18 +237,20 @@ pub fn is_expected_error(
         for rule in &diffs.per_test_case {
             if rule.test_case == test_name
                 && matches_source_target(&rule.source, &rule.target, source, target)
-                && let Some(entry) = rule.errors.iter().find(|e| pattern_matches(&e.pattern)) {
-                    return Some(entry.reason.clone());
-                }
+                && let Some(entry) = rule.errors.iter().find(|e| pattern_matches(&e.pattern))
+            {
+                return Some(entry.reason.clone());
+            }
         }
     }
 
     // Check global rules
     for rule in &diffs.global {
         if matches_source_target(&rule.source, &rule.target, source, target)
-            && let Some(entry) = rule.errors.iter().find(|e| pattern_matches(&e.pattern)) {
-                return Some(entry.reason.clone());
-            }
+            && let Some(entry) = rule.errors.iter().find(|e| pattern_matches(&e.pattern))
+        {
+            return Some(entry.reason.clone());
+        }
     }
 
     None
@@ -286,35 +290,41 @@ mod tests {
 
     #[test]
     fn anthropic_ttl_fields_are_expected_losses_for_openai_style_response_targets() {
-        assert!(is_expected_field(
-            TestCategory::Responses,
-            "Anthropic",
-            "ChatCompletions",
-            Some("simpleRequest"),
-            "usage.prompt_cache_creation_5m_tokens",
-        )
-        .is_some());
-        assert!(is_expected_field(
-            TestCategory::Responses,
-            "Anthropic",
-            "Responses",
-            Some("simpleRequest"),
-            "usage.prompt_tokens_exclude_cache",
-        )
-        .is_some());
+        assert!(
+            is_expected_field(
+                TestCategory::Responses,
+                "Anthropic",
+                "ChatCompletions",
+                Some("simpleRequest"),
+                "usage.prompt_cache_creation_5m_tokens",
+            )
+            .is_some()
+        );
+        assert!(
+            is_expected_field(
+                TestCategory::Responses,
+                "Anthropic",
+                "Responses",
+                Some("simpleRequest"),
+                "usage.prompt_tokens_exclude_cache",
+            )
+            .is_some()
+        );
     }
 
     #[test]
     fn responses_phase_limitations_exclude_responses_roundtrip() {
         let field = "messages[0].content[0].provider_options";
-        assert!(is_expected_field(
-            TestCategory::Requests,
-            "Responses",
-            "Anthropic",
-            Some("responsesReasoningEffortMaxParam"),
-            field,
-        )
-        .is_some());
+        assert!(
+            is_expected_field(
+                TestCategory::Requests,
+                "Responses",
+                "Anthropic",
+                Some("responsesReasoningEffortMaxParam"),
+                field,
+            )
+            .is_some()
+        );
         assert_eq!(
             is_expected_field(
                 TestCategory::Requests,
@@ -329,72 +339,86 @@ mod tests {
 
     #[test]
     fn test_test_case_exact_match() {
-        assert!(is_expected_test_case(
-            TestCategory::Requests,
-            "ChatCompletions",
-            "Anthropic",
-            "imageContentParam"
-        )
-        .is_some());
+        assert!(
+            is_expected_test_case(
+                TestCategory::Requests,
+                "ChatCompletions",
+                "Anthropic",
+                "imageContentParam"
+            )
+            .is_some()
+        );
     }
 
     #[test]
     fn test_test_case_any_source_match() {
         // imageContentParam is configured with source=None, so any source should match
-        assert!(is_expected_test_case(
-            TestCategory::Requests,
-            "ChatCompletions",
-            "Anthropic",
-            "imageContentParam"
-        )
-        .is_some());
-        assert!(is_expected_test_case(
-            TestCategory::Requests,
-            "Responses",
-            "Anthropic",
-            "imageContentParam"
-        )
-        .is_some());
+        assert!(
+            is_expected_test_case(
+                TestCategory::Requests,
+                "ChatCompletions",
+                "Anthropic",
+                "imageContentParam"
+            )
+            .is_some()
+        );
+        assert!(
+            is_expected_test_case(
+                TestCategory::Requests,
+                "Responses",
+                "Anthropic",
+                "imageContentParam"
+            )
+            .is_some()
+        );
     }
 
     #[test]
     fn test_test_case_specific_source_match() {
         // codeInterpreterToolParam is configured with source=Responses
-        assert!(is_expected_test_case(
-            TestCategory::Requests,
-            "Responses",
-            "Anthropic",
-            "codeInterpreterToolParam"
-        )
-        .is_some());
+        assert!(
+            is_expected_test_case(
+                TestCategory::Requests,
+                "Responses",
+                "Anthropic",
+                "codeInterpreterToolParam"
+            )
+            .is_some()
+        );
         // Should NOT match with ChatCompletions source
-        assert!(is_expected_test_case(
-            TestCategory::Requests,
-            "ChatCompletions",
-            "Anthropic",
-            "codeInterpreterToolParam"
-        )
-        .is_none());
+        assert!(
+            is_expected_test_case(
+                TestCategory::Requests,
+                "ChatCompletions",
+                "Anthropic",
+                "codeInterpreterToolParam"
+            )
+            .is_none()
+        );
     }
 
     #[test]
     fn test_test_case_no_match() {
         // Unknown test case should not match
-        assert!(is_expected_test_case(
-            TestCategory::Requests,
-            "Responses",
-            "Anthropic",
-            "unknownTestCase"
-        )
-        .is_none());
+        assert!(
+            is_expected_test_case(
+                TestCategory::Requests,
+                "Responses",
+                "Anthropic",
+                "unknownTestCase"
+            )
+            .is_none()
+        );
         // Known test case but wrong target
-        assert!(is_expected_test_case(
-            TestCategory::Requests,
-            "ChatCompletions",
-            "ChatCompletions",
-            "imageContentParam"
-        )
-        .is_none());
+        assert!(
+            is_expected_test_case(
+                TestCategory::Requests,
+                "ChatCompletions",
+                "ChatCompletions",
+                "imageContentParam"
+            )
+            .is_none()
+        );
     }
 
     // =========================================================================
@@ -403,96 +427,112 @@ mod tests {
 
     #[test]
     fn test_field_exact_match() {
-        assert!(is_expected_field(
-            TestCategory::Requests,
-            "Anthropic",
-            "Responses",
-            None,
-            "params.reasoning.budget_tokens"
-        )
-        .is_some());
+        assert!(
+            is_expected_field(
+                TestCategory::Requests,
+                "Anthropic",
+                "Responses",
+                None,
+                "params.reasoning.budget_tokens"
+            )
+            .is_some()
+        );
     }
 
     #[test]
     fn test_field_any_source_match() {
         // Use params.metadata which legitimately differs (not validated)
-        assert!(is_expected_field(
-            TestCategory::Requests,
-            "ChatCompletions",
-            "Anthropic",
-            None,
-            "params.metadata"
-        )
-        .is_some());
-        assert!(is_expected_field(
-            TestCategory::Requests,
-            "Responses",
-            "Anthropic",
-            None,
-            "params.metadata"
-        )
-        .is_some());
+        assert!(
+            is_expected_field(
+                TestCategory::Requests,
+                "ChatCompletions",
+                "Anthropic",
+                None,
+                "params.metadata"
+            )
+            .is_some()
+        );
+        assert!(
+            is_expected_field(
+                TestCategory::Requests,
+                "Responses",
+                "Anthropic",
+                None,
+                "params.metadata"
+            )
+            .is_some()
+        );
     }
 
     #[test]
     fn test_field_prefix_match() {
-        assert!(is_expected_field(
-            TestCategory::Requests,
-            "ChatCompletions",
-            "Anthropic",
-            None,
-            "params.response_format.json_schema.schema"
-        )
-        .is_some());
+        assert!(
+            is_expected_field(
+                TestCategory::Requests,
+                "ChatCompletions",
+                "Anthropic",
+                None,
+                "params.response_format.json_schema.schema"
+            )
+            .is_some()
+        );
     }
 
     #[test]
     fn test_field_no_match() {
-        assert!(is_expected_field(
-            TestCategory::Requests,
-            "ChatCompletions",
-            "Responses",
-            None,
-            "messages[0].content"
-        )
-        .is_none());
+        assert!(
+            is_expected_field(
+                TestCategory::Requests,
+                "ChatCompletions",
+                "Responses",
+                None,
+                "messages[0].content"
+            )
+            .is_none()
+        );
     }
 
     #[test]
     fn test_error_match() {
-        assert!(is_expected_error(
-            TestCategory::Requests,
-            "Anthropic",
-            "ChatCompletions",
-            None,
-            "Tool 'bash' of type 'bash_20250124' is not supported by OpenAI Chat Completions"
-        )
-        .is_some());
+        assert!(
+            is_expected_error(
+                TestCategory::Requests,
+                "Anthropic",
+                "ChatCompletions",
+                None,
+                "Tool 'bash' of type 'bash_20250124' is not supported by OpenAI Chat Completions"
+            )
+            .is_some()
+        );
     }
 
     #[test]
     fn test_error_missing_is_failure() {
         // Errors with "missing" should always be failures, not limitations
-        assert!(is_expected_error(
-            TestCategory::Requests,
-            "Anthropic",
-            "ChatCompletions",
-            None,
-            "missing model"
-        )
-        .is_none());
+        assert!(
+            is_expected_error(
+                TestCategory::Requests,
+                "Anthropic",
+                "ChatCompletions",
+                None,
+                "missing model"
+            )
+            .is_none()
+        );
     }
 
     #[test]
     fn test_error_no_match() {
-        assert!(is_expected_error(
-            TestCategory::Requests,
-            "Anthropic",
-            "ChatCompletions",
-            None,
-            "some random error"
-        )
-        .is_none());
+        assert!(
+            is_expected_error(
+                TestCategory::Requests,
+                "Anthropic",
+                "ChatCompletions",
+                None,
+                "some random error"
+            )
+            .is_none()
+        );
     }
 
     // =========================================================================
@@ -503,31 +543,37 @@ mod tests {
     fn test_category_isolation() {
         // Requests category should find entries in requests file
         // Use params.metadata which legitimately differs (not validated)
-        assert!(is_expected_field(
-            TestCategory::Requests,
-            "ChatCompletions",
-            "Anthropic",
-            None,
-            "params.metadata"
-        )
-        .is_some());
+        assert!(
+            is_expected_field(
+                TestCategory::Requests,
+                "ChatCompletions",
+                "Anthropic",
+                None,
+                "params.metadata"
+            )
+            .is_some()
+        );
 
         // Responses and Streaming categories have empty files, should not find anything
-        assert!(is_expected_field(
-            TestCategory::Responses,
-            "ChatCompletions",
-            "Anthropic",
-            None,
-            "params.metadata"
-        )
-        .is_none());
-        assert!(is_expected_field(
-            TestCategory::Streaming,
-            "ChatCompletions",
-            "Anthropic",
-            None,
-            "params.metadata"
-        )
-        .is_none());
+        assert!(
+            is_expected_field(
+                TestCategory::Responses,
+                "ChatCompletions",
+                "Anthropic",
+                None,
+                "params.metadata"
+            )
+            .is_none()
+        );
+        assert!(
+            is_expected_field(
+                TestCategory::Streaming,
+                "ChatCompletions",
+                "Anthropic",
+                None,
+                "params.metadata"
+            )
+            .is_none()
+        );
     }
 }

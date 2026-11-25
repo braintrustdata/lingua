@@ -8,7 +8,7 @@
 //! Used by `fuzz_roundtrip.rs` to auto-generate provider request payloads
 //! directly from the OpenAPI specs in `specs/`.
 
-use lingua::serde_json::{self, json, Map, Value};
+use lingua::serde_json::{self, Map, Value, json};
 use proptest::prelude::*;
 use std::sync::Arc;
 
@@ -57,23 +57,25 @@ pub fn strategy_from_schema(schema: &Value, ctx: &SchemaCtx, depth: usize) -> Bo
 
     // Handle enum
     if let Some(enum_vals) = schema.get("enum").and_then(|v| v.as_array())
-        && !enum_vals.is_empty() {
-            let vals: Vec<Value> = enum_vals.clone();
-            return (0..vals.len()).prop_map(move |i| vals[i].clone()).boxed();
-        }
+        && !enum_vals.is_empty()
+    {
+        let vals: Vec<Value> = enum_vals.clone();
+        return (0..vals.len()).prop_map(move |i| vals[i].clone()).boxed();
+    }
 
     // Handle anyOf / oneOf (pick one variant)
     if let Some(variants) = schema
         .get("anyOf")
         .or_else(|| schema.get("oneOf"))
         .and_then(|v| v.as_array())
-        && !variants.is_empty() {
-            let strategies: Vec<BoxedStrategy<Value>> = variants
-                .iter()
-                .map(|v| strategy_from_schema(v, ctx, depth + 1))
-                .collect();
-            return proptest::strategy::Union::new(strategies).boxed();
-        }
+        && !variants.is_empty()
+    {
+        let strategies: Vec<BoxedStrategy<Value>> = variants
+            .iter()
+            .map(|v| strategy_from_schema(v, ctx, depth + 1))
+            .collect();
+        return proptest::strategy::Union::new(strategies).boxed();
+    }
 
     // Handle allOf (merge all schemas - simplified: just use the first object-like one)
     if let Some(all_of) = schema.get("allOf").and_then(|v| v.as_array()) {
@@ -95,20 +97,21 @@ pub fn strategy_from_schema(schema: &Value, ctx: &SchemaCtx, depth: usize) -> Bo
             }
             // Also resolve $ref within allOf
             if let Some(ref_str) = sub.get("$ref").and_then(|v| v.as_str())
-                && let Some(resolved) = ctx.resolve_ref(ref_str) {
-                    if let Some(props) = resolved.get("properties").and_then(|p| p.as_object()) {
-                        for (k, v) in props {
-                            merged_props.insert(k.clone(), v.clone());
-                        }
+                && let Some(resolved) = ctx.resolve_ref(ref_str)
+            {
+                if let Some(props) = resolved.get("properties").and_then(|p| p.as_object()) {
+                    for (k, v) in props {
+                        merged_props.insert(k.clone(), v.clone());
                     }
-                    if let Some(req) = resolved.get("required").and_then(|r| r.as_array()) {
-                        for r in req {
-                            if let Some(s) = r.as_str() {
-                                merged_required.push(Value::String(s.to_string()));
-                            }
+                }
+                if let Some(req) = resolved.get("required").and_then(|r| r.as_array()) {
+                    for r in req {
+                        if let Some(s) = r.as_str() {
+                            merged_required.push(Value::String(s.to_string()));
                         }
                     }
                 }
+            }
         }
         if !merged_props.is_empty() {
             let merged = json!({

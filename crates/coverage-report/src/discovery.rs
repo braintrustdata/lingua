@@ -33,12 +33,13 @@ fn discover_all_test_cases() -> Vec<String> {
         for entry in entries.flatten() {
             let path = entry.path();
             if path.is_dir()
-                && let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                    // Skip hidden directories
-                    if !name.starts_with('.') {
-                        test_cases.push(name.to_string());
-                    }
+                && let Some(name) = path.file_name().and_then(|n| n.to_str())
+            {
+                // Skip hidden directories
+                if !name.starts_with('.') {
+                    test_cases.push(name.to_string());
                 }
+            }
         }
     }
 

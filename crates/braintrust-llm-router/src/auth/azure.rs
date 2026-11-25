@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use dashmap::DashMap;
 use reqwest::{Client, Url};
 use serde::Deserialize;
@@ -77,11 +77,12 @@ impl AzureEntraTokenManager {
         let token_future = async {
             let key = credentials.cache_key();
             if let Some(entry) = self.cache.get(&key)
-                && entry.expires_at > Instant::now() + TOKEN_BUFFER {
-                    #[cfg(feature = "tracing")]
-                    tracing::Span::current().record("cache.hit", true);
-                    return Ok(entry.value.clone());
-                }
+                && entry.expires_at > Instant::now() + TOKEN_BUFFER
+            {
+                #[cfg(feature = "tracing")]
+                tracing::Span::current().record("cache.hit", true);
+                return Ok(entry.value.clone());
+            }
 
             #[cfg(feature = "tracing")]
             tracing::Span::current().record("cache.hit", false);

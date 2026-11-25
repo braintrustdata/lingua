@@ -1,4 +1,4 @@
-use lingua::{serde_json, universal::Work, Trajectory, UniversalParams};
+use lingua::{Trajectory, UniversalParams, serde_json, universal::Work};
 
 #[test]
 fn trajectory_preserves_json_values_and_provider_params() {

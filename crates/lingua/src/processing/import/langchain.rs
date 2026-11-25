@@ -466,14 +466,15 @@ fn parse_assistant_content(
         }
         other => {
             if let Some(text) = value_to_string(other)
-                && !text.is_empty() {
-                    parts.push(AssistantContentPart::Text(TextContentPart {
-                        text,
-                        encrypted_content: None,
-                        cache_control: None,
-                        provider_options: None,
-                    }));
-                }
+                && !text.is_empty()
+            {
+                parts.push(AssistantContentPart::Text(TextContentPart {
+                    text,
+                    encrypted_content: None,
+                    cache_control: None,
+                    provider_options: None,
+                }));
+            }
         }
     }
 

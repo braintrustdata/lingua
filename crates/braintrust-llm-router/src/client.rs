@@ -8,11 +8,11 @@ use dashmap::DashMap;
 use http::Extensions;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use reqwest::{redirect::Policy, Certificate, Client, ClientBuilder, Request, Response};
+use reqwest::{Certificate, Client, ClientBuilder, Request, Response, redirect::Policy};
 use reqwest_middleware::{ClientWithMiddleware, Middleware, Next};
 use reqwest_retry::{
-    default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
-    RetryableStrategy,
+    RetryTransientMiddleware, Retryable, RetryableStrategy, default_on_request_failure,
+    policies::ExponentialBackoff,
 };
 
 use crate::error::{Error, Result};
@@ -353,9 +353,10 @@ fn chain_has_connection_io_error(err: &(dyn StdError + 'static)) -> bool {
                     | ErrorKind::ConnectionAborted
                     | ErrorKind::BrokenPipe
                     | ErrorKind::NotConnected
-            ) {
-                return true;
-            }
+            )
+        {
+            return true;
+        }
         current = source.source();
     }
     false
@@ -410,14 +411,14 @@ mod tests {
     use std::sync::Arc;
     use std::thread;
 
-    use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
     use rustls::{ServerConfig, ServerConnection, StreamOwned};
 
     use super::*;
     use serial_test::serial;
     use wiremock::{
-        matchers::{method, path},
         Mock, MockServer, ResponseTemplate,
+        matchers::{method, path},
     };
 
     struct DelayedTransport {

@@ -21,7 +21,7 @@ pub(crate) mod tool_parsing;
 
 // Re-export adapters and transformations
 pub use adapter::OpenAIAdapter;
-pub use decisions_adapter::{parse_decision_response, DecisionsAdapter};
+pub use decisions_adapter::{DecisionsAdapter, parse_decision_response};
 pub use responses_adapter::ResponsesAdapter;
 
 #[cfg(test)]
@@ -32,7 +32,7 @@ pub mod test_chat_completions;
 
 // Re-export detection functions
 pub use detect::{
-    try_parse_openai, try_parse_openai_legacy_prompt, try_parse_responses, DetectionError,
+    DetectionError, try_parse_openai, try_parse_openai_legacy_prompt, try_parse_responses,
 };
 
 // Re-export capability functions
@@ -40,7 +40,7 @@ pub use capabilities::model_needs_transforms;
 
 // Re-export conversion functions and extension types
 pub use convert::{
-    universal_to_responses_input, ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
+    ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt, universal_to_responses_input,
 };
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)

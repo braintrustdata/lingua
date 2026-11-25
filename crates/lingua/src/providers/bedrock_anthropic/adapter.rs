@@ -216,7 +216,7 @@ fn usage_from_bedrock_invocation_metrics(
 mod tests {
     use super::*;
     use crate::processing::adapters::ProviderAdapter;
-    use crate::serde_json::{json, Value};
+    use crate::serde_json::{Value, json};
     use serde::Deserialize;
 
     #[derive(Deserialize)]

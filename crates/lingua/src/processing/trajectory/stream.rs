@@ -168,11 +168,7 @@ struct CompletedTurn {
 
 impl CompletedTurn {
     fn end_time(&self) -> Option<DateTime<Utc>> {
-        if self.unfinished {
-            None
-        } else {
-            self.end_time
-        }
+        if self.unfinished { None } else { self.end_time }
     }
 }
 
@@ -438,17 +434,18 @@ fn decide_response(
         return ResponseRule::ContinuedConversation;
     }
     if evidence.resumed
-        && let Some(previous) = previous.filter(|previous| previous.start > span.start) {
-            let reply = message_keys(&previous.output);
-            let replays_reply = !reply.is_empty()
-                && span
-                    .input_keys
-                    .windows(reply.len())
-                    .any(|window| window == reply);
-            if !replays_reply {
-                return ResponseRule::OverlappingWork;
-            }
+        && let Some(previous) = previous.filter(|previous| previous.start > span.start)
+    {
+        let reply = message_keys(&previous.output);
+        let replays_reply = !reply.is_empty()
+            && span
+                .input_keys
+                .windows(reply.len())
+                .any(|window| window == reply);
+        if !replays_reply {
+            return ResponseRule::OverlappingWork;
         }
+    }
     ResponseRule::ContinuedConversation
 }
 
@@ -894,10 +891,11 @@ impl TrajectoryStream {
             for group in llms.chunk_by(|a, b| self.spans[*a].start == self.spans[*b].start) {
                 for &index in group {
                     if let Some(end) = self.spans[index].source.end
-                        && earliest_end.is_some_and(|other| other < end) {
-                            order_times.insert(index, end);
-                            self.resumed.insert(index);
-                        }
+                        && earliest_end.is_some_and(|other| other < end)
+                    {
+                        order_times.insert(index, end);
+                        self.resumed.insert(index);
+                    }
                 }
                 earliest_end = group
                     .iter()
@@ -1138,9 +1136,10 @@ impl TrajectoryStream {
             .filter(|(index, _)| key.compaction.is_none() && self.can_finish_turn(*index))
             .map(|(index, _)| index);
         if response.is_none()
-            && let Some((index, position)) = state.candidate {
-                events.extend(self.work(&scope, id, index, position, self.roles[index])?);
-            }
+            && let Some((index, position)) = state.candidate
+        {
+            events.extend(self.work(&scope, id, index, position, self.roles[index])?);
+        }
         let completed = CompletedTurn {
             id: id.clone(),
             start: self.spans[self.by_id[id]].start,
@@ -1178,34 +1177,35 @@ impl TrajectoryStream {
         let mut state = self.states.remove(&key).unwrap_or_default();
         let previous_candidate = state.candidate.map(|(index, _)| index);
         if self.resumed.contains(&index)
-            && let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start) {
-                events.extend(self.work(
-                    &scope,
-                    &target.id,
-                    index,
-                    target.position,
-                    self.roles[index],
-                )?);
-                target.position += 1;
-                target.end_time = target.end_time.max(span.source.end);
-                target.unfinished |= span.source.end.is_none();
-                events.push(TrajectoryEvent::EndTime {
-                    scope,
-                    id: target.id.clone(),
-                    end_time: target.end_time(),
-                });
-                if !span.input_keys.is_empty() {
-                    state.history = merge_history(
-                        &state.history,
-                        &span.input_keys,
-                        &message_keys(&span.output),
-                    )
-                    .0;
-                }
-                self.spans[index].release_payload();
-                self.states.insert(key, state);
-                return Ok(());
+            && let Some(target) = state.returning_turn(owner.turn.as_deref(), span.start)
+        {
+            events.extend(self.work(
+                &scope,
+                &target.id,
+                index,
+                target.position,
+                self.roles[index],
+            )?);
+            target.position += 1;
+            target.end_time = target.end_time.max(span.source.end);
+            target.unfinished |= span.source.end.is_none();
+            events.push(TrajectoryEvent::EndTime {
+                scope,
+                id: target.id.clone(),
+                end_time: target.end_time(),
+            });
+            if !span.input_keys.is_empty() {
+                state.history = merge_history(
+                    &state.history,
+                    &span.input_keys,
+                    &message_keys(&span.output),
+                )
+                .0;
             }
+            self.spans[index].release_payload();
+            self.states.insert(key, state);
+            return Ok(());
+        }
         let explicit = if self.task_boundaries.contains(&key) {
             if matches!(self.roles[index], Role::Task { .. }) {
                 span.source.turn.as_deref()
@@ -1232,13 +1232,15 @@ impl TrajectoryStream {
         if new_turn {
             self.end_turn(&key, &mut state, events)?;
             state.previous_id = state.id.take();
-            if key.compaction.is_none() && observation.interrupts
-                && let Some(id) = &state.previous_id {
-                    events.push(TrajectoryEvent::Interrupted {
-                        scope: scope.clone(),
-                        id: id.clone(),
-                    });
-                }
+            if key.compaction.is_none()
+                && observation.interrupts
+                && let Some(id) = &state.previous_id
+            {
+                events.push(TrajectoryEvent::Interrupted {
+                    scope: scope.clone(),
+                    id: id.clone(),
+                });
+            }
             state.id = Some(span.id.clone());
             state.request_found = observation.conversation.has_request();
             state.request_model = span.source.model.clone();
@@ -1280,13 +1282,15 @@ impl TrajectoryStream {
                 }),
             });
         } else if boundary == BoundaryAction::AttachRequest {
-            if key.compaction.is_none() && observation.interrupts
-                && let Some(id) = &state.previous_id {
-                    events.push(TrajectoryEvent::Interrupted {
-                        scope: scope.clone(),
-                        id: id.clone(),
-                    });
-                }
+            if key.compaction.is_none()
+                && observation.interrupts
+                && let Some(id) = &state.previous_id
+            {
+                events.push(TrajectoryEvent::Interrupted {
+                    scope: scope.clone(),
+                    id: id.clone(),
+                });
+            }
             state.request_found = true;
             state.request_model = span.source.model.clone();
             events.push(TrajectoryEvent::Request {
@@ -1355,10 +1359,9 @@ impl TrajectoryStream {
                 .push(voice::failure(span, span.voice.errors.join("; ")));
         }
         if self.voice.sessions.contains(&index) {
-            if loaded
-                && let Some(recording) = self.spans[index].voice.recording.take() {
-                    events.push(TrajectoryEvent::Recording { scope, recording });
-                }
+            if loaded && let Some(recording) = self.spans[index].voice.recording.take() {
+                events.push(TrajectoryEvent::Recording { scope, recording });
+            }
             self.spans[index].release_payload();
             return Ok(());
         }

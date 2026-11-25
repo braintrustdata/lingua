@@ -21,7 +21,7 @@ use std::str::FromStr;
 
 use coverage_report::report::generate_report;
 use coverage_report::runner::run_all_tests;
-use coverage_report::types::{parse_provider, CoverageSelection, OutputFormat, TestFilter};
+use coverage_report::types::{CoverageSelection, OutputFormat, TestFilter, parse_provider};
 use lingua::processing::adapters::adapters;
 
 struct CliArgs {
@@ -184,7 +184,9 @@ fn print_usage() {
     eprintln!("  --target <names>         Filter target providers");
     eprintln!("  -f, --format <format>    Output format: markdown (default), compact");
     eprintln!();
-    eprintln!("Provider names: responses, chat-completions, anthropic, google, bedrock, bedrock-anthropic");
+    eprintln!(
+        "Provider names: responses, chat-completions, anthropic, google, bedrock, bedrock-anthropic"
+    );
     eprintln!();
     eprintln!("Examples:");
     eprintln!("  coverage-report                                    # Run all tests");
@@ -193,7 +195,9 @@ fn print_usage() {
     );
     eprintln!("  coverage-report -t seedParam                       # Only seedParam test case");
     eprintln!("  coverage-report -t \"reasoning*\"                    # All reasoning test cases");
-    eprintln!("  coverage-report -p chat-completions                # Roundtrip tests for ChatCompletions");
+    eprintln!(
+        "  coverage-report -p chat-completions                # Roundtrip tests for ChatCompletions"
+    );
     eprintln!("  coverage-report -p responses,anthropic             # Only Responses↔Anthropic");
     eprintln!(
         "  coverage-report --source responses --target anthropic  # Only Responses→Anthropic"

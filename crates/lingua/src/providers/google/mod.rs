@@ -18,7 +18,7 @@ pub use adapter::GoogleAdapter;
 pub use capabilities::{GoogleCapabilities, GoogleThinkingStyle};
 
 // Re-export detection functions
-pub use detect::{try_parse_google, DetectionError};
+pub use detect::{DetectionError, try_parse_google};
 
 // Re-export conversion functions
 pub use convert::{google_to_universal, universal_to_google};

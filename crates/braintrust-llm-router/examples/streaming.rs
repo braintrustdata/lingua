@@ -7,8 +7,8 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders, ModelCatalog,
-    ProviderFormat, ResponseStream, Router,
+    AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders, ModelCatalog, ProviderFormat,
+    ResponseStream, Router, serde_json::json,
 };
 use bytes::Bytes;
 use futures::StreamExt;
@@ -166,9 +166,10 @@ async fn main() -> Result<()> {
             match chunk_result {
                 Ok(stream_chunk) => {
                     if let Ok(chunk) = serde_json::from_slice::<Value>(&stream_chunk.data)
-                        && let Some(text) = extract_chunk_text(&chunk) {
-                            response.push_str(&text);
-                        }
+                        && let Some(text) = extract_chunk_text(&chunk)
+                    {
+                        response.push_str(&text);
+                    }
                 }
                 Err(e) => {
                     eprintln!("❌ Stream error for {model}: {e}");
@@ -213,11 +214,7 @@ fn extract_chunk_text(chunk: &Value) -> Option<String> {
                                     text.push_str(fragment);
                                 }
                             }
-                            if text.is_empty() {
-                                None
-                            } else {
-                                Some(text)
-                            }
+                            if text.is_empty() { None } else { Some(text) }
                         }
                         Value::String(text) => Some(text.clone()),
                         _ => None,
