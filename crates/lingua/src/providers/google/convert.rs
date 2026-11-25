@@ -68,10 +68,10 @@ impl TraceToolCalls {
     fn result_id(&mut self, result: &GoogleFunctionResponse, name: &str) -> String {
         let pending = self.pending_calls.get_mut(name);
         if let Some(id) = &result.id {
-            if let Some(pending) = pending {
-                if let Some(position) = pending.iter().position(|call_id| call_id == id) {
-                    pending.remove(position);
-                }
+            if let Some(pending) = pending
+                && let Some(position) = pending.iter().position(|call_id| call_id == id)
+            {
+                pending.remove(position);
             }
             return id.clone();
         }
@@ -226,22 +226,22 @@ fn google_assistant_part_provider_options(
 pub fn denormalize_json_schema_types(schema: &mut Value) {
     match schema {
         Value::Object(map) => {
-            if let Some(type_value) = map.get_mut("type") {
-                if let Value::String(type_str) = type_value {
-                    *type_value = Value::String(
-                        match type_str.as_ref() {
-                            "STRING" => "string",
-                            "NUMBER" => "number",
-                            "INTEGER" => "integer",
-                            "BOOLEAN" => "boolean",
-                            "ARRAY" => "array",
-                            "OBJECT" => "object",
-                            "NULL" => "null",
-                            _ => type_str.as_ref(),
-                        }
-                        .to_string(),
-                    );
-                }
+            if let Some(type_value) = map.get_mut("type")
+                && let Value::String(type_str) = type_value
+            {
+                *type_value = Value::String(
+                    match type_str.as_ref() {
+                        "STRING" => "string",
+                        "NUMBER" => "number",
+                        "INTEGER" => "integer",
+                        "BOOLEAN" => "boolean",
+                        "ARRAY" => "array",
+                        "OBJECT" => "object",
+                        "NULL" => "null",
+                        _ => type_str.as_ref(),
+                    }
+                    .to_string(),
+                );
             }
 
             if let Some(Value::Object(props)) = map.get_mut("properties") {
@@ -406,18 +406,18 @@ impl GoogleContent {
                                 provider_options: None,
                             });
                         }
-                    } else if let Some(file) = &part.file_data {
-                        if let Some(uri) = &file.file_uri {
-                            assistant_parts.push(AssistantContentPart::File {
-                                data: Value::String(uri.clone()),
-                                filename: file.display_name.clone(),
-                                media_type: file
-                                    .mime_type
-                                    .clone()
-                                    .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
-                                provider_options: None,
-                            });
-                        }
+                    } else if let Some(file) = &part.file_data
+                        && let Some(uri) = &file.file_uri
+                    {
+                        assistant_parts.push(AssistantContentPart::File {
+                            data: Value::String(uri.clone()),
+                            filename: file.display_name.clone(),
+                            media_type: file
+                                .mime_type
+                                .clone()
+                                .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
+                            provider_options: None,
+                        });
                     }
                 }
 
@@ -504,29 +504,29 @@ impl GoogleContent {
                                 });
                             }
                         }
-                    } else if let Some(fr) = &part.function_response {
-                        if let Some(tool_name) = &fr.name {
-                            let output = match fr.response.as_ref() {
-                                Some(map) => Value::Object(map.clone()),
-                                None => Value::Null,
-                            };
-                            // Mirror the synthetic ID logic used for functionCall parts.
-                            let tool_call_id = match trace_tools.as_deref_mut() {
-                                Some(tools) => tools.result_id(fr, tool_name),
-                                None => fr.id.clone().unwrap_or_else(|| {
-                                    let response_index = tool_parts.len();
-                                    format!("{SYNTHETIC_CALL_ID_PREFIX}{response_index}")
-                                }),
-                            };
-                            tool_parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
-                                tool_call_id,
-                                tool_name: tool_name.clone(),
-                                output,
-                                custom_tool_call: None,
-                                caller: None,
-                                provider_options: None,
-                            }));
-                        }
+                    } else if let Some(fr) = &part.function_response
+                        && let Some(tool_name) = &fr.name
+                    {
+                        let output = match fr.response.as_ref() {
+                            Some(map) => Value::Object(map.clone()),
+                            None => Value::Null,
+                        };
+                        // Mirror the synthetic ID logic used for functionCall parts.
+                        let tool_call_id = match trace_tools.as_deref_mut() {
+                            Some(tools) => tools.result_id(fr, tool_name),
+                            None => fr.id.clone().unwrap_or_else(|| {
+                                let response_index = tool_parts.len();
+                                format!("{SYNTHETIC_CALL_ID_PREFIX}{response_index}")
+                            }),
+                        };
+                        tool_parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
+                            tool_call_id,
+                            tool_name: tool_name.clone(),
+                            output,
+                            custom_tool_call: None,
+                            caller: None,
+                            provider_options: None,
+                        }));
                     }
                 }
 
@@ -1946,24 +1946,28 @@ mod tests {
                             Message::User {
                                 content: UserContent::Array(parts),
                             } => match &parts[..] {
-                                [UserContentPart::File {
-                                    data,
-                                    filename,
-                                    media_type,
-                                    ..
-                                }] => (data, filename, media_type),
+                                [
+                                    UserContentPart::File {
+                                        data,
+                                        filename,
+                                        media_type,
+                                        ..
+                                    },
+                                ] => (data, filename, media_type),
                                 other => panic!("Expected one named file, got {other:?}"),
                             },
                             Message::Assistant {
                                 content: AssistantContent::Array(parts),
                                 ..
                             } => match &parts[..] {
-                                [AssistantContentPart::File {
-                                    data,
-                                    filename,
-                                    media_type,
-                                    ..
-                                }] => (data, filename, media_type),
+                                [
+                                    AssistantContentPart::File {
+                                        data,
+                                        filename,
+                                        media_type,
+                                        ..
+                                    },
+                                ] => (data, filename, media_type),
                                 other => panic!("Expected one named file, got {other:?}"),
                             },
                             other => panic!("Expected file content, got {other:?}"),

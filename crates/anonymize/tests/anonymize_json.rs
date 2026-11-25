@@ -1,7 +1,6 @@
 use anonymize::{
-    anonymize_json_value, anonymize_json_value_with_options,
-    anonymize_json_value_with_options_and_filter, AnonymizeFilterContext, AnonymizeFilterKind,
-    AnonymizeOptions,
+    AnonymizeFilterContext, AnonymizeFilterKind, AnonymizeOptions, anonymize_json_value,
+    anonymize_json_value_with_options, anonymize_json_value_with_options_and_filter,
 };
 use serde_json::json;
 

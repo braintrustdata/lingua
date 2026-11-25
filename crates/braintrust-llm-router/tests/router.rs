@@ -4,9 +4,9 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use braintrust_llm_router::{
-    serde_json::{json, Value},
     AuthConfig, ClientHeaders, Error, ModelCatalog, ModelFlavor, ModelSpec, Provider,
     ProviderFormat, RawResponseStream, RetryPolicy, Router, RouterBuilder,
+    serde_json::{Value, json},
 };
 use bytes::Bytes;
 

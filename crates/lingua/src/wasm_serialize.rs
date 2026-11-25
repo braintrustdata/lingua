@@ -1,8 +1,8 @@
 use js_sys::{Array, BigInt, JsString, Object};
 use serde::ser::{self, Impossible, Serialize};
 use std::fmt::{self, Display};
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 
 const PRIVATE_NUMBER_TOKEN: &str = "$serde_json::private::Number";
 const MAX_SAFE_INTEGER_LITERAL: &str = "9007199254740991";

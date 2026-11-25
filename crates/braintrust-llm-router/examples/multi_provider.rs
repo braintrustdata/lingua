@@ -10,8 +10,8 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    api_key_auth, serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders,
-    ModelCatalog, OpenAIConfig, OpenAIProvider, ProviderFormat, Router,
+    AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders, ModelCatalog, OpenAIConfig,
+    OpenAIProvider, ProviderFormat, Router, api_key_auth, serde_json::json,
 };
 use bytes::Bytes;
 use serde_json::Value;
@@ -91,10 +91,10 @@ async fn main() -> Result<()> {
                     Ok((request, _metadata)) => {
                         match router.complete(request, &ClientHeaders::default()).await {
                             Ok(bytes) => {
-                                if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
-                                    if let Some(text) = extract_assistant_text(&response) {
-                                        println!("   Response: {}\n", text.trim());
-                                    }
+                                if let Ok(response) = serde_json::from_slice::<Value>(&bytes)
+                                    && let Some(text) = extract_assistant_text(&response)
+                                {
+                                    println!("   Response: {}\n", text.trim());
                                 }
                             }
                             Err(e) => println!("   Error: {e}\n"),
@@ -128,10 +128,10 @@ async fn main() -> Result<()> {
                     Ok((request, _metadata)) => {
                         match router.complete(request, &ClientHeaders::default()).await {
                             Ok(bytes) => {
-                                if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
-                                    if let Some(text) = extract_assistant_text(&response) {
-                                        println!("   Response: {}\n", text.trim());
-                                    }
+                                if let Ok(response) = serde_json::from_slice::<Value>(&bytes)
+                                    && let Some(text) = extract_assistant_text(&response)
+                                {
+                                    println!("   Response: {}\n", text.trim());
                                 }
                             }
                             Err(e) => println!("   Error: {e}\n"),

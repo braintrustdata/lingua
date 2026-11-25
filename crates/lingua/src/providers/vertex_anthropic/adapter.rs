@@ -165,7 +165,7 @@ impl ProviderAdapter for VertexAnthropicAdapter {
 mod tests {
     use super::*;
     use crate::processing::adapters::ProviderAdapter;
-    use crate::serde_json::{json, Map};
+    use crate::serde_json::{Map, json};
 
     #[test]
     fn detect_request_accepts_raw_vertex_body() {

@@ -8,8 +8,8 @@ back the same way.
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::{decision_adapter_for_format, DecisionAdapter};
-use crate::processing::transform::{parse_json_value, TransformError};
+use crate::processing::adapters::{DecisionAdapter, decision_adapter_for_format};
+use crate::processing::transform::{TransformError, parse_json_value};
 use crate::universal::{
     DecisionQuestion, DecisionQuestionKind, DecisionResult, UniversalDecisionResponse,
 };
@@ -238,6 +238,38 @@ mod tests {
         ));
     }
 
+    // Gateway cost metadata must not prevent parsing or forwarding token usage.
+    #[test]
+    fn decisions_usage_with_cost_usd_passes_through() {
+        let body = Bytes::from_static(
+            br#"{
+                "model": "gpt-6-luna",
+                "answers": [],
+                "usage": {
+                    "input_tokens": 40,
+                    "input_tokens_details": {"cached_tokens": 4, "cache_write_tokens": 0},
+                    "output_tokens": 2,
+                    "output_tokens_details": {"reasoning_tokens": 0},
+                    "total_tokens": 42,
+                    "cost_usd": 0.00018
+                }
+            }"#,
+        );
+        let response = crate::parse_decision_response(&body).unwrap();
+        assert_eq!(response.usage.input_tokens, 40);
+        assert_eq!(response.usage.output_tokens, 2);
+        assert_eq!(
+            transform_decision_response(
+                body.clone(),
+                &DecisionResponseContext::PassThrough {
+                    format: ProviderFormat::Decisions,
+                },
+            )
+            .unwrap(),
+            body
+        );
+    }
+
     #[cfg(feature = "typesafe")]
     #[test]
     fn converts_decisions_through_system_one() {
@@ -298,9 +330,11 @@ mod tests {
             json!({"name":"second","type":"choice","choice":"A","probabilities":[{"value":"A","probability":1.0}]}),
             json!({"name":"second","type":"predicate","probability":0.8}),
         ] {
-            assert!(adapter
-                .response_to_universal(response(invalid), &request.questions)
-                .is_err());
+            assert!(
+                adapter
+                    .response_to_universal(response(invalid), &request.questions)
+                    .is_err()
+            );
         }
     }
 

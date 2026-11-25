@@ -1,6 +1,6 @@
 use crate::import_value::{ImportValue, InputKind};
-use crate::universal::convert::TryFromLLM;
 use crate::universal::Message;
+use crate::universal::convert::TryFromLLM;
 use serde::de::DeserializeOwned;
 
 pub(crate) type MessageParser<V> = fn(&V) -> Option<Vec<Message>>;
@@ -10,10 +10,10 @@ pub(crate) fn try_parsers_in_order<V: ImportValue>(
     parsers: &[MessageParser<V>],
 ) -> Option<Vec<Message>> {
     for parser in parsers {
-        if let Some(messages) = parser(data) {
-            if !messages.is_empty() {
-                return Some(messages);
-            }
+        if let Some(messages) = parser(data)
+            && !messages.is_empty()
+        {
+            return Some(messages);
         }
     }
     None

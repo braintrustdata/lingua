@@ -1,9 +1,9 @@
 use super::*;
-use crate::processing::import::{import_span, import_span_with_options, ImportOptions, Span};
+use crate::processing::import::{ImportOptions, Span, import_span, import_span_with_options};
 use crate::universal::{UserContent, UserContentPart};
 use proptest::prelude::*;
-use serde_json::json;
 use serde_json::Value;
+use serde_json::json;
 
 fn span(id: &str, start: i64, input: Value, output: Value) -> Span {
     Span::deserialize(json!({
@@ -1001,10 +1001,12 @@ fn preserves_opaque_items_without_weakening_strict_imports() {
         &imported.opaque_input[0].value,
     )
     .unwrap();
-    assert!(<Vec<Message> as crate::universal::convert::TryFromLLM<
-        Vec<crate::providers::openai::generated::InputItem>,
-    >>::try_from(vec![item])
-    .is_err());
+    assert!(
+        <Vec<Message> as crate::universal::convert::TryFromLLM<
+            Vec<crate::providers::openai::generated::InputItem>,
+        >>::try_from(vec![item])
+        .is_err()
+    );
 }
 
 #[test]
@@ -1522,9 +1524,11 @@ fn reviewer_calls_do_not_split_turns_or_replace_the_final_response() {
     let first = &result[0].turns[0];
     assert_eq!(first.request_id, "agent-call");
     assert_eq!(first.response_id.as_deref(), Some("agent-final"));
-    assert!(serde_json::to_string(&first.response)
-        .unwrap()
-        .contains("First answer"));
+    assert!(
+        serde_json::to_string(&first.response)
+            .unwrap()
+            .contains("First answer")
+    );
     for id in ["review", "trailing-review"] {
         let step = first.work.iter().find(|step| step.id == id).unwrap();
         assert!(matches!(step.work, Work::LLMAnalysis(_)));
@@ -1572,10 +1576,12 @@ fn changed_end_time_is_rejected_without_consuming_events() {
         );
         let mut changed = import_span(call.clone()).unwrap();
         changed.header.end = end;
-        assert!(stream
-            .push(changed)
-            .unwrap_err()
-            .contains("structure changed"));
+        assert!(
+            stream
+                .push(changed)
+                .unwrap_err()
+                .contains("structure changed")
+        );
         for span in &fixture.spans {
             if stream
                 .pending_ids(fixture.spans.len())
@@ -1779,18 +1785,22 @@ fn unsupported_mixed_input_reports_failure_without_losing_healthy_spans() {
     assert!(imported.input.is_empty());
     assert!(imported.output.is_empty());
     let result = import_rows(&rows);
-    assert!(result[0]["turns"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|turn| turn["response_id"] == "healthy"));
+    assert!(
+        result[0]["turns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|turn| turn["response_id"] == "healthy")
+    );
     let failures = result[0]["metadata"]["import_failures"]
         .as_array()
         .expect("Unsupported input was silently treated as a successful import");
     assert!(failures.iter().any(|failure| {
-        failure["span_id"] == "unsupported" && failure["message"].as_str().is_some_and(|message| {
-            message == "Unsupported message item at index 0; Unsupported message item at index 1"
-        })
+        failure["span_id"] == "unsupported"
+            && failure["message"].as_str().is_some_and(|message| {
+                message
+                    == "Unsupported message item at index 0; Unsupported message item at index 1"
+            })
     }));
 }
 
@@ -1929,9 +1939,11 @@ fn out_of_order_payloads_do_not_reorder_turns() {
             .unwrap(),
     );
     assert_eq!(collector.snapshot().unwrap()[0].turns.len(), 2);
-    assert!(stream
-        .push(import_span(sources[0].clone()).unwrap())
-        .is_err());
+    assert!(
+        stream
+            .push(import_span(sources[0].clone()).unwrap())
+            .is_err()
+    );
     collect(&mut collector, stream.finish().unwrap());
 }
 
@@ -2547,9 +2559,11 @@ fn trajectory_separates_compaction_and_excludes_scorer_descendants() {
     let result = import_rows(&rows);
     assert_eq!(result[0]["turns"].as_array().unwrap().len(), 2);
     assert_eq!(result[0]["turns"][1]["compaction"]["id"], "compaction");
-    assert!(!serde_json::to_string(&result)
-        .unwrap()
-        .contains("score-child"));
+    assert!(
+        !serde_json::to_string(&result)
+            .unwrap()
+            .contains("score-child")
+    );
 }
 
 #[test]
@@ -2814,10 +2828,12 @@ fn voice_recordings_keep_and_report_unknown_segment_states() {
         json::json!({ "part-0": { "state": "failed", "start_offset_ms": 0 } });
     let result = load_voice(&sources, &sources).unwrap();
     assert_eq!(result[0]["recordings"][0]["segments"][0]["state"], "failed");
-    assert!(result[0]["metadata"]["import_failures"][0]["message"]
-        .as_str()
-        .unwrap()
-        .contains("Audio segment part-0 has an unknown state"));
+    assert!(
+        result[0]["metadata"]["import_failures"][0]["message"]
+            .as_str()
+            .unwrap()
+            .contains("Audio segment part-0 has an unknown state")
+    );
 }
 
 #[test]
@@ -2860,10 +2876,12 @@ fn voice_payloads_must_match_their_root_headers() {
     let mut sources = voice_sources();
     sources[0].other["metadata"]["audio.schema.version"] = json::json!(3);
     let result = load_voice(&sources, &sources).unwrap();
-    assert!(result[0]["metadata"]["import_failures"][0]["message"]
-        .as_str()
-        .unwrap()
-        .starts_with("Invalid metadata.audio.schema.version"));
+    assert!(
+        result[0]["metadata"]["import_failures"][0]["message"]
+            .as_str()
+            .unwrap()
+            .starts_with("Invalid metadata.audio.schema.version")
+    );
 
     let mut payloads = voice_sources();
     payloads[2].other["metadata"] = json::json!({ "turn.id": "agent" });

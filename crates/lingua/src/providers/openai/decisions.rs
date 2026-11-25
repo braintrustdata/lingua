@@ -22,11 +22,11 @@ use crate::universal::message::{
     UserContent, UserContentPart,
 };
 use crate::universal::{
-    decision::{DecisionExtras, DecisionParams, OpenAIDecisionOptions},
     DecisionAnswer, DecisionChoice, DecisionChoiceProbability, DecisionInput,
     DecisionLevelProbability, DecisionQuestion, DecisionQuestionKind, DecisionResult,
     DecisionScoreLevel, DecisionValue, UniversalDecisionRequest, UniversalDecisionResponse,
     UniversalUsage,
+    decision::{DecisionExtras, DecisionParams, OpenAIDecisionOptions},
 };
 use serde::Deserialize;
 
@@ -625,7 +625,7 @@ fn user_content_to_decision(
 ) -> Result<decisions::DecisionInputContent, ConvertError> {
     let parts = match content {
         UserContent::String(text) => {
-            return Ok(decisions::DecisionInputContent::PurpleString(text))
+            return Ok(decisions::DecisionInputContent::PurpleString(text));
         }
         UserContent::Array(parts) => parts,
     };
@@ -1141,7 +1141,7 @@ fn answer_to_resource(answer: DecisionAnswer) -> decisions::AnswerResource {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serde_json::{json, Value};
+    use crate::serde_json::{Value, json};
 
     fn to_universal(request: Value) -> Result<UniversalDecisionRequest, ConvertError> {
         let request: decisions::DecisionRequest = serde_json::from_value(request).unwrap();
@@ -1288,10 +1288,22 @@ mod tests {
         assert!(error.to_string().contains("media_type"), "{error}");
     }
 
+    // Extra cache options do not prevent converting the known fields.
     #[test]
-    fn rejects_unknown_nested_cache_options() {
-        let error = serde_json::from_value::<UniversalDecisionRequest>(json!({"model":"gpt-6-luna","input":"x","questions":[],"params":{"extras":{"decisions":{"prompt_cache_options":{"mod":"explicit"}}}}})).unwrap_err();
-        assert!(error.to_string().contains("mod"), "{error}");
+    fn accepts_extra_nested_cache_options() {
+        let request = serde_json::from_value(json!({
+            "model": "gpt-6-luna",
+            "input": "x",
+            "questions": [],
+            "params": {"extras": {"decisions": {
+                "prompt_cache_options": {"mode": "explicit", "future_option": true}
+            }}}
+        }))
+        .unwrap();
+        assert_eq!(
+            from_universal(request).unwrap()["prompt_cache_options"],
+            json!({"mode": "explicit"})
+        );
     }
 
     #[test]

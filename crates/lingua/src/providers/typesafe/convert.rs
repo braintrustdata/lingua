@@ -159,7 +159,7 @@ impl ImageAssets {
             _ => {
                 return Err(unsupported(format!(
                     "image media type {media_type}; TypeSafe supports PNG/JPEG"
-                )))
+                )));
             }
         };
         let placeholder = format!("{}{}__", self.prefix, self.values.len());

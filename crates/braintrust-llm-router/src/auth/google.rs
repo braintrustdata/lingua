@@ -1,8 +1,8 @@
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use dashmap::DashMap;
-use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -98,12 +98,12 @@ impl GoogleTokenManager {
         let token_host = token_host(&config.key.token_uri);
         let token_future = async {
             let key = config.cache_key();
-            if let Some(entry) = self.cache.get(&key) {
-                if entry.expires_at > Instant::now() + TOKEN_BUFFER {
-                    #[cfg(feature = "tracing")]
-                    tracing::Span::current().record("cache.hit", true);
-                    return Ok(entry.value.clone());
-                }
+            if let Some(entry) = self.cache.get(&key)
+                && entry.expires_at > Instant::now() + TOKEN_BUFFER
+            {
+                #[cfg(feature = "tracing")]
+                tracing::Span::current().record("cache.hit", true);
+                return Ok(entry.value.clone());
             }
 
             #[cfg(feature = "tracing")]
@@ -246,7 +246,7 @@ fn token_host(token_url: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jsonwebtoken::{decode, DecodingKey, Validation};
+    use jsonwebtoken::{DecodingKey, Validation, decode};
     use serde_json::json;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};

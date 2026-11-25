@@ -5,7 +5,7 @@ use crate::universal::Message;
 #[cfg(test)]
 use crate::util::testutil::TestCase;
 #[cfg(test)]
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 /// Common test runner functions that take concrete types and run the test logic
 #[cfg(test)]

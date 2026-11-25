@@ -10,7 +10,7 @@ use crate::import_value::{ImportValue, InputKind};
 use crate::serde_json;
 use crate::universal::message::{AssistantContent, Message, UserContent, UserContentPart};
 use crate::universal::trajectory::AttachmentReference;
-use serde::{de::IgnoredAny, Deserialize};
+use serde::{Deserialize, de::IgnoredAny};
 use std::borrow::Cow;
 
 type TraceMessagePart = (Part, Option<UserContentPart>);
@@ -562,7 +562,7 @@ impl SystemInstruction {
             Self::Text(text) => {
                 return Ok(Message::System {
                     content: UserContent::String(text),
-                })
+                });
             }
             Self::Object(object) if object.is_content() => {
                 object.content.into_message(Some("user"), None)?

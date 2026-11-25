@@ -22,7 +22,7 @@ pub use aws_sdk_bedrockruntime::types::{
 };
 
 // Re-export detection functions
-pub use detect::{try_parse_bedrock, DetectionError};
+pub use detect::{DetectionError, try_parse_bedrock};
 
 // Re-export conversion functions
 pub use convert::{bedrock_to_universal, universal_to_bedrock};

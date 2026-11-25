@@ -10,7 +10,7 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 
 use crate::processing::adapters::{
-    insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value, ProviderAdapter,
+    ProviderAdapter, insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value,
 };
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::{
@@ -19,8 +19,8 @@ use crate::providers::openai::capabilities::{
     supports_prompt_cache_breakpoint,
 };
 use crate::providers::openai::convert::{
-    messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
-    ChatCompletionResponseMessageExt,
+    ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
+    messages_to_chat_completion_messages,
 };
 use crate::providers::openai::generated::{ServiceTier, WebSearch};
 use crate::providers::openai::params::{
@@ -40,13 +40,13 @@ use crate::universal::request::{
     ReasoningConfig, ReasoningEffort, TokenBudget, UniversalMetadataUserView,
 };
 use crate::universal::response::OpenAIChatUsageView;
-use crate::universal::tools::{tools_to_openai_chat_value, BuiltinToolProvider, UniversalTool};
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool, tools_to_openai_chat_value};
 use crate::universal::{
-    parse_stop_sequences, ServedServiceTier, UniversalParams, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
+    PLACEHOLDER_MODEL, ServedServiceTier, UniversalParams, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, parse_stop_sequences,
 };
-use serde::{de::IgnoredAny, Deserialize};
-use serde_with::{serde_as, DefaultOnError};
+use serde::{Deserialize, de::IgnoredAny};
+use serde_with::{DefaultOnError, serde_as};
 use std::collections::BTreeMap;
 use std::convert::TryInto;
 
@@ -497,21 +497,21 @@ impl ProviderAdapter for OpenAIAdapter {
         // Output stop sequences as array (OpenAI accepts both string and array)
         if let Some(raw_stop) = openai_extras_view.stop.as_ref() {
             obj.insert("stop".into(), raw_stop.clone());
-        } else if let Some(ref stop) = req.params.stop {
-            if !stop.is_empty() {
-                obj.insert(
-                    "stop".into(),
-                    Value::Array(stop.iter().map(|s| Value::String(s.clone())).collect()),
-                );
-            }
+        } else if let Some(ref stop) = req.params.stop
+            && !stop.is_empty()
+        {
+            obj.insert(
+                "stop".into(),
+                Value::Array(stop.iter().map(|s| Value::String(s.clone())).collect()),
+            );
         }
         // Convert tools to OpenAI Chat format
         if let Some(raw_tools) = openai_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
-        } else if let Some(tools) = &req.params.tools {
-            if let Some(tools_value) = tools_to_openai_chat_value(tools)? {
-                obj.insert("tools".into(), tools_value);
-            }
+        } else if let Some(tools) = &req.params.tools
+            && let Some(tools_value) = tools_to_openai_chat_value(tools)?
+        {
+            obj.insert("tools".into(), tools_value);
         }
         if let Some(raw_web_search_options) = openai_extras_view.web_search_options.as_ref() {
             obj.insert("web_search_options".into(), raw_web_search_options.clone());
@@ -802,6 +802,7 @@ impl ProviderAdapter for OpenAIAdapter {
     // Streaming response handling
     // =========================================================================
 
+    #[allow(clippy::collapsible_if)] // Keep the existing Value checks unchanged for the typed-boundary check
     fn detect_stream_response(&self, payload: &Value) -> bool {
         // OpenAI streaming chunk has object="chat.completion.chunk"
         // or has choices array with delta field
@@ -975,8 +976,8 @@ fn build_reasoning_config(
     reasoning_effort: Option<OpenAIReasoningEffort>,
     max_tokens: Option<i64>,
 ) -> Option<ReasoningConfig> {
-    use crate::universal::reasoning::budget_to_effort;
     use crate::universal::ReasoningCanonical;
+    use crate::universal::reasoning::budget_to_effort;
 
     if reasoning_enabled.is_none() && reasoning_budget.is_none() && reasoning_effort.is_none() {
         return None;
@@ -1289,11 +1290,13 @@ mod tests {
             universal.params.prompt_cache_key,
             Some("cache-key-1".to_string())
         );
-        assert!(!universal
-            .params
-            .extras
-            .get(&ProviderFormat::ChatCompletions)
-            .is_some_and(|extras| extras.contains_key("prompt_cache_key")));
+        assert!(
+            !universal
+                .params
+                .extras
+                .get(&ProviderFormat::ChatCompletions)
+                .is_some_and(|extras| extras.contains_key("prompt_cache_key"))
+        );
     }
 
     #[test]
@@ -2217,9 +2220,11 @@ mod tests {
         };
 
         let error = adapter.request_from_universal(&req).unwrap_err();
-        assert!(error
-            .to_string()
-            .contains("Tool 'web_search' of type 'allowed_domains' is not supported by openai"));
+        assert!(
+            error
+                .to_string()
+                .contains("Tool 'web_search' of type 'allowed_domains' is not supported by openai")
+        );
     }
 
     #[test]

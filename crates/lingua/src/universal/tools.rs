@@ -38,7 +38,7 @@ use crate::providers::openai::generated::{
     ApproximateLocation, Tool as OpenAIResponsesTool, UserLocationType as OpenAIUserLocationType,
     WebSearchTool,
 };
-use crate::serde_json::{self, json, Map, Value};
+use crate::serde_json::{self, Map, Value, json};
 
 #[cfg(test)]
 use crate::providers::anthropic::generated::Tool;

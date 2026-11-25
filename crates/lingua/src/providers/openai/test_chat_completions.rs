@@ -3,9 +3,9 @@ use crate::providers::openai::convert::{
 };
 use crate::providers::openai::generated::CreateChatCompletionResponse;
 use crate::serde_json::Value;
-use crate::universal::{convert::TryFromLLM, Message};
+use crate::universal::{Message, convert::TryFromLLM};
 use crate::util::test_runner::run_roundtrip_test;
-use crate::util::testutil::{discover_test_cases_typed, Provider, TestCase};
+use crate::util::testutil::{Provider, TestCase, discover_test_cases_typed};
 use serde::Deserialize;
 
 pub type OpenAIChatCompletionsTestCase =

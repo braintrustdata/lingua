@@ -13,11 +13,11 @@ use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::google::capabilities::{
-    budget_to_thinking_level, effort_to_thinking_level, supports_disabling_thinking,
-    thinking_level_to_effort, GoogleCapabilities, GoogleThinkingStyle,
+    GoogleCapabilities, GoogleThinkingStyle, budget_to_thinking_level, effort_to_thinking_level,
+    supports_disabling_thinking, thinking_level_to_effort,
 };
 use crate::providers::google::convert::{
-    reject_google_provider_only_part, SYNTHETIC_CALL_ID_PREFIX,
+    SYNTHETIC_CALL_ID_PREFIX, reject_google_provider_only_part,
 };
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
@@ -27,18 +27,18 @@ use crate::providers::google::generated::{
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
+use crate::universal::ToolContentPart;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
-use crate::universal::reasoning::{budget_to_effort, effort_to_budget, MIN_THINKING_BUDGET};
+use crate::universal::reasoning::{MIN_THINKING_BUDGET, budget_to_effort, effort_to_budget};
 use crate::universal::request::ToolChoiceConfig;
 use crate::universal::tools::UniversalTool;
-use crate::universal::ToolContentPart;
 use crate::universal::{
-    extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
-    ReasoningConfig, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
-    UniversalReasoningSignature, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
-    UniversalUsage, UserContent,
+    FinishReason, ReasoningCanonical, ReasoningConfig, ServedServiceTier, TokenBudget,
+    UniversalParams, UniversalReasoningDelta, UniversalReasoningSignature, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, UserContent,
+    extract_system_messages, flatten_consecutive_messages,
 };
 use serde::{Deserialize, Serialize};
 
@@ -529,14 +529,14 @@ impl ProviderAdapter for GoogleAdapter {
 
                 match caps.thinking_style {
                     GoogleThinkingStyle::ThinkingLevelBased => {
-                        if r.canonical == Some(ReasoningCanonical::GoogleThinkingBudget) {
-                            if let Some(budget) = r.budget_tokens {
-                                return Some(ThinkingConfig {
-                                    include_thoughts: Some(true),
-                                    thinking_budget: Some(budget),
-                                    thinking_level: None,
-                                });
-                            }
+                        if r.canonical == Some(ReasoningCanonical::GoogleThinkingBudget)
+                            && let Some(budget) = r.budget_tokens
+                        {
+                            return Some(ThinkingConfig {
+                                include_thoughts: Some(true),
+                                thinking_budget: Some(budget),
+                                thinking_level: None,
+                            });
                         }
 
                         if r.canonical == Some(ReasoningCanonical::GoogleIncludeThoughts) {
@@ -630,14 +630,14 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Add tool_choice if present
-        if let Some(tool_choice) = &req.params.tool_choice {
-            if let Ok(tool_config) = ToolConfig::try_from(tool_choice) {
-                obj.insert(
-                    "toolConfig".into(),
-                    serde_json::to_value(&tool_config)
-                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-                );
-            }
+        if let Some(tool_choice) = &req.params.tool_choice
+            && let Ok(tool_config) = ToolConfig::try_from(tool_choice)
+        {
+            obj.insert(
+                "toolConfig".into(),
+                serde_json::to_value(&tool_config)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
         }
 
         // Merge back provider-specific extras (only for Google)
@@ -656,10 +656,10 @@ impl ProviderAdapter for GoogleAdapter {
     fn apply_defaults(&self, req: &mut UniversalRequest) {
         // Google has no strict response-schema equivalent. Canonically drop it so
         // cross-provider semantic comparison does not treat this as a regression.
-        if let Some(format) = &mut req.params.response_format {
-            if let Some(json_schema) = &mut format.json_schema {
-                json_schema.strict = None;
-            }
+        if let Some(format) = &mut req.params.response_format
+            && let Some(json_schema) = &mut format.json_schema
+        {
+            json_schema.strict = None;
         }
     }
 
@@ -1063,11 +1063,10 @@ impl ProviderAdapter for GoogleAdapter {
                             thought: Some(true),
                             ..Default::default()
                         };
-                        if index == reasoning_texts.len() - 1 {
-                            if let Some(signature) = thought_reasoning_signature {
+                        if index == reasoning_texts.len() - 1
+                            && let Some(signature) = thought_reasoning_signature {
                                 thought_part.thought_signature = Some(signature.to_string());
                             }
-                        }
                         parts.push(thought_part);
                     }
                 }
@@ -1226,10 +1225,9 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
                     tool_name,
                     ..
                 } = part
+                    && !tool_name.is_empty()
                 {
-                    if !tool_name.is_empty() {
-                        id_to_name.insert(tool_call_id.clone(), tool_name.clone());
-                    }
+                    id_to_name.insert(tool_call_id.clone(), tool_name.clone());
                 }
             }
         }
@@ -1237,12 +1235,11 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
     for msg in messages.iter_mut() {
         if let Message::Tool { content } = msg {
             for part in content.iter_mut() {
-                if let ToolContentPart::ToolResult(result) = part {
-                    if result.tool_name.is_empty() {
-                        if let Some(name) = id_to_name.get(&result.tool_call_id) {
-                            result.tool_name = name.clone();
-                        }
-                    }
+                if let ToolContentPart::ToolResult(result) = part
+                    && result.tool_name.is_empty()
+                    && let Some(name) = id_to_name.get(&result.tool_call_id)
+                {
+                    result.tool_name = name.clone();
                 }
             }
         }
@@ -1287,13 +1284,12 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
                 if let Some(AssistantContentPart::ToolCall {
                     encrypted_content, ..
                 }) = first_paired_call
+                    && encrypted_content.is_none()
                 {
-                    if encrypted_content.is_none() {
-                        // Google documents this dummy signature for transferred function-call
-                        // history. Only the first functionCall in a step is validated; native
-                        // Gemini parallel siblings should remain unsigned if returned that way.
-                        *encrypted_content = Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE.to_string());
-                    }
+                    // Google documents this dummy signature for transferred function-call
+                    // history. Only the first functionCall in a step is validated; native
+                    // Gemini parallel siblings should remain unsigned if returned that way.
+                    *encrypted_content = Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE.to_string());
                 }
             }
             _ => {}
@@ -1306,8 +1302,8 @@ mod tests {
     use super::*;
     use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
-    use crate::universal::request::ToolChoiceMode;
     use crate::universal::ReasoningEffort;
+    use crate::universal::request::ToolChoiceMode;
 
     #[test]
     fn test_google_detect_request() {
@@ -2490,9 +2486,11 @@ mod tests {
         );
 
         let error = adapter.stream_from_universal(&chunk).unwrap_err();
-        assert!(error
-            .to_string()
-            .contains("multiple reasoning signatures cannot be represented"));
+        assert!(
+            error
+                .to_string()
+                .contains("multiple reasoning signatures cannot be represented")
+        );
     }
 
     #[test]
@@ -2648,7 +2646,7 @@ mod tests {
         field: &str,
     ) {
         use crate::processing::transform::{
-            transform_request, transform_response, transform_stream_chunk, TransformResult,
+            TransformResult, transform_request, transform_response, transform_stream_chunk,
         };
         use bytes::Bytes;
 

@@ -7,7 +7,7 @@ AWS Bedrock's Converse API format and Lingua's universal message format.
 
 use crate::error::ConvertError;
 use crate::import_parse::{
-    try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
+    MessageParser, try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order,
 };
 use crate::import_value::ImportValue;
 use crate::providers::bedrock::request::{
@@ -440,11 +440,11 @@ pub fn universal_to_bedrock_messages(
                 if blocks.is_empty() {
                     continue;
                 }
-                if let Some(last_message) = bedrock_messages.last_mut() {
-                    if is_tool_result_message(last_message) {
-                        last_message.content.extend(blocks);
-                        continue;
-                    }
+                if let Some(last_message) = bedrock_messages.last_mut()
+                    && is_tool_result_message(last_message)
+                {
+                    last_message.content.extend(blocks);
+                    continue;
                 }
 
                 bedrock_messages.push(BedrockMessage {

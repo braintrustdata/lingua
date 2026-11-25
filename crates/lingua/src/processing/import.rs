@@ -20,22 +20,22 @@ use crate::providers::anthropic::generated as anthropic;
 use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
 #[cfg(feature = "google")]
 use crate::providers::google::import::{
-    try_parse_adk_for_import, try_parse_google_for_import, TraceToolCalls,
+    TraceToolCalls, try_parse_adk_for_import, try_parse_google_for_import,
 };
 #[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
-    assistant_content_parts_from_openai_tool_calls, try_parse_openai_for_import,
-    try_parse_responses_with_opaque_metadata_for_import, try_system_message_from_openai_metadata,
-    ChatCompletionRequestMessageExt,
+    ChatCompletionRequestMessageExt, assistant_content_parts_from_openai_tool_calls,
+    try_parse_openai_for_import, try_parse_responses_with_opaque_metadata_for_import,
+    try_system_message_from_openai_metadata,
 };
 #[cfg(feature = "openai")]
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::serde_json::Value;
+use crate::universal::Message;
 use crate::universal::convert::TryFromLLM;
 pub use crate::universal::trajectory::OpaqueItem;
 use crate::universal::trajectory::OpaqueItemKind;
-use crate::universal::Message;
 use crate::universal::{
     AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
@@ -43,7 +43,7 @@ use crate::universal::{
 pub use audio::{VoiceContext, VoicePayload};
 use serde::{Deserialize, Serialize};
 pub use span::{
-    import_span, import_span_with_options, ImportedSpan, SpanContext, TRAJECTORY_METADATA_FIELDS,
+    ImportedSpan, SpanContext, TRAJECTORY_METADATA_FIELDS, import_span, import_span_with_options,
 };
 
 pub(crate) fn is_instruction(message: &Message) -> bool {
@@ -240,41 +240,38 @@ fn try_converting_to_messages<V: ImportValue>(
     {
         if let Ok(provider_messages) =
             Vec::<ChatCompletionRequestMessageExt>::deserialize(data_to_parse)
-        {
-            if let Ok(messages) = <Vec<Message> as TryFromLLM<
+            && let Ok(messages) = <Vec<Message> as TryFromLLM<
                 Vec<ChatCompletionRequestMessageExt>,
             >>::try_from(provider_messages)
-            {
-                if !messages.is_empty() {
-                    return messages;
-                }
-            }
+            && !messages.is_empty()
+        {
+            return messages;
         }
     }
 
     // Try Anthropic format (including role-based system/developer messages).
     #[cfg(feature = "anthropic")]
     {
-        if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse) {
-            if !anthropic_messages.is_empty() {
-                return anthropic_messages;
-            }
+        if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse)
+            && !anthropic_messages.is_empty()
+        {
+            return anthropic_messages;
         }
     }
 
     // Try lenient parsing for non-standard message formats
-    if let Some(lenient_messages) = try_lenient_message_parsing(data_to_parse) {
-        if !lenient_messages.is_empty() {
-            return lenient_messages;
-        }
+    if let Some(lenient_messages) = try_lenient_message_parsing(data_to_parse)
+        && !lenient_messages.is_empty()
+    {
+        return lenient_messages;
     }
 
     // Try parsing as choices array (Chat Completions response format)
     // This handles [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
-    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse, import) {
-        if !choices_messages.is_empty() {
-            return choices_messages;
-        }
+    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse, import)
+        && !choices_messages.is_empty()
+    {
+        return choices_messages;
     }
 
     Vec::new()
@@ -412,21 +409,21 @@ fn import_mixed_message_item<V: ImportValue>(
     }
 
     #[cfg(feature = "openai")]
-    if parsed_messages.is_none() && import.options.preserve_unsupported {
-        if let Some((messages, warning)) = try_parse_responses_with_opaque_metadata_for_import(item)
-        {
-            parsed_messages = Some(messages);
-            import
-                .warnings
-                .push(format!("Message item {index}: {warning}"));
-            if !import.discard_opaque {
-                import.opaque.push(OpaqueItem {
-                    index: Some(index),
-                    value: item.to_value().into_owned(),
-                    kind: None,
-                    is_metadata: true,
-                });
-            }
+    if parsed_messages.is_none()
+        && import.options.preserve_unsupported
+        && let Some((messages, warning)) = try_parse_responses_with_opaque_metadata_for_import(item)
+    {
+        parsed_messages = Some(messages);
+        import
+            .warnings
+            .push(format!("Message item {index}: {warning}"));
+        if !import.discard_opaque {
+            import.opaque.push(OpaqueItem {
+                index: Some(index),
+                value: item.to_value().into_owned(),
+                kind: None,
+                is_metadata: true,
+            });
         }
     }
 
@@ -715,10 +712,9 @@ fn try_parse_reasoning_assistant_message(item: &impl ImportValue) -> Option<Mess
         if let AssistantContentPart::Reasoning {
             encrypted_content, ..
         } = content_part
+            && encrypted_content.is_none()
         {
-            if encrypted_content.is_none() {
-                *encrypted_content = reasoning_signature.clone();
-            }
+            *encrypted_content = reasoning_signature.clone();
         }
     }
     content_parts.extend(assistant_content_parts_from_openai_tool_calls(
@@ -1002,11 +998,7 @@ fn parse_tool_content(value: &Value) -> Option<ToolContent> {
                 .iter()
                 .filter_map(try_parse_lenient_tool_content_part)
                 .collect();
-            if parts.is_empty() {
-                None
-            } else {
-                Some(parts)
-            }
+            if parts.is_empty() { None } else { Some(parts) }
         }
         _ => None,
     }
@@ -1157,13 +1149,12 @@ fn import_span_messages(
         Some(output) => parse(output, "output", &mut import),
         None => Vec::new(),
     };
-    if let Some(message) = metadata.and_then(try_system_message_from_metadata) {
-        if !input
+    if let Some(message) = metadata.and_then(try_system_message_from_metadata)
+        && !input
             .iter()
             .any(|message| matches!(message, Message::System { .. }))
-        {
-            input.insert(0, message);
-        }
+    {
+        input.insert(0, message);
     }
     SpanMessages {
         input,
@@ -1221,13 +1212,12 @@ pub fn import_messages_from_values_with_metadata<I: ImportValue, O: ImportValue,
     } else {
         parse(input, &mut import)
     };
-    if let Some(message) = metadata.and_then(try_system_message_from_metadata) {
-        if !input
+    if let Some(message) = metadata.and_then(try_system_message_from_metadata)
+        && !input
             .iter()
             .any(|message| matches!(message, Message::System { .. }))
-        {
-            input.insert(0, message);
-        }
+    {
+        input.insert(0, message);
     }
     let output = if output.kind() == InputKind::String {
         match output.parse::<String>() {
@@ -1369,8 +1359,21 @@ mod tests {
             serde_json::to_value(borrowed_messages).unwrap(),
             serde_json::to_value(&messages).unwrap()
         );
-        let [original, weather, copied, repeated_weather, weather_result, _, repeated_weather_result, _, clock_result, new_clock, _, _, copied_new_clock] =
-            &messages[..]
+        let [
+            original,
+            weather,
+            copied,
+            repeated_weather,
+            weather_result,
+            _,
+            repeated_weather_result,
+            _,
+            clock_result,
+            new_clock,
+            _,
+            _,
+            copied_new_clock,
+        ] = &messages[..]
         else {
             panic!("expected all calls and results with intervening text");
         };
@@ -1553,10 +1556,11 @@ mod tests {
                 imported.output.is_empty(),
                 "unexpected message from ADK {field}"
             );
-            assert!(imported
-                .errors
-                .iter()
-                .any(|error| { error.contains("Unsupported mapping") && error.contains(field) }));
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains(field)
+                })
+            );
         }
     }
 
@@ -1622,10 +1626,11 @@ mod tests {
             })
             .unwrap();
             assert!(imported.output.is_empty());
-            assert!(imported
-                .errors
-                .iter()
-                .any(|error| { error.contains("Unsupported mapping") && error.contains(field) }));
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains(field)
+                })
+            );
         }
     }
 
@@ -1755,10 +1760,12 @@ mod tests {
 
         let imported = import_span(span).unwrap();
         assert!(imported.output.is_empty());
-        assert!(imported
-            .errors
-            .iter()
-            .any(|error| error.contains("Unsupported mapping") && error.contains("toolCall")));
+        assert!(
+            imported
+                .errors
+                .iter()
+                .any(|error| error.contains("Unsupported mapping") && error.contains("toolCall"))
+        );
     }
 
     #[cfg(feature = "google")]
@@ -1775,9 +1782,11 @@ mod tests {
         .unwrap();
 
         let imported = import_span(span).unwrap();
-        let [Message::User {
-            content: UserContent::Array(parts),
-        }] = imported.input.as_slice()
+        let [
+            Message::User {
+                content: UserContent::Array(parts),
+            },
+        ] = imported.input.as_slice()
         else {
             panic!("expected one user message with a file");
         };
@@ -2093,10 +2102,12 @@ mod tests {
         })
         .unwrap();
 
-        let [Message::Assistant {
-            content: AssistantContent::Array(parts),
-            ..
-        }] = imported.output.as_slice()
+        let [
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            },
+        ] = imported.output.as_slice()
         else {
             panic!("expected a Gemini assistant message");
         };
@@ -2163,19 +2174,24 @@ mod tests {
                 other: Default::default(),
             })
             .unwrap();
-            let [Message::Assistant {
-                content: AssistantContent::Array(calls),
-                ..
-            }] = imported.input.as_slice()
+            let [
+                Message::Assistant {
+                    content: AssistantContent::Array(calls),
+                    ..
+                },
+            ] = imported.input.as_slice()
             else {
                 panic!("expected a Google assistant tool call");
             };
             let [AssistantContentPart::ToolCall { tool_call_id, .. }] = calls.as_slice() else {
                 panic!("expected one tool call");
             };
-            let [Message::Tool { content }, Message::User {
-                content: UserContent::String(text),
-            }] = imported.output.as_slice()
+            let [
+                Message::Tool { content },
+                Message::User {
+                    content: UserContent::String(text),
+                },
+            ] = imported.output.as_slice()
             else {
                 panic!("expected the tool result followed by the user instruction");
             };
@@ -2205,10 +2221,11 @@ mod tests {
         })
         .unwrap();
         assert!(imported.output.is_empty());
-        assert!(imported
-            .errors
-            .iter()
-            .any(|error| { error.contains("Unsupported mapping") && error.contains("tool role") }));
+        assert!(
+            imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("tool role")
+            })
+        );
     }
 
     #[cfg(feature = "google")]
@@ -2254,14 +2271,20 @@ mod tests {
         .unwrap();
 
         let imported = import_span(span).unwrap();
-        let [Message::Assistant {
-            content: AssistantContent::Array(calls),
-            ..
-        }, Message::Tool { content: weather }, Message::User {
-            content: UserContent::String(summarize),
-        }, Message::Tool { content: clock }, Message::User {
-            content: UserContent::String(include_time),
-        }] = imported.input.as_slice()
+        let [
+            Message::Assistant {
+                content: AssistantContent::Array(calls),
+                ..
+            },
+            Message::Tool { content: weather },
+            Message::User {
+                content: UserContent::String(summarize),
+            },
+            Message::Tool { content: clock },
+            Message::User {
+                content: UserContent::String(include_time),
+            },
+        ] = imported.input.as_slice()
         else {
             panic!("expected tool results and text in their original order");
         };
@@ -2297,10 +2320,11 @@ mod tests {
         .unwrap();
         let imported = import_span(span).unwrap();
         assert!(imported.input.is_empty());
-        assert!(imported
-            .errors
-            .iter()
-            .any(|error| { error.contains("Unsupported mapping") && error.contains("toolCall") }));
+        assert!(
+            imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("toolCall")
+            })
+        );
     }
 
     #[cfg(feature = "google")]
@@ -2317,10 +2341,11 @@ mod tests {
         .unwrap();
         let imported = import_span(span).unwrap();
         assert!(imported.output.is_empty());
-        assert!(imported
-            .errors
-            .iter()
-            .any(|error| { error.contains("Unsupported mapping") && error.contains("toolCall") }));
+        assert!(
+            imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("toolCall")
+            })
+        );
     }
 
     #[cfg(feature = "google")]
@@ -2446,8 +2471,11 @@ mod tests {
             .unwrap();
 
             let imported = import_span(span).unwrap();
-            let [Message::User { .. }, Message::Assistant { .. }, Message::Tool { content }] =
-                imported.input.as_slice()
+            let [
+                Message::User { .. },
+                Message::Assistant { .. },
+                Message::Tool { content },
+            ] = imported.input.as_slice()
             else {
                 panic!("expected a prompt with a completed tool response: {continuation}");
             };

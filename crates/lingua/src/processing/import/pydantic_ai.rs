@@ -154,33 +154,33 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                         provider_options: None,
                     })),
                     other => {
-                        if let Ok(binary) = PydanticAIBinaryContentCompat::deserialize(&other) {
-                            if binary.item_type == "binary" {
-                                let attachment_value = serde_json::json!({
-                                    "content_type": binary.attachment.content_type,
-                                    "filename": binary.attachment.filename,
-                                    "key": binary.attachment.key,
-                                    "type": binary.attachment.attachment_type,
+                        if let Ok(binary) = PydanticAIBinaryContentCompat::deserialize(&other)
+                            && binary.item_type == "binary"
+                        {
+                            let attachment_value = serde_json::json!({
+                                "content_type": binary.attachment.content_type,
+                                "filename": binary.attachment.filename,
+                                "key": binary.attachment.key,
+                                "type": binary.attachment.attachment_type,
+                            });
+                            if binary.attachment.content_type.starts_with("image/") {
+                                parts.push(UserContentPart::Image {
+                                    image: serde_json::json!({
+                                        "type": "image_url",
+                                        "image_url": { "url": attachment_value }
+                                    }),
+                                    media_type: None,
+                                    provider_options: None,
                                 });
-                                if binary.attachment.content_type.starts_with("image/") {
-                                    parts.push(UserContentPart::Image {
-                                        image: serde_json::json!({
-                                            "type": "image_url",
-                                            "image_url": { "url": attachment_value }
-                                        }),
-                                        media_type: None,
-                                        provider_options: None,
-                                    });
-                                } else {
-                                    parts.push(UserContentPart::File {
-                                        data: attachment_value,
-                                        filename: binary.attachment.filename,
-                                        media_type: binary.attachment.content_type,
-                                        provider_options: None,
-                                    });
-                                }
-                                continue;
+                            } else {
+                                parts.push(UserContentPart::File {
+                                    data: attachment_value,
+                                    filename: binary.attachment.filename,
+                                    media_type: binary.attachment.content_type,
+                                    provider_options: None,
+                                });
                             }
+                            continue;
                         }
 
                         if let Some(text) = value_to_string(&other) {
@@ -379,10 +379,10 @@ fn has_pydantic_message_shape(data: &impl ImportValue) -> bool {
 }
 
 fn try_parse_internal_input(data: &impl ImportValue) -> Option<Vec<Message>> {
-    if data.kind() == InputKind::Object {
-        if let Some(wrapper) = data.parse::<PydanticAIMessagesWrapperCompat>() {
-            return try_parse_message_sequence(wrapper.messages);
-        }
+    if data.kind() == InputKind::Object
+        && let Some(wrapper) = data.parse::<PydanticAIMessagesWrapperCompat>()
+    {
+        return try_parse_message_sequence(wrapper.messages);
     }
     let mut items = data.array()?;
     if items.len() == 0 || !items.all(|item| has_pydantic_message_shape(&item)) {

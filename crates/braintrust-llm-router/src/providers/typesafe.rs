@@ -4,17 +4,17 @@ use std::time::Duration;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{build_middleware_client, ClientSettings};
+use crate::client::{ClientSettings, build_middleware_client};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::RawResponseStream;
 use async_trait::async_trait;
 use bytes::Bytes;
+use lingua::ProviderFormat;
 use lingua::serde_json::Value;
 use lingua::universal::decision::TypeSafeDecisionOptions;
-use lingua::ProviderFormat;
-use reqwest::header::{HeaderName, HeaderValue};
 use reqwest::Url;
+use reqwest::header::{HeaderName, HeaderValue};
 use reqwest_middleware::ClientWithMiddleware;
 
 const DANGER_ZONE_IMAGES: HeaderName = HeaderName::from_static("typesafe-danger-zone-images");

@@ -221,11 +221,13 @@ mod tests {
         assert!(TransformError::UnableToDetectRequestFormat.is_client_error());
         assert!(TransformError::UnableToDetectResponseFormat.is_client_error());
         assert!(TransformError::UnableToDetectStreamFormat.is_client_error());
-        assert!(TransformError::ValidationFailed {
-            target: ProviderFormat::ChatCompletions,
-            reason: "test".into()
-        }
-        .is_client_error());
+        assert!(
+            TransformError::ValidationFailed {
+                target: ProviderFormat::ChatCompletions,
+                reason: "test".into()
+            }
+            .is_client_error()
+        );
         assert!(TransformError::DeserializationFailed("invalid json".into()).is_client_error());
         assert!(
             TransformError::UnsupportedTargetFormat(ProviderFormat::ChatCompletions)
@@ -254,11 +256,13 @@ mod tests {
         assert!(
             Error::Lingua(lingua::TransformError::UnableToDetectRequestFormat).is_client_error()
         );
-        assert!(!Error::ResponseTransform {
-            source: lingua::TransformError::UnableToDetectResponseFormat,
-            raw_response: Bytes::from_static(b"{}"),
-        }
-        .is_client_error());
+        assert!(
+            !Error::ResponseTransform {
+                source: lingua::TransformError::UnableToDetectResponseFormat,
+                raw_response: Bytes::from_static(b"{}"),
+            }
+            .is_client_error()
+        );
 
         // Auth errors
         assert!(Error::NoAuth("openai".into()).is_auth_error());
@@ -266,11 +270,13 @@ mod tests {
 
         // Not client errors
         assert!(!Error::Timeout.is_client_error());
-        assert!(!Error::UpstreamUnavailable {
-            provider: "openai".into(),
-            source: anyhow::anyhow!("connection reset"),
-        }
-        .is_client_error());
+        assert!(
+            !Error::UpstreamUnavailable {
+                provider: "openai".into(),
+                source: anyhow::anyhow!("connection reset"),
+            }
+            .is_client_error()
+        );
         assert!(
             !Error::Lingua(lingua::TransformError::SerializationFailed("test".into()))
                 .is_client_error()

@@ -2,15 +2,15 @@ use std::time::Duration;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{build_middleware_client, ClientSettings};
+use crate::client::{ClientSettings, build_middleware_client};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{sse_stream, RawResponseStream};
+use crate::streaming::{RawResponseStream, sse_stream};
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::ProviderFormat;
-use reqwest::header::HeaderMap;
 use reqwest::Url;
+use reqwest::header::HeaderMap;
 use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]

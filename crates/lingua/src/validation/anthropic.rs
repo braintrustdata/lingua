@@ -4,7 +4,7 @@ Anthropic format validation.
 
 use crate::providers::anthropic::generated::{CreateMessageParams, Message};
 use crate::providers::anthropic::params::first_openai_only_field;
-use crate::validation::{validate_json, ValidationError};
+use crate::validation::{ValidationError, validate_json};
 
 /// Validates a JSON string as an Anthropic messages request
 pub fn validate_anthropic_request(json: &str) -> Result<CreateMessageParams, ValidationError> {

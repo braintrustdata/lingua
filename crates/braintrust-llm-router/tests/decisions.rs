@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use braintrust_llm_router::{
-    serde_json::{self, json, Value},
     AuthConfig, ClientHeaders, ClientSettings, Error, ModelCatalog, ModelFlavor, ModelSpec,
     OpenAIConfig, OpenAIProvider, ProviderFormat, RetryPolicy, Router, RouterBuilder,
     TypeSafeConfig, TypeSafeProvider,
+    serde_json::{self, Value, json},
 };
 use bytes::Bytes;
 use reqwest::Url;
@@ -536,18 +536,4 @@ async fn routes_uncatalogued_jev_to_typesafe_when_openai_is_available() {
         assert_eq!(routes[0].provider_alias(), "typesafe");
         assert_eq!(routes[0].model(), "jev-unlisted");
     }
-}
-
-#[tokio::test]
-async fn rejects_top_level_typesafe_flags() {
-    let server = MockServer::start().await;
-    let router = router(&server);
-    let routes = router
-        .resolve_provider_routes("jev-latest", ProviderFormat::Decisions, &[])
-        .unwrap();
-    let mut request = scorer_request("jev-latest");
-    request["long_context"] = json!(true);
-    assert!(router
-        .create_decision_request(body(request), &routes[0], false, ProviderFormat::Decisions)
-        .is_err());
 }

@@ -19,8 +19,8 @@ A decision format implements `DecisionAdapter` and is registered in
 use std::sync::LazyLock;
 
 use bytes::Bytes;
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::transform::TransformError;
@@ -232,10 +232,10 @@ pub fn insert_opt_i64(obj: &mut Map<String, Value>, key: &str, value: Option<i64
 
 /// Insert an optional f64 into a map if present.
 pub fn insert_opt_f64(obj: &mut Map<String, Value>, key: &str, value: Option<f64>) {
-    if let Some(v) = value {
-        if let Some(n) = Number::from_f64(v) {
-            obj.insert(key.into(), Value::Number(n));
-        }
+    if let Some(v) = value
+        && let Some(n) = Number::from_f64(v)
+    {
+        obj.insert(key.into(), Value::Number(n));
     }
 }
 

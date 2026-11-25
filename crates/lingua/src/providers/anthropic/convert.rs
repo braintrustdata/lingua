@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::import_parse::{
-    try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
+    MessageParser, try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order,
 };
 use crate::import_value::ImportValue;
 use crate::providers::anthropic::generated;
@@ -14,7 +14,7 @@ use crate::providers::anthropic::generated::{
 use crate::providers::anthropic::tool_discovery;
 use crate::providers::google::generated::GoogleSearch;
 use crate::serde_json;
-use crate::serde_json::{json, Value};
+use crate::serde_json::{Value, json};
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
@@ -23,9 +23,9 @@ use crate::universal::tools::{
     BuiltinToolProvider, ToolAvailability, UniversalTool, UniversalToolCaller, UniversalToolType,
 };
 use crate::universal::{
-    convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart,
-    CacheControl, Message, TextContentPart, ToolCallArguments, ToolContentPart,
-    ToolResultContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, CacheControl, Message, TextContentPart,
+    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    convert::TryFromLLM, message::ProviderOptions,
 };
 use crate::util::media::parse_base64_data_url;
 
@@ -433,10 +433,10 @@ pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
                 .into_iter()
                 .map(|block| {
                     let mut options = serde_json::Map::new();
-                    if let Some(citations) = block.citations {
-                        if let Ok(v) = serde_json::to_value(citations) {
-                            options.insert("citations".into(), v);
-                        }
+                    if let Some(citations) = block.citations
+                        && let Ok(v) = serde_json::to_value(citations)
+                    {
+                        options.insert("citations".into(), v);
                     }
 
                     let provider_options = if options.is_empty() {
@@ -463,84 +463,82 @@ impl TryFromLLM<generated::InputMessage> for Message {
     fn try_from(input_msg: generated::InputMessage) -> Result<Self, Self::Error> {
         // Check if this is a user message that contains only tool results
         // If so, convert it to a Tool message instead
-        if let generated::MessageRole::User = input_msg.role {
-            if let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content {
-                // Check if all blocks are tool results
-                let all_tool_results = blocks.iter().all(input_content_block_is_tool_result);
+        if let generated::MessageRole::User = input_msg.role
+            && let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content
+        {
+            // Check if all blocks are tool results
+            let all_tool_results = blocks.iter().all(input_content_block_is_tool_result);
 
-                let has_tool_results = blocks.iter().any(input_content_block_is_tool_result);
+            let has_tool_results = blocks.iter().any(input_content_block_is_tool_result);
 
-                // If we have tool results and no other content, convert to Tool message
-                if has_tool_results && all_tool_results {
-                    // Take ownership of the content for conversion
-                    if let generated::MessageContent::InputContentBlockArray(owned_blocks) =
-                        input_msg.content
-                    {
-                        let mut tool_content_parts = Vec::new();
+            // If we have tool results and no other content, convert to Tool message
+            if has_tool_results && all_tool_results {
+                // Take ownership of the content for conversion
+                if let generated::MessageContent::InputContentBlockArray(owned_blocks) =
+                    input_msg.content
+                {
+                    let mut tool_content_parts = Vec::new();
 
-                        for block in owned_blocks {
-                            match block.input_content_block_type {
-                                generated::InputContentBlockType::ToolResult => {
-                                    if let (Some(tool_use_id), Some(content)) =
-                                        (block.tool_use_id, block.content)
-                                    {
-                                        let output = match content {
-                                            generated::InputContentBlockContent::PurpleString(
-                                                s,
-                                            ) => serde_json::from_str(&s)
-                                                .unwrap_or(serde_json::Value::String(s)),
-                                            generated::InputContentBlockContent::BlockArray(
-                                                blocks,
-                                            ) => serde_json::to_value(blocks).map_err(|e| {
+                    for block in owned_blocks {
+                        match block.input_content_block_type {
+                            generated::InputContentBlockType::ToolResult => {
+                                if let (Some(tool_use_id), Some(content)) =
+                                    (block.tool_use_id, block.content)
+                                {
+                                    let output = match content {
+                                        generated::InputContentBlockContent::PurpleString(s) => {
+                                            serde_json::from_str(&s)
+                                                .unwrap_or(serde_json::Value::String(s))
+                                        }
+                                        generated::InputContentBlockContent::BlockArray(blocks) => {
+                                            serde_json::to_value(blocks).map_err(|e| {
                                                 ConvertError::JsonSerializationFailed {
                                                     field: "BlockArray".to_string(),
                                                     error: e.to_string(),
                                                 }
-                                            })?,
-                                            generated::InputContentBlockContent::Request(err) => {
-                                                serde_json::to_value(err).map_err(|e| {
-                                                    ConvertError::JsonSerializationFailed {
-                                                        field: "RequestWebSearchToolResultError"
-                                                            .to_string(),
-                                                        error: e.to_string(),
-                                                    }
-                                                })?
-                                            }
-                                        };
+                                            })?
+                                        }
+                                        generated::InputContentBlockContent::Request(err) => {
+                                            serde_json::to_value(err).map_err(|e| {
+                                                ConvertError::JsonSerializationFailed {
+                                                    field: "RequestWebSearchToolResultError"
+                                                        .to_string(),
+                                                    error: e.to_string(),
+                                                }
+                                            })?
+                                        }
+                                    };
 
-                                        tool_content_parts.push(ToolContentPart::ToolResult(
-                                            ToolResultContentPart {
-                                                tool_call_id: tool_use_id,
-                                                tool_name: String::new(), // Anthropic doesn't provide tool name in results
-                                                output,
-                                                custom_tool_call: None,
-                                                caller: None,
-                                                provider_options: None,
-                                            },
-                                        ));
-                                    }
+                                    tool_content_parts.push(ToolContentPart::ToolResult(
+                                        ToolResultContentPart {
+                                            tool_call_id: tool_use_id,
+                                            tool_name: String::new(), // Anthropic doesn't provide tool name in results
+                                            output,
+                                            custom_tool_call: None,
+                                            caller: None,
+                                            provider_options: None,
+                                        },
+                                    ));
                                 }
-                                generated::InputContentBlockType::ToolSearchToolResult => {
-                                    if let Some(tool_use_id) = block.tool_use_id {
-                                        tool_content_parts.push(
-                                            ToolContentPart::ToolDiscoveryResult(
-                                                tool_discovery::result_from_input_content(
-                                                    tool_use_id,
-                                                    "tool_search".to_string(),
-                                                    block.content,
-                                                )?,
-                                            ),
-                                        );
-                                    }
-                                }
-                                _ => {}
                             }
+                            generated::InputContentBlockType::ToolSearchToolResult => {
+                                if let Some(tool_use_id) = block.tool_use_id {
+                                    tool_content_parts.push(ToolContentPart::ToolDiscoveryResult(
+                                        tool_discovery::result_from_input_content(
+                                            tool_use_id,
+                                            "tool_search".to_string(),
+                                            block.content,
+                                        )?,
+                                    ));
+                                }
+                            }
+                            _ => {}
                         }
-
-                        return Ok(Message::Tool {
-                            content: tool_content_parts,
-                        });
                     }
+
+                    return Ok(Message::Tool {
+                        content: tool_content_parts,
+                    });
                 }
             }
         }
@@ -820,10 +818,10 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 "web_search_tool_result".to_string(),
                                             ),
                                         );
-                                        if let Some(content) = &block.content {
-                                            if let Ok(v) = serde_json::to_value(content) {
-                                                output.insert("content".into(), v);
-                                            }
+                                        if let Some(content) = &block.content
+                                            && let Ok(v) = serde_json::to_value(content)
+                                        {
+                                            output.insert("content".into(), v);
                                         }
 
                                         content_parts.push(AssistantContentPart::ToolResult {
@@ -966,14 +964,14 @@ impl TryFromLLM<Message> for generated::InputMessage {
 
                                         // Handle text content types - decode to text block instead of document
                                         // Anthropic's Document block only accepts PDFs, not text files
-                                        if !is_url {
-                                            if let Some(mt) = &media_type {
-                                                if mt.starts_with("text/") {
+                                        if !is_url
+                                            && let Some(mt) = &media_type
+                                                && mt.starts_with("text/") {
                                                     // Parse data URL and decode base64 to text
                                                     if let Some(media_block) = parse_base64_data_url(&image_data) {
                                                         use base64::Engine;
-                                                        if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(&media_block.data) {
-                                                            if let Ok(text) = String::from_utf8(bytes) {
+                                                        if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(&media_block.data)
+                                                            && let Ok(text) = String::from_utf8(bytes) {
                                                                 return Some(generated::InputContentBlock {
                                                                     cache_control: None,
                                                                     citations: None,
@@ -995,13 +993,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                                     file_id: None,
                                                                 });
                                                             }
-                                                        }
                                                     }
                                                     // Skip if can't decode text
                                                     return None;
                                                 }
-                                            }
-                                        }
 
                                         let (source_type, source_url, source_data, anthropic_media_type) = if is_url {
                                             (
@@ -2023,10 +2018,10 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                             "anthropic_type".into(),
                             serde_json::Value::String("web_search_tool_result".to_string()),
                         );
-                        if let Some(content) = &block.content {
-                            if let Ok(v) = serde_json::to_value(content) {
-                                output.insert("content".into(), v);
-                            }
+                        if let Some(content) = &block.content
+                            && let Ok(v) = serde_json::to_value(content)
+                        {
+                            output.insert("content".into(), v);
                         }
 
                         content_parts.push(AssistantContentPart::ToolResult {
@@ -2960,8 +2955,8 @@ mod tests {
     }
 
     #[test]
-    fn universal_messages_to_anthropic_response_blocks_rejects_preserved_unknown_tool_search_result(
-    ) {
+    fn universal_messages_to_anthropic_response_blocks_rejects_preserved_unknown_tool_search_result()
+     {
         let messages = vec![Message::Tool {
             content: vec![ToolContentPart::ToolDiscoveryResult(
                 crate::universal::ToolDiscoveryResultContentPart {

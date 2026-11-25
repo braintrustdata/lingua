@@ -8,11 +8,11 @@ use crate::providers::anthropic::convert::{
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::google::generated as google;
 use crate::providers::openai::convert::{
-    messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
+    ChatCompletionRequestMessageExt, messages_to_chat_completion_messages,
 };
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
-use crate::universal::{convert::TryFromLLM, Message};
+use crate::universal::{Message, convert::TryFromLLM};
 
 /// Convert Python object to Rust type via JSON
 fn py_to_rust<'py, T>(py: Python<'py>, value: &Bound<'py, PyAny>) -> PyResult<T>
@@ -198,7 +198,7 @@ fn import_messages_from_spans<'py>(
     py: Python<'py>,
     value: &Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    use crate::processing::import::{import_messages_from_spans as import, Span};
+    use crate::processing::import::{Span, import_messages_from_spans as import};
 
     // Convert Python value to Vec<Span>
     let spans: Vec<Span> = py_to_rust(py, value)?;
@@ -216,7 +216,7 @@ fn import_and_deduplicate_messages<'py>(
     py: Python<'py>,
     value: &Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    use crate::processing::import::{import_and_deduplicate_messages as import_dedup, Span};
+    use crate::processing::import::{Span, import_and_deduplicate_messages as import_dedup};
 
     // Convert Python value to Vec<Span>
     let spans: Vec<Span> = py_to_rust(py, value)?;
@@ -335,7 +335,7 @@ fn transform_request<'py>(
     model: Option<String>,
 ) -> PyResult<Bound<'py, PyAny>> {
     use crate::capabilities::ProviderFormat;
-    use crate::processing::transform::{transform_request as transform, TransformResult};
+    use crate::processing::transform::{TransformResult, transform_request as transform};
     use bytes::Bytes;
 
     let target: ProviderFormat = target_format.parse().map_err(|_| {
@@ -397,7 +397,7 @@ fn transform_response<'py>(
     target_format: &str,
 ) -> PyResult<Bound<'py, PyAny>> {
     use crate::capabilities::ProviderFormat;
-    use crate::processing::transform::{transform_response as transform, TransformResult};
+    use crate::processing::transform::{TransformResult, transform_response as transform};
     use bytes::Bytes;
 
     let target: ProviderFormat = target_format.parse().map_err(|_| {

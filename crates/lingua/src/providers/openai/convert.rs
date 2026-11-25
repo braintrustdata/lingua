@@ -1088,7 +1088,7 @@ fn openai_file_payload_from_data(
                     "File data must be string-backed for OpenAI, got: {:?}",
                     other
                 ),
-            })
+            });
         }
     };
 
@@ -1321,16 +1321,16 @@ fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Me
 }
 
 fn try_from_responses_items_candidate<V: ImportValue>(candidate: &V) -> Option<Vec<Message>> {
-    if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate) {
-        if let Some(messages) = try_convert_non_empty(provider_messages) {
-            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
-        }
+    if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate)
+        && let Some(messages) = try_convert_non_empty(provider_messages)
+    {
+        return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
     }
 
-    if let Some(provider_messages) = try_parse_vec_or_single::<openai::OutputItem>(candidate) {
-        if let Some(messages) = try_convert_non_empty(provider_messages) {
-            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
-        }
+    if let Some(provider_messages) = try_parse_vec_or_single::<openai::OutputItem>(candidate)
+        && let Some(messages) = try_convert_non_empty(provider_messages)
+    {
+        return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
     }
 
     None
@@ -1451,30 +1451,28 @@ pub(crate) fn try_parse_openai_for_import<V: ImportValue>(data: &V) -> Option<Ve
     // assistant `tool_calls` arguments and is lossy for import.
     if let Some(provider_messages) =
         try_parse_vec_or_single::<ChatCompletionRequestMessageExt>(data)
+        && let Some(messages) = try_convert_non_empty(provider_messages)
     {
-        if let Some(messages) = try_convert_non_empty(provider_messages) {
-            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
-        }
+        return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
     }
 
     if let Some(messages) = try_parse_responses_items_for_import(data) {
         return Some(messages);
     }
 
-    if let Some(request) = try_parse::<openai::CreateResponseClass>(data) {
-        if let Some(input) = request.input {
-            if let Some(mut messages) = try_messages_from_openai_instructions(input) {
-                if let Some(instructions) = request.instructions.filter(|text| !text.is_empty()) {
-                    messages.insert(
-                        0,
-                        Message::System {
-                            content: UserContent::String(instructions),
-                        },
-                    );
-                }
-                return non_empty_messages(messages);
-            }
+    if let Some(request) = try_parse::<openai::CreateResponseClass>(data)
+        && let Some(input) = request.input
+        && let Some(mut messages) = try_messages_from_openai_instructions(input)
+    {
+        if let Some(instructions) = request.instructions.filter(|text| !text.is_empty()) {
+            messages.insert(
+                0,
+                Message::System {
+                    content: UserContent::String(instructions),
+                },
+            );
         }
+        return non_empty_messages(messages);
     }
 
     if let Some(response) = try_parse::<openai::TheResponseObject>(data) {
@@ -2086,7 +2084,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     _ => {
                         return Err(ConvertError::UnsupportedInputType {
                             type_info: format!("Image type must be string URL, got: {:?}", image),
-                        })
+                        });
                     }
                 };
 
@@ -2311,31 +2309,31 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
                 // Build provider_options to preserve annotations and logprobs
                 let provider_options = {
                     let mut options = serde_json::Map::new();
-                    if let Some(annotations) = &value.annotations {
-                        if !annotations.is_empty() {
-                            options.insert(
-                                "annotations".to_string(),
-                                serde_json::to_value(annotations).map_err(|e| {
-                                    ConvertError::JsonSerializationFailed {
-                                        field: "annotations".to_string(),
-                                        error: e.to_string(),
-                                    }
-                                })?,
-                            );
-                        }
+                    if let Some(annotations) = &value.annotations
+                        && !annotations.is_empty()
+                    {
+                        options.insert(
+                            "annotations".to_string(),
+                            serde_json::to_value(annotations).map_err(|e| {
+                                ConvertError::JsonSerializationFailed {
+                                    field: "annotations".to_string(),
+                                    error: e.to_string(),
+                                }
+                            })?,
+                        );
                     }
-                    if let Some(logprobs) = &value.logprobs {
-                        if !logprobs.is_empty() {
-                            options.insert(
-                                "logprobs".to_string(),
-                                serde_json::to_value(logprobs).map_err(|e| {
-                                    ConvertError::JsonSerializationFailed {
-                                        field: "logprobs".to_string(),
-                                        error: e.to_string(),
-                                    }
-                                })?,
-                            );
-                        }
+                    if let Some(logprobs) = &value.logprobs
+                        && !logprobs.is_empty()
+                    {
+                        options.insert(
+                            "logprobs".to_string(),
+                            serde_json::to_value(logprobs).map_err(|e| {
+                                ConvertError::JsonSerializationFailed {
+                                    field: "logprobs".to_string(),
+                                    error: e.to_string(),
+                                }
+                            })?,
+                        );
                     }
                     if options.is_empty() {
                         None
@@ -3693,22 +3691,22 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                                 // stored back to keep the universal representation clean.
                                 let non_empty_annotations = c.annotations.filter(|a| !a.is_empty());
                                 let mut options = serde_json::Map::new();
-                                if let Some(annotations) = non_empty_annotations {
-                                    if let Ok(value) = serde_json::to_value(&annotations) {
-                                        options.insert("annotations".to_string(), value);
-                                    }
+                                if let Some(annotations) = non_empty_annotations
+                                    && let Ok(value) = serde_json::to_value(&annotations)
+                                {
+                                    options.insert("annotations".to_string(), value);
                                 }
-                                if let Some(logprobs) = c.logprobs {
-                                    if let Ok(value) = serde_json::to_value(&logprobs) {
-                                        options.insert("logprobs".to_string(), value);
-                                    }
+                                if let Some(logprobs) = c.logprobs
+                                    && let Ok(value) = serde_json::to_value(&logprobs)
+                                {
+                                    options.insert("logprobs".to_string(), value);
                                 }
                                 if !phase_stored {
                                     phase_stored = true;
-                                    if let Some(ref phase) = item_phase {
-                                        if let Ok(value) = serde_json::to_value(phase) {
-                                            options.insert("_output_item_phase".to_string(), value);
-                                        }
+                                    if let Some(ref phase) = item_phase
+                                        && let Ok(value) = serde_json::to_value(phase)
+                                    {
+                                        options.insert("_output_item_phase".to_string(), value);
                                     }
                                 }
                                 let provider_options = if options.is_empty() {
@@ -4895,7 +4893,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     None => {
                         return Err(ConvertError::MissingRequiredField {
                             field: "content".to_string(),
-                        })
+                        });
                     }
                 };
 
@@ -5426,7 +5424,7 @@ fn convert_user_content_part_to_chat_completion_part(
                             "Image must be string URL for ChatCompletion, got: {:?}",
                             image
                         ),
-                    })
+                    });
                 }
             };
 
@@ -5447,9 +5445,10 @@ fn convert_user_content_part_to_chat_completion_part(
             filename,
             media_type,
             provider_options: None,
-        } if media_type.eq_ignore_ascii_case("application/pdf")
-            && !is_remote_media_uri(&data) => {
-            let OpenAIFilePayload::FileData(file_data) = openai_file_payload_from_data(serde_json::Value::String(data), &media_type)? else {
+        } if media_type.eq_ignore_ascii_case("application/pdf") && !is_remote_media_uri(&data) => {
+            let OpenAIFilePayload::FileData(file_data) =
+                openai_file_payload_from_data(serde_json::Value::String(data), &media_type)?
+            else {
                 return Err(ConvertError::UnsupportedInputType {
                     type_info: "Remote PDF URLs are not supported by OpenAI ChatCompletions; provide PDF data instead".into(),
                 });
@@ -5468,28 +5467,25 @@ fn convert_user_content_part_to_chat_completion_part(
                 refusal: None,
             })
         }
-        UserContentPart::File {
-            media_type,
-            ..
-        } => {
-            Err(ConvertError::UnsupportedInputType {
-                type_info: format!(
-                    "UserContentPart::File (media_type: {}) is not supported by OpenAI ChatCompletions. \
+        UserContentPart::File { media_type, .. } => Err(ConvertError::UnsupportedInputType {
+            type_info: format!(
+                "UserContentPart::File (media_type: {}) is not supported by OpenAI ChatCompletions. \
 OpenAI ChatCompletions file inputs require provider-specific file payloads (for example PDF data URLs), \
 and Anthropic document blocks do not map safely.",
-                    media_type
-                ),
+                media_type
+            ),
+        }),
+        UserContentPart::Audio { data, format } => {
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: None,
+                content_part_type: openai::PurpleType::InputAudio,
+                prompt_cache_breakpoint: None,
+                image_url: None,
+                input_audio: Some(openai_audio_from_universal(data, format)),
+                file: None,
+                refusal: None,
             })
         }
-        UserContentPart::Audio { data, format } => Ok(openai::ChatCompletionRequestMessageContentPart {
-            text: None,
-            content_part_type: openai::PurpleType::InputAudio,
-            prompt_cache_breakpoint: None,
-            image_url: None,
-            input_audio: Some(openai_audio_from_universal(data, format)),
-            file: None,
-            refusal: None,
-        }),
     }
 }
 
@@ -5712,15 +5708,15 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                 }
 
                 // Add text content if present
-                if let Some(text) = &msg.base.content {
-                    if !text.is_empty() {
-                        content_parts.push(AssistantContentPart::Text(TextContentPart {
-                            text: text.clone(),
-                            encrypted_content: None,
-                            cache_control: None,
-                            provider_options: None,
-                        }));
-                    }
+                if let Some(text) = &msg.base.content
+                    && !text.is_empty()
+                {
+                    content_parts.push(AssistantContentPart::Text(TextContentPart {
+                        text: text.clone(),
+                        encrypted_content: None,
+                        cache_control: None,
+                        provider_options: None,
+                    }));
                 }
 
                 // Add tool calls if present
@@ -5875,10 +5871,10 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::TransformResult;
     use crate::capabilities::ProviderFormat;
     use crate::processing::transform::transform_request;
     use crate::serde_json::json;
-    use crate::TransformResult;
     use bytes::Bytes;
 
     fn wav_base64() -> String {
@@ -6047,9 +6043,11 @@ mod tests {
         )
         .expect_err("router-only audio URL should fail direct conversion");
 
-        assert!(error
-            .to_string()
-            .contains("input_audio.data must be base64"));
+        assert!(
+            error
+                .to_string()
+                .contains("input_audio.data must be base64")
+        );
     }
 
     #[test]
@@ -7389,9 +7387,11 @@ mod tests {
             error,
             ConvertError::ContentConversionFailed { .. }
         ));
-        assert!(error
-            .to_string()
-            .contains("attached only to function tool calls"));
+        assert!(
+            error
+                .to_string()
+                .contains("attached only to function tool calls")
+        );
     }
 
     #[test]
@@ -7749,9 +7749,11 @@ mod tests {
             .expect_err("file should be rejected");
 
         assert!(matches!(error, ConvertError::UnsupportedInputType { .. }));
-        assert!(error
-            .to_string()
-            .contains("is not supported by OpenAI ChatCompletions"));
+        assert!(
+            error
+                .to_string()
+                .contains("is not supported by OpenAI ChatCompletions")
+        );
     }
 
     #[test]
@@ -7839,9 +7841,11 @@ mod tests {
             .expect_err("object payload should fail");
 
         assert!(matches!(error, ConvertError::UnsupportedInputType { .. }));
-        assert!(error
-            .to_string()
-            .contains("File data must be string-backed for OpenAI"));
+        assert!(
+            error
+                .to_string()
+                .contains("File data must be string-backed for OpenAI")
+        );
     }
 
     #[test]
@@ -7857,9 +7861,11 @@ mod tests {
             .expect_err("url-backed file should fail");
 
         assert!(matches!(error, ConvertError::UnsupportedInputType { .. }));
-        assert!(error
-            .to_string()
-            .contains("is not supported by OpenAI ChatCompletions"));
+        assert!(
+            error
+                .to_string()
+                .contains("is not supported by OpenAI ChatCompletions")
+        );
     }
 
     #[test]

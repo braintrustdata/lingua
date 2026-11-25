@@ -156,6 +156,7 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
         false
     }
 
+    #[allow(clippy::collapsible_if)] // Keep the existing Value checks unchanged for the typed-boundary check
     fn stream_to_universal(
         &self,
         payload: Value,
@@ -215,7 +216,7 @@ fn usage_from_bedrock_invocation_metrics(
 mod tests {
     use super::*;
     use crate::processing::adapters::ProviderAdapter;
-    use crate::serde_json::{json, Value};
+    use crate::serde_json::{Value, json};
     use serde::Deserialize;
 
     #[derive(Deserialize)]

@@ -256,15 +256,15 @@ fn parse_assistant_parts(parts: Vec<Value>) -> Vec<AssistantContentPart> {
     for part in parts {
         let parsed = AISDKContentPartCompat::deserialize(&part);
         let Ok(parsed) = parsed else {
-            if let Some(text) = value_to_string(&part) {
-                if !text.is_empty() {
-                    converted_parts.push(AssistantContentPart::Text(TextContentPart {
-                        text,
-                        encrypted_content: None,
-                        cache_control: None,
-                        provider_options: None,
-                    }));
-                }
+            if let Some(text) = value_to_string(&part)
+                && !text.is_empty()
+            {
+                converted_parts.push(AssistantContentPart::Text(TextContentPart {
+                    text,
+                    encrypted_content: None,
+                    cache_control: None,
+                    provider_options: None,
+                }));
             }
             continue;
         };
@@ -461,15 +461,15 @@ fn try_parse_ai_sdk_input(data: &impl ImportValue) -> Option<Vec<Message>> {
             content: parse_user_content(system)?,
         });
     }
-    if let Field::Present(value) = input.messages {
-        if !matches!(&value, Value::Array(parts) if parts.is_empty()) {
-            messages.extend(parse_message_sequence(&value)?);
-        }
+    if let Field::Present(value) = input.messages
+        && !matches!(&value, Value::Array(parts) if parts.is_empty())
+    {
+        messages.extend(parse_message_sequence(&value)?);
     }
-    if let Field::Present(prompt) = input.prompt {
-        if let Some(parsed) = try_parse_prompt_value(&prompt) {
-            messages.extend(parsed);
-        }
+    if let Field::Present(prompt) = input.prompt
+        && let Some(parsed) = try_parse_prompt_value(&prompt)
+    {
+        messages.extend(parsed);
     }
     crate::import_parse::non_empty_messages(messages)
 }
@@ -512,24 +512,24 @@ fn build_assistant_message_from_fields(output: &AISDKOutputCompat) -> Option<Mes
 
     let mut parts = Vec::new();
 
-    if let Some(reasoning) = output.reasoning.as_ref().and_then(value_to_string) {
-        if !reasoning.is_empty() {
-            parts.push(AssistantContentPart::Reasoning {
-                text: reasoning,
-                encrypted_content: None,
-            });
-        }
+    if let Some(reasoning) = output.reasoning.as_ref().and_then(value_to_string)
+        && !reasoning.is_empty()
+    {
+        parts.push(AssistantContentPart::Reasoning {
+            text: reasoning,
+            encrypted_content: None,
+        });
     }
 
-    if let Some(text) = output.text.as_ref().and_then(value_to_string) {
-        if !text.is_empty() {
-            parts.push(AssistantContentPart::Text(TextContentPart {
-                text,
-                encrypted_content: None,
-                cache_control: None,
-                provider_options: None,
-            }));
-        }
+    if let Some(text) = output.text.as_ref().and_then(value_to_string)
+        && !text.is_empty()
+    {
+        parts.push(AssistantContentPart::Text(TextContentPart {
+            text,
+            encrypted_content: None,
+            cache_control: None,
+            provider_options: None,
+        }));
     }
 
     if let Some(tool_calls_value) = output
@@ -664,21 +664,19 @@ fn try_parse_ai_sdk_output(data: &impl ImportValue) -> Option<Vec<Message>> {
     if !has_ai_sdk_output_signal(&output) {
         return None;
     }
-    if let Some(value) = output.response_messages.as_ref() {
-        if let Some(messages) = parse_message_sequence(value) {
-            return Some(messages);
-        }
+    if let Some(value) = output.response_messages.as_ref()
+        && let Some(messages) = parse_message_sequence(value)
+    {
+        return Some(messages);
     }
     if let Some(response) = output
         .response
         .as_ref()
         .and_then(|value| value.parse::<AISDKResponseCompat>())
+        && let Some(value) = response.messages.as_ref()
+        && let Some(messages) = parse_message_sequence(value)
     {
-        if let Some(value) = response.messages.as_ref() {
-            if let Some(messages) = parse_message_sequence(value) {
-                return Some(messages);
-            }
-        }
+        return Some(messages);
     }
     if let Some(steps) = output.steps.as_ref().and_then(Value::as_array) {
         let messages: Vec<_> = steps.iter().filter_map(parse_step_message).collect();
