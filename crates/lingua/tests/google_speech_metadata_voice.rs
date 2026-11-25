@@ -32,6 +32,16 @@ fn google_request_with_multi_speaker_voice() -> Bytes {
     }))
 }
 
+fn google_request_with_text_normalization() -> Bytes {
+    to_bytes(json!({
+        "contents": [{"role": "user", "parts": [{"text": "Read 1999 aloud."}]}],
+        "generationConfig": {
+            "responseModalities": ["AUDIO"],
+            "speechConfig": {"textNormalization": "ENABLED"}
+        }
+    }))
+}
+
 fn google_request_with_speech_metadata() -> Bytes {
     to_bytes(json!({
         "contents": [{
@@ -98,6 +108,31 @@ fn google_speech_metadata_voice_cross_provider_transform_is_unsupported() {
             .expect_err("speech metadata has no cross-provider stream mapping");
         assert_unsupported(&error, "speechMetadata");
     }
+}
+
+#[test]
+fn google_text_normalization_cross_provider_transform_is_unsupported() {
+    for target in [
+        ProviderFormat::Anthropic,
+        ProviderFormat::ChatCompletions,
+        ProviderFormat::Responses,
+    ] {
+        let error =
+            lingua::transform_request(google_request_with_text_normalization(), target, None)
+                .expect_err("hosted speech synthesis preprocessing has no cross-provider mapping");
+        assert_unsupported(&error, "generationConfig.speechConfig.textNormalization");
+    }
+}
+
+#[test]
+fn google_text_normalization_survives_native_passthrough() {
+    let request = google_request_with_text_normalization();
+    let result = lingua::transform_request(request.clone(), ProviderFormat::Google, None)
+        .expect("a native Google request must pass through");
+    let TransformResult::PassThrough(actual) = result.result else {
+        panic!("native Google requests must not be re-serialized");
+    };
+    assert_eq!(actual, request);
 }
 
 #[test]
