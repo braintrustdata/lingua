@@ -1828,6 +1828,49 @@ mod tests {
         }
     }
 
+    // SDK media preprocessing cannot be omitted without changing what the model sees.
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_rejects_sdk_media_preprocessing() {
+        for (field, error_field, metadata, file) in [
+            (
+                "document_metadata",
+                "documentMetadata",
+                crate::serde_json::json!({"start_page": 2}),
+                crate::serde_json::json!({"mime_type": "application/pdf", "data": "AA=="}),
+            ),
+            (
+                "spreadsheetMetadata",
+                "spreadsheetMetadata",
+                crate::serde_json::json!({"visibleCells": "A1:D10"}),
+                crate::serde_json::json!({"mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "data": "AA=="}),
+            ),
+            (
+                "audio_metadata",
+                "audioMetadata",
+                crate::serde_json::json!({"start_offset": "1s"}),
+                crate::serde_json::json!({"mime_type": "audio/wav", "data": "AA=="}),
+            ),
+        ] {
+            let imported = import_span(Span {
+                input: Some(crate::serde_json::json!({"contents": [{
+                    "inline_data": file,
+                    (field): metadata
+                }]})),
+                output: None,
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.input.is_empty(), "{field}");
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains(error_field)
+                }),
+                "{field}"
+            );
+        }
+    }
+
     #[cfg(feature = "google")]
     #[test]
     fn gemini_import_reports_unsupported_trace_part_fields() {
@@ -2224,6 +2267,51 @@ mod tests {
         }
     }
 
+    // Streaming call state can contain unfinished arguments and cannot be replayed as a completed call.
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_rejects_continuing_function_calls() {
+        for (field, value, error_field) in [
+            (
+                "will_continue",
+                crate::serde_json::json!(true),
+                "willContinue",
+            ),
+            (
+                "willContinue",
+                crate::serde_json::json!(true),
+                "willContinue",
+            ),
+            (
+                "partial_args",
+                crate::serde_json::json!([{"json_path": "$.city", "string_value": "Par"}]),
+                "partialArgs",
+            ),
+            (
+                "partialArgs",
+                crate::serde_json::json!([{"jsonPath": "$.city", "stringValue": "Par"}]),
+                "partialArgs",
+            ),
+        ] {
+            let imported = import_span(Span {
+                input: None,
+                output: Some(crate::serde_json::json!({"candidates": [{"content": {
+                    "role": "model",
+                    "parts": [{"function_call": {"name": "weather", (field): value}}]
+                }}]})),
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.output.is_empty(), "{field}");
+            assert!(
+                imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains(error_field)
+                }),
+                "{field}"
+            );
+        }
+    }
+
     #[cfg(feature = "google")]
     #[test]
     fn gemini_import_rejects_continuing_function_responses() {
@@ -2252,7 +2340,12 @@ mod tests {
             let span: Span = serde_json::from_value(crate::serde_json::json!({
                 "input": {"contents": [
                     {"text": "Run the tool.", "partMetadata": {}},
-                    {"role": "model", "parts": [{"functionCall": {"name": "work", "id": "call_a"}}]},
+                    {"role": "model", "parts": [{"functionCall": {
+                        "name": "work",
+                        "id": "call_a",
+                        "will_continue": false,
+                        "partialArgs": []
+                    }}]},
                     {"role": "user", "parts": [{
                         "function_response": {
                             "name": "work",

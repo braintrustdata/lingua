@@ -10,7 +10,7 @@ use crate::import_value::{ImportValue, InputKind};
 use crate::serde_json;
 use crate::universal::message::{AssistantContent, Message, UserContent, UserContentPart};
 use crate::universal::trajectory::AttachmentReference;
-use serde::Deserialize;
+use serde::{de::IgnoredAny, Deserialize};
 use std::borrow::Cow;
 
 type TraceMessagePart = (Part, Option<UserContentPart>);
@@ -25,16 +25,20 @@ struct TraceAttachmentUrl {
 struct TracePart {
     #[serde(alias = "image_url")]
     image_url: Option<TraceAttachmentUrl>,
+    #[serde(alias = "audio_metadata")]
+    audio_metadata: Option<IgnoredAny>,
     #[serde(alias = "audio_transcription")]
     audio_transcription: Option<AudioTranscription>,
     #[serde(alias = "code_execution_result")]
     code_execution_result: Option<CodeExecutionResult>,
+    #[serde(alias = "document_metadata")]
+    document_metadata: Option<IgnoredAny>,
     #[serde(alias = "executable_code")]
     executable_code: Option<ExecutableCode>,
     #[serde(alias = "file_data")]
     file_data: Option<TraceFileData>,
     #[serde(alias = "function_call")]
-    function_call: Option<FunctionCall>,
+    function_call: Option<TraceFunctionCall>,
     #[serde(alias = "function_response")]
     function_response: Option<TraceFunctionResponse>,
     #[serde(alias = "inline_data")]
@@ -47,6 +51,8 @@ struct TracePart {
     part_metadata: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(alias = "speech_metadata")]
     speech_metadata: Option<SpeechMetadata>,
+    #[serde(alias = "spreadsheet_metadata")]
+    spreadsheet_metadata: Option<IgnoredAny>,
     text: Option<String>,
     thought: Option<bool>,
     #[serde(alias = "thought_signature")]
@@ -80,6 +86,32 @@ struct TraceVideoMetadata {
 impl TraceVideoMetadata {
     fn has_preprocessing(&self) -> bool {
         self.end_offset.is_some() || self.fps.is_some() || self.start_offset.is_some()
+    }
+}
+
+#[derive(Deserialize)]
+struct TraceFunctionCall {
+    #[serde(alias = "willContinue")]
+    will_continue: Option<bool>,
+    #[serde(alias = "partialArgs")]
+    partial_args: Option<Vec<IgnoredAny>>,
+    #[serde(flatten)]
+    call: FunctionCall,
+}
+
+impl TraceFunctionCall {
+    fn into_call(self) -> Result<FunctionCall, ConvertError> {
+        let unsupported_field = if self.will_continue == Some(true) {
+            "willContinue"
+        } else if self.partial_args.is_some_and(|args| !args.is_empty()) {
+            "partialArgs"
+        } else {
+            return Ok(self.call);
+        };
+        Err(ConvertError::UnsupportedMapping {
+            from: format!("Google functionCall.{unsupported_field}"),
+            to: "Lingua universal message",
+        })
     }
 }
 
@@ -178,6 +210,12 @@ impl TracePart {
             .is_some_and(TraceVideoMetadata::has_preprocessing)
         {
             "videoMetadata preprocessing"
+        } else if self.document_metadata.is_some() {
+            "documentMetadata preprocessing"
+        } else if self.spreadsheet_metadata.is_some() {
+            "spreadsheetMetadata preprocessing"
+        } else if self.audio_metadata.is_some() {
+            "audioMetadata preprocessing"
         } else {
             return Ok(());
         };
@@ -213,7 +251,10 @@ impl TracePart {
         let part = Part {
             audio_transcription: self.audio_transcription,
             file_data: self.file_data.map(FileData::from),
-            function_call: self.function_call,
+            function_call: self
+                .function_call
+                .map(TraceFunctionCall::into_call)
+                .transpose()?,
             function_response: self
                 .function_response
                 .map(TraceFunctionResponse::into_response)
