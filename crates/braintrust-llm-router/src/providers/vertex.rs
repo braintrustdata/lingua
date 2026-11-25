@@ -625,6 +625,7 @@ mod tests {
                 map
             },
             available_providers: vec![],
+            providers: None,
         };
         assert_eq!(provider.resolve_location(&spec), "europe-west4");
     }
@@ -652,6 +653,7 @@ mod tests {
             supports_streaming: true,
             extra: ::serde_json::Map::new(),
             available_providers: vec![],
+            providers: None,
         };
         assert_eq!(provider.resolve_location(&spec), "us-central1");
     }

@@ -5,7 +5,7 @@ pub mod spec;
 pub use fallback::OverlayModelCatalog;
 pub use resolver::ModelResolver;
 pub(crate) use resolver::is_gemini_api_model;
-pub use spec::{ModelFlavor, ModelSpec, PricingRate, TierPricing};
+pub use spec::{ModelFlavor, ModelSpec, PricingRate, ProviderMetadata, TierPricing};
 
 use lingua::ProviderFormat;
 
@@ -431,6 +431,7 @@ mod tests {
                 supports_streaming: true,
                 extra: Default::default(),
                 available_providers: vec!["custom-provider".to_string()],
+                providers: None,
             },
         );
         custom
@@ -506,6 +507,7 @@ mod tests {
                 supports_streaming: true,
                 extra: Default::default(),
                 available_providers: vec!["custom-provider".to_string()],
+                providers: None,
             },
         );
 

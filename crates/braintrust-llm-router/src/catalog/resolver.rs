@@ -42,12 +42,16 @@ impl ModelResolver {
     }
 
     pub fn resolve_all_equivalent_model_routes(&self, model: &str) -> Result<Vec<ResolvedModel>> {
-        let mut resolved = Vec::new();
+        let mut resolved = vec![self.resolve(model)?];
         for model_name in self.catalog.fallback_models(model) {
-            resolved.push(self.resolve_one(&model_name)?);
-        }
-        if resolved.is_empty() {
-            return Err(Error::UnknownModel(model.to_string()));
+            if model_name == model {
+                continue;
+            }
+            match self.resolve_one(&model_name) {
+                Ok(route) => resolved.push(route),
+                Err(Error::NoProvider(_)) => {}
+                Err(error) => return Err(error),
+            }
         }
         Ok(resolved)
     }
@@ -73,22 +77,26 @@ impl ModelResolver {
         } else {
             spec.format
         };
-        let provider_aliases = self
-            .aliases
-            .get(model)
-            .map(|alias| vec![alias.clone()])
-            .unwrap_or_else(|| {
-                if !spec.available_providers.is_empty() {
-                    spec.available_providers.clone()
-                } else if lingua::is_vertex_model(model) {
-                    vec!["vertex".to_string()]
-                } else if is_gemini_api_model(model) {
-                    vec!["google".to_string()]
-                } else {
-                    vec![format_identifier(format)]
-                }
-            });
-        Ok((spec, format, provider_aliases))
+        let listed_providers: Vec<String> = spec.serving_providers().map(str::to_owned).collect();
+        if !spec.available_providers.is_empty() && listed_providers.is_empty() {
+            return Err(Error::NoProvider(format));
+        }
+        if !listed_providers.is_empty() && !self.aliases.contains_key(model) {
+            return Ok((spec, format, listed_providers));
+        }
+        let alias = self.aliases.get(model).cloned().unwrap_or_else(|| {
+            if lingua::is_vertex_model(model) {
+                "vertex".to_string()
+            } else if is_gemini_api_model(model) {
+                "google".to_string()
+            } else {
+                format_identifier(format)
+            }
+        });
+        if spec.is_provider_retired(&alias) {
+            return Err(Error::NoProvider(format));
+        }
+        Ok((spec, format, vec![alias]))
     }
 }
 
@@ -144,6 +152,7 @@ mod tests {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         }
     }
 
@@ -385,6 +394,39 @@ mod tests {
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::ChatCompletions);
         assert_eq!(aliases, vec!["openai".to_string(), "azure".to_string()]);
+    }
+
+    #[test]
+    fn resolve_filters_retired_providers_without_inferring_a_default() {
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+                "mixed": {
+                    "format": "openai", "flavor": "chat",
+                    "available_providers": ["OPENAI_API_KEY", "azure"],
+                    "providers": {"openai": {"retired": true}, "azure": {"retired": false}},
+                    "fallback_models": ["retired"]
+                },
+                "retired": {
+                    "format": "openai", "flavor": "chat",
+                    "available_providers": ["openai"],
+                    "providers": {"openai": {"retired": true}}
+                },
+                "legacy": {"format": "openai", "flavor": "chat"}
+            }"#,
+        )
+        .unwrap();
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let routes = resolver
+            .resolve_all_equivalent_model_routes("mixed")
+            .unwrap();
+        assert_eq!(routes.len(), 1);
+        assert_eq!(routes[0].2, ["azure"]);
+        assert!(matches!(
+            resolver.resolve("retired"),
+            Err(Error::NoProvider(ProviderFormat::ChatCompletions))
+        ));
+        assert_eq!(resolver.resolve("legacy").unwrap().2, ["openai"]);
     }
 
     #[test]
