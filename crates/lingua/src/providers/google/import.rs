@@ -429,11 +429,21 @@ impl RequestMessages {
                 to: "Lingua universal message",
             });
         }
-        if role == "user"
+        let has_tool_result = parts
+            .iter()
+            .any(|(part, _)| part.function_response.is_some());
+        if role == "tool"
+            && has_tool_result
             && parts
                 .iter()
-                .any(|(part, _)| part.function_response.is_some())
+                .any(|(part, _)| part.function_response.is_none())
         {
+            return Err(ConvertError::UnsupportedMapping {
+                from: "Google tool role with functionResponse and non-result parts".to_string(),
+                to: "Lingua tool message",
+            });
+        }
+        if role == "user" && has_tool_result {
             let mut parts = parts.into_iter().peekable();
             while let Some(first) = parts.next() {
                 let is_result = first.0.function_response.is_some();
@@ -665,15 +675,20 @@ fn try_parse_content(
     if contents.is_empty() || !contents.iter().all(TraceContent::is_direct_content) {
         return None;
     }
-    let mut pending_tools = trace_tools.clone();
-    let messages: Result<Vec<_>, _> = contents
-        .into_iter()
-        .map(|content| content.into_message(None, Some(&mut pending_tools)))
-        .collect();
-    if messages.is_ok() {
-        *trace_tools = pending_tools;
+    let mut parsed = RequestMessages {
+        trace_tools: trace_tools.clone(),
+        ..Default::default()
+    };
+    for content in contents {
+        let result = content
+            .into_role_and_parts(None)
+            .and_then(|(role, parts)| parsed.push_content_parts(&role, parts));
+        if let Err(error) = result {
+            return Some(Err(error));
+        }
     }
-    Some(messages)
+    *trace_tools = parsed.trace_tools;
+    Some(Ok(parsed.messages))
 }
 
 fn try_parse_request(

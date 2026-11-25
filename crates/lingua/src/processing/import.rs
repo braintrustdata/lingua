@@ -2013,6 +2013,76 @@ mod tests {
         }
     }
 
+    // Direct Google user content must keep the instruction and pair its result with the original call.
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_preserves_text_after_a_standalone_tool_result() {
+        let input = crate::serde_json::json!({
+            "role": "model",
+            "parts": [{"functionCall": {"name": "weather"}}]
+        });
+        let output = crate::serde_json::json!({
+            "role": "user",
+            "parts": [
+                {"functionResponse": {"name": "weather", "response": {"degrees": 20}}},
+                {"text": "Summarize."}
+            ]
+        });
+        for output in [output.clone(), crate::serde_json::json!([output])] {
+            let imported = import_span(Span {
+                input: Some(input.clone()),
+                output: Some(output),
+                other: Default::default(),
+            })
+            .unwrap();
+            let [Message::Assistant {
+                content: AssistantContent::Array(calls),
+                ..
+            }] = imported.input.as_slice()
+            else {
+                panic!("expected a Google assistant tool call");
+            };
+            let [AssistantContentPart::ToolCall { tool_call_id, .. }] = calls.as_slice() else {
+                panic!("expected one tool call");
+            };
+            let [Message::Tool { content }, Message::User {
+                content: UserContent::String(text),
+            }] = imported.output.as_slice()
+            else {
+                panic!("expected the tool result followed by the user instruction");
+            };
+            let [ToolContentPart::ToolResult(result)] = content.as_slice() else {
+                panic!("expected one tool result");
+            };
+            assert_eq!(&result.tool_call_id, tool_call_id);
+            assert_eq!(text, "Summarize.");
+            assert!(imported.errors.is_empty());
+        }
+    }
+
+    // An explicit tool role cannot carry text beside a result in a Lingua tool message.
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_rejects_mixed_tool_role_content() {
+        let imported = import_span(Span {
+            output: Some(crate::serde_json::json!({
+                "role": "tool",
+                "parts": [
+                    {"functionResponse": {"name": "weather", "response": {"degrees": 20}}},
+                    {"text": "Forecast from the airport."}
+                ]
+            })),
+            input: None,
+            other: Default::default(),
+        })
+        .unwrap();
+        assert!(imported.output.is_empty());
+        assert!(imported
+            .errors
+            .iter()
+            .any(|error| { error.contains("Unsupported mapping") && error.contains("tool role") }));
+    }
+
     #[cfg(feature = "google")]
     #[test]
     fn gemini_import_rejects_function_calls_in_nested_user_parts() {
