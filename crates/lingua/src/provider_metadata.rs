@@ -50,8 +50,6 @@ struct ProviderError {
     #[serde(default)]
     code: ErrorCode,
     message: Option<ProviderValue<String>>,
-    #[serde(rename = "type")]
-    kind: Option<ProviderValue<String>>,
 }
 
 #[derive(Default, serde::Deserialize)]
@@ -69,6 +67,7 @@ enum ErrorCode {
 pub struct ProviderFrame<'a> {
     #[serde(rename = "type")]
     kind: Option<&'a str>,
+    sequence_number: Option<ProviderValue<u64>>,
     usage: Option<ProviderUsage>,
     response: Option<ProviderResponse>,
     message: Option<ProviderValue<UsageField<ProviderUsage>>>,
@@ -161,10 +160,7 @@ impl ProviderFrame<'_> {
         };
         let reason = reason.or_else(|| {
             (event_type == Some("error")
-                && matches!(
-                    error?.kind.as_ref()?.typed()?.as_str(),
-                    "server_error" | "too_many_requests" | "forbidden" | "user_error"
-                ))
+                && matches!(self.sequence_number, Some(ProviderValue::Typed(_))))
             .then_some("provider_stream_error")
         });
         Some(reason.map_or(UsagePossible, PreGenerationRejection))
@@ -307,9 +303,14 @@ mod tests {
                 Rejected("provider_stream_error"),
             ),
             (
-                r#"{"type":"error","sequence_number":2,"error":{"type":"server_error","message":"Request failed"}}"#,
+                r#"{"type":"error","sequence_number":2,"code":null,"message":"Request failed"}"#,
                 None,
                 Rejected("provider_stream_error"),
+            ),
+            (
+                r#"{"type":"error","error":{"type":"server_error","message":"Request failed"}}"#,
+                None,
+                UsagePossible,
             ),
             (
                 r#"{"type":"error","sequence_number":2,"error":{"type":"server_error","code":"internal_error"},"usage":{"cost":0.25}}"#,
