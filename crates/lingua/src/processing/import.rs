@@ -1635,6 +1635,81 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "google")]
+    #[test]
+    fn google_import_rejects_request_continuation_tokens() {
+        for field in [
+            "continuationToken",
+            "continuation_token",
+            "ContinuationToken",
+        ] {
+            let input = crate::serde_json::json!({
+                "contents": [{"role": "user", "parts": [{"text": "Where is my order?"}]}],
+                (field): "opaque-token"
+            });
+            let imported = import_span(Span {
+                input: Some(input),
+                output: None,
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.input.is_empty(), "imported {field} as a prompt");
+            assert!(imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("continuationToken")
+            }));
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn google_import_rejects_nonempty_automatic_function_calling_history() {
+        let candidates = crate::serde_json::json!([{
+            "content": {"role": "model", "parts": [{"text": "Your order shipped."}]},
+            "finishReason": "STOP"
+        }]);
+        let history = crate::serde_json::json!([
+            {"role": "user", "parts": [{"text": "Where is order 42?"}]},
+            {"role": "model", "parts": [{"functionCall": {"name": "find_order", "args": {"id": 42}}}]},
+            {"role": "user", "parts": [{"functionResponse": {"name": "find_order", "response": {"status": "shipped"}}}]}
+        ]);
+        for field in [
+            "automatic_function_calling_history",
+            "automaticFunctionCallingHistory",
+        ] {
+            let imported = import_span(Span {
+                input: None,
+                output: Some(
+                    crate::serde_json::json!({"candidates": candidates, (field): history}),
+                ),
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(
+                imported.output.is_empty(),
+                "imported {field} without history"
+            );
+            assert!(imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping")
+                    && error.contains("automaticFunctionCallingHistory")
+            }));
+        }
+
+        let imported = import_span(Span {
+            input: None,
+            output: Some(crate::serde_json::json!({
+                "candidates": candidates,
+                "automatic_function_calling_history": []
+            })),
+            other: Default::default(),
+        })
+        .unwrap();
+        assert!(matches!(
+            imported.output.as_slice(),
+            [Message::Assistant { .. }]
+        ));
+        assert!(imported.errors.is_empty());
+    }
+
     // Continuation state cannot be carried by a replayable assistant message.
     #[cfg(feature = "google")]
     #[test]

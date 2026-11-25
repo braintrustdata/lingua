@@ -601,6 +601,8 @@ struct TraceConfig {
 struct TraceRequest {
     #[serde(alias = "Contents")]
     contents: RequestContents,
+    #[serde(alias = "continuation_token", alias = "ContinuationToken")]
+    continuation_token: Option<String>,
     #[serde(alias = "Config")]
     config: Option<TraceConfig>,
     #[serde(alias = "system_instruction")]
@@ -612,6 +614,8 @@ struct TraceRequest {
 struct TraceResponse {
     #[serde(alias = "Candidates")]
     candidates: Option<Vec<TraceCandidate>>,
+    #[serde(alias = "automatic_function_calling_history")]
+    automatic_function_calling_history: Option<Vec<IgnoredAny>>,
     #[serde(alias = "prompt_feedback", alias = "PromptFeedback")]
     prompt_feedback: Option<TracePromptFeedback>,
 }
@@ -809,6 +813,12 @@ fn try_parse_request(
 }
 
 fn convert_request(request: TraceRequest) -> Result<RequestMessages, ConvertError> {
+    if request.continuation_token.is_some() {
+        return Err(ConvertError::UnsupportedMapping {
+            from: "Google request.continuationToken".to_string(),
+            to: "Lingua universal message",
+        });
+    }
     let mut parsed = match request.contents {
         RequestContents::Text(text) => RequestMessages {
             messages: vec![Message::User {
@@ -867,6 +877,15 @@ fn try_parse_response(
         return None;
     }
     let response: TraceResponse = try_parse(data)?;
+    if response
+        .automatic_function_calling_history
+        .is_some_and(|history| !history.is_empty())
+    {
+        return Some(Err(ConvertError::UnsupportedMapping {
+            from: "Google response.automaticFunctionCallingHistory".to_string(),
+            to: "Lingua universal message",
+        }));
+    }
     let candidates = response.candidates.unwrap_or_default();
     let prompt_was_blocked = response
         .prompt_feedback
