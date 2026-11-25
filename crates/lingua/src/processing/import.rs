@@ -1529,6 +1529,7 @@ mod tests {
             (
                 crate::serde_json::json!({
                     "Content": {"parts": [{"text": "Par"}]},
+                    "Partial": false,
                     "TurnComplete": false
                 }),
                 "turnComplete",
@@ -1640,6 +1641,14 @@ mod tests {
     fn adk_import_keeps_completed_lifecycle_content() {
         let parts = crate::serde_json::json!([{"text": "Meal is ready."}]);
         for output in [
+            crate::serde_json::json!({
+                "content": {"parts": parts},
+                "partial": false
+            }),
+            crate::serde_json::json!({
+                "Content": {"parts": parts},
+                "Partial": false
+            }),
             crate::serde_json::json!({
                 "content": {"parts": parts},
                 "partial": false,

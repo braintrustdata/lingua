@@ -647,7 +647,9 @@ struct TraceCandidate {
 
 impl TraceCandidate {
     fn has_roleless_candidate_content(&self) -> bool {
-        (self.finish_reason.is_some() || self.turn_complete == Some(true))
+        (self.finish_reason.is_some()
+            || self.turn_complete == Some(true)
+            || self.partial == Some(false))
             && self
                 .content
                 .as_ref()
@@ -673,7 +675,8 @@ impl TraceCandidate {
 
     fn is_finished(&self, in_candidates: bool) -> bool {
         let terminal = self.has_terminal_finish_reason();
-        ((terminal || self.turn_complete == Some(true)) && self.has_roleless_candidate_content())
+        ((terminal || self.turn_complete == Some(true) || self.partial == Some(false))
+            && self.has_roleless_candidate_content())
             || (terminal && (in_candidates || self.usage_metadata.is_some()))
     }
 
