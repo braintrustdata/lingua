@@ -672,10 +672,16 @@ impl TraceCandidate {
             || self.interrupted == Some(true)
             || self.turn_complete.is_some()
             || self.interaction_status.is_some())
-            && self.content.as_ref().is_none_or(|content| {
-                content.role.as_deref() == Some("model")
-                    || (content.role.is_none() && content.parts.is_some())
-            })
+            && self
+                .content
+                .as_ref()
+                .is_none_or(|content| matches!(content.role.as_deref(), None | Some("model")))
+    }
+
+    fn has_content(&self) -> bool {
+        self.content
+            .as_ref()
+            .is_some_and(|content| content.role.is_some() || content.parts.is_some())
     }
 
     fn has_terminal_finish_reason(&self) -> bool {
@@ -705,7 +711,7 @@ impl TraceCandidate {
         } else if self.finish_reason == Some(FinishReason::Continuation) {
             "finishReason CONTINUATION"
         } else if self.finish_reason == Some(FinishReason::FinishReasonUnspecified)
-            && !(self.turn_complete == Some(true) && self.content.is_some())
+            && !(self.turn_complete == Some(true) && self.has_content())
             && !self.is_adk_error()
         {
             "finishReason FINISH_REASON_UNSPECIFIED"
@@ -735,7 +741,7 @@ impl TraceCandidate {
             "interactionStatus (unknown value)"
         } else if !self.is_adk_error()
             && ((self.turn_complete == Some(false) && !self.has_terminal_finish_reason())
-                || (self.turn_complete == Some(true) && self.content.is_none() && !finished))
+                || (self.turn_complete == Some(true) && !self.has_content() && !finished))
         {
             "turnComplete"
         } else {

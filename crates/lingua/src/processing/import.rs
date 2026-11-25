@@ -1539,6 +1539,10 @@ mod tests {
                 "turnComplete",
             ),
             (
+                crate::serde_json::json!({"content": {}, "turnComplete": true}),
+                "turnComplete",
+            ),
+            (
                 crate::serde_json::json!({"turn_complete": true}),
                 "turnComplete",
             ),
@@ -1709,6 +1713,8 @@ mod tests {
         for output in [
             crate::serde_json::json!({"finishReason": "STOP", "turnComplete": true}),
             crate::serde_json::json!({"FinishReason": "STOP", "TurnComplete": true}),
+            crate::serde_json::json!({"content": {}, "finishReason": "STOP", "turnComplete": true}),
+            crate::serde_json::json!({"Content": {}, "FinishReason": "STOP", "TurnComplete": true}),
         ] {
             let imported = import_span(Span {
                 input: None,
@@ -1716,10 +1722,25 @@ mod tests {
                 other: Default::default(),
             })
             .unwrap();
-            assert!(matches!(
-                imported.output.as_slice(),
-                [Message::Assistant { content: AssistantContent::String(text), .. }] if text.is_empty()
-            ));
+            match imported.output.as_slice() {
+                [
+                    Message::Assistant {
+                        content: AssistantContent::String(text),
+                        ..
+                    },
+                ] => {
+                    assert!(text.is_empty())
+                }
+                [
+                    Message::Assistant {
+                        content: AssistantContent::Array(parts),
+                        ..
+                    },
+                ] => {
+                    assert!(parts.is_empty())
+                }
+                messages => panic!("expected an empty ADK assistant turn, got {messages:?}"),
+            }
             assert!(imported.errors.is_empty());
         }
     }
