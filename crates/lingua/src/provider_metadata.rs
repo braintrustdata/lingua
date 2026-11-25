@@ -67,6 +67,7 @@ enum ErrorCode {
 pub struct ProviderFrame<'a> {
     #[serde(rename = "type")]
     kind: Option<&'a str>,
+    sequence_number: Option<ProviderValue<u64>>,
     usage: Option<ProviderUsage>,
     response: Option<ProviderResponse>,
     message: Option<ProviderValue<UsageField<ProviderUsage>>>,
@@ -117,32 +118,32 @@ impl ProviderFrame<'_> {
         {
             return Some(UsagePossible);
         }
-        let error = match self.kind.or(event_type) {
+        let event_type = self.kind.or(event_type);
+        let error = match event_type {
             Some("response.created" | "response.in_progress" | "ping") => return None,
             Some("response.failed") => response.and_then(|response| response.error.as_ref()),
             Some("error") => self.error.as_ref(),
             None if self.error.is_some() => self.error.as_ref(),
             _ => return Some(UsagePossible),
-        };
+        }
+        .and_then(ProviderValue::typed);
         let code = error
-            .and_then(ProviderValue::typed)
             .map(|error| &error.code)
             .filter(|code| !matches!(code, ErrorCode::Missing))
             .or(self.code.as_ref());
         let reason = match code {
             Some(ErrorCode::Text(code)) => match code.as_str() {
-                "context_length_exceeded" => "context_length_exceeded",
-                "billing_not_active" => "billing_not_active",
+                "context_length_exceeded" => Some("context_length_exceeded"),
+                "billing_not_active" => Some("billing_not_active"),
                 "insufficient_quota"
                 | "organization_spend_limit_exceeded"
                 | "organization_usage_limit_exceeded"
                 | "project_spend_limit_exceeded"
-                | "credit_balance_exhausted" => "insufficient_credits",
-                "bio_policy" => "bio_policy",
-                "server_is_overloaded" => "provider_at_capacity",
+                | "credit_balance_exhausted" => Some("insufficient_credits"),
+                "bio_policy" => Some("bio_policy"),
+                "server_is_overloaded" => Some("provider_at_capacity"),
                 "server_error"
                     if error
-                        .and_then(ProviderValue::typed)
                         .and_then(|error| error.message.as_ref()?.typed())
                         .is_some_and(|message| {
                             message.starts_with(
@@ -150,14 +151,19 @@ impl ProviderFrame<'_> {
                             )
                         }) =>
                 {
-                    "openrouter_credit_limit"
+                    Some("openrouter_credit_limit")
                 }
-                _ => return Some(UsagePossible),
+                _ => None,
             },
-            Some(ErrorCode::Number(402)) => "openrouter_credit_limit",
-            _ => return Some(UsagePossible),
+            Some(ErrorCode::Number(402)) => Some("openrouter_credit_limit"),
+            _ => None,
         };
-        Some(PreGenerationRejection(reason))
+        let reason = reason.or_else(|| {
+            (event_type == Some("error")
+                && matches!(self.sequence_number, Some(ProviderValue::Typed(_))))
+            .then_some("provider_stream_error")
+        });
+        Some(reason.map_or(UsagePossible, PreGenerationRejection))
     }
 }
 
@@ -289,6 +295,26 @@ mod tests {
             (
                 r#"{"type":"error","error":{"code":402.0}}"#,
                 None,
+                UsagePossible,
+            ),
+            (
+                r#"{"type":"error","sequence_number":2,"error":{"type":"too_many_requests","code":"no_capacity","message":"Capacity unavailable"}}"#,
+                None,
+                Rejected("provider_stream_error"),
+            ),
+            (
+                r#"{"type":"error","sequence_number":2,"code":null,"message":"Request failed"}"#,
+                None,
+                Rejected("provider_stream_error"),
+            ),
+            (
+                r#"{"type":"error","error":{"type":"server_error","message":"Request failed"}}"#,
+                None,
+                UsagePossible,
+            ),
+            (
+                r#"{"type":"error","sequence_number":2,"error":{"type":"server_error","code":"internal_error"},"usage":{"cost":0.25}}"#,
+                Some(0.25),
                 UsagePossible,
             ),
             (
