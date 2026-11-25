@@ -33,6 +33,8 @@ impl AzureEntraCredentials {
         hasher.update(self.tenant_id.as_bytes());
         hasher.update(b"|");
         hasher.update(self.scope.as_bytes());
+        hasher.update(b"|");
+        hasher.update(self.client_secret.as_bytes());
         if let Some(url) = &self.token_url {
             hasher.update(b"|");
             hasher.update(url.as_bytes());
@@ -202,7 +204,7 @@ mod tests {
     use super::*;
     use serde_json::json;
     use tokio::sync::Barrier;
-    use wiremock::matchers::{method, path};
+    use wiremock::matchers::{body_string_contains, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
@@ -340,5 +342,46 @@ mod tests {
         }
 
         assert!(server.received_requests().await.unwrap().len() > 1);
+    }
+
+    #[tokio::test]
+    async fn different_client_secret_does_not_reuse_cached_token() {
+        // Guards against cross-org reuse: credentials that differ only in client_secret must not share a cached token.
+        let server = MockServer::start().await;
+        for (secret, token) in [("secret-a", "token-a"), ("secret-b", "token-b")] {
+            Mock::given(method("POST"))
+                .and(path("/token"))
+                .and(body_string_contains(format!("client_secret={secret}")))
+                .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                    "access_token": token,
+                    "expires_in": 3600,
+                })))
+                .expect(1)
+                .mount(&server)
+                .await;
+        }
+
+        let credentials = |secret: &str| AzureEntraCredentials {
+            client_id: "client".into(),
+            tenant_id: "tenant".into(),
+            scope: "scope/.default".into(),
+            client_secret: secret.into(),
+            token_url: Some(format!("{}/token", server.uri())),
+        };
+
+        let manager = AzureEntraTokenManager::new();
+        let client = Client::builder().build().unwrap();
+
+        let first = manager
+            .get_token(&client, &credentials("secret-a"))
+            .await
+            .expect("first token fetched");
+        assert_eq!(first, "token-a");
+
+        let second = manager
+            .get_token(&client, &credentials("secret-b"))
+            .await
+            .expect("second token fetched");
+        assert_eq!(second, "token-b");
     }
 }
