@@ -20,7 +20,7 @@ pub mod test_anthropic;
 pub use adapter::AnthropicAdapter;
 
 // Re-export detection functions
-pub use detect::{try_parse_anthropic, DetectionError};
+pub use detect::{DetectionError, try_parse_anthropic};
 
 // Re-export key generated types (automated approach with proper request/response separation)
 // Temporarily disabled while testing generation

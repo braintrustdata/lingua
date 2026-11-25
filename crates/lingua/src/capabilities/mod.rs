@@ -6,5 +6,5 @@ pub mod detection;
 pub mod format;
 
 // Re-export main types and functions
-pub use detection::{detect_capabilities, Capabilities, ProviderCapabilities};
+pub use detection::{Capabilities, ProviderCapabilities, detect_capabilities};
 pub use format::ProviderFormat;

@@ -11,8 +11,8 @@ use lingua::providers::openai::generated::{
 };
 use lingua::universal::message::{AudioFormat, Message, UserContent, UserContentPart};
 use lingua::util::media::{
-    infer_mime_type_from_reference, media_block_to_url, parse_base64_data_url,
-    parse_file_metadata_from_url, FileMetadata, MediaBlock,
+    FileMetadata, MediaBlock, infer_mime_type_from_reference, media_block_to_url,
+    parse_base64_data_url, parse_file_metadata_from_url,
 };
 use lingua::{ProviderFormat, TransformError};
 
@@ -21,8 +21,8 @@ use crate::error::{Error, Result};
 
 use super::body_model::rewrite_body_model_if_required;
 use super::json_selection::{
-    select,
     Segment::{Each, Key},
+    select,
 };
 
 const MAX_REMOTE_MEDIA_BYTES: usize = 5 * 1024 * 1024;
@@ -226,13 +226,12 @@ fn remote_audio(body: &[u8], format: ProviderFormat) -> Result<Vec<RemoteAudio>>
             for (pointer, part) in
                 select::<PurpleContentPart>(body, &[Key("messages"), Each, Key("content"), Each])?
             {
-                if part.content_part_type == PurpleType::InputAudio {
-                    if let Some(remote) = part
+                if part.content_part_type == PurpleType::InputAudio
+                    && let Some(remote) = part
                         .input_audio
                         .and_then(|input| openai_audio(pointer, input))
-                    {
-                        audio.push(remote);
-                    }
+                {
+                    audio.push(remote);
                 }
             }
         }
@@ -241,13 +240,12 @@ fn remote_audio(body: &[u8], format: ProviderFormat) -> Result<Vec<RemoteAudio>>
                 body,
                 &[Key("input"), Each, Key("content"), Each],
             )? {
-                if part.input_content_type == HilariousType::InputAudio {
-                    if let Some(remote) = part
+                if part.input_content_type == HilariousType::InputAudio
+                    && let Some(remote) = part
                         .input_audio
                         .and_then(|input| openai_audio(pointer, input))
-                    {
-                        audio.push(remote);
-                    }
+                {
+                    audio.push(remote);
                 }
             }
         }
@@ -255,17 +253,17 @@ fn remote_audio(body: &[u8], format: ProviderFormat) -> Result<Vec<RemoteAudio>>
             for (pointer, part) in
                 select::<Part>(body, &[Key("contents"), Each, Key("parts"), Each])?
             {
-                if let Some(blob) = part.inline_data {
-                    if let Some(url) = blob.data.filter(|data| is_remote_media_url(data)) {
-                        let mime_type = blob.mime_type.ok_or_else(|| {
-                            Error::InvalidRequest("remote inlineData requires mimeType".into())
-                        })?;
-                        audio.push(RemoteAudio {
-                            pointer: format!("{pointer}/inlineData/data"),
-                            url,
-                            mime_type,
-                        });
-                    }
+                if let Some(blob) = part.inline_data
+                    && let Some(url) = blob.data.filter(|data| is_remote_media_url(data))
+                {
+                    let mime_type = blob.mime_type.ok_or_else(|| {
+                        Error::InvalidRequest("remote inlineData requires mimeType".into())
+                    })?;
+                    audio.push(RemoteAudio {
+                        pointer: format!("{pointer}/inlineData/data"),
+                        url,
+                        mime_type,
+                    });
                 }
             }
         }
@@ -682,7 +680,7 @@ mod tests {
     impl LoopbackMediaFetch {
         fn allow() -> Self {
             let previous = std::env::var_os("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS");
-            std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", "127.0.0.1/32");
+            unsafe { std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", "127.0.0.1/32") };
             Self { previous }
         }
     }
@@ -691,9 +689,9 @@ mod tests {
         fn drop(&mut self) {
             match &self.previous {
                 Some(previous) => {
-                    std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", previous);
+                    unsafe { std::env::set_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS", previous) };
                 }
-                None => std::env::remove_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS"),
+                None => unsafe { std::env::remove_var("BRAINTRUST_URL_SECURITY_ALLOW_CIDRS") },
             }
         }
     }
@@ -888,9 +886,11 @@ mod tests {
         .expect_err("a downloaded MP3 must not be accepted as declared WAV");
         assert!(matches!(error, Error::InvalidRequest(_)));
         assert!(error.to_string().contains("audio/mpeg"));
-        assert!(error
-            .to_string()
-            .contains("does not match declared MIME type audio/wav"));
+        assert!(
+            error
+                .to_string()
+                .contains("does not match declared MIME type audio/wav")
+        );
     }
 
     #[tokio::test]
@@ -902,7 +902,12 @@ mod tests {
             "https://bucket.s3.amazonaws.com/opaque-key?X-Amz-Expires=3600&response-content-disposition=attachment%3B%20filename%3D%22invoice.PDF%22",
             "https://bucket.s3.amazonaws.com/opaque-key?X-Amz-Expires=3600&response-content-type=application%2Fpdf",
         ] {
-            for format in [ProviderFormat::ChatCompletions, ProviderFormat::Anthropic, ProviderFormat::VertexAnthropic, ProviderFormat::Responses] {
+            for format in [
+                ProviderFormat::ChatCompletions,
+                ProviderFormat::Anthropic,
+                ProviderFormat::VertexAnthropic,
+                ProviderFormat::Responses,
+            ] {
                 let body = Bytes::from(lingua::serde_json::to_vec(&json!({
                     "model": "gpt-5-mini",
                     "messages": [{"role": "user", "content": [
@@ -918,19 +923,30 @@ mod tests {
                     RemoteMediaPolicy::for_format(format).unwrap(),
                     |fetched_url| {
                         assert_eq!(fetched_url, url);
-                        Box::pin(async { Ok(MediaBlock {
-                            media_type: "application/pdf".into(),
-                            data: "JVBERi0xLjQ=".into(),
-                        }) })
+                        Box::pin(async {
+                            Ok(MediaBlock {
+                                media_type: "application/pdf".into(),
+                                data: "JVBERi0xLjQ=".into(),
+                            })
+                        })
                     },
-                ).await.unwrap();
-                let actual: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared.bytes).unwrap();
+                )
+                .await
+                .unwrap();
+                let actual: lingua::serde_json::Value =
+                    lingua::serde_json::from_slice(&prepared.bytes).unwrap();
                 let content = &actual["messages"][0]["content"];
                 if format == ProviderFormat::ChatCompletions {
                     assert_eq!(content[1]["type"], "file");
-                    assert_eq!(content[1]["file"]["file_data"], "data:application/pdf;base64,JVBERi0xLjQ=");
+                    assert_eq!(
+                        content[1]["file"]["file_data"],
+                        "data:application/pdf;base64,JVBERi0xLjQ="
+                    );
                     assert_eq!(content[2]["type"], "image_url");
-                } else if matches!(format, ProviderFormat::Anthropic | ProviderFormat::VertexAnthropic) {
+                } else if matches!(
+                    format,
+                    ProviderFormat::Anthropic | ProviderFormat::VertexAnthropic
+                ) {
                     assert_eq!(content[1]["type"], "document");
                     assert_eq!(content[1]["source"]["type"], "base64");
                     assert_eq!(content[1]["source"]["media_type"], "application/pdf");
@@ -938,7 +954,10 @@ mod tests {
                     assert_eq!(content[2]["type"], "image");
                 } else {
                     assert_eq!(actual["input"][0]["content"][1]["type"], "input_file");
-                    assert_eq!(actual["input"][0]["content"][1]["file_data"], "data:application/pdf;base64,JVBERi0xLjQ=");
+                    assert_eq!(
+                        actual["input"][0]["content"][1]["file_data"],
+                        "data:application/pdf;base64,JVBERi0xLjQ="
+                    );
                     assert_eq!(actual["input"][0]["content"][2]["type"], "input_image");
                 }
             }
@@ -1226,9 +1245,11 @@ mod tests {
             .await
             .expect_err("Bedrock does not support audio input");
             assert!(matches!(error, Error::InvalidRequest(_)));
-            assert!(error
-                .to_string()
-                .contains("remote audio input is unsupported"));
+            assert!(
+                error
+                    .to_string()
+                    .contains("remote audio input is unsupported")
+            );
         }
     }
 
@@ -1513,10 +1534,12 @@ mod tests {
         let contents = request.contents.as_ref().expect("contents");
         let parts = contents[0].parts.as_ref().expect("parts");
 
-        assert!(parts[0]
-            .inline_data
-            .as_ref()
-            .is_some_and(|inline_data| inline_data.data.is_some()));
+        assert!(
+            parts[0]
+                .inline_data
+                .as_ref()
+                .is_some_and(|inline_data| inline_data.data.is_some())
+        );
         assert_eq!(
             parts[1]
                 .file_data
@@ -1554,9 +1577,11 @@ mod tests {
         .await
         .expect_err("certificate-free bundle should fail before sending the request");
 
-        assert!(error
-            .to_string()
-            .contains("additional CA bundle contains no certificates"));
+        assert!(
+            error
+                .to_string()
+                .contains("additional CA bundle contains no certificates")
+        );
     }
 
     #[tokio::test]

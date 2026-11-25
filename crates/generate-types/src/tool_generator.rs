@@ -230,19 +230,19 @@ fn generate_tool_structs(
             client_schema
         };
 
-        if let Some(schema) = all_schemas.get(client_schema) {
-            if seen.insert(gen_name.to_string()) {
-                // Generate the struct with potentially renamed name
-                let mut code =
-                    generate_tool_struct_direct(client_schema, schema, all_schemas, provider);
+        if let Some(schema) = all_schemas.get(client_schema)
+            && seen.insert(gen_name.to_string())
+        {
+            // Generate the struct with potentially renamed name
+            let mut code =
+                generate_tool_struct_direct(client_schema, schema, all_schemas, provider);
 
-                // Rename Tool -> CustomTool if needed
-                if client_schema == "Tool" {
-                    code = code.replace("pub struct Tool {", "pub struct CustomTool {");
-                }
-
-                generated_structs.push(code);
+            // Rename Tool -> CustomTool if needed
+            if client_schema == "Tool" {
+                code = code.replace("pub struct Tool {", "pub struct CustomTool {");
             }
+
+            generated_structs.push(code);
         }
     }
 

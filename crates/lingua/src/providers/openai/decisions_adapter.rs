@@ -4,8 +4,8 @@ OpenAI Decisions adapter for decision request and response transformation.
 
 use super::decisions_generated::{DecisionRequest, DecisionResponse};
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::{parse_payload, serialize_payload, DecisionAdapter};
-use crate::processing::transform::{parse_json_value, TransformError};
+use crate::processing::adapters::{DecisionAdapter, parse_payload, serialize_payload};
+use crate::processing::transform::{TransformError, parse_json_value};
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{DecisionQuestion, UniversalDecisionRequest, UniversalDecisionResponse};

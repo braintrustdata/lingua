@@ -1,5 +1,5 @@
 use lingua::{
-    serde_json, serde_json::json, Bytes, ProviderFormat, TransformError, TransformResult,
+    Bytes, ProviderFormat, TransformError, TransformResult, serde_json, serde_json::json,
 };
 
 fn to_bytes(value: serde_json::Value) -> Bytes {

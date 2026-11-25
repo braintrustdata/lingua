@@ -269,7 +269,7 @@ pub fn test_response_transformation(
                 error: Some(format!("Response payload not found: {}", filename)),
                 diff: None,
                 limitation_reason: None,
-            }
+            };
         }
     };
 

@@ -4,8 +4,8 @@ use crate::universal::{
     CacheControlType, Message, TextContentPart, ToolContent, UniversalTool, UniversalToolType,
     UserContent, UserContentPart,
 };
-use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
+use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
 use crate::serde_json;
@@ -67,14 +67,13 @@ fn hash_user_content(content: &UserContent, hasher: &mut DefaultHasher) {
         }
         UserContent::Array(parts) => {
             // Normalize array with single text part to match string representation
-            if parts.len() == 1 {
-                if let Some(UserContentPart::Text(text_part)) = parts.first() {
-                    if can_normalize_text_part_to_string(text_part) {
-                        "text".hash(hasher);
-                        text_part.text.hash(hasher);
-                        return;
-                    }
-                }
+            if parts.len() == 1
+                && let Some(UserContentPart::Text(text_part)) = parts.first()
+                && can_normalize_text_part_to_string(text_part)
+            {
+                "text".hash(hasher);
+                text_part.text.hash(hasher);
+                return;
             }
 
             // For multi-part or non-text content, hash each part
@@ -123,14 +122,13 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
         }
         AssistantContent::Array(parts) => {
             // Normalize array with single text part to match string representation
-            if parts.len() == 1 {
-                if let Some(AssistantContentPart::Text(text_part)) = parts.first() {
-                    if can_normalize_text_part_to_string(text_part) {
-                        "text".hash(hasher);
-                        text_part.text.hash(hasher);
-                        return;
-                    }
-                }
+            if parts.len() == 1
+                && let Some(AssistantContentPart::Text(text_part)) = parts.first()
+                && can_normalize_text_part_to_string(text_part)
+            {
+                "text".hash(hasher);
+                text_part.text.hash(hasher);
+                return;
             }
 
             // For multi-part content, hash each part

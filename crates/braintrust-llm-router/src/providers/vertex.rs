@@ -4,15 +4,15 @@ use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::Value;
 use rand::RngExt;
-use reqwest::header::HeaderMap;
 use reqwest::Url;
+use reqwest::header::HeaderMap;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{build_middleware_client, ClientSettings};
+use crate::client::{ClientSettings, build_middleware_client};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{sse_stream, RawResponseStream};
+use crate::streaming::{RawResponseStream, sse_stream};
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
 
@@ -122,11 +122,10 @@ impl VertexProvider {
         // Precedence: model spec locations > secret metadata location > default.
         if let Ok(extra) = ::serde_json::from_value::<VertexModelExtra>(
             ::serde_json::Value::Object(spec.extra.clone()),
-        ) {
-            if !extra.locations.is_empty() {
-                let idx = rand::rng().random_range(0..extra.locations.len());
-                return extra.locations[idx].clone();
-            }
+        ) && !extra.locations.is_empty()
+        {
+            let idx = rand::rng().random_range(0..extra.locations.len());
+            return extra.locations[idx].clone();
         }
         if !self.config.location.is_empty() {
             return self.config.location.clone();

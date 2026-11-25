@@ -11,7 +11,7 @@ use crate::capabilities::ProviderFormat;
 
 use crate::error::ConvertError;
 use crate::processing::adapters::{
-    insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
+    ProviderAdapter, insert_opt_bool, insert_opt_f64, insert_opt_i64,
 };
 use crate::processing::transform::TransformError;
 use crate::providers::openai::adapter::{
@@ -42,10 +42,10 @@ use crate::universal::message::{
 };
 use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
-    ConversationReference, ConversationReferenceType, FinishReason, ServedServiceTier, TokenBudget,
-    UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
-    PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    ConversationReference, ConversationReferenceType, FinishReason, PLACEHOLDER_ID,
+    PLACEHOLDER_MODEL, ServedServiceTier, TokenBudget, UniversalParams, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalToolCallDelta,
+    UniversalToolFunctionDelta, UniversalUsage,
 };
 use serde::Deserialize;
 use std::convert::TryInto;
@@ -248,13 +248,13 @@ pub(crate) fn responses_created_stream_event_from_universal(
         "output": []
     });
 
-    if let Some(usage) = &chunk.usage {
-        if let Some(obj) = response.as_object_mut() {
-            obj.insert(
-                "usage".into(),
-                usage.to_provider_value(ProviderFormat::Responses),
-            );
-        }
+    if let Some(usage) = &chunk.usage
+        && let Some(obj) = response.as_object_mut()
+    {
+        obj.insert(
+            "usage".into(),
+            usage.to_provider_value(ProviderFormat::Responses),
+        );
     }
 
     crate::serde_json::json!({
@@ -315,12 +315,11 @@ fn responses_terminal_stream_event(
                 | ServedServiceTier::Scale => Some(service_tier),
                 _ => None,
             })
+        && let Some(response) = response.as_object_mut()
     {
-        if let Some(response) = response.as_object_mut() {
-            let value = serde_json::to_value(service_tier)
-                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-            response.insert("service_tier".into(), value);
-        }
+        let value = serde_json::to_value(service_tier)
+            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+        response.insert("service_tier".into(), value);
     }
 
     Ok(serde_json::json!({
@@ -558,10 +557,10 @@ pub(crate) fn record_responses_output_items(
                 );
             }
             ResponsesToolStreamEvent::FunctionCallArgumentsDelta(delta) => {
-                if let (Some(output_index), Some(text)) = (delta.output_index, delta.delta) {
-                    if let Some(entry) = tool_items.get_mut(&output_index) {
-                        entry.arguments.push_str(&text);
-                    }
+                if let (Some(output_index), Some(text)) = (delta.output_index, delta.delta)
+                    && let Some(entry) = tool_items.get_mut(&output_index)
+                {
+                    entry.arguments.push_str(&text);
                 }
             }
             ResponsesToolStreamEvent::CustomToolCallInputDelta(delta) => {
@@ -807,7 +806,7 @@ impl ProviderAdapter for ResponsesAdapter {
             None => {
                 return Err(TransformError::ToUniversalFailed(
                     "OpenAI Responses: missing 'input' field".to_string(),
-                ))
+                ));
             }
         };
 
@@ -980,12 +979,11 @@ impl ProviderAdapter for ResponsesAdapter {
         let chat_extras_view =
             parse_openai_chat_extras(req.params.extras.get(&ProviderFormat::ChatCompletions))?;
         let mut messages_for_input = req.messages.clone();
-        if let Some(instructions) = responses_extras_view.instructions.as_deref() {
-            if let Some(first_text) = messages_for_input.first().and_then(system_text) {
-                if first_text == instructions {
-                    messages_for_input.remove(0);
-                }
-            }
+        if let Some(instructions) = responses_extras_view.instructions.as_deref()
+            && let Some(first_text) = messages_for_input.first().and_then(system_text)
+            && first_text == instructions
+        {
+            messages_for_input.remove(0);
         }
 
         let mut input_items = req
@@ -1092,10 +1090,10 @@ impl ProviderAdapter for ResponsesAdapter {
         // Convert tools to Responses API format
         if let Some(raw_tools) = responses_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
-        } else if let Some(tools) = req.params.tools.as_ref() {
-            if let Some(tools_value) = tools_to_responses_value(tools)? {
-                obj.insert("tools".into(), tools_value);
-            }
+        } else if let Some(tools) = req.params.tools.as_ref()
+            && let Some(tools_value) = tools_to_responses_value(tools)?
+        {
+            obj.insert("tools".into(), tools_value);
         }
 
         // Convert tool_choice using helper method
@@ -1816,10 +1814,10 @@ impl ProviderAdapter for ResponsesAdapter {
                 "output": []
             });
 
-            if let Some(usage) = &chunk.usage {
-                if let Some(obj) = response.as_object_mut() {
-                    obj.insert("usage".into(), usage.to_provider_value(self.format()));
-                }
+            if let Some(usage) = &chunk.usage
+                && let Some(obj) = response.as_object_mut()
+            {
+                obj.insert("usage".into(), usage.to_provider_value(self.format()));
             }
             if let Some(service_tier) =
                 chunk
@@ -1833,12 +1831,11 @@ impl ProviderAdapter for ResponsesAdapter {
                         | ServedServiceTier::Scale => Some(service_tier),
                         _ => None,
                     })
+                && let Some(obj) = response.as_object_mut()
             {
-                if let Some(obj) = response.as_object_mut() {
-                    let value = serde_json::to_value(service_tier)
-                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-                    obj.insert("service_tier".into(), value);
-                }
+                let value = serde_json::to_value(service_tier)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                obj.insert("service_tier".into(), value);
             }
 
             return Ok(serde_json::json!({
@@ -1848,10 +1845,8 @@ impl ProviderAdapter for ResponsesAdapter {
         }
 
         let stream_events = responses_stream_events_from_universal(chunk)?;
-        if has_reasoning {
-            if let Some(event) = stream_events.first() {
-                return Ok(event.clone());
-            }
+        if has_reasoning && let Some(event) = stream_events.first() {
+            return Ok(event.clone());
         }
         if has_finish {
             return responses_terminal_stream_event(chunk, 0);
@@ -1861,64 +1856,64 @@ impl ProviderAdapter for ResponsesAdapter {
         }
 
         // Check for content delta
-        if let Some(choice) = chunk.choices.first() {
-            if let Some(delta) = choice.delta_view() {
-                if let Some(tool_call) = delta.tool_calls.first() {
-                    let output_index = tool_call.index.unwrap_or(0);
+        if let Some(choice) = chunk.choices.first()
+            && let Some(delta) = choice.delta_view()
+        {
+            if let Some(tool_call) = delta.tool_calls.first() {
+                let output_index = tool_call.index.unwrap_or(0);
 
-                    if let Some(call_id) = tool_call.id.as_deref() {
-                        let name = tool_call
-                            .function
-                            .as_ref()
-                            .and_then(|f| f.name.as_deref())
-                            .unwrap_or("");
-
-                        return Ok(serde_json::json!({
-                            "type": "response.output_item.added",
-                            "output_index": output_index,
-                            "item": {
-                                "type": "function_call",
-                                "status": "in_progress",
-                                "call_id": call_id,
-                                "name": name,
-                                "arguments": ""
-                            }
-                        }));
-                    }
-
-                    if let Some(arguments) = tool_call
+                if let Some(call_id) = tool_call.id.as_deref() {
+                    let name = tool_call
                         .function
                         .as_ref()
-                        .and_then(|f| f.arguments.as_deref())
-                    {
-                        return Ok(serde_json::json!({
-                            "type": "response.function_call_arguments.delta",
-                            "output_index": output_index,
-                            "delta": arguments
-                        }));
-                    }
-                }
+                        .and_then(|f| f.name.as_deref())
+                        .unwrap_or("");
 
-                if let Some(content) = delta.content.as_deref() {
                     return Ok(serde_json::json!({
-                        "type": "response.output_text.delta",
-                        "output_index": choice.index,
-                        "content_index": 0,
-                        "delta": content
+                        "type": "response.output_item.added",
+                        "output_index": output_index,
+                        "item": {
+                            "type": "function_call",
+                            "status": "in_progress",
+                            "call_id": call_id,
+                            "name": name,
+                            "arguments": ""
+                        }
                     }));
                 }
 
-                // If content is null or missing and no tool_calls, return empty text delta
-                let content_is_missing_or_null = delta.content.is_none();
-
-                if content_is_missing_or_null && !has_tool_calls {
+                if let Some(arguments) = tool_call
+                    .function
+                    .as_ref()
+                    .and_then(|f| f.arguments.as_deref())
+                {
                     return Ok(serde_json::json!({
-                        "type": "response.output_text.delta",
-                        "output_index": choice.index,
-                        "content_index": 0,
-                        "delta": ""
+                        "type": "response.function_call_arguments.delta",
+                        "output_index": output_index,
+                        "delta": arguments
                     }));
                 }
+            }
+
+            if let Some(content) = delta.content.as_deref() {
+                return Ok(serde_json::json!({
+                    "type": "response.output_text.delta",
+                    "output_index": choice.index,
+                    "content_index": 0,
+                    "delta": content
+                }));
+            }
+
+            // If content is null or missing and no tool_calls, return empty text delta
+            let content_is_missing_or_null = delta.content.is_none();
+
+            if content_is_missing_or_null && !has_tool_calls {
+                return Ok(serde_json::json!({
+                    "type": "response.output_text.delta",
+                    "output_index": choice.index,
+                    "content_index": 0,
+                    "delta": ""
+                }));
             }
         }
 
@@ -1993,11 +1988,13 @@ mod tests {
             universal.params.prompt_cache_key,
             Some("cache-key-1".to_string())
         );
-        assert!(!universal
-            .params
-            .extras
-            .get(&ProviderFormat::Responses)
-            .is_some_and(|extras| extras.contains_key("prompt_cache_key")));
+        assert!(
+            !universal
+                .params
+                .extras
+                .get(&ProviderFormat::Responses)
+                .is_some_and(|extras| extras.contains_key("prompt_cache_key"))
+        );
     }
 
     #[test]
@@ -2998,22 +2995,23 @@ mod tests {
                 "output item must have an `id`, got: {:?}",
                 item
             );
-            assert!(item
-                .id
-                .as_ref()
-                .unwrap()
-                .starts_with("msg_transformed_item_"));
+            assert!(
+                item.id
+                    .as_ref()
+                    .unwrap()
+                    .starts_with("msg_transformed_item_")
+            );
 
-            if item.output_item_type == Some(OutputItemType::Message) {
-                if let Some(content) = &item.content {
-                    for c in content {
-                        assert!(
-                            c.annotations.is_some(),
-                            "text content item must have an `annotations` field: {:?}",
-                            c
-                        );
-                        assert_eq!(c.annotations.as_ref().unwrap(), &vec![]);
-                    }
+            if item.output_item_type == Some(OutputItemType::Message)
+                && let Some(content) = &item.content
+            {
+                for c in content {
+                    assert!(
+                        c.annotations.is_some(),
+                        "text content item must have an `annotations` field: {:?}",
+                        c
+                    );
+                    assert_eq!(c.annotations.as_ref().unwrap(), &vec![]);
                 }
             }
         }
@@ -3055,11 +3053,12 @@ mod tests {
                 "every output item (including function_call) must have a string `id`: {:?}",
                 item
             );
-            assert!(item
-                .id
-                .as_ref()
-                .unwrap()
-                .starts_with("msg_transformed_item_"));
+            assert!(
+                item.id
+                    .as_ref()
+                    .unwrap()
+                    .starts_with("msg_transformed_item_")
+            );
         }
     }
 
@@ -3199,22 +3198,23 @@ mod tests {
                 "output item must have a string `id`: {:?}",
                 item
             );
-            assert!(item
-                .id
-                .as_ref()
-                .unwrap()
-                .starts_with("msg_transformed_item_"));
+            assert!(
+                item.id
+                    .as_ref()
+                    .unwrap()
+                    .starts_with("msg_transformed_item_")
+            );
 
-            if item.output_item_type == Some(OutputItemType::Message) {
-                if let Some(content) = &item.content {
-                    for c in content {
-                        assert!(
-                            c.annotations.is_some(),
-                            "text content item must have an `annotations` field: {:?}",
-                            c
-                        );
-                        assert_eq!(c.annotations.as_ref().unwrap(), &vec![]);
-                    }
+            if item.output_item_type == Some(OutputItemType::Message)
+                && let Some(content) = &item.content
+            {
+                for c in content {
+                    assert!(
+                        c.annotations.is_some(),
+                        "text content item must have an `annotations` field: {:?}",
+                        c
+                    );
+                    assert_eq!(c.annotations.as_ref().unwrap(), &vec![]);
                 }
             }
         }
@@ -3819,12 +3819,14 @@ mod tests {
     // Invalid completed output must surface a typed parse error instead of a normal stop.
     #[test]
     fn test_responses_stream_completed_rejects_invalid_output() {
-        assert!(ResponsesAdapter
-            .stream_to_universal(json!({
-                "type": "response.completed",
-                "response": {"output": "not an output array"}
-            }))
-            .is_err());
+        assert!(
+            ResponsesAdapter
+                .stream_to_universal(json!({
+                    "type": "response.completed",
+                    "response": {"output": "not an output array"}
+                }))
+                .is_err()
+        );
     }
 
     #[test]
@@ -4000,9 +4002,10 @@ mod tests {
             .expect_err("malformed custom tool input delta should fail");
 
         assert!(matches!(err, TransformError::DeserializationFailed(_)));
-        assert!(err
-            .to_string()
-            .contains("Responses custom tool call input delta event"));
+        assert!(
+            err.to_string()
+                .contains("Responses custom tool call input delta event")
+        );
     }
 
     #[test]

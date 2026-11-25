@@ -8,11 +8,11 @@ use dashmap::DashMap;
 use http::Extensions;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use reqwest::{redirect::Policy, Certificate, Client, ClientBuilder, Request, Response};
+use reqwest::{Certificate, Client, ClientBuilder, Request, Response, redirect::Policy};
 use reqwest_middleware::{ClientWithMiddleware, Middleware, Next};
 use reqwest_retry::{
-    default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
-    RetryableStrategy,
+    RetryTransientMiddleware, Retryable, RetryableStrategy, default_on_request_failure,
+    policies::ExponentialBackoff,
 };
 
 use crate::error::{Error, Result};
@@ -346,16 +346,16 @@ fn chain_has_connection_io_error(err: &(dyn StdError + 'static)) -> bool {
     // inspect the source chain for concrete socket teardown errors as well.
     let mut current: Option<&(dyn StdError + 'static)> = Some(err);
     while let Some(source) = current {
-        if let Some(io_err) = source.downcast_ref::<std::io::Error>() {
-            if matches!(
+        if let Some(io_err) = source.downcast_ref::<std::io::Error>()
+            && matches!(
                 io_err.kind(),
                 ErrorKind::ConnectionReset
                     | ErrorKind::ConnectionAborted
                     | ErrorKind::BrokenPipe
                     | ErrorKind::NotConnected
-            ) {
-                return true;
-            }
+            )
+        {
+            return true;
         }
         current = source.source();
     }
@@ -411,14 +411,14 @@ mod tests {
     use std::sync::Arc;
     use std::thread;
 
-    use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
     use rustls::{ServerConfig, ServerConnection, StreamOwned};
 
     use super::*;
     use serial_test::serial;
     use wiremock::{
-        matchers::{method, path},
         Mock, MockServer, ResponseTemplate,
+        matchers::{method, path},
     };
 
     struct DelayedTransport {

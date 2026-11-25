@@ -8,9 +8,9 @@
 //!   `make stats` - run all cases and report aggregated summary (for triage)
 
 use coverage_report::runner::diff_json;
+use lingua::ProviderFormat;
 use lingua::processing::adapter_for_format;
 use lingua::serde_json::{self, Value};
-use lingua::ProviderFormat;
 use proptest::prelude::*;
 use proptest::test_runner::TestRunner;
 use std::collections::{BTreeMap, BTreeSet};
@@ -858,8 +858,8 @@ fn run_fail_fast_suite(
         ..ProptestConfig::default()
     };
     proptest!(config, |(payload in strategy.clone())| {
-        if let Some(issues) = assert_fn(&payload) {
-            if !issues.is_empty() {
+        if let Some(issues) = assert_fn(&payload)
+            && !issues.is_empty() {
                 let snapshot_msg = match save_failing_snapshot_for_suite(
                     suite,
                     provider,
@@ -875,7 +875,6 @@ fn run_fail_fast_suite(
                     .unwrap_or_else(|| "roundtrip mismatch (verbose details unavailable)".to_string());
                 prop_assert!(false, "{}{}", verbose, snapshot_msg);
             }
-        }
     });
 }
 

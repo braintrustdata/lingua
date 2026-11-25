@@ -97,11 +97,11 @@ pub fn flatten_consecutive_messages(messages: &mut Vec<Message>) {
     let mut result: Vec<Message> = Vec::with_capacity(messages.len());
 
     for msg in messages.drain(..) {
-        if let Some(last) = result.last_mut() {
-            if can_merge(last, &msg) {
-                merge_messages(last, msg);
-                continue;
-            }
+        if let Some(last) = result.last_mut()
+            && can_merge(last, &msg)
+        {
+            merge_messages(last, msg);
+            continue;
         }
         result.push(msg);
     }

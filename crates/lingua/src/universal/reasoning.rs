@@ -52,7 +52,7 @@ use crate::providers::openai::generated::{
 use crate::providers::openai::params::{
     OpenAIReasoning, OpenAIReasoningEffort as OpenAIReasoningEffortParam,
 };
-use crate::serde_json::{json, Map, Value};
+use crate::serde_json::{Map, Value, json};
 #[cfg(test)]
 use crate::universal::request::SummaryMode;
 use crate::universal::request::{ReasoningCanonical, ReasoningConfig, ReasoningEffort};

@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn bench_translation_placeholder(c: &mut Criterion) {
     c.bench_function("translation_placeholder", |b| b.iter(|| ()));

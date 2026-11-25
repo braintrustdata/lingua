@@ -1,9 +1,9 @@
 #![cfg(feature = "bedrock")]
 
 use lingua::processing::import::{
-    import_messages_from_values, import_span_with_options, ImportOptions,
+    ImportOptions, import_messages_from_values, import_span_with_options,
 };
-use lingua::serde_json::{self, json, Value};
+use lingua::serde_json::{self, Value, json};
 
 fn import(span: Value) -> Value {
     let imported = import_span_with_options(

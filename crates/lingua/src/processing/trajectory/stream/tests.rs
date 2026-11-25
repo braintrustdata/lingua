@@ -76,7 +76,7 @@ proptest! {
 
 #[test]
 fn emitted_payloads_and_per_span_history_are_released() {
-    use crate::processing::import::{import_span, Span};
+    use crate::processing::import::{Span, import_span};
     use serde_json::json;
 
     for kind in ["llm", "task"] {
@@ -133,9 +133,11 @@ fn emitted_payloads_and_per_span_history_are_released() {
                 .unwrap();
             let events = stream.push(import_span(source.clone()).unwrap()).unwrap();
             if fetched.len() == 1 {
-                assert!(events
-                    .iter()
-                    .any(|event| matches!(event, TrajectoryEvent::Turn { .. })));
+                assert!(
+                    events
+                        .iter()
+                        .any(|event| matches!(event, TrajectoryEvent::Turn { .. }))
+                );
             }
             assert!(stream.spans.iter().all(|span| span.input.is_empty()
                 && span.tool_result.is_none()
@@ -163,9 +165,11 @@ fn emitted_payloads_and_per_span_history_are_released() {
         }
         assert_eq!(fetched.len(), 64);
         stream.finish().unwrap();
-        assert!(stream
-            .spans
-            .iter()
-            .all(|span| span.output.is_empty() && span.input_keys.is_empty()));
+        assert!(
+            stream
+                .spans
+                .iter()
+                .all(|span| span.output.is_empty() && span.input_keys.is_empty())
+        );
     }
 }

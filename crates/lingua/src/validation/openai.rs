@@ -6,7 +6,7 @@ use crate::providers::openai::generated::{
     CreateChatCompletionRequestClass, CreateChatCompletionResponse,
     CreateChatCompletionStreamResponse, CreateResponseClass, TheResponseObject,
 };
-use crate::validation::{validate_json, ValidationError};
+use crate::validation::{ValidationError, validate_json};
 
 /// Validates a JSON string as a chat completions request
 pub fn validate_chat_completions_request(

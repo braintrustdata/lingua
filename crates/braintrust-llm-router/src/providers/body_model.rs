@@ -1,6 +1,6 @@
 use bytes::Bytes;
-use lingua::serde_json::{self, value::RawValue};
 use lingua::ProviderFormat;
+use lingua::serde_json::{self, value::RawValue};
 use std::collections::BTreeMap;
 
 fn body_model_field(format: ProviderFormat) -> Option<&'static str> {

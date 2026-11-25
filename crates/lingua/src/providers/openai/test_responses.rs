@@ -2,9 +2,9 @@ use crate::providers::openai::generated::{
     CreateResponseClass, InputItem, Instructions, OutputItem, TheResponseObject,
 };
 use crate::serde_json::Value;
-use crate::universal::{convert::TryFromLLM, Message};
-use crate::util::test_runner::{run_roundtrip_test_with_config, RoundtripTestConfig};
-use crate::util::testutil::{discover_test_cases_typed, Provider, TestCase};
+use crate::universal::{Message, convert::TryFromLLM};
+use crate::util::test_runner::{RoundtripTestConfig, run_roundtrip_test_with_config};
+use crate::util::testutil::{Provider, TestCase, discover_test_cases_typed};
 
 pub type OpenAIResponsesTestCase = TestCase<CreateResponseClass, TheResponseObject, Value>;
 

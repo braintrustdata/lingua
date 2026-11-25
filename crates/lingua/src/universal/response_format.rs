@@ -37,7 +37,7 @@ use crate::error::ConvertError;
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::generated::JsonOutputFormat;
 use crate::providers::google::generated::GenerationConfig;
-use crate::serde_json::{self, json, Map, Number, Value};
+use crate::serde_json::{self, Map, Number, Value, json};
 use crate::universal::request::{JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType};
 use serde::{Deserialize, Serialize};
 
@@ -1398,9 +1398,11 @@ mod tests {
             google_generation_config.response_mime_type.as_deref(),
             Some("application/json")
         );
-        assert!(google_generation_config
-            .generation_config_response_json_schema
-            .is_none());
+        assert!(
+            google_generation_config
+                .generation_config_response_json_schema
+                .is_none()
+        );
 
         let json_schema = ResponseFormatConfig {
             format_type: Some(ResponseFormatType::JsonSchema),

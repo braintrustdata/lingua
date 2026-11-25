@@ -12,29 +12,29 @@ use futures::TryStreamExt;
 
 use crate::auth::AuthConfig;
 use crate::catalog::{
-    is_gemini_api_model, load_catalog_from_disk, ModelCatalog, ModelFlavor, ModelResolver,
-    ModelSpec,
+    ModelCatalog, ModelFlavor, ModelResolver, ModelSpec, is_gemini_api_model,
+    load_catalog_from_disk,
 };
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, prepare_request_with_remote_media, reject_remote_responses_audio,
-    rewrite_body_model_if_required, typesafe_client_headers, ClientHeaders, Provider,
-    RemoteMediaPolicy,
+    ClientHeaders, Provider, RemoteMediaPolicy, enable_streaming_payload,
+    prepare_request_with_remote_media, reject_remote_responses_audio,
+    rewrite_body_model_if_required, typesafe_client_headers,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{
-    transform_provider_stream, RawStreamChunkCapture, ResponseStream, ServedInfoCapture,
+    RawStreamChunkCapture, ResponseStream, ServedInfoCapture, transform_provider_stream,
 };
-use lingua::serde_json::Value;
-use lingua::universal::decision::{DecisionParams, TypeSafeDecisionOptions};
-use lingua::universal::ServedInfo;
 use lingua::ProviderFormat;
+use lingua::serde_json::Value;
+use lingua::universal::ServedInfo;
+use lingua::universal::decision::{DecisionParams, TypeSafeDecisionOptions};
 use lingua::{DecisionResponseContext, ParsableResponseInfo, TransformError, TransformResult};
 use serde::Deserialize;
 
 // Re-export for convenience in dependent crates
-pub use lingua::{extract_request_hints, RequestHints};
+pub use lingua::{RequestHints, extract_request_hints};
 use reqwest::Url;
 
 #[derive(Debug, Clone)]
@@ -59,9 +59,9 @@ pub struct StreamCaptures {
 }
 
 use crate::providers::{
-    is_openai_compatible, AnthropicProvider, AzureAiGatewayProvider, AzureProvider,
-    BedrockProvider, DatabricksProvider, GoogleProvider, MistralProvider, OpenAIProvider,
-    TypeSafeProvider, VertexProvider,
+    AnthropicProvider, AzureAiGatewayProvider, AzureProvider, BedrockProvider, DatabricksProvider,
+    GoogleProvider, MistralProvider, OpenAIProvider, TypeSafeProvider, VertexProvider,
+    is_openai_compatible,
 };
 
 /// Create a provider instance from configuration parameters.
@@ -1715,7 +1715,7 @@ mod tests {
     use crate::error::Error;
     use crate::streaming::{RawResponseStream, StreamChunk};
     use async_trait::async_trait;
-    use futures::{stream, StreamExt};
+    use futures::{StreamExt, stream};
     use reqwest::header::HeaderMap;
     use std::sync::Mutex;
 
@@ -2133,8 +2133,8 @@ mod tests {
     async fn native_anthropic_forwards_pi_request_and_upstream_validation_error() {
         use crate::providers::AnthropicConfig;
         use wiremock::{
-            matchers::{body_bytes, method, path},
             Mock, MockServer, ResponseTemplate,
+            matchers::{body_bytes, method, path},
         };
 
         let server = MockServer::start().await;
@@ -2342,16 +2342,18 @@ mod tests {
             }
         }
 
-        assert!(router
-            .create_prepared_request_internal(
-                body,
-                ProviderFormat::ChatCompletions,
-                &route,
-                false,
-                RequestPreparationOptions::default(),
-            )
-            .await
-            .is_err());
+        assert!(
+            router
+                .create_prepared_request_internal(
+                    body,
+                    ProviderFormat::ChatCompletions,
+                    &route,
+                    false,
+                    RequestPreparationOptions::default(),
+                )
+                .await
+                .is_err()
+        );
     }
 
     #[tokio::test]
@@ -2529,8 +2531,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn prepare_provider_request_leaves_non_streaming_google_to_chat_completions_without_stream_flag(
-    ) {
+    async fn prepare_provider_request_leaves_non_streaming_google_to_chat_completions_without_stream_flag()
+     {
         let body = Bytes::from_static(
             br#"{"model":"gpt-5-mini","contents":[{"role":"user","parts":[{"text":"hello"}]}]}"#,
         );
@@ -2990,9 +2992,11 @@ mod tests {
             Err(error) => error,
         };
 
-        assert!(error
-            .to_string()
-            .contains("additional CA bundle contains no certificates"));
+        assert!(
+            error
+                .to_string()
+                .contains("additional CA bundle contains no certificates")
+        );
     }
 
     fn google_chat_router(model: &str) -> Router {
@@ -3780,9 +3784,11 @@ mod tests {
             .unwrap();
         assert_eq!(result.response, response);
         assert_eq!(result.raw_response, response);
-        assert!(!result
-            .parsable_info
-            .reusable_for_request(lingua::ResponseRequirement::Any));
+        assert!(
+            !result
+                .parsable_info
+                .reusable_for_request(lingua::ResponseRequirement::Any)
+        );
 
         let (request, _) =
             create_test_stream_request(&router, body, model, ProviderFormat::ChatCompletions)
@@ -4492,12 +4498,16 @@ mod tests {
 
         assert!(router.catalog().get("base-model").is_some());
         assert!(router.catalog().get("custom-model").is_none());
-        assert!(router
-            .resolve_provider_routes("base-model", ProviderFormat::ChatCompletions, &[])
-            .is_ok());
-        assert!(router
-            .resolve_provider_routes("custom-model", ProviderFormat::ChatCompletions, &[])
-            .is_ok());
+        assert!(
+            router
+                .resolve_provider_routes("base-model", ProviderFormat::ChatCompletions, &[])
+                .is_ok()
+        );
+        assert!(
+            router
+                .resolve_provider_routes("custom-model", ProviderFormat::ChatCompletions, &[])
+                .is_ok()
+        );
     }
 
     #[test]

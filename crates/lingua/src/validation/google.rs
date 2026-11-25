@@ -3,7 +3,7 @@ Google format validation.
 */
 
 use crate::providers::google::generated::{GenerateContentRequest, GenerateContentResponse};
-use crate::validation::{validate_json, ValidationError};
+use crate::validation::{ValidationError, validate_json};
 
 /// Validates a JSON string as a Google GenerateContent request
 pub fn validate_google_request(json: &str) -> Result<GenerateContentRequest, ValidationError> {

@@ -4,7 +4,7 @@ Bedrock format validation.
 
 use crate::providers::bedrock::request::ConverseRequest;
 use crate::providers::bedrock::response::ConverseResponse;
-use crate::validation::{validate_json, ValidationError};
+use crate::validation::{ValidationError, validate_json};
 
 /// Validates a JSON string as a Bedrock Converse request
 pub fn validate_bedrock_request(json: &str) -> Result<ConverseRequest, ValidationError> {

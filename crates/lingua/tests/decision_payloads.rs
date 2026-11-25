@@ -2,6 +2,7 @@
 
 #![cfg(all(feature = "openai", feature = "typesafe"))]
 
+use lingua::ProviderFormat;
 use lingua::processing::decision_adapter_for_format;
 use lingua::providers::openai::decisions_generated::{
     DecisionInput, DecisionInputType, DecisionRequest, DecisionResponse,
@@ -9,7 +10,6 @@ use lingua::providers::openai::decisions_generated::{
 use lingua::serde_json;
 use lingua::universal::convert::TryFromLLM;
 use lingua::universal::{UniversalDecisionRequest, UniversalDecisionResponse};
-use lingua::ProviderFormat;
 use std::fs;
 use std::path::{Path, PathBuf};
 

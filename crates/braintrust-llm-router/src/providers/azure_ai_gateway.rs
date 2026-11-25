@@ -3,17 +3,17 @@ use std::time::Duration;
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::ProviderFormat;
-use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Url;
+use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{build_middleware_client, ClientSettings};
+use crate::client::{ClientSettings, build_middleware_client};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::anthropic::{ANTHROPIC_VERSION, DEFAULT_ANTHROPIC_VERSION_VALUE};
 use crate::providers::{ClientHeaders, Provider};
-use crate::streaming::{sse_stream, RawResponseStream};
+use crate::streaming::{RawResponseStream, sse_stream};
 
 #[derive(Debug, Clone)]
 struct AzureAiGatewayConfig {

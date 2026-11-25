@@ -8,8 +8,8 @@ back the same way.
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::{decision_adapter_for_format, DecisionAdapter};
-use crate::processing::transform::{parse_json_value, TransformError};
+use crate::processing::adapters::{DecisionAdapter, decision_adapter_for_format};
+use crate::processing::transform::{TransformError, parse_json_value};
 use crate::universal::{
     DecisionQuestion, DecisionQuestionKind, DecisionResult, UniversalDecisionResponse,
 };
@@ -330,9 +330,11 @@ mod tests {
             json!({"name":"second","type":"choice","choice":"A","probabilities":[{"value":"A","probability":1.0}]}),
             json!({"name":"second","type":"predicate","probability":0.8}),
         ] {
-            assert!(adapter
-                .response_to_universal(response(invalid), &request.questions)
-                .is_err());
+            assert!(
+                adapter
+                    .response_to_universal(response(invalid), &request.questions)
+                    .is_err()
+            );
         }
     }
 

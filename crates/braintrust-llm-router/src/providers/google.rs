@@ -2,15 +2,15 @@ use std::time::Duration;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{build_middleware_client, ClientSettings};
+use crate::client::{ClientSettings, build_middleware_client};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{sse_stream, RawResponseStream};
+use crate::streaming::{RawResponseStream, sse_stream};
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::ProviderFormat;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Url;
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]
@@ -123,15 +123,15 @@ impl GoogleProvider {
         auth: &AuthConfig,
         format: ProviderFormat,
     ) -> Result<()> {
-        if format == ProviderFormat::ChatCompletions {
-            if let Some(key) = auth.api_key() {
-                headers.insert(
-                    AUTHORIZATION,
-                    HeaderValue::from_str(&format!("Bearer {key}"))
-                        .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
-                );
-                return Ok(());
-            }
+        if format == ProviderFormat::ChatCompletions
+            && let Some(key) = auth.api_key()
+        {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {key}"))
+                    .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
+            );
+            return Ok(());
         }
 
         auth.apply_headers(headers)

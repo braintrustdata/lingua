@@ -6,8 +6,9 @@ pub use stream::{
     TrajectoryCollector, TrajectoryEvent, TrajectoryStream, TrajectoryView, TurnView, WorkView,
 };
 
+use crate::UniversalUsage;
 use crate::processing::import::{
-    is_instruction, ImportedSpan, OpaqueItem, SpanContext, VoicePayload,
+    ImportedSpan, OpaqueItem, SpanContext, VoicePayload, is_instruction,
 };
 use crate::processing::message_dedup_hash;
 use crate::serde_json as json;
@@ -16,7 +17,6 @@ use crate::universal::trajectory::{
     WorkStep,
 };
 use crate::universal::{AssistantContent, AssistantContentPart, Message};
-use crate::UniversalUsage;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};

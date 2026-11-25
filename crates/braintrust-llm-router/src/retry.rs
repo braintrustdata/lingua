@@ -1,4 +1,4 @@
-use rand::{rngs::SmallRng, RngExt};
+use rand::{RngExt, rngs::SmallRng};
 use std::time::Duration;
 
 use crate::error::Error;
@@ -127,9 +127,11 @@ mod tests {
         let policy = base_policy();
         let mut strategy = policy.strategy();
 
-        assert!(strategy
-            .next_delay(&Error::InvalidRequest("bad".into()))
-            .is_none());
+        assert!(
+            strategy
+                .next_delay(&Error::InvalidRequest("bad".into()))
+                .is_none()
+        );
         assert_eq!(strategy.attempts(), 0);
     }
 

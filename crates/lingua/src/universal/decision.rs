@@ -255,10 +255,12 @@ mod tests {
 
     #[test]
     fn rejects_unknown_extra_formats_but_allows_saved_chat_params() {
-        assert!(crate::serde_json::from_str::<DecisionParams>(
-            r#"{"extras":{"TypeSafe":{"long_context":true}}}"#
-        )
-        .is_err());
+        assert!(
+            crate::serde_json::from_str::<DecisionParams>(
+                r#"{"extras":{"TypeSafe":{"long_context":true}}}"#
+            )
+            .is_err()
+        );
         let params: DecisionParams = crate::serde_json::from_str(
             r#"{"temperature":0,"max_tokens":100,"extras":{"typesafe":{"long_context":true}}}"#,
         )
