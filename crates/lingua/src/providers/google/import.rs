@@ -216,6 +216,10 @@ impl TracePart {
             "spreadsheetMetadata preprocessing"
         } else if self.audio_metadata.is_some() {
             "audioMetadata preprocessing"
+        } else if self.thought_signature.is_some()
+            && (self.inline_data.is_some() || self.file_data.is_some() || self.image_url.is_some())
+        {
+            "thoughtSignature on media"
         } else {
             return Ok(());
         };

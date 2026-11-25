@@ -1278,6 +1278,7 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 mod tests {
     use super::*;
 
+    // Copied calls deduplicate even when Gemini arguments have reordered JSON keys.
     #[cfg(feature = "google")]
     #[test]
     fn gemini_tool_call_history_deduplicates_against_original_output() {
@@ -1303,7 +1304,9 @@ mod tests {
                 {
                     "output": {
                         "candidates": [{"content": {"parts": [
-                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                            {"functionCall": {"name": "clock", "args": {
+                                "zone": "UTC", "options": {"hour12": false, "precision": "minutes"}
+                            }}}
                         ]}}]
                     }
                 },
@@ -1311,7 +1314,9 @@ mod tests {
                     "input": {"contents": [
                         {"role": "model", "parts": [{"functionCall": {"name": "weather"}}]},
                         {"role": "model", "parts": [
-                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                            {"functionCall": {"name": "clock", "args": {
+                                "options": {"precision": "minutes", "hour12": false}, "zone": "UTC"
+                            }}}
                         ]},
                         {"role": "model", "parts": [{"functionCall": {"name": "weather"}}]},
                         [
@@ -1324,18 +1329,24 @@ mod tests {
                     ]},
                     "output": {
                         "candidates": [{"content": {"parts": [
-                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                            {"functionCall": {"name": "clock", "args": {
+                                "zone": "UTC", "options": {"hour12": false, "precision": "minutes"}
+                            }}}
                         ]}}]
                     }
                 },
                 {
                     "input": {"contents": [
                         {"role": "model", "parts": [
-                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                            {"functionCall": {"name": "clock", "args": {
+                                "options": {"hour12": false, "precision": "minutes"}, "zone": "UTC"
+                            }}}
                         ]},
                         {"role": "user", "parts": [{"functionResponse": {"name": "clock"}}]},
                         {"role": "model", "parts": [
-                            {"functionCall": {"name": "clock", "args": {"zone": "UTC"}}}
+                            {"functionCall": {"name": "clock", "args": {
+                                "zone": "UTC", "options": {"precision": "minutes", "hour12": false}
+                            }}}
                         ]}
                     ]}
                 }
@@ -1825,6 +1836,35 @@ mod tests {
                 }),
                 "{field}"
             );
+        }
+    }
+
+    // Signed media can't be replayed because Lingua file parts have no signature field.
+    #[cfg(feature = "google")]
+    #[test]
+    fn gemini_import_rejects_media_with_thought_signature() {
+        for part in [
+            crate::serde_json::json!({
+                "inline_data": {"mime_type": "image/png", "data": "AA=="},
+                "thought_signature": "c2ln"
+            }),
+            crate::serde_json::json!({
+                "fileData": {"mimeType": "image/png", "fileUri": "https://example.com/image.png"},
+                "thoughtSignature": "c2ln"
+            }),
+        ] {
+            let imported = import_span(Span {
+                output: Some(crate::serde_json::json!({
+                    "candidates": [{"content": {"role": "model", "parts": [part]}}]
+                })),
+                input: None,
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(imported.output.is_empty());
+            assert!(imported.errors.iter().any(|error| {
+                error.contains("Unsupported mapping") && error.contains("thoughtSignature")
+            }));
         }
     }
 
