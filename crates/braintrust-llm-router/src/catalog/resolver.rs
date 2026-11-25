@@ -77,22 +77,22 @@ impl ModelResolver {
         } else {
             spec.format
         };
-        let listed_providers: Vec<String> = spec.serving_providers().map(str::to_owned).collect();
-        if !spec.available_providers.is_empty() && listed_providers.is_empty() {
-            return Err(Error::NoProvider(format));
-        }
-        if !listed_providers.is_empty() && !self.aliases.contains_key(model) {
-            return Ok((spec, format, listed_providers));
-        }
-        let alias = self.aliases.get(model).cloned().unwrap_or_else(|| {
-            if lingua::is_vertex_model(model) {
-                "vertex".to_string()
-            } else if is_gemini_api_model(model) {
-                "google".to_string()
-            } else {
-                format_identifier(format)
+        let alias = if let Some(alias) = self.aliases.get(model) {
+            alias.clone()
+        } else if !spec.available_providers.is_empty() {
+            let listed_providers: Vec<String> =
+                spec.serving_providers().map(str::to_owned).collect();
+            if listed_providers.is_empty() {
+                return Err(Error::NoProvider(format));
             }
-        });
+            return Ok((spec, format, listed_providers));
+        } else if lingua::is_vertex_model(model) {
+            "vertex".to_string()
+        } else if is_gemini_api_model(model) {
+            "google".to_string()
+        } else {
+            format_identifier(format)
+        };
         if spec.is_provider_retired(&alias) {
             return Err(Error::NoProvider(format));
         }
@@ -447,5 +447,32 @@ mod tests {
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::ChatCompletions);
         assert_eq!(aliases, vec!["custom".to_string()]);
+    }
+
+    #[test]
+    fn resolve_custom_alias_overrides_all_retired_catalog_providers() {
+        let catalog = Arc::new(
+            ModelCatalog::from_json_str(
+                r#"{
+                    "model": {
+                        "format": "openai", "flavor": "chat",
+                        "available_providers": ["openai"],
+                        "providers": {"openai": {"retired": true}}
+                    }
+                }"#,
+            )
+            .unwrap(),
+        );
+
+        let resolver = ModelResolver::new(catalog.clone())
+            .with_aliases(HashMap::from([("model".into(), "custom".into())]));
+        assert_eq!(resolver.resolve("model").unwrap().2, ["custom"]);
+
+        let resolver = ModelResolver::new(catalog)
+            .with_aliases(HashMap::from([("model".into(), "OPENAI_API_KEY".into())]));
+        assert!(matches!(
+            resolver.resolve("model"),
+            Err(Error::NoProvider(ProviderFormat::ChatCompletions))
+        ));
     }
 }
