@@ -1546,6 +1546,26 @@ mod tests {
                 crate::serde_json::json!({"TurnComplete": true}),
                 "turnComplete",
             ),
+            (
+                crate::serde_json::json!({
+                    "content": content,
+                    "turnComplete": true,
+                    "interactionStatus": "IN_PROGRESS"
+                }),
+                "interactionStatus IN_PROGRESS",
+            ),
+            (
+                crate::serde_json::json!({"interaction_status": "IN_PROGRESS"}),
+                "interactionStatus IN_PROGRESS",
+            ),
+            (
+                crate::serde_json::json!({
+                    "Content": {"parts": [{"text": "Par"}]},
+                    "TurnComplete": true,
+                    "InteractionStatus": "FUTURE_STATUS"
+                }),
+                "interactionStatus",
+            ),
         ] {
             let imported = import_span(Span {
                 output: Some(output),
@@ -1653,7 +1673,8 @@ mod tests {
                 "content": {"parts": parts},
                 "partial": false,
                 "interrupted": false,
-                "turnComplete": true
+                "turn_complete": true,
+                "interaction_status": "IDLE"
             }),
             crate::serde_json::json!({
                 "content": {"parts": parts},

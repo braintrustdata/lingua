@@ -623,6 +623,15 @@ struct TracePromptFeedback {
     block_reason: Option<BlockReason>,
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+enum TraceInteractionStatus {
+    Idle,
+    InProgress,
+    #[serde(other)]
+    Unknown,
+}
+
 // ADK logs a single result at the top level instead of a GenerateContent candidates array.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -643,6 +652,8 @@ struct TraceCandidate {
     interrupted: Option<bool>,
     #[serde(alias = "turn_complete", alias = "TurnComplete")]
     turn_complete: Option<bool>,
+    #[serde(alias = "interaction_status", alias = "InteractionStatus")]
+    interaction_status: Option<TraceInteractionStatus>,
 }
 
 impl TraceCandidate {
@@ -659,7 +670,8 @@ impl TraceCandidate {
     fn has_adk_lifecycle(&self) -> bool {
         (self.partial == Some(true)
             || self.interrupted == Some(true)
-            || self.turn_complete.is_some())
+            || self.turn_complete.is_some()
+            || self.interaction_status.is_some())
             && self.content.as_ref().is_none_or(|content| {
                 content.role.as_deref() == Some("model")
                     || (content.role.is_none() && content.parts.is_some())
@@ -711,6 +723,16 @@ impl TraceCandidate {
             "partial"
         } else if self.interrupted == Some(true) {
             "interrupted"
+        } else if matches!(
+            self.interaction_status,
+            Some(TraceInteractionStatus::InProgress)
+        ) {
+            "interactionStatus IN_PROGRESS"
+        } else if matches!(
+            self.interaction_status,
+            Some(TraceInteractionStatus::Unknown)
+        ) {
+            "interactionStatus (unknown value)"
         } else if !self.is_adk_error()
             && ((self.turn_complete == Some(false) && !self.has_terminal_finish_reason())
                 || (self.turn_complete == Some(true) && self.content.is_none() && !finished))
