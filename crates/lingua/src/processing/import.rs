@@ -1637,13 +1637,15 @@ mod tests {
 
     #[cfg(feature = "google")]
     #[test]
-    fn google_import_requires_completion_for_enveloped_candidate_content() {
+    fn google_import_requires_completion_for_response_candidate_content() {
         let content = crate::serde_json::json!({
             "role": "model", "parts": [{"text": "Checking your order."}]
         });
         for output in [
             crate::serde_json::json!({"candidates": [{"content": content}]}),
             crate::serde_json::json!({"Candidates": [{"Content": content}]}),
+            crate::serde_json::json!([{"content": content}]),
+            crate::serde_json::json!([{"content": {"parts": [{"text": "Still generating."}]}}]),
         ] {
             let imported = import_span(Span {
                 input: None,
@@ -1660,18 +1662,58 @@ mod tests {
         for candidate in [
             crate::serde_json::json!({"content": content, "turnComplete": true}),
             crate::serde_json::json!({"content": content, "partial": false}),
+            crate::serde_json::json!({
+                "content": {"parts": [{"text": "Order found."}]}, "finish_reason": "STOP"
+            }),
         ] {
-            let imported = import_span(Span {
-                input: None,
-                output: Some(crate::serde_json::json!({"candidates": [candidate]})),
-                other: Default::default(),
-            })
-            .unwrap();
-            assert!(matches!(
-                imported.output.as_slice(),
-                [Message::Assistant { .. }]
-            ));
-            assert!(imported.errors.is_empty());
+            for output in [
+                crate::serde_json::json!({"candidates": [candidate]}),
+                crate::serde_json::json!([candidate]),
+            ] {
+                let imported = import_span(Span {
+                    input: None,
+                    output: Some(output),
+                    other: Default::default(),
+                })
+                .unwrap();
+                assert!(matches!(
+                    imported.output.as_slice(),
+                    [Message::Assistant { .. }]
+                ));
+                assert!(imported.errors.is_empty());
+            }
+        }
+    }
+
+    #[cfg(feature = "google")]
+    #[test]
+    fn google_import_rejects_cached_request_context() {
+        for (field, config) in [
+            ("cachedContent", "config"),
+            ("cached_content", "config"),
+            ("CachedContent", "Config"),
+        ] {
+            for input in [
+                crate::serde_json::json!({
+                    "contents": "Summarize the article.",
+                    (field): "cachedContents/article"
+                }),
+                crate::serde_json::json!({
+                    "contents": "Summarize the article.",
+                    (config): {(field): "cachedContents/article"}
+                }),
+            ] {
+                let imported = import_span(Span {
+                    input: Some(input),
+                    output: None,
+                    other: Default::default(),
+                })
+                .unwrap();
+                assert!(imported.input.is_empty(), "imported a prompt using {field}");
+                assert!(imported.errors.iter().any(|error| {
+                    error.contains("Unsupported mapping") && error.contains("cachedContent")
+                }));
+            }
         }
     }
 
@@ -2572,11 +2614,14 @@ mod tests {
         });
         let candidate = crate::serde_json::json!({"content": content.clone()});
         for input in [
-            content,
-            candidate.clone(),
+            content.clone(),
+            candidate,
             crate::serde_json::json!([
-                {"content": {"role": "model", "parts": [{"text": "Plain candidate"}]}},
-                candidate
+                {
+                    "content": {"role": "model", "parts": [{"text": "Plain candidate"}]},
+                    "finishReason": "STOP"
+                },
+                {"content": content, "finishReason": "STOP"}
             ]),
         ] {
             let imported = import_span(Span {

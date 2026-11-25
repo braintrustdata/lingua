@@ -592,6 +592,8 @@ impl SystemInstruction {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TraceConfig {
+    #[serde(alias = "cached_content", alias = "CachedContent")]
+    cached_content: Option<String>,
     #[serde(alias = "system_instruction")]
     system_instruction: Option<SystemInstruction>,
 }
@@ -601,6 +603,8 @@ struct TraceConfig {
 struct TraceRequest {
     #[serde(alias = "Contents")]
     contents: RequestContents,
+    #[serde(alias = "cached_content", alias = "CachedContent")]
+    cached_content: Option<String>,
     #[serde(alias = "continuation_token", alias = "ContinuationToken")]
     continuation_token: Option<String>,
     #[serde(alias = "Config")]
@@ -826,6 +830,17 @@ fn try_parse_request(
 }
 
 fn convert_request(request: TraceRequest) -> Result<RequestMessages, ConvertError> {
+    if request.cached_content.is_some()
+        || request
+            .config
+            .as_ref()
+            .is_some_and(|config| config.cached_content.is_some())
+    {
+        return Err(ConvertError::UnsupportedMapping {
+            from: "Google request.cachedContent".to_string(),
+            to: "Lingua universal message",
+        });
+    }
     if request.continuation_token.is_some() {
         return Err(ConvertError::UnsupportedMapping {
             from: "Google request.continuationToken".to_string(),
@@ -916,17 +931,21 @@ fn try_parse_candidates(
     data: &impl ImportValue,
     trace_tools: &mut TraceToolCalls,
 ) -> Option<Result<Vec<Message>, ConvertError>> {
+    let in_candidates = data.kind() == InputKind::Array;
     let candidates = try_parse_vec_or_single::<TraceCandidate>(data)?;
     if candidates.iter().any(|candidate| {
         candidate.content.as_ref().is_some_and(|content| {
-            !content.is_direct_content()
-                && !candidate.has_roleless_candidate_content()
-                && !candidate.has_adk_lifecycle()
+            let roleless_candidate = if in_candidates {
+                content.role.is_none() && content.parts.is_some()
+            } else {
+                candidate.has_roleless_candidate_content()
+            };
+            !content.is_direct_content() && !roleless_candidate && !candidate.has_adk_lifecycle()
         })
     }) {
         return None;
     }
-    messages_from_candidates(candidates, false, trace_tools).transpose()
+    messages_from_candidates(candidates, in_candidates, trace_tools).transpose()
 }
 
 pub(crate) fn try_parse_adk_for_import(
