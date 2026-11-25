@@ -11,6 +11,7 @@ use bytes::Bytes;
 use futures::TryStreamExt;
 
 use crate::auth::AuthConfig;
+use crate::catalog::spec::default_alias_provider_id;
 use crate::catalog::{
     ModelCatalog, ModelFlavor, ModelResolver, ModelSpec, is_gemini_api_model,
     load_catalog_from_disk,
@@ -1035,6 +1036,7 @@ impl Router {
                     supports_streaming: !is_typesafe,
                     extra: Default::default(),
                     available_providers: Vec::new(),
+                    providers: None,
                 });
                 let mut seen = HashSet::new();
                 let aliases = self
@@ -1334,6 +1336,15 @@ impl Router {
             );
             Error::NoProvider(catalog_format)
         })?;
+        if spec.is_provider_retired(&alias)
+            || spec.providers.as_ref().is_some_and(|providers| {
+                providers.iter().any(|(id, metadata)| {
+                    metadata.retired == Some(true) && provider.matches_provider_alias(id)
+                })
+            })
+        {
+            return Err(Error::NoProvider(catalog_format));
+        }
         let provider_formats = provider.provider_formats();
         let format = if passthrough {
             if !provider_formats.contains(&output_format) {
@@ -1524,21 +1535,6 @@ fn replace_transformed_response_model(bytes: Bytes, model: &str) -> Result<Bytes
     lingua::serde_json::to_vec(&value)
         .map(Bytes::from)
         .map_err(Error::LinguaJson)
-}
-
-fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
-    match alias {
-        "OPENAI_API_KEY" => Some("openai"),
-        "ANTHROPIC_API_KEY" => Some("anthropic"),
-        "GEMINI_API_KEY" => Some("google"),
-        "MISTRAL_API_KEY" => Some("mistral"),
-        "OPENROUTER_API_KEY" => Some("openrouter"),
-        "AWS_DEFAULT_CREDENTIALS" => Some("bedrock"),
-        "GOOGLE_DEFAULT_CREDENTIALS" => Some("vertex"),
-        "AZURE_DEFAULT_CREDENTIALS" => Some("azure"),
-        "DATABRICKS_DEFAULT_CREDENTIALS" => Some("databricks"),
-        _ => None,
-    }
 }
 
 /// One provider registration: alias, provider, auth, and default formats.
@@ -1878,6 +1874,7 @@ mod tests {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         }
     }
 
@@ -1902,6 +1899,7 @@ mod tests {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         }
     }
 
@@ -2578,6 +2576,7 @@ mod tests {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: vec!["vertex".to_string()],
+            providers: None,
         };
 
         let (payload, _, actual_format, _, _) = prepare_provider_request(
@@ -2622,6 +2621,7 @@ mod tests {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: vec!["google".to_string()],
+            providers: None,
         };
 
         let (payload, detected_format, actual_format, _, lingua_passthrough) =
@@ -4199,6 +4199,7 @@ mod tests {
                 supports_streaming: true,
                 extra: Default::default(),
                 available_providers: providers,
+                providers: None,
             };
         let model = "us.anthropic.claude-sonnet-4-6";
         let mut catalog = ModelCatalog::empty();
@@ -4285,6 +4286,7 @@ mod tests {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         };
         let model = "amazon.nova-lite-v1:0";
         let mut catalog = ModelCatalog::empty();
@@ -5325,6 +5327,38 @@ mod tests {
             vec!["other_gpt".to_string()],
             "resolving providers returns only registered aliases from available_providers"
         );
+    }
+
+    #[test]
+    fn format_fallback_does_not_use_a_retired_provider() {
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+                "model": {
+                    "format": "openai", "flavor": "chat",
+                    "available_providers": ["openai", "azure"],
+                    "providers": {"openai": {"retired": true}}
+                }
+            }"#,
+        )
+        .unwrap();
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "custom-openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .unwrap();
+
+        assert!(matches!(
+            router.resolve_provider_routes("model", ProviderFormat::ChatCompletions, &[]),
+            Err(Error::NoProvider(ProviderFormat::ChatCompletions))
+        ));
     }
 
     #[test]

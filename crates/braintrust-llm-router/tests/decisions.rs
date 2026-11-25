@@ -32,6 +32,7 @@ fn spec(model: &str, format: ProviderFormat, flavor: ModelFlavor, provider: &str
         supports_streaming: false,
         extra: Default::default(),
         available_providers: vec![provider.into()],
+        providers: None,
     }
 }
 

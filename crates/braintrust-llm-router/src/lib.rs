@@ -22,7 +22,9 @@ pub use auth::{
     databricks::{DatabricksCredentials, DatabricksTokenManager},
     google::{GoogleServiceAccountConfig, GoogleTokenManager, ServiceAccountKey},
 };
-pub use catalog::{ModelCatalog, ModelFlavor, ModelResolver, ModelSpec, PricingRate, TierPricing};
+pub use catalog::{
+    ModelCatalog, ModelFlavor, ModelResolver, ModelSpec, PricingRate, ProviderMetadata, TierPricing,
+};
 pub use error::{Error, Result, UpstreamHttpError};
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};
 pub use lingua::{ProviderFormat, providers::openai::capabilities::normalize_openai_model_name};

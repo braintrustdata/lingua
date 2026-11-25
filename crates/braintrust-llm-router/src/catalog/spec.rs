@@ -63,6 +63,32 @@ pub struct ModelSpec {
     pub extra: serde_json::Map<String, serde_json::Value>,
     #[serde(default)]
     pub available_providers: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub providers: Option<HashMap<String, ProviderMetadata>>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ProviderMetadata {
+    pub deprecation_date: Option<String>,
+    pub retirement_date: Option<String>,
+    pub retired: Option<bool>,
+    pub max_input_tokens: Option<u32>,
+    pub max_output_tokens: Option<u32>,
+}
+
+pub(crate) fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
+    match alias {
+        "OPENAI_API_KEY" => Some("openai"),
+        "ANTHROPIC_API_KEY" => Some("anthropic"),
+        "GEMINI_API_KEY" => Some("google"),
+        "MISTRAL_API_KEY" => Some("mistral"),
+        "OPENROUTER_API_KEY" => Some("openrouter"),
+        "AWS_DEFAULT_CREDENTIALS" => Some("bedrock"),
+        "GOOGLE_DEFAULT_CREDENTIALS" => Some("vertex"),
+        "AZURE_DEFAULT_CREDENTIALS" => Some("azure"),
+        "DATABRICKS_DEFAULT_CREDENTIALS" => Some("databricks"),
+        _ => None,
+    }
 }
 
 /// Rates per pricing tier for one provider. Tier names are pricing categories,
@@ -185,6 +211,37 @@ fn model_requires_responses_api(model: &str) -> bool {
 }
 
 impl ModelSpec {
+    pub fn serving_providers(&self) -> impl Iterator<Item = &str> {
+        self.available_providers
+            .iter()
+            .map(String::as_str)
+            .filter(|provider| !self.is_provider_retired(provider))
+    }
+
+    pub fn is_provider_retired(&self, provider: &str) -> bool {
+        self.provider_metadata(provider)
+            .is_some_and(|metadata| metadata.retired == Some(true))
+    }
+
+    pub fn max_input_tokens_for_provider(&self, provider: &str) -> Option<u32> {
+        self.provider_metadata(provider)
+            .map_or(self.max_input_tokens, |metadata| metadata.max_input_tokens)
+    }
+
+    pub fn max_output_tokens_for_provider(&self, provider: &str) -> Option<u32> {
+        self.provider_metadata(provider)
+            .map_or(self.max_output_tokens, |metadata| {
+                metadata.max_output_tokens
+            })
+    }
+
+    fn provider_metadata(&self, provider: &str) -> Option<&ProviderMetadata> {
+        let providers = self.providers.as_ref()?;
+        providers
+            .get(provider)
+            .or_else(|| default_alias_provider_id(provider).and_then(|id| providers.get(id)))
+    }
+
     pub fn requires_responses_api(&self) -> bool {
         self.flavor == ModelFlavor::Responses || model_requires_responses_api(&self.model)
     }
@@ -193,6 +250,25 @@ impl ModelSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn provider_limits_only_fall_back_for_missing_provider_entries() {
+        let spec: ModelSpec = serde_json::from_str(
+            r#"{
+                "format": "openai", "flavor": "chat",
+                "max_input_tokens": 1000, "max_output_tokens": 200,
+                "providers": {
+                    "azure": {"max_input_tokens": 2000, "max_output_tokens": null, "future": true}
+                }
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(spec.max_input_tokens_for_provider("azure"), Some(2000));
+        assert_eq!(spec.max_output_tokens_for_provider("azure"), None);
+        assert_eq!(spec.max_input_tokens_for_provider("openai"), Some(1000));
+        assert_eq!(spec.max_output_tokens_for_provider("openai"), Some(200));
+    }
 
     #[test]
     fn model_spec_parses_tier_pricing_and_ignores_unknown_tiers() {
@@ -407,6 +483,7 @@ mod tests {
             supports_streaming: true,
             extra: serde_json::Map::new(),
             available_providers: vec![],
+            providers: None,
         };
         assert!(spec.requires_responses_api());
     }

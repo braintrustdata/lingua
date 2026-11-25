@@ -127,6 +127,7 @@ async fn router_routes_to_stub_provider() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
     let catalog = Arc::new(catalog);
@@ -199,6 +200,7 @@ async fn router_resolves_provider_alias_in_metadata() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
     let catalog = Arc::new(catalog);
@@ -255,6 +257,7 @@ fn fallback_alias_resolution_skips_aliases_not_eligible_for_model() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: vec!["eligible".to_string()],
+            providers: None,
         },
     );
     let catalog = Arc::new(catalog);
@@ -322,6 +325,7 @@ async fn router_requires_auth_for_provider() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
     let catalog = Arc::new(catalog);
@@ -388,6 +392,7 @@ async fn router_reports_missing_provider() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
 
@@ -679,6 +684,7 @@ async fn anthropic_openai_catalog_format_resolves_to_chat_completions() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
     let (router, recorded_format) = anthropic_router(Arc::new(catalog));
@@ -735,6 +741,7 @@ async fn anthropic_native_catalog_format_resolves_to_anthropic() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
     let (router, recorded_format) = anthropic_router(Arc::new(catalog));
@@ -864,6 +871,7 @@ async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
     let (router, recorded_format) = openai_router(Arc::new(catalog));
@@ -938,6 +946,7 @@ async fn responses_required_model_uses_responses_for_anthropic_messages_output()
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
     let (router, _recorded_format) = openai_router(Arc::new(catalog));
@@ -993,6 +1002,7 @@ fn retry_model_catalog() -> Arc<ModelCatalog> {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            providers: None,
         },
     );
     Arc::new(catalog)
