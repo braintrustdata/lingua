@@ -1381,6 +1381,61 @@
         }
       }
     },
+    "interactions": {
+      "resources": {
+        "auth_tokens": {
+          "methods": {
+            "create": {
+              "description": "Creates a short-lived auth token for client-side authentication (HTTP).",
+              "flatPath": "v1beta/interactions/{interactionsId}/auth_tokens",
+              "httpMethod": "POST",
+              "id": "generativelanguage.interactions.auth_tokens.create",
+              "parameterOrder": [
+                "name"
+              ],
+              "parameters": {
+                "name": {
+                  "description": "Required. interaction_id",
+                  "location": "path",
+                  "pattern": "^interactions/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "path": "v1beta/{+name}/auth_tokens",
+              "request": {
+                "$ref": "HttpBody"
+              },
+              "response": {
+                "$ref": "HttpBody"
+              }
+            },
+            "delete": {
+              "description": "Deletes (revokes) an interaction auth token (HTTP).",
+              "flatPath": "v1beta/interactions/{interactionsId}/auth_tokens/{auth_tokensId}",
+              "httpMethod": "DELETE",
+              "id": "generativelanguage.interactions.auth_tokens.delete",
+              "parameterOrder": [
+                "name"
+              ],
+              "parameters": {
+                "name": {
+                  "description": "Required. Resource name of the token to revoke, in the form `interactions/{interaction_id}/auth_tokens/{token}`, where `{token}` is the hex token string returned by `CreateInteractionAuthToken` (the `auth_token` value without its `auth_tokens/` prefix).",
+                  "location": "path",
+                  "pattern": "^interactions/[^/]+/auth_tokens/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "path": "v1beta/{+name}",
+              "response": {
+                "$ref": "HttpBody"
+              }
+            }
+          }
+        }
+      }
+    },
     "media": {
       "methods": {
         "upload": {
@@ -2489,7 +2544,7 @@
       }
     }
   },
-  "revision": "20261112",
+  "revision": "20261124",
   "rootUrl": "https://generativelanguage.googleapis.com/",
   "schemas": {
     "AsyncBatchEmbedContentRequest": {
@@ -2514,6 +2569,23 @@
         "semanticRetrieverChunk": {
           "$ref": "SemanticRetrieverChunk",
           "description": "Identifier for a `Chunk` fetched via Semantic Retriever."
+        }
+      },
+      "type": "object"
+    },
+    "AudioMetadata": {
+      "description": "Metadata describes the input audio content. Set this in `Part.audio_metadata` or `FunctionResponsePart.audio_metadata` when `inline_data` or `file_data` contains audio to configure static audio preprocessing.",
+      "id": "AudioMetadata",
+      "properties": {
+        "endOffset": {
+          "description": "Optional. The end offset of the audio, relative to the start of the audio stream.",
+          "format": "google-duration",
+          "type": "string"
+        },
+        "startOffset": {
+          "description": "Optional. The start offset of the audio, relative to the start of the audio stream.",
+          "format": "google-duration",
+          "type": "string"
         }
       },
       "type": "object"
@@ -3694,7 +3766,7 @@
       "type": "object"
     },
     "CreateEnvironmentRequest": {
-      "description": "Request for `CreateEnvironment`.",
+      "description": "Request for creating an environment.",
       "id": "CreateEnvironmentRequest",
       "properties": {
         "customConfig": {
@@ -3703,6 +3775,13 @@
             "type": "any"
           },
           "description": "Optional. Arbitrary customer-defined JSON configuration passed through to the self-hosted environment poller. Only supported when `mode` is `SELF_HOSTED`.",
+          "type": "object"
+        },
+        "env": {
+          "additionalProperties": {
+            "$ref": "EnvVar"
+          },
+          "description": "Environment variables to set in the sandbox environment.",
           "type": "object"
         },
         "fromEnvironment": {
@@ -3992,6 +4071,40 @@
           "format": "google-datetime",
           "readOnly": true,
           "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "DocumentMetadata": {
+      "description": "Metadata describes the input document content. Set this in `Part.document_metadata` or `FunctionResponsePart.document_metadata` when `inline_data` or `file_data` contains a document to configure static document preprocessing.",
+      "id": "DocumentMetadata",
+      "properties": {
+        "contentLayers": {
+          "description": "Optional. Content layers to return. If empty, defaults to [PAGE_IMAGE] when DocumentMetadata is set. When DocumentMetadata is not set, default document processing is used (for example, page images for PDFs).",
+          "items": {
+            "enum": [
+              "CONTENT_LAYER_UNSPECIFIED",
+              "PAGE_IMAGE",
+              "PAGE_TEXT"
+            ],
+            "enumDescriptions": [
+              "Default value.",
+              "Rendered page images.",
+              "Extracted page text."
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "endPage": {
+          "description": "Optional. 1-indexed inclusive end page.",
+          "format": "int32",
+          "type": "integer"
+        },
+        "startPage": {
+          "description": "Optional. 1-indexed inclusive start page.",
+          "format": "int32",
+          "type": "integer"
         }
       },
       "type": "object"
@@ -4412,6 +4525,21 @@
       "properties": {},
       "type": "object"
     },
+    "EnvVar": {
+      "description": "An environment variable to set in the execution environment.",
+      "id": "EnvVar",
+      "properties": {
+        "credential": {
+          "description": "Optional reference to a server-managed Credential resource by ID.",
+          "type": "string"
+        },
+        "value": {
+          "description": "Direct string value for plain environment variables.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Environment": {
       "description": "An execution environment for an agent.",
       "id": "Environment",
@@ -4431,7 +4559,7 @@
           "type": "object"
         },
         "environmentKey": {
-          "description": "Output only. Secret token generated upon environment creation for self_hosted environments. Used by the self-hosted sandbox daemon to authenticate polling and streaming requests. Only returned in the CreateEnvironment response; omitted from subsequent GetEnvironment and ListEnvironments calls.",
+          "description": "Output only. Secret token generated upon environment creation for self_hosted environments. Used by the self-hosted sandbox daemon to authenticate polling and streaming requests. Only returned when the environment is created; omitted when getting or listing environments later.",
           "readOnly": true,
           "type": "string"
         },
@@ -5023,6 +5151,14 @@
       "description": "A datatype containing media that is part of a `FunctionResponse` message. A `FunctionResponsePart` consists of data which has an associated datatype. A `FunctionResponsePart` can only contain one of the accepted types in `FunctionResponsePart.data`. Media can be passed as raw bytes (`inline_data`) or by URI (`file_data`) with an IANA MIME type identifying the type and subtype of the media.",
       "id": "FunctionResponsePart",
       "properties": {
+        "audioMetadata": {
+          "$ref": "AudioMetadata",
+          "description": "Optional. Audio metadata. The metadata should only be specified while the audio data is presented in inline_data or file_data."
+        },
+        "documentMetadata": {
+          "$ref": "DocumentMetadata",
+          "description": "Optional. Document metadata. The metadata should only be specified while the document data is presented in inline_data or file_data."
+        },
         "fileData": {
           "$ref": "FunctionResponseFileData",
           "description": "URI based data."
@@ -5044,6 +5180,18 @@
             "Model-driven dynamic navigation. Recommended for most use cases."
           ],
           "type": "string"
+        },
+        "mediaResolution": {
+          "$ref": "V1mainMediaResolution",
+          "description": "Optional. Media resolution for the input media."
+        },
+        "spreadsheetMetadata": {
+          "$ref": "SpreadsheetMetadata",
+          "description": "Optional. Spreadsheet metadata. The metadata should only be specified while the spreadsheet data is presented in inline_data or file_data."
+        },
+        "videoMetadata": {
+          "$ref": "VideoMetadata",
+          "description": "Optional. Video metadata. The metadata should only be specified while the video data is presented in inline_data or file_data."
         }
       },
       "type": "object"
@@ -5837,7 +5985,7 @@
       "type": "object"
     },
     "GetEnvironmentFilesResponse": {
-      "description": "Response for `GetEnvironmentFiles`.",
+      "description": "Response for getting an environment's files.",
       "id": "GetEnvironmentFilesResponse",
       "properties": {
         "files": {
@@ -6662,7 +6810,7 @@
       "type": "object"
     },
     "ListEnvironmentsResponse": {
-      "description": "Response for `ListEnvironments`.",
+      "description": "Response for listing environments.",
       "id": "ListEnvironmentsResponse",
       "properties": {
         "environments": {
@@ -7187,6 +7335,10 @@
       "description": "A datatype containing media that is part of a multi-part `Content` message. A `Part` consists of data which has an associated datatype. A `Part` can only contain one of the accepted types in `Part.data`. A `Part` must have a fixed IANA MIME type identifying the type and subtype of the media if the `inline_data` field is filled with raw bytes.",
       "id": "Part",
       "properties": {
+        "audioMetadata": {
+          "$ref": "AudioMetadata",
+          "description": "Optional. Audio metadata. The metadata should only be specified while the audio data is presented in inline_data or file_data."
+        },
         "audioTranscription": {
           "$ref": "AudioTranscription",
           "description": "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data."
@@ -7194,6 +7346,10 @@
         "codeExecutionResult": {
           "$ref": "CodeExecutionResult",
           "description": "Result of executing the `ExecutableCode`."
+        },
+        "documentMetadata": {
+          "$ref": "DocumentMetadata",
+          "description": "Optional. Document metadata. The metadata should only be specified while the document data is presented in inline_data or file_data."
         },
         "executableCode": {
           "$ref": "ExecutableCode",
@@ -7244,6 +7400,10 @@
         "speechMetadata": {
           "$ref": "SpeechMetadata",
           "description": "Optional. Metadata applied to text parts to customize how they should be spoken or synthesized, such as specifying speaker identity or speaking style."
+        },
+        "spreadsheetMetadata": {
+          "$ref": "SpreadsheetMetadata",
+          "description": "Optional. Spreadsheet metadata. The metadata should only be specified while the spreadsheet data is presented in inline_data or file_data."
         },
         "text": {
           "description": "Inline text.",
@@ -8111,6 +8271,22 @@
           "$ref": "MultiSpeakerVoiceConfig",
           "description": "Optional. The configuration for the multi-speaker setup. It is mutually exclusive with the voice_config field."
         },
+        "textNormalization": {
+          "description": "Optional. Controls text normalization before speech synthesis.",
+          "enum": [
+            "TEXT_NORMALIZATION_UNSPECIFIED",
+            "AUTO",
+            "ENABLED",
+            "DISABLED"
+          ],
+          "enumDescriptions": [
+            "Unspecified text normalization mode. Defaults to `AUTO`.",
+            "Automatically determines whether to apply text normalization based on the model and speech mode.",
+            "Enables text normalization for numbers, currencies, dates, and units.",
+            "Disables text normalization for pre-normalized or phonetic inputs."
+          ],
+          "type": "string"
+        },
         "voiceConfig": {
           "$ref": "VoiceConfig",
           "description": "The configuration in case of single-voice output."
@@ -8128,6 +8304,41 @@
         },
         "style": {
           "description": "Optional. Optional style instruction for the speech synthesis.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "SpreadsheetMetadata": {
+      "description": "Metadata describes the input spreadsheet content. Set this in `Part.spreadsheet_metadata` or `FunctionResponsePart.spreadsheet_metadata` when `inline_data` or `file_data` contains a spreadsheet to configure static spreadsheet preprocessing.",
+      "id": "SpreadsheetMetadata",
+      "properties": {
+        "contentLayers": {
+          "description": "Optional. Content layers to return. If empty, defaults to [DATA, FORMULAS] when SpreadsheetMetadata is set.",
+          "items": {
+            "enum": [
+              "CONTENT_LAYER_UNSPECIFIED",
+              "DATA",
+              "FORMULAS",
+              "VISUAL"
+            ],
+            "enumDescriptions": [
+              "Default value.",
+              "Cell values, merges, and formats.",
+              "Formula expressions and their computed results.",
+              "A rendered image of the sheet."
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sheetIndex": {
+          "description": "Optional. The 1-indexed index of the sheet to extract, in workbook order. If not set, all sheets are extracted.",
+          "format": "int32",
+          "type": "integer"
+        },
+        "visibleCells": {
+          "description": "Optional. The range of cells to extract, in A1 notation (e.g. \"A1:D10\"). If not set, the full occupied area of the sheet is used.",
           "type": "string"
         }
       },
@@ -8994,6 +9205,25 @@
       "description": "Metadata describes the input video content. Set this in `Part.video_metadata` or `FunctionResponsePart.video_metadata` when `inline_data` or `file_data` contains video to configure static video preprocessing (such as time clipping, frame rate, maximum frame count, or extracted content layers).",
       "id": "VideoMetadata",
       "properties": {
+        "contentLayers": {
+          "description": "Optional. Content layers to return. If empty, defaults to [FRAMES, AUDIO].",
+          "items": {
+            "enum": [
+              "CONTENT_LAYER_UNSPECIFIED",
+              "FRAMES",
+              "AUDIO",
+              "TRANSCRIPT"
+            ],
+            "enumDescriptions": [
+              "Default value.",
+              "Extract video frames.",
+              "Extract audio track.",
+              "Extract audio transcript."
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
         "endOffset": {
           "description": "Optional. The end offset of the video.",
           "format": "google-duration",

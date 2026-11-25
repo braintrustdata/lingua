@@ -58,21 +58,67 @@ struct GoogleAssistantPartProviderOptions {
 /// Rejects Google part fields whose semantics depend on provider-owned
 /// execution or resources and therefore have no universal representation.
 pub(super) fn reject_google_provider_only_part(part: &GooglePart) -> Result<(), ConvertError> {
-    let field = if part.audio_transcription.is_some() {
+    // Media preprocessing metadata directs Google's own ingestion pipeline: which
+    // derived layer to synthesize and which slice of the asset to decode. Dropping it
+    // changes what the model sees, and no other provider can express the instruction.
+    let field = if part.audio_metadata.is_some() {
+        "audioMetadata"
+    } else if part.audio_transcription.is_some() {
         "audioTranscription"
+    } else if part.document_metadata.is_some() {
+        "documentMetadata"
     } else if part.media_processing.is_some() {
         "mediaProcessing"
     } else if part.speech_metadata.is_some() {
         "speechMetadata"
+    } else if part.spreadsheet_metadata.is_some() {
+        "spreadsheetMetadata"
     } else if part.tool_call.is_some() {
         "toolCall"
+    } else if part.video_metadata.is_some() {
+        "videoMetadata"
     } else {
-        return Ok(());
+        return reject_google_provider_only_function_response_parts(part);
     };
-    Err(ConvertError::UnsupportedMapping {
-        from: format!("Google part {field}"),
+    Err(unsupported_google_part_field("part", field))
+}
+
+/// Rejects the same provider-owned media directives on the parts nested inside a
+/// `functionResponse`, which the outer part guard cannot see.
+fn reject_google_provider_only_function_response_parts(
+    part: &GooglePart,
+) -> Result<(), ConvertError> {
+    let nested_parts = part
+        .function_response
+        .as_ref()
+        .and_then(|response| response.parts.as_ref());
+    for nested_part in nested_parts.into_iter().flatten() {
+        let field = if nested_part.audio_metadata.is_some() {
+            "audioMetadata"
+        } else if nested_part.document_metadata.is_some() {
+            "documentMetadata"
+        } else if nested_part.media_resolution.is_some() {
+            "mediaResolution"
+        } else if nested_part.spreadsheet_metadata.is_some() {
+            "spreadsheetMetadata"
+        } else if nested_part.video_metadata.is_some() {
+            "videoMetadata"
+        } else {
+            continue;
+        };
+        return Err(unsupported_google_part_field(
+            "functionResponse part",
+            field,
+        ));
+    }
+    Ok(())
+}
+
+fn unsupported_google_part_field(part_kind: &str, field: &str) -> ConvertError {
+    ConvertError::UnsupportedMapping {
+        from: format!("Google {part_kind} {field}"),
         to: "Lingua universal message",
-    })
+    }
 }
 
 fn text_part(text: String) -> GooglePart {

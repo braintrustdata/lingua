@@ -1845,7 +1845,7 @@ fn generate_google_types_with_quicktype(
 
     let _ = std::fs::remove_file(&temp_schema_path);
 
-    let processed_output = post_process_quicktype_output_for_google(&quicktype_output);
+    let processed_output = post_process_quicktype_output_for_google(&quicktype_output)?;
 
     let dest_path = "crates/lingua/src/providers/google/generated.rs";
 
@@ -2181,7 +2181,7 @@ fn add_default_derive_to_structs(content: &str) -> String {
     result_lines.join("\n")
 }
 
-fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
+fn post_process_quicktype_output_for_google(quicktype_output: &str) -> Result<String, String> {
     let mut processed = quicktype_output.to_string();
 
     // Add ts-rs import after the last use statement
@@ -2265,12 +2265,86 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // Preserve established public Rust variant names when quicktype disambiguates them.
     processed = preserve_google_public_enum_variant_names(&processed);
 
+    // Parent-qualify inline enums that quicktype named after their property alone.
+    processed = qualify_google_inline_enum_names(&processed)?;
+
     // Google's Discovery spec represents Schema int64 fields as protobuf-JSON
     // strings. Accept numeric JSON Schema input too, while preserving string
     // serialization in the generated Google type.
     processed = add_google_schema_int64_deserializers(&processed);
 
-    processed
+    Ok(processed)
+}
+
+/// Public names Lingua gives to Google inline enums, keyed by the name quicktype derives.
+///
+/// Discovery inline enums have no schema id, so quicktype names them after the property
+/// alone and only qualifies them when two happen to clash. That leaves single-use enums
+/// such as `MediaResolution.level` exported as the bare name `Level`, which carries no
+/// meaning in Lingua's flat `google/` namespace and which a future Discovery schema or
+/// inline enum of the same name would silently shadow. Qualify those with their parent.
+const GOOGLE_INLINE_ENUM_PUBLIC_NAMES: &[(&str, &str)] = &[("Level", "MediaResolutionLevel")];
+
+/// Rename quicktype's property-derived inline enum names to their parent-qualified
+/// public names.
+///
+/// Fails loudly when an entry no longer matches the generated output, so a Discovery
+/// revision can never quietly shadow or drop a public name: a missing source type means
+/// the entry is stale, and an existing target type means the qualified name collides.
+fn qualify_google_inline_enum_names(content: &str) -> Result<String, String> {
+    let mut renamed = content.to_string();
+    for (generated_name, public_name) in GOOGLE_INLINE_ENUM_PUBLIC_NAMES {
+        if !contains_rust_type_definition(&renamed, generated_name) {
+            return Err(format!(
+                "Google inline enum '{generated_name}' no longer exists; remove or update its \
+                 public name entry '{public_name}'"
+            ));
+        }
+        if contains_rust_type_definition(&renamed, public_name) {
+            return Err(format!(
+                "Google public name collision: inline enum '{generated_name}' cannot be \
+                 qualified as '{public_name}' because that type already exists"
+            ));
+        }
+        renamed = rename_rust_type(&renamed, generated_name, public_name);
+    }
+    Ok(renamed)
+}
+
+/// Replace every use of the Rust type `from` with `to`, leaving comments and string
+/// literals alone so only the type identifier moves.
+fn rename_rust_type(content: &str, from: &str, to: &str) -> String {
+    content
+        .lines()
+        .map(|line| {
+            if line.trim_start().starts_with("//") || line.contains('"') {
+                return line.to_string();
+            }
+            let mut renamed = String::with_capacity(line.len());
+            let mut rest = line;
+            while let Some(index) = rest.find(from) {
+                let (before, after) = rest.split_at(index);
+                let follows_identifier = before
+                    .chars()
+                    .next_back()
+                    .is_some_and(|character| character.is_alphanumeric() || character == '_');
+                let precedes_identifier = after[from.len()..]
+                    .chars()
+                    .next()
+                    .is_some_and(|character| character.is_alphanumeric() || character == '_');
+                renamed.push_str(before);
+                if follows_identifier || precedes_identifier {
+                    renamed.push_str(from);
+                } else {
+                    renamed.push_str(to);
+                }
+                rest = &after[from.len()..];
+            }
+            renamed.push_str(rest);
+            renamed
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 /// Add lowercase serde aliases to Google's `Type` enum variants.
@@ -2562,8 +2636,9 @@ pub struct Status {}
 #[cfg(test)]
 mod google_post_process_tests {
     use super::{
-        add_type_enum_lowercase_aliases, create_essential_google_schemas,
-        extract_type_name_from_ref, preserve_google_public_enum_variant_names, serde_json,
+        GOOGLE_INLINE_ENUM_PUBLIC_NAMES, add_type_enum_lowercase_aliases,
+        create_essential_google_schemas, extract_type_name_from_ref,
+        preserve_google_public_enum_variant_names, qualify_google_inline_enum_names, serde_json,
     };
 
     fn discovery_spec_with_media_resolution_refs(refs: &[&str]) -> serde_json::Value {
@@ -2661,6 +2736,59 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"STRING\", alias = \"string\")]\n    String,"));
         assert!(!output.contains("TypeString"));
+    }
+
+    #[test]
+    fn qualifies_media_resolution_inline_enum_with_its_parent() {
+        let input = r#"pub struct MediaResolution {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub level: Option<Level>,
+}
+
+/// The tokenization quality used for given media.
+pub enum Level {
+    #[serde(rename = "MEDIA_RESOLUTION_LOW")]
+    MediaResolutionLow,
+}
+
+pub enum ThinkingLevel {
+    Low,
+}"#;
+
+        let output = qualify_google_inline_enum_names(input).unwrap();
+
+        assert!(output.contains("pub enum MediaResolutionLevel {"));
+        assert!(output.contains("pub level: Option<MediaResolutionLevel>,"));
+        assert!(!output.contains("Option<Level>"));
+        // Only the standalone type identifier moves.
+        assert!(output.contains("pub enum ThinkingLevel {"));
+        assert!(output.contains("#[serde(rename = \"MEDIA_RESOLUTION_LOW\")]"));
+    }
+
+    #[test]
+    fn rejects_inline_enum_qualification_that_shadows_an_existing_type() {
+        let input = r#"pub enum Level {
+    Low,
+}
+
+pub enum MediaResolutionLevel {
+    Low,
+}"#;
+
+        let error = qualify_google_inline_enum_names(input).unwrap_err();
+
+        assert!(error.contains("Google public name collision"));
+        assert!(error.contains("MediaResolutionLevel"));
+    }
+
+    #[test]
+    fn rejects_stale_inline_enum_public_name_entries() {
+        let error = qualify_google_inline_enum_names("pub struct MediaResolution {}").unwrap_err();
+
+        assert!(error.contains("no longer exists"));
+        for (generated_name, _) in GOOGLE_INLINE_ENUM_PUBLIC_NAMES {
+            assert!(error.contains(generated_name));
+        }
     }
 
     #[test]

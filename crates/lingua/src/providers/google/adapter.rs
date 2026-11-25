@@ -96,6 +96,14 @@ fn reject_google_provider_only_request(params: &GoogleParams) -> Result<(), Tran
             ));
         }
         if let Some(speech) = &config.speech_config {
+            // Text normalization preprocesses text inside Google's hosted speech
+            // synthesis; no other provider exposes a comparable request-side control.
+            if speech.text_normalization.is_some() {
+                return Err(unsupported_google_field(
+                    "generationConfig.speechConfig.textNormalization",
+                    TARGET,
+                ));
+            }
             let speaker_voices = speech
                 .multi_speaker_voice_config
                 .iter()
