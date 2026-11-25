@@ -1681,6 +1681,28 @@ mod tests {
         }
     }
 
+    // A terminal reason paired with an explicit ADK completion can end an empty assistant turn.
+    #[cfg(feature = "google")]
+    #[test]
+    fn adk_import_keeps_completed_contentless_turns() {
+        for output in [
+            crate::serde_json::json!({"finishReason": "STOP", "turnComplete": true}),
+            crate::serde_json::json!({"FinishReason": "STOP", "TurnComplete": true}),
+        ] {
+            let imported = import_span(Span {
+                input: None,
+                output: Some(output),
+                other: Default::default(),
+            })
+            .unwrap();
+            assert!(matches!(
+                imported.output.as_slice(),
+                [Message::Assistant { content: AssistantContent::String(text), .. }] if text.is_empty()
+            ));
+            assert!(imported.errors.is_empty());
+        }
+    }
+
     #[cfg(feature = "google")]
     #[test]
     fn adk_error_only_output_imports_an_empty_assistant_turn() {

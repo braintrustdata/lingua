@@ -675,9 +675,10 @@ impl TraceCandidate {
 
     fn is_finished(&self, in_candidates: bool) -> bool {
         let terminal = self.has_terminal_finish_reason();
-        ((terminal || self.turn_complete == Some(true) || self.partial == Some(false))
+        let turn_complete = self.turn_complete == Some(true);
+        ((terminal || turn_complete || self.partial == Some(false))
             && self.has_roleless_candidate_content())
-            || (terminal && (in_candidates || self.usage_metadata.is_some()))
+            || (terminal && (in_candidates || self.usage_metadata.is_some() || turn_complete))
     }
 
     fn is_adk_error(&self) -> bool {
