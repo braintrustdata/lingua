@@ -26,6 +26,8 @@ impl DatabricksCredentials {
         let mut hasher = Sha256::new();
         hasher.update(self.client_id.as_bytes());
         hasher.update(b"|");
+        hasher.update(self.client_secret.as_bytes());
+        hasher.update(b"|");
         hasher.update(api_base.as_bytes());
         hasher.finalize().into()
     }
@@ -349,5 +351,49 @@ mod tests {
         }
 
         assert!(server.received_requests().await.unwrap().len() > 1);
+    }
+
+    #[tokio::test]
+    async fn different_client_secret_does_not_reuse_cached_token() {
+        // Guards against cross-org reuse: credentials that differ only in client_secret must not share a cached token.
+        let server = MockServer::start().await;
+        for (secret, token) in [("secret-a", "token-a"), ("secret-b", "token-b")] {
+            let expected_auth = format!(
+                "Basic {}",
+                base64::engine::general_purpose::STANDARD.encode(format!("client:{secret}"))
+            );
+            Mock::given(method("POST"))
+                .and(path("/oidc/v1/token"))
+                .and(header("Authorization", expected_auth.as_str()))
+                .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                    "access_token": token,
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                })))
+                .expect(1)
+                .mount(&server)
+                .await;
+        }
+
+        let credentials = |secret: &str| DatabricksCredentials {
+            client_id: "client".into(),
+            client_secret: secret.into(),
+        };
+
+        let manager = DatabricksTokenManager::new();
+        let client = Client::builder().build().unwrap();
+        let api_base = server.uri();
+
+        let (first, _) = manager
+            .get_token(&client, &credentials("secret-a"), &api_base)
+            .await
+            .expect("first token fetched");
+        assert_eq!(first, "token-a");
+
+        let (second, _) = manager
+            .get_token(&client, &credentials("secret-b"), &api_base)
+            .await
+            .expect("second token fetched");
+        assert_eq!(second, "token-b");
     }
 }
