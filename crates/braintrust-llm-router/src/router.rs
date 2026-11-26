@@ -1338,9 +1338,9 @@ impl Router {
         })?;
         if spec.is_provider_retired(&alias)
             || spec.providers.as_ref().is_some_and(|providers| {
-                providers.iter().any(|(id, metadata)| {
-                    metadata.retired == Some(true) && provider.matches_provider_alias(id)
-                })
+                providers
+                    .keys()
+                    .any(|id| provider.matches_provider_alias(id) && spec.is_provider_retired(id))
             })
         {
             return Err(Error::NoProvider(catalog_format));
@@ -5331,34 +5331,45 @@ mod tests {
 
     #[test]
     fn format_fallback_does_not_use_a_retired_provider() {
-        let catalog = ModelCatalog::from_json_str(
-            r#"{
-                "model": {
-                    "format": "openai", "flavor": "chat",
-                    "available_providers": ["openai", "azure"],
-                    "providers": {"openai": {"retired": true}}
-                }
-            }"#,
-        )
-        .unwrap();
-        let router = Router::builder()
-            .with_catalog(Arc::new(catalog))
-            .add_provider(
-                "custom-openai",
-                FakeProvider {
-                    name: "openai",
-                    formats: vec![ProviderFormat::ChatCompletions],
-                },
-                dummy_auth(),
-                vec![ProviderFormat::ChatCompletions],
+        // A custom-named OpenAI provider reached through format fallback is
+        // rejected when the catalog retires OpenAI by flag or by a past date.
+        for openai_metadata in [
+            serde_json::json!({"retired": true}),
+            serde_json::json!({"retirement_date": "2024-01-01"}),
+        ] {
+            let catalog = ModelCatalog::from_json_str(
+                &serde_json::json!({
+                    "model": {
+                        "format": "openai", "flavor": "chat",
+                        "available_providers": ["openai", "azure"],
+                        "providers": {"openai": openai_metadata}
+                    }
+                })
+                .to_string(),
             )
-            .build()
             .unwrap();
+            let router = Router::builder()
+                .with_catalog(Arc::new(catalog))
+                .add_provider(
+                    "custom-openai",
+                    FakeProvider {
+                        name: "openai",
+                        formats: vec![ProviderFormat::ChatCompletions],
+                    },
+                    dummy_auth(),
+                    vec![ProviderFormat::ChatCompletions],
+                )
+                .build()
+                .unwrap();
 
-        assert!(matches!(
-            router.resolve_provider_routes("model", ProviderFormat::ChatCompletions, &[]),
-            Err(Error::NoProvider(ProviderFormat::ChatCompletions))
-        ));
+            assert!(
+                matches!(
+                    router.resolve_provider_routes("model", ProviderFormat::ChatCompletions, &[]),
+                    Err(Error::NoProvider(ProviderFormat::ChatCompletions))
+                ),
+                "{openai_metadata}"
+            );
+        }
     }
 
     #[test]
