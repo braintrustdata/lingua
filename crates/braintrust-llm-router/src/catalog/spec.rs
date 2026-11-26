@@ -1,3 +1,4 @@
+use chrono::{NaiveDate, Utc};
 use lingua::ProviderFormat;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -219,8 +220,16 @@ impl ModelSpec {
     }
 
     pub fn is_provider_retired(&self, provider: &str) -> bool {
-        self.provider_metadata(provider)
-            .is_some_and(|metadata| metadata.retired == Some(true))
+        self.provider_metadata(provider).is_some_and(|metadata| {
+            metadata.retired.unwrap_or_else(|| {
+                metadata.retirement_date.as_deref().is_some_and(|date| {
+                    NaiveDate::parse_from_str(date, "%Y-%m-%d").is_ok_and(|parsed| {
+                        parsed <= Utc::now().date_naive()
+                            && parsed.format("%Y-%m-%d").to_string() == date
+                    })
+                })
+            })
+        })
     }
 
     pub fn max_input_tokens_for_provider(&self, provider: &str) -> Option<u32> {
@@ -250,6 +259,29 @@ impl ModelSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn provider_retirement_flag_precedes_utc_retirement_date() {
+        let today = Utc::now().date_naive();
+        let spec: ModelSpec = serde_json::from_value(serde_json::json!({
+            "format": "openai",
+            "flavor": "chat",
+            "available_providers": ["openai", "azure", "openrouter", "together", "groq"],
+            "providers": {
+                "openai": { "retired": false, "retirement_date": "2024-01-01" },
+                "azure": { "retirement_date": today.to_string() },
+                "openrouter": { "retired": true, "retirement_date": "9999-01-01" },
+                "together": { "retirement_date": "9999-01-01" },
+                "groq": { "retirement_date": "2024-02-30" }
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(
+            spec.serving_providers().collect::<Vec<_>>(),
+            ["openai", "together", "groq"]
+        );
+    }
 
     #[test]
     fn provider_limits_only_fall_back_for_missing_provider_entries() {

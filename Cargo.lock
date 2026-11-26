@@ -526,6 +526,7 @@ dependencies = [
  "aws-smithy-runtime-api",
  "base64 0.22.1",
  "bytes",
+ "chrono",
  "clap",
  "criterion",
  "dashmap",
